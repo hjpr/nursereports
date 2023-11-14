@@ -20,12 +20,12 @@ class NavbarState(State):
     # Alert modal message.
     alert_message: str = None
 
-    # Show error under buttons during sign in/up
+    # Show error under buttons during sign in/up and providing feedback.
     show_error_sign_in: bool = False
     show_error_create_account: bool = False
     show_error_feedback: bool = False
 
-    # Content of errors during sign in/up
+    # Content of errors during sign in/up and providing feedback.
     error_sign_in_message: str = None
     error_create_account_message: str = None
     error_feedback_message: str = None
