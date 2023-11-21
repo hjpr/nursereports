@@ -124,7 +124,7 @@ class AuthState(State):
         claims as a dict.
         """
         try:
-            claims = jwt.decode(
+            claims = await jwt.decode(
                 self.access_token,
                 jwt_key,
                 audience='authenticated',
@@ -134,7 +134,7 @@ class AuthState(State):
         
         except jwt.ExpiredSignatureError:
             if await self._get_new_access_token():
-                claims = jwt.decode(
+                claims = await jwt.decode(
                     self.access_token,
                     jwt_key,
                     audience='authenticated',
@@ -142,12 +142,12 @@ class AuthState(State):
                 )
                 return claims
             else:
-                print(f"Token expired - unable to renew.")
+                rx.console_log(f"Token expired - unable to renew.")
                 return False
 
         # Catch other reasons token is invalid.    
         except Exception as e:
-            print(f"Getting claims failed - {e}")
+            rx.console_log(f"Getting claims failed - {e}")
             return False
     
     async def _get_new_access_token(self):

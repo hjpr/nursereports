@@ -1,7 +1,6 @@
 
-from ..components.c2a import c2a_spacer
 from ..components.footer import footer
-from ..components.navbar import navbar
+from ..components.navbar import navbar, c2a_spacer
 from ..components.custom import spacer
 
 import reflex as rx
@@ -11,11 +10,10 @@ def index() -> rx.Component:
 
         navbar(),
 
+        c2a_spacer(),
+
         # MAIN CONTENT CONTAINER
         rx.container(
-
-            # SETS TOP OF PAGE FROM UNDERNEATH NAVBAR/C2A
-            c2a_spacer(),
 
             # COVER IMAGE WITH TEXT OVERLAY
             rx.center(
@@ -24,7 +22,7 @@ def index() -> rx.Component:
                 #     font_size=['2em', '3em', '5em', '5em', '5em'],
                 #     text_shadow='0 0 10px white',
                 # ),
-                background_image='/placeholdercropped.webp',
+                background_image='/raster/placeholdercropped.webp',
                 background_color='snow',
                 height=['200px', '300px', '500px', '500px', '500px'],
                 background_position='center',
@@ -75,7 +73,7 @@ def index() -> rx.Component:
                             font_weight='800',
                             text_align=['center', 'center', 'center', 'left', 'left'],
                         ),
-                        spacer(height='20px', bg='white'),
+                        spacer(height='4px', bg='white'),
                         rx.text(
                             """Share details about pay, benefits, and workplace
                             culture using our short but detailed reporting
@@ -99,7 +97,7 @@ def index() -> rx.Component:
                 # IMAGE AREA
                 rx.center(
                         rx.image(
-                            src='/dalle1.webp',
+                            src='/raster/dalle1.webp',
                             max_height='400px',
                             min_height='300px'
                         ),
@@ -120,7 +118,7 @@ def index() -> rx.Component:
                 # IMAGE AREA
                 rx.center(
                     rx.image(
-                        src='/dalle2.webp',
+                        src='/raster/dalle2.webp',
                         max_height='400px',
                         min_height='300px',
                     ),
@@ -138,7 +136,7 @@ def index() -> rx.Component:
                             font_weight='800',
                             text_align=['center', 'center', 'center', 'left', 'left'],
                         ),
-                        spacer(height='20px'),
+                        spacer(height='4px'),
                         rx.text(
                             """Speak freely and without fear of retribution.
                             We don't provide your personal information to 

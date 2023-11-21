@@ -1,6 +1,5 @@
 
 from ..auth.auth import AuthState
-from ..components.c2a import c2a, c2a_spacer
 from ..components.custom import spacer
 from ..state.base import State
 
@@ -9,11 +8,9 @@ import rich
 
 class NavbarState(State):
 
-    # Containers for convenient values.
-    email: str
-
-    # Show modals if True.
+    # Show if True.
     show_alert: bool = False
+    show_c2a: bool = True
     show_feedback: bool = False
     show_sign_in: bool = False
 
@@ -39,11 +36,15 @@ class NavbarState(State):
     create_account_working: bool = False
     submit_feedback_working: bool = False
 
-    # Show or hide configurable alert modal.
+    # Show/hide configurable alert modal.
     def toggle_alert(self):
         self.show_alert = not self.show_alert
 
-    # Show or close feedback modal via c2a.
+    # Show/close c2a
+    def toggle_c2a(self):
+        self.show_c2a = not self.show_c2a
+
+    # Show/close feedback modal.
     def toggle_feedback(self):
         self.show_feedback = not self.show_feedback
 
@@ -54,7 +55,6 @@ class NavbarState(State):
         self.show_error_create_account = False
         self.error_sign_in_message = None
         self.error_create_account_message = None
-
 
 def navbar() -> rx.Component:
     """
@@ -77,10 +77,18 @@ def navbar() -> rx.Component:
         rx.center(
 
             # SITE HEADING
+            rx.image(
+                 src='/vector/icon_web_header.svg',
+                 height='32px',
+                 width='32px',
+                 margin_left='12px',
+                 margin_right='4px',
+            ),
+
             rx.heading(
                 "Nurse Reports",
                 display=['none', 'none', 'inline', 'inline', 'inline'],
-                margin_left='12px',
+                margin_left='8px',
                 margin_right='8px',
                 size='lg',
             ),
@@ -88,7 +96,8 @@ def navbar() -> rx.Component:
                 "Beta",
                 color_scheme='teal',
                 display='inline',
-                margin_right = '20px',
+                margin_right= '20px',
+                margin_left='4px',
             ),
 
             cond_options(),
@@ -236,7 +245,7 @@ def feedback_modal() -> rx.Component:
                         # MODAL BODY
                         rx.modal_body(
                             rx.text_area(
-                                placeholder='Provide any feedback here...',
+                                placeholder='Enter here...',
                                 height='100%',
                                 is_disabled=~NavbarState.is_authenticated,
                                 is_required=True,
@@ -251,8 +260,7 @@ def feedback_modal() -> rx.Component:
                                 rx.alert(
                                     rx.alert_icon(),
                                     rx.alert_title(
-                                        "To help combat spam, please login \
-                                        to submit feedback."
+                                        "To help combat spam, please login."
                                     ),
                                 status="error",
                                 border_radius='6px',
@@ -426,7 +434,7 @@ def login_modal() -> rx.Component:
                             rx.hstack(
                                 rx.divider(),
                                 rx.text(
-                                    "Or sign in with",
+                                    "Or continue with",
                                     width='100%',
                                     margin_x='16px',
                                     text_align='center',
@@ -475,5 +483,60 @@ def login_modal() -> rx.Component:
             motion_preset='scale',
             is_open=NavbarState.show_sign_in,
             on_overlay_click=NavbarState.toggle_login()
+        ),
+    )
+
+def c2a() -> rx.Component:
+    """
+    Conditional call to action below navbar. Shows on first visit to site
+    and can be closed by user with the 'close' button.
+    """
+    return rx.cond(
+        NavbarState.show_c2a,
+        rx.hstack(
+            rx.center(
+                rx.button(
+                    "In Beta. Click here to submit site issue.",
+                    size='sm',
+                    variant='ghost',
+                    color='white',
+                    _hover='none',
+                    on_click=NavbarState.toggle_feedback,
+                ),
+                width='100%',
+            ),
+            rx.button(
+                rx.icon(
+                    tag='close',
+                    color='white',
+                ),
+                size='sm',
+                variant='ghost',
+                _hover='none',
+                on_click=NavbarState.toggle_c2a,
+            ),
+
+            # STYLING FOR C2A CONTAINER
+            bg='rgba(0, 128, 128, 0.8)', # teal
+            box_shadow='inset 0px 4px 5px -5px rgba(0, 0, 0, 0.5)',
+            height='40px',
+            padding_x='12px',
+            padding_y='4px',
+        ),
+    )
+
+def c2a_spacer() -> rx.Component:
+    """
+    Sets spacer to allow elements to move when c2a is closed.
+    """
+    return rx.cond(
+        NavbarState.show_c2a,
+        rx.box(
+            height='100px',
+            width='100%',
+        ),
+        rx.box(
+            height='60px',
+            width='100%',
         ),
     )
