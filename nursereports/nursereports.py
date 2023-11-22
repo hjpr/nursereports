@@ -31,29 +31,24 @@ already logged in, or is coming from an api auth/deauth request.
 """
 app.add_page(index,
              route='/',
-             on_load=AuthState.login_flow)
+             on_load=AuthState.login_flow
+             )
 """
 AUTH - pseudo endpoint for SSO redirects. Captures url and parses it
 out to get access and refresh tokens as well as redirecting back to root site
 allowing for seamless login flow.
 """
 app.add_page(auth,
-             route='/v1/auth',
-             on_load=AuthState.auth_handler,
+             route='api/v1/auth',
+             on_load=AuthState.url_handler,
              )
 """
 DEAUTH - pseudo endpoint for SSO redirects. Captures url and parses it out
 to remove user data per request of user.
 """
 app.add_page(deauth,
-             route='/v1/deauth',
-             on_load=AuthState.deauth_handler,
-             )
-"""
-DASHBOARD - User redirected here after login.
-"""
-app.add_page(dashboard,
-             route='/dashboard',
+             route='api/v1/deauth',
+             on_load=AuthState.url_handler,
              )
 # ADD API ROUTES TO BACKEND
 

@@ -4,7 +4,6 @@ from ..components.custom import spacer
 from ..state.base import State
 
 import reflex as rx
-import rich
 
 class NavbarState(State):
 
@@ -26,10 +25,6 @@ class NavbarState(State):
     error_sign_in_message: str = None
     error_create_account_message: str = None
     error_feedback_message: str = None
-
-    # Tracks if user is signed in. Client-side value. Untrusted but helps
-    # to set some conditional items as visible.
-    is_authenticated: bool = False
 
     # Login loading status...
     sign_in_working: bool = False
@@ -133,7 +128,7 @@ def cond_account() -> rx.Component:
     When logged in shows an avatar that opens menu on click.
     """
     return rx.cond(
-        NavbarState.is_authenticated,
+        AuthState.token_is_valid,
 
         # ACCOUNT OPTIONS IF LOGGED IN
         rx.menu(
@@ -153,26 +148,32 @@ def cond_account() -> rx.Component:
             "Sign In",
             variant='ghost',
             size='sm',
-            on_click=NavbarState.toggle_login()
+            on_click=NavbarState.toggle_login,
+            is_loading=~State.is_hydrated,
         ),
     )
 
 def cond_options() -> rx.Component:
-            return rx.cond(
-                NavbarState.is_authenticated,
-                rx.hstack(
-                    rx.link(
-                        "Hospital Search",
-                        display=['none', 'inline', 'inline', 'inline', 'inline'],
-                        padding_x='12px',
-                    ),
-                    rx.link(
-                        "State Overview",
-                        display=['none', 'inline', 'inline', 'inline', 'inline'],
-                        padding_x='12px'
-                    ),
-                ),
-            )
+    """
+    Links that populate next to header once logged in.
+    """
+    return rx.cond(
+        AuthState.token_is_valid,
+
+        # MENU OPTIONS IF LOGGED IN
+        rx.hstack(
+            rx.link(
+                "Hospital Search",
+                display=['none', 'inline', 'inline', 'inline', 'inline'],
+                padding_x='12px',
+            ),
+            rx.link(
+                "State Overview",
+                display=['none', 'inline', 'inline', 'inline', 'inline'],
+                padding_x='12px'
+            ),
+        ),
+    )
 
 def alert_modal() -> rx.Component:
     """
@@ -207,7 +208,7 @@ def alert_modal() -> rx.Component:
             # STYLING FOR MODAL
             motion_preset='scale',
             is_open=NavbarState.show_alert,
-            on_overlay_click=NavbarState.toggle_alert()
+            on_overlay_click=NavbarState.toggle_alert
         ),
     )
 
@@ -247,7 +248,7 @@ def feedback_modal() -> rx.Component:
                             rx.text_area(
                                 placeholder='Enter here...',
                                 height='100%',
-                                is_disabled=~NavbarState.is_authenticated,
+                                is_disabled=~AuthState.token_is_valid,
                                 is_required=True,
                             ),
                             height='10em',
@@ -256,7 +257,7 @@ def feedback_modal() -> rx.Component:
                         # MODAL FOOTER
                         rx.modal_footer(
                             rx.cond(
-                                ~NavbarState.is_authenticated,
+                                ~AuthState.token_is_valid,
                                 rx.alert(
                                     rx.alert_icon(),
                                     rx.alert_title(

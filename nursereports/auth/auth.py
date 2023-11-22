@@ -8,7 +8,6 @@ import jwt
 import os
 import reflex as rx
 
-
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -35,154 +34,127 @@ class AuthState(State):
     )
 
     # Stored url value to extract tokens from.
-    _url: str = ""
-    _url_method: Literal['auth' , 'deauth'] = ""
+    url: str = ""
 
-    def set_url_from_script(self, url):
-        """Setter for event handler from url_handler func."""
-        self._url = url
-
-    def set_url_method(self, url_method):
-        self._url_method = url_method
-
-    def auth_handler(self):
-        """
-        Sets self.url from href when /auth page is loaded, and sets method
-        so that we know we're trying to auth with _url.
-        """
-        yield rx.call_script(
-            'window.location.href',
-            callback=AuthState.set_url_from_script
-        )
-        yield AuthState.set_url_method('auth')
-        yield rx.redirect('/')
-
-    def deauth_handler(self):
-        """
-        Sets self.url from href when /deauth page is loaded, and sets method
-        so that we know we're trying to deauth with _url.
-        """
-        yield rx.call_script(
-            'window.location.href',
-            callback=AuthState.set_url_from_script
-        )
-        yield AuthState.set_url_method('deauth')
-        yield rx.redirect('/')
-
-    async def login_flow(self):
-        """
-        1. Check if _url and _url_method were set by SSO redirect. ->
-        2. Process _url as specified in _url_method. ->
-        3. Check if access and refresh token were set from prior login/SSO redirect->
-        4. Validate claims from token to ensure they are valid ->
-        5. Profit ->
-        """
-        if self._url and self._url_method:
-            if self._url_method == 'auth':
-                try:
-                    fragment = self._url.split('#')[1]
-                    self.access_token = fragment.split('&')[0].split('=')[1]
-                    self.refresh_token = fragment.split('&')[4].split('=')[1]
-                except Exception as e:
-                    yield rx.console_log(f"Unexpected URL format passed at '/login'.")
-            elif self._url_method == 'deauth':
-                # Figure out what to pass to remove user info from database.
-                pass
-            else:
-                yield rx.console_log('Unsupported URL login flow method.')
-
-        if self.access_token and self.refresh_token:
-            async for item in self.authenticate_token():
-                yield item
-
-    async def authenticate_token(self):
-        """
-        Authenticate JWT access token as signed by Supabase.
-
-        If claims expired, then _get_claims will attempt to use refresh token
-        to make API request for new access token.
-        """
-        from ..components.navbar import NavbarState
-
-        claims = await self._get_claims()
-        if isinstance(claims, dict):
-            self._url = ''
-            self._url_method = ''
-            yield NavbarState.set_is_authenticated(True)
-            yield rx.redirect('/dashboard')
-        else:
-            self.access_token=''
-            self.refresh_token=''
-            self._url = ''
-            yield NavbarState.set_is_authenticated(False)
-            yield rx.console_log("Invalid token present as cookie.")
-
-    async def _get_claims(self) -> dict | bool:
-        """
-        Get claims from access_token JWT. Will raise exception if JWT signature
-        isn't correct, or has expired. Either returns False or returns the
-        claims as a dict.
-        """
+    @rx.cached_var
+    def token_is_valid(self) -> bool:
         try:
-            claims = await jwt.decode(
+            jwt.decode(
                 self.access_token,
                 jwt_key,
                 audience='authenticated',
                 algorithms=['HS256'],
             )
-            return claims
-        
+            return True
         except jwt.ExpiredSignatureError:
-            if await self._get_new_access_token():
-                claims = await jwt.decode(
+            self.get_new_access_token
+            try:
+                jwt.decode(
                     self.access_token,
                     jwt_key,
                     audience='authenticated',
                     algorithms=['HS256'],
                 )
-                return claims
-            else:
-                rx.console_log(f"Token expired - unable to renew.")
+                return True
+            except Exception as e:
+                print(f"Attempted to refresh expired token.\
+                      Retrieved token invalid - {e}")
                 return False
-
-        # Catch other reasons token is invalid.    
         except Exception as e:
-            rx.console_log(f"Getting claims failed - {e}")
+            print(f"Token invalid - {e}")
             return False
-    
-    async def _get_new_access_token(self):
+
+    @rx.cached_var
+    def token_claims(self) -> dict[str, str]:
+        try:
+            claims = jwt.decode(
+                self.access_token,
+                jwt_key,
+                audience='authenticated',
+                algorithms=['HS256'],
+            )
+            return json.dumps(claims)
+        except jwt.ExpiredSignatureError:
+            self.get_new_access_token
+            try:
+                claims = jwt.decode(
+                    self.access_token,
+                    jwt_key,
+                    audience='authenticated',
+                    algorithms=['HS256'],
+                )
+                return json.dumps(claims)
+            except Exception as e:
+                print(f"Attempted to refresh expired token.\
+                      Failed to get claims - {e}")
+                return {}
+        except Exception as e:
+            print(f"Can't get claims - {e}.")
+            return {}
+
+    def set_url(self, url):
+        """Setter for event handler from url_handler."""
+        self.url = url
+
+    def url_handler(self):
+        """
+        Sets self.url from href when /auth page is loaded, and sets method
+        so that we know we're trying to auth with url.
+        """
+        yield rx.call_script(
+            'window.location.href',
+            callback=AuthState.set_url
+        )
+        yield rx.redirect('/')
+
+    def login_flow(self):
+        """
+        From '/'. Check if url was set by SSO redirect.
+        """
+        if self.token_is_valid:
+            yield rx.redirect('/dashboard')
+
+        if "api/v1/auth" in self.url:
+            try:
+                fragment = self.url.split('#')[1]
+                self.access_token = fragment.split('&')[0].split('=')[1]
+                self.refresh_token = fragment.split('&')[4].split('=')[1]
+            except Exception as e:
+                yield rx.console_log(f"Unexpected URL format passed at '/login'.")
+        else:
+            yield rx.console_log('Unsupported URL login flow method.')
+
+
+    def get_new_access_token(self):
         """
         Refresh stored AuthState token. Called if token found to be expired
-        when checking from _get_claims.
+        when checking from get_claims.
         """
-        async with httpx.AsyncClient() as client:
-            url = f"{api_url}/auth/v1/token"
-            params = {
-                "grant_type": "refresh_token"
-            }
-            headers = {
-                "apikey": api_key,
-                "Authorization": f"Bearer {self.access_token}",
-                "Content-Type": "application/json",
-            }
-            data = {
-                "refresh_token": self.refresh_token
-            }
-            try:
-                response = await client.post(
-                    url=url,
-                    params=params,
-                    headers=headers,
-                    data=json.dumps(data)
-                    )
-            except Exception as e:
-                return False
-            
-            # Convert response object to json and extract tokens.
-            f_response = response.json()
-            self.access_token = f_response.get('access_token')
-            self.refresh_token = f_response.get('refresh_token')
-            return True
+        url = f"{api_url}/auth/v1/token"
+        params = {
+            "grant_type": "refresh_token"
+        }
+        headers = {
+            "apikey": api_key,
+            "Authorization": f"Bearer {self.access_token}",
+            "Content-Type": "application/json",
+        }
+        data = {
+            "refresh_token": self.refresh_token
+        }
+
+        try:
+            response = httpx.post(
+                url=url,
+                params=params,
+                headers=headers,
+                data=json.dumps(data)
+            )
+        except Exception as e:
+            print(f"{e}")
+        
+        self.access_token = response.json().get('access_token')
+        self.refresh_token = response.json().get('refresh_token')
 
     async def email_sign_in(self, form_data: dict) -> Generator:
         """
@@ -198,7 +170,6 @@ class AuthState(State):
 
         async with httpx.AsyncClient() as client:
 
-            # Set up our API request.
             url = f'{api_url}/auth/v1/token'
             params = {
                 "grant_type": "password",
@@ -212,7 +183,6 @@ class AuthState(State):
                 "password": form_data.get("sign_in_password"),
             }
 
-            # Make our request.
             response = await client.post(
                 url=url,
                 params=params,
@@ -221,20 +191,16 @@ class AuthState(State):
             )
 
             if response.is_success:
-                # Grab our tokens from set-cookies in Response object.
-                access_token = response.cookies.get('sb-access-token')
-                refresh_token = response.cookies.get('sb-refresh-token')
-
                 # Ensure the JWT that we get is valid and signed by Supabase!
                 try:
                     claims = jwt.decode(
-                        access_token,
+                        response.cookies.get('sb-access-token'),
                         jwt_key,
                         audience='authenticated',
                         algorithms=['HS256'],
                     )
 
-                # If invalid, set error message and stop spinning progress circle.
+                # If invalid, set UI elements for error.
                 except Exception as e:
                     yield NavbarState.set_show_error_sign_in(True)
                     yield NavbarState.set_show_error_sign_in_message(
@@ -243,16 +209,11 @@ class AuthState(State):
                     yield NavbarState.set_sign_in_working(False)
 
                 # Set cookies and values from claims of returned response.
-                email = claims.get('email')
-                self.access_token = access_token
-                self.refresh_token = refresh_token
-                yield NavbarState.set_email(email)
+                self.access_token = response.cookies.get('sb-access-token')
+                self.refresh_token = response.cookies.get('sb-refresh-token')
 
-                # Set NavbarState as logged in, and close login window.
+                # Set UI elements and redirect.
                 yield NavbarState.set_show_sign_in(False)
-                yield NavbarState.set_is_authenticated(True)
-
-                # Redirect to dashboard, uncomment and utilize below to add...
                 yield rx.redirect('/dashboard')
 
             else:
@@ -260,13 +221,11 @@ class AuthState(State):
                 self.access_token = ""
                 self.refresh_token = ""
 
-                # Make error label visible, set error message.
+                # Set UI elements for error.
                 yield NavbarState.set_show_error_sign_in(True)
                 yield NavbarState.set_error_sign_in_message(
                     "Invalid credentials provided."
                 )
-
-                # Stop spinning progress circle.
                 yield NavbarState.set_sign_in_working(False)
 
     async def email_create_account(self, form_data: dict) -> Generator:
