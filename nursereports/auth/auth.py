@@ -47,7 +47,7 @@ class AuthState(State):
             )
             return True
         except jwt.ExpiredSignatureError:
-            self.get_new_access_token
+            self.get_new_access_token()
             try:
                 jwt.decode(
                     self.access_token,
@@ -75,7 +75,7 @@ class AuthState(State):
             )
             return json.dumps(claims)
         except jwt.ExpiredSignatureError:
-            self.get_new_access_token
+            self.get_new_access_token()
             try:
                 claims = jwt.decode(
                     self.access_token,
