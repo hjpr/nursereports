@@ -6,25 +6,30 @@ from ..components.custom import spacer
 
 import reflex as rx
 
-@protected_page
-def dashboard() -> rx.Component:
-    return rx.box(
+class Dashboard:
+    """Contains page and additional components for dashboard page."""
 
-        navbar(),
+    route: str = "/dashboard"
 
-        c2a_spacer(),
-        
-        # MAIN CONTENT CONTAINER
-        rx.container(
+    @protected_page
+    def page() -> rx.Component:
+        return rx.box(
 
+            navbar(),
 
-            # REST OF PAGE BELOW
+            c2a_spacer(),
             
+            # MAIN CONTENT CONTAINER
+            rx.container(
 
-        # STYLING FOR MAIN CONTAINER
-        height='300px',
-        ),
 
-        footer(),
+                # REST OF PAGE BELOW
+                
 
-    )
+            # STYLING FOR MAIN CONTAINER
+            height='300px',
+            ),
+
+            footer(),
+
+        )

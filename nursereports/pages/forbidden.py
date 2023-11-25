@@ -1,19 +1,21 @@
 
-from typing import Generator
 
-import asyncio
+from ..components.custom import spacer
+
 import reflex as rx
 
-async def redirect() -> Generator:
-    asyncio.sleep(3)
-    yield rx.redirect('/')
+class Forbidden():
+    """403 Error page."""
 
-def forbidden() -> rx.Component:
-    return rx.center(
-        rx.heading(
-            "403 - Page requires login"
-        ),
-        rx.text(
-            "You will be redirected in a few seconds...."
-        ),
-    )
+    route: str = "/error/403"
+
+    def page() -> rx.Component:
+        return rx.center(
+            rx.vstack(
+                spacer(height='48px'),
+                rx.circular_progress(
+                    is_indeterminate=True,
+                    on_mount=rx.redirect('/'),
+                ),
+            ),
+        )

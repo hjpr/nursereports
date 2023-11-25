@@ -3,19 +3,19 @@ from ..components.custom import spacer
 
 import reflex as rx
 
-class AuthAPI:
+class DeauthAPI:
 
-    route: str = '/api/v1/auth'
+    route: str = '/api/v1/deauth'
 
     def page():
         """
-        A pseudo endpoint for SSO redirects that runs the auth_handler when hit
-        to extract JWT token for access, and refresh token for...well...refreshing.
-        """ 
+        A pseudo endpoint for SSO redirects that runs the deauth_handler when hit
+        to remove user information per request of user.
+        """
         return rx.center(
             rx.vstack(
                 rx.heading(
-                    "Processing login, redirecting...",
+                    "Removing user info, redirecting...",
                     size='md',
                 ),
                 spacer(height='8px'),
