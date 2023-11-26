@@ -324,8 +324,14 @@ def login_modal() -> rx.Component:
                     rx.modal_body(
                         rx.tabs(
                             rx.tab_list(
-                                rx.tab("Sign in"),
-                                rx.tab("Create account"),
+                                rx.tab(
+                                    "Sign in",
+                                    font_weight='700',
+                                    ),
+                                rx.tab(
+                                    "Create account",
+                                    font_weight='700',
+                                    ),
                             ),
                             rx.tab_panels(
                                 rx.tab_panel(
@@ -334,14 +340,26 @@ def login_modal() -> rx.Component:
                                     rx.form(
                                         rx.vstack(
                                             spacer(height='28px'),
+                                            rx.text(
+                                                "Email",
+                                                text_align='left',
+                                                font_size='0.9em',
+                                                width='100%',
+                                                ),
                                             rx.input(
-                                                placeholder='E-Mail',
+                                                placeholder='Enter e-mail',
                                                 id='sign_in_email',
                                                 is_required=True,
                                             ),
                                             spacer(height='8px'),
+                                            rx.text(
+                                                "Password",
+                                                text_align='left',
+                                                font_size='0.9em',
+                                                width='100%',
+                                                ),
                                             rx.input(
-                                                placeholder='Password',
+                                                placeholder='Enter password',
                                                 id='sign_in_password',
                                                 type_='password',
                                                 is_required=True,
@@ -378,20 +396,38 @@ def login_modal() -> rx.Component:
                                     rx.form(
                                         rx.vstack(
                                             spacer(height='28px'),
+                                            rx.text(
+                                                "Email",
+                                                text_align='left',
+                                                font_size='0.9em',
+                                                width='100%',
+                                                ),                                           
                                             rx.input(
-                                                placeholder='E-Mail',
+                                                placeholder='Enter e-mail',
                                                 id='create_account_email',
                                                 is_required=True,
                                             ),
                                             spacer(height='8px'),
+                                            rx.text(
+                                                "Password",
+                                                text_align='left',
+                                                font_size='0.9em',
+                                                width='100%',
+                                                ),                                            
                                             rx.input(
-                                                placeholder='Password',
+                                                placeholder='Enter password',
                                                 id='create_account_password',
                                                 type_='password',
                                                 is_required=True,
                                             ),
+                                            rx.text(
+                                                "Confirm password",
+                                                text_align='left',
+                                                font_size='0.9em',
+                                                width='100%',
+                                                ),                                           
                                             rx.input(
-                                                placeholder='Confirm Password',
+                                                placeholder='Enter password again',
                                                 id='create_account_password_confirm',
                                                 type_='password',
                                                 is_required=True,
@@ -439,6 +475,7 @@ def login_modal() -> rx.Component:
                                     width='100%',
                                     margin_x='16px',
                                     text_align='center',
+                                    font_size='0.9em',
                                     ),
                                 rx.divider(),
                                 width='100%',

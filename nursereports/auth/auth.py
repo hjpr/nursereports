@@ -39,13 +39,17 @@ class AuthState(State):
     @rx.cached_var
     def token_is_valid(self) -> bool:
         try:
-            jwt.decode(
-                self.access_token,
-                jwt_key,
-                audience='authenticated',
-                algorithms=['HS256'],
-            )
-            return True
+            if len(self.access_token) > 0:
+                jwt.decode(
+                    self.access_token,
+                    jwt_key,
+                    audience='authenticated',
+                    algorithms=['HS256'],
+                )
+                return True
+            else:
+                print("No access token.")
+                return False
         except jwt.ExpiredSignatureError:
             self.get_new_access_token()
             try:
@@ -67,13 +71,17 @@ class AuthState(State):
     @rx.cached_var
     def token_claims(self) -> dict[str, str]:
         try:
-            claims = jwt.decode(
-                self.access_token,
-                jwt_key,
-                audience='authenticated',
-                algorithms=['HS256'],
-            )
-            return json.dumps(claims)
+            if len(self.access_token) > 0:
+                claims = jwt.decode(
+                    self.access_token,
+                    jwt_key,
+                    audience='authenticated',
+                    algorithms=['HS256'],
+                )
+                return json.dumps(claims)
+            else:
+                print("No claims - access token empty.")
+                return []
         except jwt.ExpiredSignatureError:
             self.get_new_access_token()
             try:
