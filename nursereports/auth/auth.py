@@ -1,5 +1,4 @@
 
-from ..state.base import State
 from typing import Generator, Literal
 
 import httpx
@@ -16,7 +15,7 @@ api_key = os.getenv("SUPABASE_ANON_KEY")
 jwt_key = os.getenv("SUPABASE_JWT_KEY")
 
 
-class AuthState(State):
+class AuthState(rx.State):
     """
     User data returned via JWT from Supabase API call. API endpoints for
     Supabase auth - https://github.com/supabase/gotrue
@@ -52,18 +51,6 @@ class AuthState(State):
                 return False
         except jwt.ExpiredSignatureError:
             self.get_new_access_token()
-            try:
-                jwt.decode(
-                    self.access_token,
-                    jwt_key,
-                    audience='authenticated',
-                    algorithms=['HS256'],
-                )
-                return True
-            except Exception as e:
-                print(f"Attempted to refresh expired token.\
-                      Retrieved token invalid - {e}")
-                return False
         except Exception as e:
             print(f"Token invalid - {e}")
             return False
@@ -84,18 +71,6 @@ class AuthState(State):
                 return []
         except jwt.ExpiredSignatureError:
             self.get_new_access_token()
-            try:
-                claims = jwt.decode(
-                    self.access_token,
-                    jwt_key,
-                    audience='authenticated',
-                    algorithms=['HS256'],
-                )
-                return json.dumps(claims)
-            except Exception as e:
-                print(f"Attempted to refresh expired token.\
-                      Failed to get claims - {e}")
-                return {}
         except Exception as e:
             print(f"Can't get claims - {e}.")
             return {}

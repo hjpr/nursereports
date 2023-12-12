@@ -1,11 +1,10 @@
 
 from ..auth.auth import AuthState
 from ..components.custom import spacer
-from ..state.base import State
 
 import reflex as rx
 
-class NavbarState(State):
+class NavbarState(rx.State):
 
     # Show if True.
     show_alert: bool = False
@@ -50,6 +49,7 @@ class NavbarState(State):
         self.show_error_create_account = False
         self.error_sign_in_message = None
         self.error_create_account_message = None
+        
 
 def navbar() -> rx.Component:
     """
@@ -149,7 +149,7 @@ def cond_account() -> rx.Component:
             variant='ghost',
             size='sm',
             on_click=NavbarState.toggle_login,
-            is_loading=~State.is_hydrated,
+            is_loading=~rx.State.is_hydrated,
         ),
     )
 

@@ -46,3 +46,20 @@ def spacer(**props) -> Component:
     """
 
     return rx.Box(**props)
+
+def dropdown_pair(name: str,
+                    question: str,
+                    placeholder: str,
+                    options: List[str]) -> rx.Component:
+    """The provided name will be the state var to set when dropdown is selected."""
+    return rx.box(
+        rx.flex(
+            rx.text(f"{question}"),
+            rx.select(
+                options,
+                placeholder=placeholder,
+                on_change=f"self.set_{name}"
+            ),
+        ),
+        direction="column",
+    )

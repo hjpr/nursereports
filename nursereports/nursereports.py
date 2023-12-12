@@ -5,6 +5,7 @@ from .pages.auth import AuthAPI
 from .pages.deauth import DeauthAPI
 from .pages.dashboard import Dashboard
 from .pages.forbidden import Forbidden
+from .pages.report import Report
 from .pages.index import Index
 
 
@@ -37,6 +38,7 @@ app.add_page(
     route=Index.route,
     on_load=AuthState.login_flow
     )
+
 """
 AUTH - pseudo endpoint for SSO redirects. Captures url and parses it
 out to get access and refresh tokens as well as redirecting back to root site
@@ -47,14 +49,7 @@ app.add_page(
     route=AuthAPI.route,
     on_load=AuthState.url_handler,
     )
-"""
-DASHBOARD - Account panel after signin where user can edit/modify account info
-see reports, save hospitals etc.
-"""
-app.add_page(
-    Dashboard.page,
-    route=Dashboard.route,
-)
+
 """
 DEAUTH - pseudo endpoint for SSO redirects. Captures url and parses it out
 to remove user data per request of user.
@@ -64,6 +59,24 @@ app.add_page(
     route=DeauthAPI.route,
     on_load=AuthState.url_handler,
     )
+
+"""
+DASHBOARD - Account panel after signin where user can edit/modify account info
+see reports, save hospitals etc.
+"""
+app.add_page(
+    Dashboard.page,
+    route=Dashboard.route,
+)
+
+"""
+REPORT - Entry page for user report by hospital.
+"""
+app.add_page(
+    Report.page,
+    route=Report.route,
+)
+
 
 # ADD API ROUTES TO BACKEND
 

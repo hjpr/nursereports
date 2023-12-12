@@ -1,20 +1,20 @@
 
 from ..components.custom import spacer
-from ..state.base import State
-from typing import Generator
+from reflex.event import EventSpec
+from typing import Iterable
 
 import reflex as rx
 
-class ForbiddenState(State):
+class ForbiddenState(rx.State):
 
-    def redirect(self) -> Generator:
+    def redirect(self) -> Iterable[EventSpec]:
         from ..components.navbar import NavbarState
         yield rx.redirect('/')
         yield NavbarState.set_error_sign_in_message('Sign in to access page.')
         yield NavbarState.set_show_error_sign_in(True)
         yield NavbarState.set_show_sign_in(True)
 
-class Forbidden():
+class Forbidden:
     """403 Error page."""
     route: str = "/error/403"
 

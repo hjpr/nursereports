@@ -2,7 +2,6 @@
 from ..auth.auth import AuthState
 from ..components.custom import spacer
 from ..pages.forbidden import Forbidden
-from ..state.base import State
 
 import functools
 import reflex as rx
@@ -11,7 +10,7 @@ def protected_page(protected_page) -> rx.Component:
     @functools.wraps(protected_page)
     def _wrapper() -> rx.Component:
         return rx.cond(
-            State.is_hydrated,
+            rx.State.is_hydrated,
             # If state hydrated, then check if valid token before returning page.
             rx.cond(
                 AuthState.token_is_valid,
