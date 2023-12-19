@@ -1,7 +1,8 @@
 
 from ..auth.auth import AuthState
 from ..components.custom import spacer
-from ..pages.forbidden import Forbidden
+from ..pages.forbidden import forbidden
+from ..pages.index import index
 
 import functools
 import reflex as rx
@@ -15,7 +16,7 @@ def protected_page(protected_page) -> rx.Component:
             rx.cond(
                 AuthState.token_is_valid,
                 protected_page(),
-                Forbidden.page(),
+                index(),
             ),
             # If state not hydrated, show loader.
             rx.vstack(

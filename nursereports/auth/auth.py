@@ -96,6 +96,7 @@ class AuthState(rx.State):
         """
         if self.token_is_valid:
             yield rx.redirect('/dashboard')
+            print("Sending to dashboard")
 
         if "api/v1/auth" in self.url:
             try:
@@ -125,16 +126,12 @@ class AuthState(rx.State):
         data = {
             "refresh_token": self.refresh_token
         }
-
-        try:
-            response = httpx.post(
-                url=url,
-                params=params,
-                headers=headers,
-                data=json.dumps(data)
-            )
-        except Exception as e:
-            print(f"{e}")
+        response = httpx.post(
+            url=url,
+            params=params,
+            headers=headers,
+            data=json.dumps(data)
+        )
         
         self.access_token = response.json().get('access_token')
         self.refresh_token = response.json().get('refresh_token')
@@ -148,7 +145,6 @@ class AuthState(rx.State):
         """
         from ..components.navbar import NavbarState
 
-        # While working, spin progress circle.
         yield NavbarState.set_sign_in_working(True)
 
         async with httpx.AsyncClient() as client:
@@ -165,7 +161,6 @@ class AuthState(rx.State):
                 "email": form_data.get("sign_in_email"),
                 "password": form_data.get("sign_in_password"),
             }
-
             response = await client.post(
                 url=url,
                 params=params,
@@ -176,13 +171,12 @@ class AuthState(rx.State):
             if response.is_success:
                 # Ensure the JWT that we get is valid and signed by Supabase!
                 try:
-                    claims = jwt.decode(
+                    jwt.decode(
                         response.cookies.get('sb-access-token'),
                         jwt_key,
                         audience='authenticated',
                         algorithms=['HS256'],
                     )
-
                 # If invalid, set UI elements for error.
                 except Exception as e:
                     yield NavbarState.set_show_error_sign_in(True)
@@ -190,20 +184,16 @@ class AuthState(rx.State):
                         response.text.get("error_description")
                     )
                     yield NavbarState.set_sign_in_working(False)
-
                 # Set cookies and values from claims of returned response.
                 self.access_token = response.cookies.get('sb-access-token')
                 self.refresh_token = response.cookies.get('sb-refresh-token')
-
                 # Set UI elements and redirect.
                 yield NavbarState.set_show_sign_in(False)
                 yield rx.redirect('/dashboard')
-
             else:
                 # Clear cookies.
                 self.access_token = ""
                 self.refresh_token = ""
-
                 # Set UI elements for error.
                 yield NavbarState.set_show_error_sign_in(True)
                 yield NavbarState.set_error_sign_in_message(
@@ -250,7 +240,6 @@ class AuthState(rx.State):
                     "email": email,
                     "password": password,
                 }
-
                 # Make API request.
                 response = await client.post(
                     url=url,
@@ -266,7 +255,6 @@ class AuthState(rx.State):
                     yield NavbarState.set_alert_message(
                         "Sign up successful! Email sent with verification link."
                     )
-                
                 else:
                     response = response.json()
                     # Make error label visible, set error message.

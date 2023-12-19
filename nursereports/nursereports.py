@@ -3,10 +3,9 @@ from .auth.auth import AuthState
 
 from .pages.auth import AuthAPI
 from .pages.deauth import DeauthAPI
-from .pages.dashboard import Dashboard
-from .pages.forbidden import Forbidden
-from .pages.report import Report
-from .pages.index import Index
+from .pages.dashboard import dashboard
+from .pages.report import report
+from .pages.index import index
 
 
 from .style.style import style_dict
@@ -34,8 +33,8 @@ INDEX PAGE - on_load runs login_flow to check states to determine if user is
 already logged in, or is coming from an api auth/deauth request.
 """
 app.add_page(
-    Index.page,
-    route=Index.route,
+    index,
+    route="/",
     on_load=AuthState.login_flow
     )
 
@@ -65,16 +64,16 @@ DASHBOARD - Account panel after signin where user can edit/modify account info
 see reports, save hospitals etc.
 """
 app.add_page(
-    Dashboard.page,
-    route=Dashboard.route,
+    dashboard,
+    route="/dashboard",
 )
 
 """
 REPORT - Entry page for user report by hospital.
 """
 app.add_page(
-    Report.page,
-    route=Report.route,
+    report,
+    route="/report",
 )
 
 
