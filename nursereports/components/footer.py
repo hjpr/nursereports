@@ -128,8 +128,13 @@ def footer() -> rx.Component:
         bg='teal',
         color='white',
         box_shadow='inset 0px 4px 5px -5px rgba(0, 0, 0, 0.5)',
-        width='100%',
+        min_height='260px',
         flex_direction='column',
-        justify='center',
-        align='center',
+        flex_basis='auto',
+        flex_grow='0',
+        flex_shrink='0',
+        width='100%',
+        justify_content='center',
+        align_items='center',
+        
     )

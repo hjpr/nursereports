@@ -1,13 +1,16 @@
 
-from typing import Generator, Literal
+from typing import Iterable
+from reflex.event import Event
 
 import httpx
 import json
 import jwt
 import os
 import reflex as rx
+import rich
 
 from dotenv import load_dotenv
+from loguru import logger
 load_dotenv()
 
 api_url = os.getenv("SUPABASE_URL")
@@ -22,98 +25,74 @@ class AuthState(rx.State):
     """
     # JWT token stored as cookie. Pass to Supabase as header with requests.
     access_token: str = rx.Cookie(
+        name="access_token",
         same_site='strict',
         secure=True,
     )
 
     # Refresh token stored as cookie for new session request.
     refresh_token: str = rx.Cookie(
+        name="refresh_token",
         same_site='strict',
         secure=True,
     )
 
-    # Stored url value to extract tokens from.
-    url: str = ""
-
     @rx.cached_var
-    def token_is_valid(self) -> bool:
-        try:
-            if len(self.access_token) > 0:
-                jwt.decode(
-                    self.access_token,
-                    jwt_key,
-                    audience='authenticated',
-                    algorithms=['HS256'],
-                )
+    def user_has_reported(self) -> bool:
+        if isinstance(self.claims, dict):
+            if self.claims.get("has_reported"):
+                logger.debug("User has submitted the required report.")
                 return True
             else:
-                print("No access token.")
+                logger.warning("User hasn't submitted the required report.")
                 return False
-        except jwt.ExpiredSignatureError:
-            self.get_new_access_token()
-        except Exception as e:
-            print(f"Token invalid - {e}")
+        else:
+            logger.warning("No claims to pull user report status.")
             return False
 
     @rx.cached_var
-    def token_claims(self) -> dict[str, str]:
+    def user_is_authenticated(self) -> bool:
+        if isinstance(self.claims, dict):
+            logger.debug("User is authenticated.")
+            return True
+        if isinstance(self.claims, str):
+            logger.warning("User is not authenticated.")
+            return False
+
+    @rx.cached_var
+    def claims(self) -> dict[str, str] | str:
+        """
+        Will only return dict of claims if user is authenticated,
+        otherwise returns string with error description to match.
+        """
         try:
-            if len(self.access_token) > 0:
-                claims = jwt.decode(
-                    self.access_token,
-                    jwt_key,
-                    audience='authenticated',
-                    algorithms=['HS256'],
-                )
-                return json.dumps(claims)
-            else:
-                print("No claims - access token empty.")
-                return []
+            claims = jwt.decode(
+                self.access_token,
+                jwt_key,
+                audience='authenticated',
+                algorithms=['HS256'],
+            )
+            return claims
         except jwt.ExpiredSignatureError:
-            self.get_new_access_token()
+            logger.warning("Claims expired!")
+            return "expired"
+        except jwt.InvalidAudienceError:
+            logger.critical("Claims invalid!")
+            return "invalid"
         except Exception as e:
-            print(f"Can't get claims - {e}.")
-            return {}
+            logger.warning(f"Can't retrieve claims - {e}")
+            return "other"
 
-    def set_url(self, url):
-        """Setter for event handler from url_handler."""
-        self.url = url
+    def get_new_access_token(self) -> Iterable[Event]:
+        """
+        Gets a new access token using the refresh token stored in cookies.
+        If successful, yields events to set new cookies, if unsuccessful, 
+        yields a redirect back to '/'.
+        """
+        from ..components.navbar import NavbarState
 
-    def url_handler(self):
-        """
-        Sets self.url from href when /auth page is loaded, and sets method
-        so that we know we're trying to auth with url.
-        """
-        yield rx.call_script(
-            'window.location.href',
-            callback=AuthState.set_url
-        )
-        yield rx.redirect('/')
+        logger.debug("Attempting to refresh expired access token...")
 
-    def login_flow(self):
-        """
-        From '/'. Check if url was set by SSO redirect.
-        """
-        if self.token_is_valid:
-            yield rx.redirect('/dashboard')
-            print("Sending to dashboard")
-
-        if "api/v1/auth" in self.url:
-            try:
-                fragment = self.url.split('#')[1]
-                self.access_token = fragment.split('&')[0].split('=')[1]
-                self.refresh_token = fragment.split('&')[4].split('=')[1]
-            except Exception as e:
-                yield rx.console_log(f"Unexpected URL format passed at '/login'.")
-        else:
-            yield rx.console_log('Unsupported URL login flow method.')
-
-
-    def get_new_access_token(self):
-        """
-        Refresh stored AuthState token. Called if token found to be expired
-        when checking from get_claims.
-        """
         url = f"{api_url}/auth/v1/token"
         params = {
             "grant_type": "refresh_token"
@@ -126,17 +105,27 @@ class AuthState(rx.State):
         data = {
             "refresh_token": self.refresh_token
         }
+
         response = httpx.post(
             url=url,
             params=params,
             headers=headers,
             data=json.dumps(data)
         )
-        
-        self.access_token = response.json().get('access_token')
-        self.refresh_token = response.json().get('refresh_token')
 
-    async def email_sign_in(self, form_data: dict) -> Generator:
+        if response.is_success:
+            logger.debug("Refreshed user access tokens.")
+            yield AuthState.set_access_token(response.json().get('access_token'))
+            yield AuthState.set_refresh_token(response.json().get('refresh_token'))
+            yield NavbarState.set_alert_message("")
+        else:
+            logger.debug("Unable to retrieve new access token.")
+            yield rx.redirect('/')
+            yield NavbarState.set_alert_message(
+                "Failed to refresh session. Please sign in again."
+            )
+
+    def email_sign_in(self, form_data: dict) -> Iterable[Event]:
         """
         Takes form_data as dict and submits to Supabase API to get an
         access and refresh token. Returns events to the event handler
@@ -145,63 +134,39 @@ class AuthState(rx.State):
         """
         from ..components.navbar import NavbarState
 
-        yield NavbarState.set_sign_in_working(True)
+        url = f'{api_url}/auth/v1/token'
+        params = {
+            "grant_type": "password",
+        }
+        headers = {
+            "apikey": api_key,
+            "Content-Type": "application/json",
+        }
+        data = {
+            "email": form_data.get("sign_in_email"),
+            "password": form_data.get("sign_in_password"),
+        }
+        response = httpx.post(
+            url=url,
+            params=params,
+            headers=headers,
+            data=json.dumps(data),
+        )
 
-        async with httpx.AsyncClient() as client:
-
-            url = f'{api_url}/auth/v1/token'
-            params = {
-                "grant_type": "password",
-            }
-            headers = {
-                "apikey": api_key,
-                "Content-Type": "application/json",
-            }
-            data = {
-                "email": form_data.get("sign_in_email"),
-                "password": form_data.get("sign_in_password"),
-            }
-            response = await client.post(
-                url=url,
-                params=params,
-                headers=headers,
-                data=json.dumps(data),
+        if response.is_success:
+            yield AuthState.set_access_token(response.cookies.get('sb-access-token'))
+            yield AuthState.set_refresh_token(response.cookies.get('sb-refresh-token'))
+            yield NavbarState.set_show_sign_in(False)
+            yield rx.call_script(
+                "window.location.reload()"
+            )
+            yield rx.redirect('/dashboard')
+        else:
+            yield NavbarState.set_error_sign_in_message(
+                "Invalid credentials provided."
             )
 
-            if response.is_success:
-                # Ensure the JWT that we get is valid and signed by Supabase!
-                try:
-                    jwt.decode(
-                        response.cookies.get('sb-access-token'),
-                        jwt_key,
-                        audience='authenticated',
-                        algorithms=['HS256'],
-                    )
-                # If invalid, set UI elements for error.
-                except Exception as e:
-                    yield NavbarState.set_show_error_sign_in(True)
-                    yield NavbarState.set_show_error_sign_in_message(
-                        response.text.get("error_description")
-                    )
-                    yield NavbarState.set_sign_in_working(False)
-                # Set cookies and values from claims of returned response.
-                self.access_token = response.cookies.get('sb-access-token')
-                self.refresh_token = response.cookies.get('sb-refresh-token')
-                # Set UI elements and redirect.
-                yield NavbarState.set_show_sign_in(False)
-                yield rx.redirect('/dashboard')
-            else:
-                # Clear cookies.
-                self.access_token = ""
-                self.refresh_token = ""
-                # Set UI elements for error.
-                yield NavbarState.set_show_error_sign_in(True)
-                yield NavbarState.set_error_sign_in_message(
-                    "Invalid credentials provided."
-                )
-                yield NavbarState.set_sign_in_working(False)
-
-    async def email_create_account(self, form_data: dict) -> Generator:
+    def email_create_account(self, form_data: dict) -> Iterable[Event]:
         """
         Takes form data from on_submit as dict and submits to Supabase API. Whether
         user signup is successful or not it returns a user in order to prevent db
@@ -210,61 +175,45 @@ class AuthState(rx.State):
         """
         from ..components.navbar import NavbarState
 
-        # While creating account, spin progress circle.
-        yield NavbarState.set_create_account_working(True)
-
-        # Get data from on_submit event via form_data dict.
         email = form_data.get("create_account_email")
         password = form_data.get("create_account_password")
         password_confirm = form_data.get("create_account_password_confirm")
 
-        # Check passwords for match. Supabase enforces 8 character length.
+        # Supabase enforces 8 character length.
         if password != password_confirm:
-            yield NavbarState.set_show_error_create_account(True)
             yield NavbarState.set_error_create_account_message(
                 "Passwords do not match."
             )
-            yield NavbarState.set_create_account_working(False)
-
-        # If password is ok, continue on to request.
         else:
-            async with httpx.AsyncClient() as client:
-
-                # Set up API request.
-                url = f'{api_url}/auth/v1/signup'
-                headers = {
-                    "apikey": api_key,
-                    "Content-Type": "application/json",
-                    }
-                data = {
-                    "email": email,
-                    "password": password,
+            url = f'{api_url}/auth/v1/signup'
+            headers = {
+                "apikey": api_key,
+                "Content-Type": "application/json",
                 }
-                # Make API request.
-                response = await client.post(
-                    url=url,
-                    headers=headers,
-                    data=json.dumps(data),
+            data = {
+                "email": email,
+                "password": password,
+            }
+
+            response = httpx.post(
+                url=url,
+                headers=headers,
+                data=json.dumps(data),
+            )
+
+            if response.is_success:
+                yield NavbarState.set_show_sign_in(False)
+                yield NavbarState.set_error_create_account_message("")
+                yield NavbarState.set_alert_message(
+                    "Sign up successful! Email sent with verification link."
+                )
+            else:
+                response = response.json()
+                yield NavbarState.set_error_create_account_message(
+                    response.get('msg')
                 )
 
-                if response.is_success:
-                    # Close our sign in modal and show success message in alert modal.
-                    yield NavbarState.set_show_sign_in(False)
-                    yield NavbarState.set_show_alert(True)
-                    yield NavbarState.set_create_account_working(False)
-                    yield NavbarState.set_alert_message(
-                        "Sign up successful! Email sent with verification link."
-                    )
-                else:
-                    response = response.json()
-                    # Make error label visible, set error message.
-                    yield NavbarState.set_show_error_create_account(True)
-                    yield NavbarState.set_error_create_account_message(
-                        response.get('msg')
-                    )
-                    yield NavbarState.set_create_account_working(False)
-
-    def sso_sign_in(self, provider: str):
+    def sso_sign_in(self, provider: str) -> Iterable[Event]:
         """
         Takes positional str which determines the SSO provider to send
         request to. Redirection chain ends up at the '/v1/auth/'
@@ -276,3 +225,80 @@ class AuthState(rx.State):
         yield rx.redirect(
             f"{api_url}/auth/v1/authorize?provider={provider}",
             )
+        
+    def logout(self) -> Iterable[Event]:
+        """
+        Clears cookies and redirects back to root.
+        """
+        from ..components.navbar import NavbarState
+
+        yield rx.redirect("/")
+        yield rx.remove_cookie("access_token")
+        yield rx.remove_cookie("refresh_token")
+        yield NavbarState.set_alert_message("Successfully logged out.")
+
+    def auth_flow(self, access_level) -> Iterable[rx.event.Event]:
+        """
+        Seamlessly refreshes access tokens mid-navigation if token is
+        expired. Also either allows navigation to protected pages, or
+        redirects back to root if unauthorized.
+        """
+        from ..components.navbar import NavbarState
+
+        if isinstance(self.claims, str):
+            if self.claims == 'expired':
+                yield AuthState.get_new_access_token
+            if self.claims == 'invalid':
+                yield NavbarState.set_alert_message(
+                    "Access token corrupted. Login to refresh."
+                )
+        if access_level == 'req_none':
+            # Use req_none to grant open access to any page.
+            pass
+        if access_level == 'req_login' and not self.user_is_authenticated:
+            # Use req_login to require user to login.
+            yield rx.redirect('/')
+            yield NavbarState.set_alert_message(
+                "Please login to access that page."
+            )
+        if access_level == 'req_report' and not self.user_has_reported:
+            # Use req_report to force users to submit report before access.
+            yield rx.redirect('/report/search')
+            yield NavbarState.set_alert_message(
+                "Please submit your own report in order to access those resources."
+            )
+
+    # def initial_setup(self) -> Iterable[Event]:
+    #     """
+    #     Creating user via email or SSO is different, so func runs to
+    #     ensure that user_metadata contains the proper fields for the
+    #     site flow. Namely helps us to know if user has submitted a 
+    #     report, what membership they have, and their trust level.
+
+    #     Membership:
+    #     "NR" = Hasn't submitted a report yet.
+    #     "F" = Free tier.
+    #     "P" = Paid tier.
+        
+    #     """
+    #     url = f'{api_url}/auth/v1/user'
+    #     headers = {
+    #         "apikey": api_key,
+    #         "Authorization" : f"Bearer {AuthState.access_token}",
+    #         "Content-Type": "application/json",
+    #         }
+    #     data = {
+    #         "data": {
+    #             "membership": "NR"
+    #             }
+    #     }
+    #     async with httpx.AsyncClient() as client:
+    #         response = client.put(
+    #             url=url,
+    #             headers=headers,
+    #             data=json.dumps(data),
+    #         )
+
+    #         if response.is_success:
+    #             logger.debug("Added user fields. Refreshing token.")
+    #             self.get_new_access_token()

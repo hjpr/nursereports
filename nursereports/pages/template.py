@@ -7,21 +7,27 @@ from ..components.custom import spacer
 import reflex as rx
 
 # Use @protected_page if require user login prior to viewing.
-def template_page() -> rx.Component:
-    return rx.box(
+def dashboard() -> rx.Component:
+    return rx.flex(
 
         navbar(),
 
-        # SETS TOP OF PAGE FROM UNDERNEATH NAVBAR/C2A    
         c2a_spacer(),
+        
+        # CONTENT CONTAINER
+        rx.flex(
 
-        # MAIN CONTENT CONTAINER
-        rx.container(
-
-            # REST OF PAGE GOES BELOW
-
+            # STYLING FOR CONTENT CONTAINER
+            flex_direction='column',
+            flex_basis='auto',
+            flex_grow='1',
+            flex_shrink='0',
         ),
 
         footer(),
+
+        # STYLING FOR BODY CONTAINER
+        flex_direction='column',
+        min_height='100vh',
 
     )

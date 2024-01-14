@@ -1,10 +1,11 @@
 
 from typing import List, Literal
+from ..components import navbar, footer
+from ..components.navbar import c2a_spacer
 
-from reflex.components import Box
-from reflex.components.component import Base, Component
+import reflex as rx
 
-class Page(Base):
+class Page(rx.Base):
     """The base page class to contain metadata, layout, and functions to
     render a single page. When creating a page, the class name is the page
     route, unless it is 'index' in which case it will have route '/'. Ensure
@@ -31,7 +32,7 @@ class Page(Base):
     robots: Literal["index", "noindex", "follow", "nofollow"]
 
     # Nested component layout to return to render page.
-    layout: Component
+    layout: rx.Component
 
     @classmethod
     def get_route(cls) -> str:
@@ -45,9 +46,27 @@ class Page(Base):
         return '/' + '/'.join(path_parts).lower()
 
 
-    def render(self) -> Component:
-        """Returns Box component with nested Components to render from layout attribute."""
+    def render() -> rx.Component:
+        return rx.flex(
 
-        return Box(
-            self.layout,
+            navbar(),
+
+            c2a_spacer(),
+            
+            # CONTENT CONTAINER
+            rx.flex(
+
+                # STYLING FOR CONTENT CONTAINER
+                flex_direction='column',
+                flex_basis='auto',
+                flex_grow='1',
+                flex_shrink='0',
+            ),
+
+            footer(),
+
+            # STYLING FOR BODY CONTAINER
+            flex_direction='column',
+            min_height='100vh',
+
         )

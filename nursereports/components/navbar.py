@@ -7,32 +7,33 @@ import reflex as rx
 class NavbarState(rx.State):
 
     # Show if True.
-    show_alert: bool = False
     show_c2a: bool = True
     show_feedback: bool = False
     show_sign_in: bool = False
 
     # Alert modal message.
-    alert_message: str = None
+    alert_message: str
 
-    # Show error under buttons during sign in/up and providing feedback.
-    show_error_sign_in: bool = False
-    show_error_create_account: bool = False
-    show_error_feedback: bool = False
+    @rx.cached_var
+    def show_alert(self) -> bool:
+        return True if self.alert_message else False
 
     # Content of errors during sign in/up and providing feedback.
-    error_sign_in_message: str = None
-    error_create_account_message: str = None
-    error_feedback_message: str = None
+    error_sign_in_message: str
+    error_create_account_message: str
+    error_feedback_message: str
 
-    # Login loading status...
-    sign_in_working: bool = False
-    create_account_working: bool = False
-    submit_feedback_working: bool = False
+    @rx.cached_var
+    def show_error_sign_in(self) -> bool:
+        return True if self.error_sign_in_message else False
 
-    # Show/hide configurable alert modal.
-    def toggle_alert(self):
-        self.show_alert = not self.show_alert
+    @rx.cached_var
+    def show_error_create_account(self) -> bool:
+        return True if self.error_create_account_message else False
+
+    @rx.cached_var
+    def show_error_feedback(self) -> bool:
+        return True if self.error_feedback_message else False
 
     # Show/close c2a
     def toggle_c2a(self):
@@ -45,11 +46,8 @@ class NavbarState(rx.State):
     # Show/close login modal.
     def toggle_login(self):
         self.show_sign_in = not self.show_sign_in
-        self.show_error_sign_in = False
-        self.show_error_create_account = False
         self.error_sign_in_message = None
         self.error_create_account_message = None
-        
 
 def navbar() -> rx.Component:
     """
@@ -86,6 +84,8 @@ def navbar() -> rx.Component:
                 margin_left='8px',
                 margin_right='8px',
                 size='lg',
+                cursor='pointer',
+                on_click=rx.redirect('/'),
             ),
             rx.badge(
                 "Beta",
@@ -128,7 +128,7 @@ def cond_account() -> rx.Component:
     When logged in shows an avatar that opens menu on click.
     """
     return rx.cond(
-        AuthState.token_is_valid,
+        AuthState.user_is_authenticated,
 
         # ACCOUNT OPTIONS IF LOGGED IN
         rx.menu(
@@ -139,7 +139,10 @@ def cond_account() -> rx.Component:
             ),
             rx.menu_list(
                 rx.menu_item("Account"),
-                rx.menu_item("Sign Out"),
+                rx.menu_item(
+                    "Sign Out",
+                    on_click=AuthState.logout,
+                    ),
             ),
         ),
 
@@ -158,7 +161,7 @@ def cond_options() -> rx.Component:
     Links that populate next to header once logged in.
     """
     return rx.cond(
-        AuthState.token_is_valid,
+        AuthState.user_is_authenticated & AuthState.user_has_reported,
 
         # MENU OPTIONS IF LOGGED IN
         rx.hstack(
@@ -177,9 +180,9 @@ def cond_options() -> rx.Component:
 
 def alert_modal() -> rx.Component:
     """
-    Alert modal rendered when we want to show user a message. Uses 'show_alert'
-    as the bool which controls if it is in view or not. Message contained in
-    alert_message.
+    Alert modal rendered when we want to show user a message. Uses show_alert
+    as cached_var which controls if it is in view or not. A message contained in
+    alert_message will trigger show_alert, so to clear set message to "".
     """
     return rx.box(
         rx.modal(
@@ -196,7 +199,7 @@ def alert_modal() -> rx.Component:
                     rx.modal_footer(
                         rx.button(
                             "Close",
-                            on_click=NavbarState.toggle_alert,
+                            on_click=NavbarState.set_alert_message(""),
                         ),
                     ),
                     # STYLING FOR MODAL CONTENT
@@ -208,7 +211,7 @@ def alert_modal() -> rx.Component:
             # STYLING FOR MODAL
             motion_preset='scale',
             is_open=NavbarState.show_alert,
-            on_overlay_click=NavbarState.toggle_alert
+            on_overlay_click=NavbarState.set_alert_message(""),
         ),
     )
 
@@ -248,7 +251,7 @@ def feedback_modal() -> rx.Component:
                             rx.text_area(
                                 placeholder='Enter here...',
                                 height='100%',
-                                is_disabled=~AuthState.token_is_valid,
+                                is_disabled=~AuthState.user_is_authenticated,
                                 is_required=True,
                             ),
                             height='10em',
@@ -257,7 +260,7 @@ def feedback_modal() -> rx.Component:
                         # MODAL FOOTER
                         rx.modal_footer(
                             rx.cond(
-                                ~AuthState.token_is_valid,
+                                ~AuthState.user_is_authenticated,
                                 rx.alert(
                                     rx.alert_icon(),
                                     rx.alert_title(
@@ -272,6 +275,7 @@ def feedback_modal() -> rx.Component:
                                     type_='submit',
                                     variant='solid',
                                     color_scheme='teal',
+                                    is_loading=~rx.State.is_hydrated,
                             ),
 
                             ),
@@ -371,7 +375,7 @@ def login_modal() -> rx.Component:
                                                 color_scheme='teal',
                                                 width='100%',
                                                 type_='submit',
-                                                is_loading=NavbarState.sign_in_working,
+                                                is_loading=~rx.State.is_hydrated,
                                             ),
                                             rx.cond(
                                                 NavbarState.show_error_sign_in,
@@ -427,7 +431,7 @@ def login_modal() -> rx.Component:
                                                 width='100%',
                                                 ),                                           
                                             rx.input(
-                                                placeholder='Enter password again',
+                                                placeholder='Re-enter password',
                                                 id='create_account_password_confirm',
                                                 type_='password',
                                                 is_required=True,
@@ -439,7 +443,7 @@ def login_modal() -> rx.Component:
                                                 variant='solid',
                                                 width='100%',
                                                 type_='submit',
-                                                is_loading=NavbarState.create_account_working,
+                                                is_loading=~rx.State.is_hydrated,
                                             ),
                                             rx.cond(
                                                 NavbarState.show_error_create_account,
