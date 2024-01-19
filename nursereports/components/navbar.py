@@ -1,59 +1,13 @@
 
-from ..auth.auth import AuthState
 from ..components.custom import spacer
+from ..states.auth import AuthState
+from ..states.navbar import NavbarState
 
 import reflex as rx
 
-class NavbarState(rx.State):
-
-    # Show if True.
-    show_c2a: bool = True
-    show_feedback: bool = False
-    show_sign_in: bool = False
-
-    # Alert modal message.
-    alert_message: str
-
-    @rx.cached_var
-    def show_alert(self) -> bool:
-        return True if self.alert_message else False
-
-    # Content of errors during sign in/up and providing feedback.
-    error_sign_in_message: str
-    error_create_account_message: str
-    error_feedback_message: str
-
-    @rx.cached_var
-    def show_error_sign_in(self) -> bool:
-        return True if self.error_sign_in_message else False
-
-    @rx.cached_var
-    def show_error_create_account(self) -> bool:
-        return True if self.error_create_account_message else False
-
-    @rx.cached_var
-    def show_error_feedback(self) -> bool:
-        return True if self.error_feedback_message else False
-
-    # Show/close c2a
-    def toggle_c2a(self):
-        self.show_c2a = not self.show_c2a
-
-    # Show/close feedback modal.
-    def toggle_feedback(self):
-        self.show_feedback = not self.show_feedback
-
-    # Show/close login modal.
-    def toggle_login(self):
-        self.show_sign_in = not self.show_sign_in
-        self.error_sign_in_message = None
-        self.error_create_account_message = None
-
 def navbar() -> rx.Component:
     """
-    Main navbar for site. Contains the components and states for menus and
-    navigation. Authorization logic and components are utilized by navbar but
-    are contained in auth.py.
+    Main navbar component.
     """
     return rx.box(
 
@@ -134,16 +88,16 @@ def cond_account() -> rx.Component:
         rx.menu(
             rx.menu_button(
                 rx.avatar(
-                    size='xs',
-                ),
+                    size='xs'
+                )
             ),
             rx.menu_list(
                 rx.menu_item("Account"),
                 rx.menu_item(
                     "Sign Out",
                     on_click=AuthState.logout,
-                    ),
-            ),
+                    )
+            )
         ),
 
         # SIGN IN IF NOT LOGGED IN
@@ -158,11 +112,11 @@ def cond_account() -> rx.Component:
 
 def cond_options() -> rx.Component:
     """
-    Links that populate next to header once logged in.
+    Links that populate next to header once logged in and user has
+    submitted a report.
     """
     return rx.cond(
         AuthState.user_is_authenticated & AuthState.user_has_reported,
-
         # MENU OPTIONS IF LOGGED IN
         rx.hstack(
             rx.link(
@@ -174,21 +128,18 @@ def cond_options() -> rx.Component:
                 "State Overview",
                 display=['none', 'inline', 'inline', 'inline', 'inline'],
                 padding_x='12px'
-            ),
-        ),
+            )
+        )
     )
 
 def alert_modal() -> rx.Component:
     """
-    Alert modal rendered when we want to show user a message. Uses show_alert
-    as cached_var which controls if it is in view or not. A message contained in
-    alert_message will trigger show_alert, so to clear set message to "".
+    Renders alert modal if NavbarState.alert_message contains a str.
     """
     return rx.box(
         rx.modal(
             rx.modal_overlay(
                 rx.modal_content(
-
                     # MODAL HEADER
                     rx.modal_header(
                         "Message"
@@ -210,24 +161,21 @@ def alert_modal() -> rx.Component:
             ),
             # STYLING FOR MODAL
             motion_preset='scale',
-            is_open=NavbarState.show_alert,
-            on_overlay_click=NavbarState.set_alert_message(""),
-        ),
+            is_open=NavbarState.show_alert_message,
+            on_overlay_click=NavbarState.set_alert_message("")
+        )
     )
 
 def feedback_modal() -> rx.Component:
-    """"
-    Feedback modal rendered when user clicks c2a to submit site issue. Uses
-    'show_feedback' as bool which controls if displayed or not.
+    """
+    Renders feedback modal if NavbarState.show_feedback is True.
     """
     return rx.box(
         rx.modal(
             rx.modal_overlay(
                 rx.modal_content(
-                    
                     # WRAP HEADER - BODY - FOOTER AS FORM
                     rx.form(
-
                         # MODAL HEADER
                         rx.modal_header(
                             rx.hstack(
@@ -240,12 +188,11 @@ def feedback_modal() -> rx.Component:
                                     size='sm',
                                     variant='ghost',
                                     _hover='none',
-                                    on_click=NavbarState.toggle_feedback,
+                                    on_click=NavbarState.toggle_feedback
                                 ),
-                                width='100%',
-                            ),
+                                width='100%'
+                            )
                         ),
-
                         # MODAL BODY
                         rx.modal_body(
                             rx.text_area(
@@ -256,7 +203,6 @@ def feedback_modal() -> rx.Component:
                             ),
                             height='10em',
                         ),
-
                         # MODAL FOOTER
                         rx.modal_footer(
                             rx.cond(
@@ -267,7 +213,7 @@ def feedback_modal() -> rx.Component:
                                         "To help combat spam, please login."
                                     ),
                                 status="error",
-                                border_radius='6px',
+                                border_radius='6px'
                                 ),
                                 rx.button(
                                     "Submit",
@@ -275,15 +221,12 @@ def feedback_modal() -> rx.Component:
                                     type_='submit',
                                     variant='solid',
                                     color_scheme='teal',
-                                    is_loading=~rx.State.is_hydrated,
+                                    is_loading=~rx.State.is_hydrated
+                                )
                             ),
-
-                            ),
-                            flex_direction='column',
-                        ),
-
+                            flex_direction='column'
+                        )
                     ),
-
                     # STYLING FOR MODAL CONTENT
                     top='-5px',
                 ),
@@ -291,39 +234,35 @@ def feedback_modal() -> rx.Component:
                 backdrop_filter='blur(2px)',
             ),
             # STYLING FOR MODAL COMPONENT
-
             is_open=NavbarState.show_feedback,
-            on_overlay_click=NavbarState.toggle_feedback,
-        ),
+            on_overlay_click=NavbarState.toggle_feedback
+        )
     )
 
 def login_modal() -> rx.Component:
     """
-    Login modal rendered when user clicks 'sign in'. Uses 'show_sign_in'
-    as the bool which controls if displayed or not.
+    Renders login modal if NavbarState.show_sign_in is True.
     """
     return rx.box(
         rx.modal(
             rx.modal_overlay(
                 rx.modal_content(
-
                     # MODAL HEADER
                     rx.modal_header(
                         rx.hstack(
                             rx.spacer(),
                             rx.button(                        
                                 rx.icon(
-                                    tag='close',
+                                    tag='close'
                                 ),
                                 size='sm',
                                 variant='ghost',
                                 _hover='none',
-                                on_click=NavbarState.toggle_login(),
+                                on_click=NavbarState.toggle_login()
                             ),
                             width='100%',
-                        ),
+                        )
                     ),
-
                     # MODAL BODY
                     rx.modal_body(
                         rx.tabs(
@@ -339,7 +278,6 @@ def login_modal() -> rx.Component:
                             ),
                             rx.tab_panels(
                                 rx.tab_panel(
-                                    
                                     # TAB PANEL SIGN IN
                                     rx.form(
                                         rx.vstack(
@@ -375,10 +313,10 @@ def login_modal() -> rx.Component:
                                                 color_scheme='teal',
                                                 width='100%',
                                                 type_='submit',
-                                                is_loading=~rx.State.is_hydrated,
+                                                is_loading=~rx.State.is_hydrated
                                             ),
                                             rx.cond(
-                                                NavbarState.show_error_sign_in,
+                                                NavbarState.error_sign_in_message,
                                                 rx.alert(
                                                     rx.alert_icon(),
                                                     rx.alert_title(
@@ -386,16 +324,14 @@ def login_modal() -> rx.Component:
                                                     ),
                                                     status="error",
                                                     border_radius='6px',
-                                                ),
+                                                )
                                             ),
                                             width='100%',
                                         ),
                                         on_submit=AuthState.email_sign_in,
-                                    ),
-
+                                    )
                                 ),
                                 rx.tab_panel(
-
                                     # TAB PANEL CREATE ACCOUNT
                                     rx.form(
                                         rx.vstack(
@@ -446,29 +382,27 @@ def login_modal() -> rx.Component:
                                                 is_loading=~rx.State.is_hydrated,
                                             ),
                                             rx.cond(
-                                                NavbarState.show_error_create_account,
+                                                NavbarState.error_create_account_message,
                                                 rx.alert(
                                                     rx.alert_icon(),
                                                     rx.alert_title(
                                                         NavbarState.error_create_account_message,
                                                     ),
                                                     status="error",
-                                                    border_radius='6px',
-                                                ),
+                                                    border_radius='6px'
+                                                )
                                             ),
-                                            width='100%',
+                                            width='100%'
                                         ),
                                         on_submit=AuthState.email_create_account
-                                    ),
-
-                                ),
+                                    )
+                                )
                             ),
                             align='center',
                             is_fitted=True,
-                            variant='enclosed',
-                        ),
+                            variant='enclosed'
+                        )
                     ),
-
                     # MODAL FOOTER - SINGLE SIGN ON
                     rx.modal_footer(
                         rx.vstack(
@@ -482,7 +416,7 @@ def login_modal() -> rx.Component:
                                     font_size='0.9em',
                                     ),
                                 rx.divider(),
-                                width='100%',
+                                width='100%'
                             ),
                             spacer(height='24px'),
                             rx.hstack(
@@ -491,7 +425,7 @@ def login_modal() -> rx.Component:
                                     src='/sso/google_sso.png',
                                     height='44px',
                                     cursor='pointer',
-                                    on_click=AuthState.sso_sign_in('google'),
+                                    on_click=AuthState.sso_sign_in('google')
                                 ),
                                 rx.spacer(),
                                 rx.image(
@@ -509,10 +443,10 @@ def login_modal() -> rx.Component:
                                 ),
                                 rx.spacer(),
                                 width='100%',
-                                padding_x='40px',
+                                padding_x='40px'
                             ),
                             spacer(height='32px'),
-                            width='100%',
+                            width='100%'
                         ),
                     ),
                     # STYLING FOR MODAL CONTENT
@@ -525,13 +459,12 @@ def login_modal() -> rx.Component:
             motion_preset='scale',
             is_open=NavbarState.show_sign_in,
             on_overlay_click=NavbarState.toggle_login()
-        ),
+        )
     )
 
 def c2a() -> rx.Component:
     """
-    Conditional call to action below navbar. Shows on first visit to site
-    and can be closed by user with the 'close' button.
+    Renders call to action bar if NavbarState.show_c2a is True.
     """
     return rx.cond(
         NavbarState.show_c2a,
@@ -543,9 +476,9 @@ def c2a() -> rx.Component:
                     variant='ghost',
                     color='white',
                     _hover='none',
-                    on_click=NavbarState.toggle_feedback,
+                    on_click=NavbarState.toggle_feedback
                 ),
-                width='100%',
+                width='100%'
             ),
             rx.button(
                 rx.icon(
@@ -555,21 +488,21 @@ def c2a() -> rx.Component:
                 size='sm',
                 variant='ghost',
                 _hover='none',
-                on_click=NavbarState.toggle_c2a,
+                on_click=NavbarState.toggle_c2a
             ),
-
             # STYLING FOR C2A CONTAINER
             bg='rgba(0, 128, 128, 0.8)', # teal
             box_shadow='inset 0px 4px 5px -5px rgba(0, 0, 0, 0.5)',
             height='40px',
             padding_x='12px',
-            padding_y='4px',
-        ),
+            padding_y='4px'
+        )
     )
 
 def c2a_spacer() -> rx.Component:
     """
-    Sets spacer to allow elements to move when c2a is closed.
+    Inserts spacer if NavbarState.show_c2a is True, to allow page to
+    space correctly if c2a is open or closed.
     """
     return rx.cond(
         NavbarState.show_c2a,

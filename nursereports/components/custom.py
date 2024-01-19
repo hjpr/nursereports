@@ -1,8 +1,5 @@
 
-from ..auth.auth import AuthState
-from loguru import logger
-from typing import Iterable
-
+import functools
 import reflex as rx
 
 def spacer(**props) -> rx.Component:
@@ -10,3 +7,13 @@ def spacer(**props) -> rx.Component:
     background is white.
     """
     return rx.Box(**props)
+
+def loading(page: rx.Component) -> rx.Component:
+    @functools.wraps(page)
+    def _wrapper() -> rx.Component:
+        return rx.cond(
+            rx.State.is_hydrated,
+            page(), # Hydrated show page
+            rx.spinner() # Not hydrated, show spinner
+        )
+    return _wrapper

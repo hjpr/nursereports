@@ -1,13 +1,11 @@
 
-from ..components.decorators import protected_page
 from ..components.footer import footer
 from ..components.navbar import navbar, c2a_spacer
 from ..components.custom import spacer
 
 import reflex as rx
 
-# Use @protected_page if require user login prior to viewing.
-def dashboard() -> rx.Component:
+def template() -> rx.Component:
     return rx.flex(
 
         navbar(),
@@ -16,7 +14,6 @@ def dashboard() -> rx.Component:
         
         # CONTENT CONTAINER
         rx.flex(
-
             # STYLING FOR CONTENT CONTAINER
             flex_direction='column',
             flex_basis='auto',
@@ -28,6 +25,7 @@ def dashboard() -> rx.Component:
 
         # STYLING FOR BODY CONTAINER
         flex_direction='column',
-        min_height='100vh',
+        align_items='center',
+        min_height='100vh'
 
     )

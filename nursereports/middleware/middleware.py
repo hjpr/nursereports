@@ -10,7 +10,7 @@ in combination with function name...
 event_name = state.auth_state.auth_flow
 """
 
-class AuthMiddleware(rx.Middleware):
+class LoggingMiddleware(rx.Middleware):
     """
     Preprocess -
     event.name = 'state.on_load_internal' occurs when navigation requested
@@ -19,3 +19,7 @@ class AuthMiddleware(rx.Middleware):
     """
     def preprocess(self, app, state, event):
         logger.debug(event.name)
+        # if event.name == "state.on_load_internal":
+        #     rich.inspect(event)
+        # if event.name == "state.set_is_hydrated":
+        #     rich.inspect(state.substates['report_state'])

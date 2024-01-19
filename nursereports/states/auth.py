@@ -1,6 +1,5 @@
 
-from typing import Iterable
-from reflex.event import Event
+from typing import Callable, Iterable
 
 import httpx
 import json
@@ -83,13 +82,14 @@ class AuthState(rx.State):
             logger.warning(f"Can't retrieve claims - {e}")
             return "other"
 
-    def get_new_access_token(self) -> Iterable[Event]:
+    def get_new_access_token(self) -> Iterable[Callable]:
         """
         Gets a new access token using the refresh token stored in cookies.
         If successful, yields events to set new cookies, if unsuccessful, 
         yields a redirect back to '/'.
         """
-        from ..components.navbar import NavbarState
+        from ..states.auth import AuthState
+        from ..states.auth import NavbarState
 
         logger.debug("Attempting to refresh expired access token...")
 
@@ -117,22 +117,22 @@ class AuthState(rx.State):
             logger.debug("Refreshed user access tokens.")
             yield AuthState.set_access_token(response.json().get('access_token'))
             yield AuthState.set_refresh_token(response.json().get('refresh_token'))
-            yield NavbarState.set_alert_message("")
         else:
-            logger.debug("Unable to retrieve new access token.")
+            logger.critical("Unable to retrieve new access token.")
             yield rx.redirect('/')
             yield NavbarState.set_alert_message(
                 "Failed to refresh session. Please sign in again."
             )
 
-    def email_sign_in(self, form_data: dict) -> Iterable[Event]:
+    def email_sign_in(self, form_data: dict) -> Iterable[Callable]:
         """
         Takes form_data as dict and submits to Supabase API to get an
         access and refresh token. Returns events to the event handler
         as a generator to set cookies for use on the frontend, change
         active UI elements, and redirect properly.
         """
-        from ..components.navbar import NavbarState
+        from ..states.auth import AuthState
+        from ..states.navbar import NavbarState
 
         url = f'{api_url}/auth/v1/token'
         params = {
@@ -166,14 +166,14 @@ class AuthState(rx.State):
                 "Invalid credentials provided."
             )
 
-    def email_create_account(self, form_data: dict) -> Iterable[Event]:
+    def email_create_account(self, form_data: dict) -> Iterable[Callable]:
         """
         Takes form data from on_submit as dict and submits to Supabase API. Whether
         user signup is successful or not it returns a user in order to prevent db
         introspection. Yields to event handler as generator to set active ui
         elements.
         """
-        from ..components.navbar import NavbarState
+        from ..states.navbar import NavbarState
 
         email = form_data.get("create_account_email")
         password = form_data.get("create_account_password")
@@ -213,45 +213,52 @@ class AuthState(rx.State):
                     response.get('msg')
                 )
 
-    def sso_sign_in(self, provider: str) -> Iterable[Event]:
+    def sso_sign_in(self, provider: str) -> Iterable[Callable]:
         """
         Takes positional str which determines the SSO provider to send
         request to. Redirection chain ends up at the '/v1/auth/'
         pseudoendpoint.
         """
-        from ..components.navbar import NavbarState
+        from ..states.navbar import NavbarState
         
         yield NavbarState.set_show_sign_in(False)
         yield rx.redirect(
             f"{api_url}/auth/v1/authorize?provider={provider}",
             )
         
-    def logout(self) -> Iterable[Event]:
+    def logout(self) -> Iterable[Callable]:
         """
         Clears cookies and redirects back to root.
         """
-        from ..components.navbar import NavbarState
+        from ..states.navbar import NavbarState
 
         yield rx.redirect("/")
         yield rx.remove_cookie("access_token")
         yield rx.remove_cookie("refresh_token")
         yield NavbarState.set_alert_message("Successfully logged out.")
 
-    def auth_flow(self, access_level) -> Iterable[rx.event.Event]:
+    def standard_flow(self, access_level) -> Iterable[Callable] | None:
         """
-        Seamlessly refreshes access tokens mid-navigation if token is
-        expired. Also either allows navigation to protected pages, or
-        redirects back to root if unauthorized.
+        Check claims and access to determine if redirect is necessary.
         """
-        from ..components.navbar import NavbarState
+        yield from self.check_claims()
+        yield from self.check_access(access_level)
 
-        if isinstance(self.claims, str):
+    def check_claims(self) -> Iterable[Callable] | None:
+        from ..states.navbar import NavbarState
+        if isinstance(AuthState.claims, str):
             if self.claims == 'expired':
                 yield AuthState.get_new_access_token
             if self.claims == 'invalid':
                 yield NavbarState.set_alert_message(
                     "Access token corrupted. Login to refresh."
                 )
+        else:
+            yield None
+
+    def check_access(self, access_level) -> Iterable[Callable] | None:
+        from ..states.navbar import NavbarState
+
         if access_level == 'req_none':
             # Use req_none to grant open access to any page.
             pass
@@ -263,7 +270,7 @@ class AuthState(rx.State):
             )
         if access_level == 'req_report' and not self.user_has_reported:
             # Use req_report to force users to submit report before access.
-            yield rx.redirect('/report/search')
+            yield rx.redirect('/search/report')
             yield NavbarState.set_alert_message(
                 "Please submit your own report in order to access those resources."
             )

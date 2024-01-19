@@ -4,15 +4,13 @@ from .custom import spacer
 import reflex as rx
 
 def footer() -> rx.Component:
-    """Footer component for page."""
-
+    """
+    Main footer component.
+    """
     return rx.flex(
-
         spacer(height='40px'),
-
         # CENTERED FOOTER CONTAINER
         rx.flex(
-
             # LEFT FOOTER SECTION
             rx.flex(
                 # LEFT FOOTER HEADER W IMAGE  
@@ -90,7 +88,6 @@ def footer() -> rx.Component:
                 flex_direction='row',
                 justify_content='space-between',
             ),
-
             # ON MOBILE - COPYRIGHT
             rx.flex(
                 spacer(height='40px'),
@@ -121,9 +118,7 @@ def footer() -> rx.Component:
             width='100%',
             max_width='1200px',
         ),
-
         spacer(height='40px'),
-
         # STYLING FOR FOOTER CONTAINER
         bg='teal',
         color='white',
@@ -135,6 +130,5 @@ def footer() -> rx.Component:
         flex_shrink='0',
         width='100%',
         justify_content='center',
-        align_items='center',
-        
+        align_items='center'
     )
