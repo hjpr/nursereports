@@ -500,7 +500,7 @@ def buttons() -> rx.Component:
     return rx.button_group(
         rx.button("Back",
                 width='100%',
-                on_click=ReportState.report_nav('pay'),
+                on_click=ReportState.report_nav('compensation'),
                 is_loading=~rx.State.is_hydrated,
                 color_scheme='teal'
         ),

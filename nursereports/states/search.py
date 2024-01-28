@@ -110,65 +110,6 @@ class SearchState(CookieState):
         on navigating to a report in case user is submitting multiple
         reports that session.
         """
-        yield from self.clear_report_compensation()
-        yield from self.clear_report_staffing()
         yield SearchState.set_selected_state("")
         yield SearchState.set_selected_city("")
         yield rx.redirect(f"/report/summary/{summary_id}")
-
-    def clear_report_compensation(self) -> Iterable[Callable]:
-        """
-        Clears all non-computed vars for compensation section within
-        the report.
-        """
-        from ..states.report import ReportState
-
-        yield ReportState.set_pay_emp_type("")
-        yield ReportState.set_pay_amount(0)
-        yield ReportState.set_pay_differential_response("")
-        yield ReportState.set_pay_differential_nights(0)
-        yield ReportState.set_pay_differential_weekends(0)
-        yield ReportState.set_pay_incentive_response("")
-        yield ReportState.set_pay_incentive_amount(0)
-        yield ReportState.set_pay_shift("")
-        yield ReportState.set_pay_weekly_shifts("")
-        yield ReportState.set_pay_hospital_experience("")
-        yield ReportState.set_pay_total_experience("")
-        yield ReportState.set_pay_benefit_pto(False)
-        yield ReportState.set_pay_benefit_parental(False)
-        yield ReportState.set_pay_benefit_insurance(False)
-        yield ReportState.set_pay_benefit_retirement(False)
-        yield ReportState.set_pay_benefit_pro_dev(False)
-        yield ReportState.set_pay_benefit_tuition(False)
-        yield ReportState.set_pay_compensation("")
-        yield ReportState.set_pay_desired_changes("")
-        yield ReportState.set_pay_comments("")
-        yield ReportState.set_pay_overall("")
-
-    def clear_report_staffing(self) -> Iterable[Callable]:
-        """
-        Clears all non-computed vars for staffing section within
-        the report.
-        """
-        from ..states.report import ReportState
-
-        yield ReportState.set_staffing_ratio_response("")
-        yield ReportState.set_staffing_ratio(0)
-        yield ReportState.set_staffing_ratio_variable("")
-        yield ReportState.set_staffing_ratio_unsafe("")
-        yield ReportState.set_staffing_workload("")
-        yield ReportState.set_staffing_float("")
-        yield ReportState.set_staffing_charge_response("")
-        yield ReportState.set_staffing_charge_assignment("")
-        yield ReportState.set_staffing_influence("")
-        yield ReportState.set_staffing_nursing_shortages("")
-        yield ReportState.set_staffing_aide_shortages("")
-        yield ReportState.set_staffing_select_transport(False)
-        yield ReportState.set_staffing_select_lab(False)
-        yield ReportState.set_staffing_select_cvad(False)
-        yield ReportState.set_staffing_select_wocn(False)
-        yield ReportState.set_staffing_select_chaplain(False)
-        yield ReportState.set_staffing_select_educator(False)
-        yield ReportState.set_staffing_support_available("")
-        yield ReportState.set_staffing_comments("")
-        yield ReportState.set_staffing_overall("")

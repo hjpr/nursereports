@@ -124,6 +124,8 @@ class AuthState(CookieState):
         Clears cookies and redirects back to root.
         """
         from ..states.navbar import NavbarState
+        from ..states.report import ReportState
+        from ..states.search import SearchState
 
         yield rx.redirect("/")
         yield rx.remove_cookie("access_token")

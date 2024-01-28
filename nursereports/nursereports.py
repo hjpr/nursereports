@@ -18,7 +18,8 @@ from .style.style import style_dict
 import reflex as rx
 
 """
-STYLE SHEET - Alter sitewide styles on the stylesheet contained at '/assets'.
+STYLE SHEET - Alter sitewide styles on the stylesheet contained
+at '/assets'.
 """
 style = style_dict
 stylesheets = [
@@ -34,8 +35,9 @@ app = rx.App(
 
 # ADD PAGES HERE
 """
-INDEX PAGE - on_load runs login_flow to check states to determine if user is
-already logged in, or is coming from an api auth/deauth request.
+INDEX PAGE - on_load runs login_flow to check states to determine
+if user is already logged in, or is coming from an api auth/deauth
+request.
 """
 app.add_page(
     index,
@@ -44,9 +46,9 @@ app.add_page(
     )
 
 """
-AUTH - pseudo endpoint for SSO redirects. Captures url and parses it
-out to get access and refresh tokens as well as redirecting back to root site
-allowing for seamless login flow.
+AUTH - pseudo endpoint for SSO redirects. Captures url and parses
+it out to get access and refresh tokens as well as redirecting back
+to root site allowing for seamless login flow.
 """
 app.add_page(
     auth_api,
@@ -55,8 +57,8 @@ app.add_page(
     )
 
 """
-DEAUTH - pseudo endpoint for SSO redirects. Captures url and parses it out
-to remove user data per request of user.
+DEAUTH - pseudo endpoint for SSO redirects. Captures url and parses
+it out to remove user data per request of user.
 """
 app.add_page(
     deauth_api,
@@ -65,8 +67,8 @@ app.add_page(
     )
 
 """
-DASHBOARD - Account panel after signin where user can edit/modify account info
-see reports, save hospitals etc.
+DASHBOARD - Account panel after signin where user can edit/modify
+account info see reports, save hospitals etc.
 """
 app.add_page(
     dashboard,
@@ -75,9 +77,10 @@ app.add_page(
 )
 
 """
-SEARCH- Search by hospital which routes to proper page depending on the context
-of the search. For example, page is used both to search hospitals to submit a 
-report, but also to search hospitals to access hospital page.
+SEARCH- Search by hospital which routes to proper page depending on
+the context of the search. For example, page is used both to search
+hospitals to submit a report, but also to search hospitals to access
+hospital page.
 """
 app.add_page(
     search,

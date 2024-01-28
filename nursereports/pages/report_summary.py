@@ -122,7 +122,7 @@ def summary() -> rx.Component:
                     rx.button(
                         "Got it. Let's go!",
                         color_scheme='teal',
-                        on_click=ReportState.report_nav('compensation'),
+                        on_click=ReportState.clear_and_nav_to_compensation,
                         is_loading=~rx.State.is_hydrated,
                     ),
                     width='600px'

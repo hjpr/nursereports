@@ -7,6 +7,7 @@ import json
 import jwt
 import os
 import reflex as rx
+import rich
 import time
 
 from dotenv import load_dotenv
@@ -26,6 +27,7 @@ class CookieState(rx.State):
     access_token: str = rx.Cookie(
         name="access_token",
         same_site='strict',
+        #domain='nursereports.org',
         secure=True,
     )
 
@@ -33,6 +35,7 @@ class CookieState(rx.State):
     refresh_token: str = rx.Cookie(
         name="refresh_token",
         same_site='strict',
+        #domain='nursereports.org',
         secure=True,
     )
 
@@ -134,8 +137,9 @@ class CookieState(rx.State):
     def standard_flow(self, access_level) -> Iterable[Callable] | None:
             """
             Check claims and access to determine if redirect is necessary.
+            If pages require a special flow, then use standard_flow as
+            a template and add additional checks.
             """
-            logger.debug("Starting flow process...")
             yield from self.check_claims()
             yield from self.check_access(access_level)
 
@@ -181,7 +185,7 @@ class CookieState(rx.State):
         """
         if access_level == 'req_none':
             # Use req_none to grant open access to any page.
-            pass
+            yield None
         if access_level == 'req_login' and not self.user_is_authenticated:
             # Use req_login to require user to login.
             yield rx.redirect('/')

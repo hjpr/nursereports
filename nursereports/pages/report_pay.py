@@ -27,6 +27,8 @@ def pay_page() -> rx.Component:
 
                     spacer(height='10px'),
 
+                    description(),
+
                     pay(),
 
                     demographics(),
@@ -67,6 +69,25 @@ def pay_page() -> rx.Component:
         flex_direction='column',
         align_items='center',
         min_height='100vh',
+    )
+
+def description() -> rx.Component:
+    return rx.card(
+        rx.vstack(
+            rx.heading(
+                "Compensation",
+                size='lg'
+            ),
+            spacer(height='6px'),
+            rx.divider(),
+            spacer(height='6px'),
+            rx.text(
+                """This section captures information about what nurses
+                recieve as pay and benefits based on their experience."""
+            ),
+            spacer(height='10px'),
+            width='100%'
+        )
     )
 
 def pay() -> rx.Component:
@@ -205,6 +226,7 @@ def pay() -> rx.Component:
             rx.cond(
                 ReportState.gets_incentive,
                 rx.vstack(
+                    spacer(height='10px'),
                     rx.text(
                         "Extra per hour for incentive? (in $)"
                     ),

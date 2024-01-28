@@ -7,6 +7,7 @@ import httpx
 import json
 import os
 import reflex as rx
+import rich
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -501,51 +502,12 @@ class ReportState(CookieState):
                     f"Invalid URL target - {target_url}"
             )
                 
-    def reset_report(self) -> None:
+    def clear_and_nav_to_compensation(self) -> Iterable[Callable]:
         """
-        Compensation Variables
+        Reset all vars in ReportState to prep for a new report. Do it
+        using the button nav between summary and compensation so that
+        user accidentally hitting back can still go forward back to
+        their report stored in state.
         """
-        self.pay_emp_type = ""
-        self.pay_amount = 0
-        self.pay_differential_response = ""
-        self.pay_differential_nights = 0
-        self.pay_differential_weekends = 0
-        self.pay_incentive_response = ""
-        self.pay_incentive_amount = 0
-        self.pay_shift = ""
-        self.pay_weekly_shifts = ""
-        self.pay_hospital_experience = ""
-        self.pay_total_experience = ""
-        self.pay_benefit_pto = False
-        self.pay_benefit_parental = False
-        self.pay_benefit_insurance = False
-        self.pay_benefit_retirement = False
-        self.pay_benefit_pro_dev = False
-        self.pay_benefit_tuition = False
-        self.pay_compensation = ""
-        self.pay_desired_changes = ""
-        self.pay_comments = ""
-        self.pay_overall = ""
-        """
-        Staffing Variables
-        """
-        self.staffing_ratio_response = ""
-        self.staffing_ratio = 0
-        self.staffing_ratio_variable = ""
-        self.staffing_ratio_unsafe = ""
-        self.staffing_workload = ""
-        self.staffing_float = ""
-        self.staffing_charge_response = ""
-        self.staffing_charge_assignment = ""
-        self.staffing_influence = ""
-        self.staffing_nursing_shortages = ""
-        self.staffing_aide_shortages = ""
-        self.staffing_select_transport = False
-        self.staffing_select_lab = False
-        self.staffing_select_cvad = False
-        self.staffing_select_wocn = False
-        self.staffing_select_chaplain = False
-        self.staffing_select_educator = False
-        self.staffing_support_available = ""
-        self.staffing_comments = ""
-        self.staffing_overall = ""
+        yield rx.redirect(f"/report/submit/{self.summary_id}/compensation")
+        self.reset()
