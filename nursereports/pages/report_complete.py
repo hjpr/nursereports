@@ -1,5 +1,4 @@
 from ..components.footer import footer
-from ..components.progress_bar import progress_bar
 from ..components.navbar import navbar, c2a_spacer
 from ..components.custom import spacer
 
@@ -11,8 +10,6 @@ def complete() -> rx.Component:
         navbar(),
 
         c2a_spacer(),
-
-        progress_bar(),
 
         spacer(height='40px'),
 

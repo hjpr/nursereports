@@ -1,128 +1,25 @@
 
+from ..states.cookie import CookieState
+from loguru import logger
 from typing import Callable, Iterable
 
 import httpx
 import json
-import jwt
 import os
 import reflex as rx
-import rich
 
 from dotenv import load_dotenv
-from loguru import logger
 load_dotenv()
 
 api_url = os.getenv("SUPABASE_URL")
 api_key = os.getenv("SUPABASE_ANON_KEY")
 jwt_key = os.getenv("SUPABASE_JWT_KEY")
 
-
-class AuthState(rx.State):
+class AuthState(CookieState):
     """
     User data returned via JWT from Supabase API call. API endpoints for
     Supabase auth - https://github.com/supabase/gotrue
     """
-    # JWT token stored as cookie. Pass to Supabase as header with requests.
-    access_token: str = rx.Cookie(
-        name="access_token",
-        same_site='strict',
-        secure=True,
-    )
-
-    # Refresh token stored as cookie for new session request.
-    refresh_token: str = rx.Cookie(
-        name="refresh_token",
-        same_site='strict',
-        secure=True,
-    )
-
-    @rx.cached_var
-    def user_has_reported(self) -> bool:
-        if isinstance(self.claims, dict):
-            if self.claims.get("has_reported"):
-                logger.debug("User has submitted the required report.")
-                return True
-            else:
-                logger.warning("User hasn't submitted the required report.")
-                return False
-        else:
-            logger.warning("No claims to pull user report status.")
-            return False
-
-    @rx.cached_var
-    def user_is_authenticated(self) -> bool:
-        if isinstance(self.claims, dict):
-            logger.debug("User is authenticated.")
-            return True
-        if isinstance(self.claims, str):
-            logger.warning("User is not authenticated.")
-            return False
-
-    @rx.cached_var
-    def claims(self) -> dict[str, str] | str:
-        """
-        Will only return dict of claims if user is authenticated,
-        otherwise returns string with error description to match.
-        """
-        try:
-            claims = jwt.decode(
-                self.access_token,
-                jwt_key,
-                audience='authenticated',
-                algorithms=['HS256'],
-            )
-            return claims
-        except jwt.ExpiredSignatureError:
-            logger.warning("Claims expired!")
-            return "expired"
-        except jwt.InvalidAudienceError:
-            logger.critical("Claims invalid!")
-            return "invalid"
-        except Exception as e:
-            logger.warning(f"Can't retrieve claims - {e}")
-            return "other"
-
-    def get_new_access_token(self) -> Iterable[Callable]:
-        """
-        Gets a new access token using the refresh token stored in cookies.
-        If successful, yields events to set new cookies, if unsuccessful, 
-        yields a redirect back to '/'.
-        """
-        from ..states.auth import AuthState
-        from ..states.auth import NavbarState
-
-        logger.debug("Attempting to refresh expired access token...")
-
-        url = f"{api_url}/auth/v1/token"
-        params = {
-            "grant_type": "refresh_token"
-        }
-        headers = {
-            "apikey": api_key,
-            "Authorization": f"Bearer {self.access_token}",
-            "Content-Type": "application/json",
-        }
-        data = {
-            "refresh_token": self.refresh_token
-        }
-
-        response = httpx.post(
-            url=url,
-            params=params,
-            headers=headers,
-            data=json.dumps(data)
-        )
-
-        if response.is_success:
-            logger.debug("Refreshed user access tokens.")
-            yield AuthState.set_access_token(response.json().get('access_token'))
-            yield AuthState.set_refresh_token(response.json().get('refresh_token'))
-        else:
-            logger.critical("Unable to retrieve new access token.")
-            yield rx.redirect('/')
-            yield NavbarState.set_alert_message(
-                "Failed to refresh session. Please sign in again."
-            )
 
     def email_sign_in(self, form_data: dict) -> Iterable[Callable]:
         """
@@ -131,7 +28,6 @@ class AuthState(rx.State):
         as a generator to set cookies for use on the frontend, change
         active UI elements, and redirect properly.
         """
-        from ..states.auth import AuthState
         from ..states.navbar import NavbarState
 
         url = f'{api_url}/auth/v1/token'
@@ -154,12 +50,9 @@ class AuthState(rx.State):
         )
 
         if response.is_success:
-            yield AuthState.set_access_token(response.cookies.get('sb-access-token'))
-            yield AuthState.set_refresh_token(response.cookies.get('sb-refresh-token'))
+            yield CookieState.set_access_token(response.cookies.get('sb-access-token'))
+            yield CookieState.set_refresh_token(response.cookies.get('sb-refresh-token'))
             yield NavbarState.set_show_sign_in(False)
-            yield rx.call_script(
-                "window.location.reload()"
-            )
             yield rx.redirect('/dashboard')
         else:
             yield NavbarState.set_error_sign_in_message(
@@ -236,44 +129,6 @@ class AuthState(rx.State):
         yield rx.remove_cookie("access_token")
         yield rx.remove_cookie("refresh_token")
         yield NavbarState.set_alert_message("Successfully logged out.")
-
-    def standard_flow(self, access_level) -> Iterable[Callable] | None:
-        """
-        Check claims and access to determine if redirect is necessary.
-        """
-        yield from self.check_claims()
-        yield from self.check_access(access_level)
-
-    def check_claims(self) -> Iterable[Callable] | None:
-        from ..states.navbar import NavbarState
-        if isinstance(AuthState.claims, str):
-            if self.claims == 'expired':
-                yield AuthState.get_new_access_token
-            if self.claims == 'invalid':
-                yield NavbarState.set_alert_message(
-                    "Access token corrupted. Login to refresh."
-                )
-        else:
-            yield None
-
-    def check_access(self, access_level) -> Iterable[Callable] | None:
-        from ..states.navbar import NavbarState
-
-        if access_level == 'req_none':
-            # Use req_none to grant open access to any page.
-            pass
-        if access_level == 'req_login' and not self.user_is_authenticated:
-            # Use req_login to require user to login.
-            yield rx.redirect('/')
-            yield NavbarState.set_alert_message(
-                "Please login to access that page."
-            )
-        if access_level == 'req_report' and not self.user_has_reported:
-            # Use req_report to force users to submit report before access.
-            yield rx.redirect('/search/report')
-            yield NavbarState.set_alert_message(
-                "Please submit your own report in order to access those resources."
-            )
 
     # def initial_setup(self) -> Iterable[Event]:
     #     """

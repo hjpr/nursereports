@@ -1,6 +1,5 @@
 
 from ..components.footer import footer
-from ..components.progress_bar import progress_bar
 from ..components.navbar import navbar, c2a_spacer
 from ..components.lists import cities_by_state
 from ..components.custom import spacer
@@ -14,8 +13,6 @@ def summary() -> rx.Component:
         navbar(),
 
         c2a_spacer(),
-
-        progress_bar(),
 
         spacer(height='40px'),
 
@@ -125,7 +122,7 @@ def summary() -> rx.Component:
                     rx.button(
                         "Got it. Let's go!",
                         color_scheme='teal',
-                        on_click=ReportState.nav_summary_to_pay,
+                        on_click=ReportState.report_nav('compensation'),
                         is_loading=~rx.State.is_hydrated,
                     ),
                     width='600px'

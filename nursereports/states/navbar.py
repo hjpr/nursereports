@@ -4,6 +4,10 @@ from loguru import logger
 import reflex as rx
 
 class NavbarState(rx.State):
+    """
+    State for the navbar component. Controls the login screens, the
+    error screens, and feedback messages for issues during login.
+    """
     show_c2a: bool = True
     show_feedback: bool = False
     show_sign_in: bool = False

@@ -30,6 +30,8 @@ def navbar() -> rx.Component:
                  width='32px',
                  margin_left='12px',
                  margin_right='4px',
+                 cursor='pointer',
+                 on_click=rx.redirect("/")
             ),
 
             rx.heading(

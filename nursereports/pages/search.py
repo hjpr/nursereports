@@ -144,15 +144,3 @@ def render_results(result: dict) -> rx.Component:
         # STYLING FOR CARD
         width='100%',
     )
-
-"""
-Example of using a link instead of a button for render_results
-
-rx.link(
-    "Select",
-    color_scheme='teal',
-    href=f"/{SearchState.url_context}/id/{result['hosp_id']}"\
-    f"{SearchState.url_for_report}", # If from results, add "summary" to route properly
-    on_click=SearchState.clear_city_and_state_selection
-),
-"""

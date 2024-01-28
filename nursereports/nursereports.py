@@ -6,13 +6,13 @@ from .pages.api_deauth import deauth_api
 from .pages.dashboard import dashboard
 from .pages.index import index
 from .pages.report_summary import summary
-from .pages.report_pay import pay
-from .pages.report_staffing import staffing
+from .pages.report_pay import pay_page
+from .pages.report_staffing import staffing_page
 from .pages.report_unit import unit
 from .pages.report_complete import complete
 from .pages.search import search
 
-from .states.auth import AuthState
+from .states.cookie import CookieState
 from .style.style import style_dict
 
 import reflex as rx
@@ -27,8 +27,8 @@ stylesheets = [
 
 # INITIALIZE THE APP
 app = rx.App(
-    style=style,
-    stylesheets=stylesheets,
+    # style=style,
+    # stylesheets=stylesheets,
     middleware=[LoggingMiddleware()]
     )
 
@@ -40,7 +40,7 @@ already logged in, or is coming from an api auth/deauth request.
 app.add_page(
     index,
     route="/",
-    on_load=AuthState.standard_flow('req_none'),
+    on_load=CookieState.standard_flow('req_none'),
     )
 
 """
@@ -51,7 +51,7 @@ allowing for seamless login flow.
 app.add_page(
     auth_api,
     route="api/v1/auth",
-    on_load=AuthState.standard_flow('req_none')
+    on_load=CookieState.standard_flow('req_none')
     )
 
 """
@@ -61,7 +61,7 @@ to remove user data per request of user.
 app.add_page(
     deauth_api,
     route="/api/v1/deauth",
-    on_load=AuthState.standard_flow('req_login')
+    on_load=CookieState.standard_flow('req_login')
     )
 
 """
@@ -71,7 +71,7 @@ see reports, save hospitals etc.
 app.add_page(
     dashboard,
     route="/dashboard",
-    on_load=AuthState.standard_flow('req_report')
+    on_load=CookieState.standard_flow('req_report')
 )
 
 """
@@ -82,7 +82,7 @@ report, but also to search hospitals to access hospital page.
 app.add_page(
     search,
     route="/search/[context]",
-    on_load=AuthState.standard_flow('req_login')
+    on_load=CookieState.standard_flow('req_login')
 )
 
 #####################################################################
@@ -97,31 +97,31 @@ REPORT SUMMARY - Entry page for user report by hospital.
 app.add_page(
     summary,
     route="/report/summary/[summary_id]",
-    on_load=AuthState.standard_flow('req_login')
+    on_load=CookieState.standard_flow('req_login')
 )
 """
 REPORT PAY - Pay report by hospital
 """
 app.add_page(
-    pay,
-    route="/report/submit/[report_id]/pay",
-    on_load=AuthState.standard_flow('req_login')
+    pay_page,
+    route="/report/submit/[report_id]/compensation",
+    on_load=CookieState.standard_flow('req_login')
 )
 """
 REPORT STAFFING- Staffing report by hospital.
 """
 app.add_page(
-    staffing,
+    staffing_page,
     route="/report/submit/[report_id]/staffing",
-    on_load=AuthState.standard_flow('req_login')
+    on_load=CookieState.standard_flow('req_login')
 )
 """
 REPORT UNIT - Unit report by hospital.
 """
 app.add_page(
     unit,
-    route="/report/submit/[report_id]/unit",
-    on_load=AuthState.standard_flow('req_login')
+    route="/report/submit/[report_id]/assignment",
+    on_load=CookieState.standard_flow('req_login')
 )
 """
 REPORT COMPLETE - Unit report by hospital.
@@ -129,5 +129,5 @@ REPORT COMPLETE - Unit report by hospital.
 app.add_page(
     complete,
     route="/report/submit/[report_id]/complete",
-    on_load=AuthState.standard_flow('req_login')
+    on_load=CookieState.standard_flow('req_login')
 )

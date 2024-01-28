@@ -1,5 +1,4 @@
 from ..components.footer import footer
-from ..components.progress_bar import progress_bar
 from ..components.navbar import navbar, c2a_spacer
 from ..components.custom import spacer
 from ..states.report import ReportState
@@ -13,18 +12,16 @@ def unit() -> rx.Component:
 
         c2a_spacer(),
 
-        progress_bar(),
-
         spacer(height='40px'),
 
         # MAIN CONTENT CONTAINER
         rx.flex(
-            rx.center(
+            rx.form(
                 rx.vstack(
                     rx.heading(
                         "Unit",
                         size='md'
-                        ),
+                    ),
                     # UNIT OR AREA NAME
                     # (CONTEXTUAL) UNIT NAME
                     # (CONTEXTUAL) UNIT ABBREVIATION
@@ -41,16 +38,7 @@ def unit() -> rx.Component:
                     # WORKPLACE SAFETY
                     # UNIT GRADE
                     # ADDITIONAL UNIT COMMENTS
-                    rx.button_group(
-                        rx.button("Back",
-                                on_click=ReportState.nav_unit_to_staffing,
-                                is_loading=~rx.State.is_hydrated
-                                ),
-                        rx.button("Submit",
-                                on_click=ReportState.submit_report,
-                                is_loading=~rx.State.is_hydrated
-                                )
-                    )
+                    buttons(),
                 )
             ),
 
@@ -75,4 +63,25 @@ def unit() -> rx.Component:
 
         align_items='center',
         min_height='100vh',
+    ),
+
+def buttons() -> rx.Component:
+    return rx.center(
+        rx.button_group(
+            rx.button("Back",
+                    width='100%',
+                    on_click=ReportState.report_nav('staffing'),
+                    is_loading=~rx.State.is_hydrated,
+                    color_scheme='teal'
+            ),
+            rx.button("Submit",
+                    width='100%',
+                    type_='submit',
+                    is_loading=~rx.State.is_hydrated,
+                    #is_disabled=~ReportState.pay_can_progress,
+                    color_scheme='teal'
+            ),
+            width='50%',
+        ),
+        width='100%'
     )
