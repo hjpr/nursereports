@@ -160,8 +160,7 @@ class CookieState(rx.State):
             if 5 <= time_left_sec <= 1800:
                 logger.warning(f"Within claims expiration window. Timeleft - {time_left_sec}")
                 yield CookieState.get_new_access_token
-
-        if isinstance(self.claims, str):
+        elif isinstance(self.claims, str):
             """
             If str returned, then claims have already expired, so
             allow redirect via check_access and set appropriate
@@ -176,7 +175,8 @@ class CookieState(rx.State):
                     "Access token corrupted. Login to refresh."
                 )
         else:
-            yield None
+            logger.debug("Somethin fucky goin on...")
+            rich.inspect(self.claims)
 
     def check_access(self, access_level) -> Iterable[Callable] | None:
         """

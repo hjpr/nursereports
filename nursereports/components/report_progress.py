@@ -26,8 +26,8 @@ def progress() -> rx.Component:
             rx.spacer(),
             rx.vstack(
                 rx.circular_progress(
-                    rx.circular_progress_label(0),
-                    value=0
+                    rx.circular_progress_label(ReportState.assign_progress),
+                    value=ReportState.assign_progress
                 ),
                 rx.heading("Assignment", size='xs'),
                 width='30%'

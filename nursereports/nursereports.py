@@ -8,7 +8,7 @@ from .pages.index import index
 from .pages.report_summary import summary
 from .pages.report_pay import pay_page
 from .pages.report_staffing import staffing_page
-from .pages.report_unit import unit
+from .pages.report_assign import assign_page
 from .pages.report_complete import complete
 from .pages.search import search
 
@@ -122,7 +122,7 @@ app.add_page(
 REPORT UNIT - Unit report by hospital.
 """
 app.add_page(
-    unit,
+    assign_page(),
     route="/report/submit/[report_id]/assignment",
     on_load=CookieState.standard_flow('req_login')
 )

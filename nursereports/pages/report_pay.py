@@ -74,18 +74,24 @@ def pay_page() -> rx.Component:
 def description() -> rx.Component:
     return rx.card(
         rx.vstack(
-            rx.heading(
-                "Compensation",
-                size='lg'
+            rx.vstack(
+                rx.heading(
+                    "Compensation",
+                    size='lg'
+                ),
+                rx.divider(),
+                width='100%'
             ),
-            spacer(height='6px'),
-            rx.divider(),
-            spacer(height='6px'),
-            rx.text(
-                """This section captures information about what nurses
-                recieve as pay and benefits based on their experience."""
+            rx.vstack(
+                rx.text(
+                    """Answer questions about what nurses recieve as
+                    pay and benefits based on their experience, and 
+                    if the compensation packages available are
+                    acceptable for your position.""",
+                    text_align='center'
+                ),
             ),
-            spacer(height='10px'),
+            spacing='2em',
             width='100%'
         )
     )
@@ -93,31 +99,41 @@ def description() -> rx.Component:
 def pay() -> rx.Component:
     return rx.card(
         rx.vstack(
-            # PAY - EMPLOYMENT TYPE
-            rx.heading("Pay",
-                       size='md'
-                       ),
-            spacer(height='6px'),
-            rx.divider(),
-            spacer(height='6px'),
-            rx.text("What is your employment type?"),
-            rx.select(
-                ["Full-time", "Part-time", "Contract"],
-                placeholder="- Select -",
-                value=ReportState.pay_emp_type,
-                variant='filled',
-                on_change=ReportState.set_pay_emp_type,
-                is_required=True
+            # PAY - EMPLOYMENT TYPE ---------------------------------
+            rx.vstack(
+                rx.heading("Pay",
+                        size='md'
+                        ),
+                rx.divider(),
+                width='100%'
             ),
-            # PAY - PAY AMOUNT
+            rx.vstack(
+                rx.text(
+                    "What is your employment type?"
+                    ),
+                rx.select(
+                    ["Full-time", "Part-time", "Contract"],
+                    placeholder="- Select -",
+                    value=ReportState.pay_emp_type,
+                    variant='filled',
+                    on_change=ReportState.set_pay_emp_type,
+                    is_required=True
+                ),
+                width='100%'
+            ),
+            # PAY - PAY AMOUNT --------------------------------------
             rx.cond(
                 ReportState.pay_emp_type,
                 rx.cond(
                     ReportState.is_contract,
                     # If contract
                     rx.vstack(
-                        spacer(height='10px'),
-                        rx.text("Total rate per week? (in $)"),
+                        rx.box(
+                            rx.span("Total rate "),
+                            rx.span("per week? ", font_weight='bold'),
+                            rx.span("(in $)"),
+                            text_align='center'
+                        ),
                         rx.number_input(
                             value=ReportState.pay_amount,
                             variant='filled',
@@ -133,7 +149,7 @@ def pay() -> rx.Component:
                                 rx.alert(
                                     rx.alert_icon(),
                                     rx.alert_title(
-                                        "A valid weekly pay must be entered."
+                                        "A valid weekly rate must be entered."
                                     ),
                                     status='info',
                                     border_radius='5px'
@@ -144,8 +160,12 @@ def pay() -> rx.Component:
                     ),
                     # If not contract
                     rx.vstack(
-                        spacer(height='10px'),
-                        rx.text("Base rate per hour? (in $)"),
+                        rx.box(
+                            rx.span("Base rate "),
+                            rx.span("per hour? ", font_weight='bold'),
+                            rx.span("(in $)"),
+                            text_align='center'
+                        ),
                         rx.number_input(
                             value=ReportState.pay_amount,
                             variant='filled',
@@ -173,62 +193,64 @@ def pay() -> rx.Component:
                     )
                 )
             ),
-            spacer(height='10px'),
             # PAY - DIFFERENTIAL
-            rx.text("Do you get extra pay for nights or weekends?"),
-            rx.select(
-                ["Yes", "No"],
-                placeholder="- Select -",
-                value=ReportState.pay_differential_response,
-                variant='filled',
-                on_change=ReportState.set_pay_differential_response,
-                is_required=True
+            rx.vstack(
+                rx.text("Do you get extra pay for nights or weekends?"),
+                rx.select(
+                    ["Yes", "No"],
+                    placeholder="- Select -",
+                    value=ReportState.pay_differential_response,
+                    variant='filled',
+                    on_change=ReportState.set_pay_differential_response,
+                    is_required=True
+                ),
+                width='100%'
             ),
             rx.cond(
                 ReportState.gets_differential,
                 rx.vstack(
-                    spacer(height='10px'),
                     rx.vstack(
-                        rx.text("Extra per hour for nights? (in $)"),
+                        rx.text("(Optional) Extra per hour for nights? (in $)"),
                         rx.number_input(
                             value=ReportState.pay_differential_nights,
                             variant='filled',
                             on_change=ReportState.set_pay_differential_nights,
                         )
                     ),
-                    spacer(height='10px'),
                     rx.vstack(
-                        rx.text("Extra per hour for weekends? (in $)"),
+                        rx.text("(Optional) Extra per hour for weekends? (in $)"),
                         rx.number_input(
                             value=ReportState.pay_differential_weekends,
                             variant='filled',
                             on_change=ReportState.set_pay_differential_weekends,
                         )
                     ),
+                    spacing='2em',
                     width='100%'
                 )
             ),
-            spacer(height='10px'),
             # PAY - INCENTIVE BONUS
-            rx.text(
-                "Do you get incentives for picking up extra shifts"\
-                " such as critical staffing or critical shift pay?",
-                text_align='center'
+            rx.vstack(
+                rx.text(
+                    "Do you get incentives for picking up extra shifts"\
+                    " such as critical staffing or critical shift pay?",
+                    text_align='center'
+                    ),
+                rx.select(
+                    ["Yes", "No"],
+                    placeholder="- Select -",
+                    value=ReportState.pay_incentive_response,
+                    variant='filled',
+                    on_change=ReportState.set_pay_incentive_response,
+                    is_required=True
                 ),
-            rx.select(
-                ["Yes", "No"],
-                placeholder="- Select -",
-                value=ReportState.pay_incentive_response,
-                variant='filled',
-                on_change=ReportState.set_pay_incentive_response,
-                is_required=True
+                width='100%'
             ),
             rx.cond(
                 ReportState.gets_incentive,
                 rx.vstack(
-                    spacer(height='10px'),
                     rx.text(
-                        "Extra per hour for incentive? (in $)"
+                        "(Optional) Extra per hour for incentive? (in $)"
                     ),
                     rx.number_input(
                         value=ReportState.pay_incentive_amount,
@@ -237,7 +259,7 @@ def pay() -> rx.Component:
                     )
                 )
             ),
-            spacer(height='10px'),
+            spacing='2em',
             width='100%'
         ),
         width='100%',
@@ -246,71 +268,82 @@ def pay() -> rx.Component:
 def demographics() -> rx.Component:
     return rx.card(
         rx.vstack(
-            rx.heading(
-                "Demographics",
-                size='md'
+            rx.vstack(
+                rx.heading(
+                    "Demographics",
+                    size='md'
+                    ),
+                rx.divider(),
+                width='100%'
+            ),
+            # DEMO - SHIFTS -----------------------------------------
+            rx.vstack(
+                rx.text("What shifts do you typically work?"),
+                rx.select(
+                    ["Day", "Night", "Rotating"],
+                    placeholder="- Select -",
+                    value=ReportState.pay_shift,
+                    variant='filled',
+                    on_change=ReportState.set_pay_shift,
+                    is_required=True
                 ),
-            spacer(height='6px'),
-            rx.divider(),
-            spacer(height='6px'),
-            rx.text("What shifts do you typically work?"),
-            rx.select(
-                ["Day", "Night", "Rotating"],
-                placeholder="- Select -",
-                value=ReportState.pay_shift,
-                variant='filled',
-                on_change=ReportState.set_pay_shift,
-                is_required=True
+                width='100%'
             ),
-            spacer(height='10px'),
-            # DEMO - AVERAGE DAYS WORKED A WEEK
-            rx.text("On average, how many shifts do you work per week?"),
-            rx.select(
-                ["1", "2", "3", "4", "5", "6", "7"],
-                placeholder="- Select -",
-                value=ReportState.pay_weekly_shifts,
-                on_change=ReportState.set_pay_weekly_shifts,
-                variant='filled',
-                is_required=True
-            ),
-            spacer(height='10px'),
-            # DEMO - TIME AT HOSPITAL AS RN
-            rx.box(
-                rx.span("How many "),
-                rx.span(
-                    "years at this hospital ",
-                    font_weight='bold'
+            # DEMO - AVERAGE DAYS WORKED A WEEK ---------------------
+            rx.vstack(
+                rx.text("On average, how many shifts do you work per week?"),
+                rx.select(
+                    ["1", "2", "3", "4", "5", "6", "7"],
+                    placeholder="- Select -",
+                    value=ReportState.pay_weekly_shifts,
+                    on_change=ReportState.set_pay_weekly_shifts,
+                    variant='filled',
+                    is_required=True
                 ),
-                rx.span("have you worked as a RN?"),
-                text_align='center'
+                width='100%'
             ),
-            rx.select(
-                years_experience,
-                placeholder="- Select -",
-                value=ReportState.pay_hospital_experience,
-                on_change=ReportState.set_pay_hospital_experience,
-                variant='filled',
-                is_required=True
-            ),
-            spacer(height='10px'),
-            # DEMO - TOTAL EXPERIENCE AS RN
-            rx.box(
-                rx.span("How many "),
-                rx.span(
-                    "years in total ",
-                    font_weight='bold'
+            # DEMO - TIME AT HOSPITAL AS RN -------------------------
+            rx.vstack(
+                rx.box(
+                    rx.span("How many "),
+                    rx.span(
+                        "years at this hospital ",
+                        font_weight='bold'
+                    ),
+                    rx.span("have you worked as a RN?"),
+                    text_align='center'
                 ),
-                rx.span("have you worked as a RN?"),
-                text_align='center'
+                rx.select(
+                    years_experience,
+                    placeholder="- Select -",
+                    value=ReportState.pay_hospital_experience,
+                    on_change=ReportState.set_pay_hospital_experience,
+                    variant='filled',
+                    is_required=True
+                ),
+                width='100%'
             ),
-            rx.select(
-                years_experience,
-                placeholder="- Select -",
-                value=ReportState.pay_total_experience,
-                on_change=ReportState.set_pay_total_experience,
-                variant='filled',
-                is_invalid=ReportState.is_experience_invalid,
-                is_required=True
+            # DEMO - TOTAL EXPERIENCE AS RN -------------------------
+            rx.vstack(
+                rx.box(
+                    rx.span("How many "),
+                    rx.span(
+                        "years in total ",
+                        font_weight='bold'
+                    ),
+                    rx.span("have you worked as a RN?"),
+                    text_align='center'
+                ),
+                rx.select(
+                    years_experience,
+                    placeholder="- Select -",
+                    value=ReportState.pay_total_experience,
+                    on_change=ReportState.set_pay_total_experience,
+                    variant='filled',
+                    is_invalid=ReportState.is_experience_invalid,
+                    is_required=True
+                ),
+                width='100%'
             ),
             rx.cond(
                 ReportState.is_experience_invalid,
@@ -323,28 +356,27 @@ def demographics() -> rx.Component:
                     border_radius='5px'
                 )
             ),
-            spacer(height='6px'),
-            # STYLING FOR VSTACK CONTAINER DEMOGRAPHICS
+            spacing='2em',
             width='100%'
         ),
-        # STYLING FOR DEMOGRAPHICS CARD
         width='100%'
     )
 
 def benefits() -> rx.Component:
     return rx.card(
         rx.vstack(
-            rx.heading(
-                "Benefits",
-                size='md'
-                ),
-            rx.text(
-                "Select the benefits that are offered for your position.",
-                text_align='center'
-                ),
-            spacer(height='6px'),
-            rx.divider(),
-            spacer(height='6px'),
+            rx.vstack(
+                rx.heading(
+                    "Benefits",
+                    size='md'
+                    ),
+                rx.text(
+                    "Select the benefits that are offered for your position.",
+                    text_align='center'
+                    ),
+                rx.divider(),
+                width='100%'
+            ),
             rx.hstack(
                 rx.hstack(
                     rx.checkbox(
@@ -404,8 +436,8 @@ def benefits() -> rx.Component:
                 wrap='wrap',
                 justify='center'
             ),
-            spacer(height='6px'),
-            width='100%',
+            spacing='2em',
+            width='100%'
         ),
         width='100%'
     )
@@ -413,39 +445,44 @@ def benefits() -> rx.Component:
 def compensation() -> rx. Component:
     return rx.card(
         rx.vstack(
-            rx.heading(
-                "Compensation",
-                size='md'
+            rx.vstack(
+                rx.heading(
+                    "Compensation",
+                    size='md'
+                    ),
+                rx.divider(),
+                width='100%'
+            ),
+            # COMP - ADEQUATELY COMPENSATED -------------------------
+            rx.vstack(
+                rx.text(
+                    """Is your compensation generally enough to keep you
+                    at this assignment?""",
+                    text_align='center'
                 ),
-            spacer(height='6px'),
-            rx.divider(),
-            spacer(height='6px'),
-            # COMP - ADEQUATELY COMPENSATED
-            rx.text(
-                "Is your compensation generally enough to keep you at this assignment?",
-                text_align='center'
+                rx.select(
+                    ["Yes", "No"],
+                    placeholder="- Select -",
+                    value=ReportState.pay_compensation,
+                    variant='filled',
+                    on_change=ReportState.set_pay_compensation,
+                    is_required=True
+                ),
+                width='100%'
             ),
-            rx.select(
-                ["Yes", "No"],
-                placeholder="- Select -",
-                value=ReportState.pay_compensation,
-                variant='filled',
-                on_change=ReportState.set_pay_compensation,
-                is_required=True
-            ),
-            # COMP - DESIRED ADDITIONAL COMPENSATION
+            # COMP - DESIRED ADDITIONAL COMPENSATION ----------------
             rx.cond(
                 ReportState.compensation_is_inadequate,
                 rx.vstack(
-                    spacer(height='10px'),
                     rx.text(
-                        "How could compensation change to make this assignment worthwhile?",
+                        """(Optional) How could compensation change to make this
+                        assignment worthwhile?""",
                         text_align='center'
                     ),
                     rx.debounce_input(
                         rx.text_area(
                             value=ReportState.pay_desired_changes,
-                            placeholder="(Optional) Do not enter personally identifiable information.",
+                            placeholder="Do not enter personally identifiable information.",
                             on_change=ReportState.set_pay_desired_changes,
                             on_blur=ReportState.set_pay_desired_changes,
                             variant='filled',
@@ -479,21 +516,25 @@ def compensation() -> rx. Component:
                     )
                 )
             ),
-            spacer(height='10px'),
-            rx.text(
-                "Any comments for your nursing peers about pay or benefits?",
-                text_align='center'
-            ),
-            rx.debounce_input(
-                rx.text_area(
-                    ReportState.pay_comments,
-                    placeholder="(Optional) Do not enter personally identifiable information.",
-                    on_change=ReportState.set_pay_comments,
-                    on_blur=ReportState.set_pay_comments,
-                    variant='filled',
-                    height='10em'
+            # COMP - COMMENTS ---------------------------------------
+            rx.vstack(
+                rx.text(
+                    """(Optional) Any comments for your nursing peers about pay
+                    or benefits?""",
+                    text_align='center'
                 ),
-                debounce_timeout=1000
+                rx.debounce_input(
+                    rx.text_area(
+                        ReportState.pay_comments,
+                        placeholder="Do not enter personally identifiable information.",
+                        on_change=ReportState.set_pay_comments,
+                        on_blur=ReportState.set_pay_comments,
+                        variant='filled',
+                        height='10em'
+                    ),
+                    debounce_timeout=1000
+                ),
+                width='100%'
             ),
             rx.cond(
                 ReportState.pay_comments,
@@ -519,26 +560,27 @@ def compensation() -> rx. Component:
                     "500 character limit."
                 )
             ),
-            spacer(height='6px'),
+            spacing='2em',
+            width='100%'
         ),
-        # STYLING FOR CARD
         width='100%'
     )
 
 def overall() -> rx.Component:
     return rx.card(
         rx.vstack(
-            rx.heading(
-                "Grade",
-                size='md'
+            rx.vstack(
+                rx.heading(
+                    "Grade",
+                    size='md'
+                ),
+                rx.text(
+                    "How would you grade your compensation overall?",
+                    text_align='center'
+                ),
+                rx.divider(),
+                width='100%'
             ),
-            rx.text(
-                "How would you grade your compensation overall?",
-                text_align='center'
-            ),
-            spacer(height='6px'),
-            rx.divider(),
-            spacer(height='6px'),
             rx.hstack(
                 rx.image(
                     src='/raster/icons/icon_rating_a.webp',
@@ -581,7 +623,6 @@ def overall() -> rx.Component:
                 ),
                 width='100%'
             ),
-            spacer(height='6px'),
             rx.cond(
                 ~ReportState.pay_overall,
                 rx.alert(
@@ -604,7 +645,8 @@ def overall() -> rx.Component:
                     width='100%'
                 )
             ),
-            spacer(height='6px')
+            spacing='2em',
+            width='100%'
         ),
         width='100%'
     )

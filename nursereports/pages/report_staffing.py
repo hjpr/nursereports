@@ -27,6 +27,8 @@ def staffing_page() -> rx.Component:
 
                     spacer(height='10px'),
 
+                    description(),
+
                     ratios(),
 
                     staffing(),
@@ -68,169 +70,212 @@ def staffing_page() -> rx.Component:
         min_height='100vh',
     )
 
+def description() -> rx.Component:
+    return rx.card(
+        rx.vstack(
+            rx.vstack(
+                rx.heading(
+                    "Staffing",
+                    size='lg'
+                ),
+                rx.divider(),
+                width='100%'
+            ),
+            rx.text(
+                """This section captures information on workloads and
+                staffing ratios depending on if you take patient
+                assignments, or work somewhere like a cath lab or
+                operating room where ratios aren't applicable.""",
+            ),
+            spacing='2em',
+            width='100%'
+        )
+    )
+
 def ratios() -> rx.Component:
     return rx.card(
         rx.vstack(
-            rx.heading(
-                "Ratios",
-                size='md'
+            rx.vstack(
+                rx.heading(
+                    "Ratios",
+                    size='md'
+                ),
+                rx.divider(),
+                width='100%'
             ),
-            spacer(height='6px'),
-            rx.divider(),
-            spacer(height='6px'),
-            # STAFFING - RATIOS
-            rx.text(
-                "Do you get a set of patients assigned to you each shift?",
-                text_align='center'
-            ),
-            rx.select(
-                ["Yes", "No"],
-                placeholder="- Select -",
-                value=ReportState.staffing_ratio_response,
-                variant='filled',
-                on_change=ReportState.set_staffing_ratio_response,
-                is_required=True
+            # STAFFING - RATIOS -------------------------------------
+            rx.vstack(
+                rx.text(
+                    "Do you get a set of patients assigned to you each shift?",
+                ),
+                rx.select(
+                    ["Yes", "No"],
+                    placeholder="- Select -",
+                    value=ReportState.staffing_ratio_response,
+                    variant='filled',
+                    on_change=ReportState.set_staffing_ratio_response,
+                    is_required=True
+                ),
+                width='100%'
             ),
             rx.cond(
                 ReportState.has_ratios,
                 rx.vstack(
-                    spacer(height='10px'),
+                    # STAFFING - AREA -------------------------------
                     rx.text(
-                        "Do you work in the same areas with the same acuities"\
-                        " or different areas with varying acuities?",
-                        text_align='center'
+                        """Are you staffed to one area, or are you a
+                        float?"""
                     ),
                     rx.select(
-                    ["Same acuity", "Variable acuity"],
+                    ["Staff", "Float"],
                         placeholder="- Select -",
                         value=ReportState.staffing_ratio_variable,
                         variant='filled',
                         on_change=ReportState.set_staffing_ratio_variable,
                         is_required=True
-                    )
-                )
-            ),
-            spacer(height='10px'),
-            rx.cond(
-                ReportState.same_ratio,
-                rx.vstack(
-                    rx.text(
-                        "How many patients are you typically assigned?"
                     ),
-                    rx.number_input(
-                        value=ReportState.staffing_ratio,
-                        variant='filled',
-                        input_mode='numeric',
-                        on_change=ReportState.set_staffing_ratio,
-                        is_required=True,
-                    ),
-                    rx.cond(
-                        ~ReportState.ratio_is_valid,
-                        rx.alert(
-                            rx.alert_icon(),
-                            rx.alert_title(
-                                "A valid number must be entered."
-                            ),
-                            border_radius='5px'
-                        )
-                    ),
-                    spacer(height='10px'),
-                    rx.box(
-                        rx.span("How often does this ratio feel "),
-                        rx.span(
-                            "unsafe?",
-                            font_weight='bold',
-                            text_align='center'
-                        )
-                    ),
-                    rx.select(
-                        ["Never", "Rarely", "Sometimes", "Often", "Always"],
-                        placeholder="- Select -",
-                        value=ReportState.staffing_ratio_unsafe,
-                        variant='filled',
-                        on_change=ReportState.set_staffing_ratio_unsafe,
-                        is_required=True
-                    ),
-                    spacer(height='10px'),
                     width='100%'
                 )
             ),
-            # STAFFING - WORKLOADS
-            rx.text(
-                "How would you rate the average daily workload?"
+            rx.cond(
+                ReportState.same_ratio,
+                rx.vstack(
+                    # STAFFING - PATIENT RATIOS ---------------------
+                    rx.vstack(
+                        rx.text(
+                            "How many patients are you typically assigned?"
+                        ),
+                        rx.number_input(
+                            value=ReportState.staffing_ratio,
+                            variant='filled',
+                            input_mode='numeric',
+                            on_change=ReportState.set_staffing_ratio,
+                            is_required=True,
+                        ),
+                        rx.cond(
+                            ~ReportState.ratio_is_valid,
+                            rx.alert(
+                                rx.alert_icon(),
+                                rx.alert_title(
+                                    "A valid number must be entered."
+                                ),
+                                border_radius='5px'
+                            )
+                        ),
+                        width='100%'
+                    ),
+                    # STAFFING - RATIOS SAFE ------------------------
+                    rx.vstack(
+                        rx.box(
+                            rx.span("How often does this ratio feel "),
+                            rx.span(
+                                "unsafe?",
+                                font_weight='bold',
+                                text_align='center'
+                            )
+                        ),
+                        rx.select(
+                            ["Never", "Rarely", "Sometimes", "Often", "Always"],
+                            placeholder="- Select -",
+                            value=ReportState.staffing_ratio_unsafe,
+                            variant='filled',
+                            on_change=ReportState.set_staffing_ratio_unsafe,
+                            is_required=True
+                        ),
+                        width='100%'
+                    ),
+                    spacing='2em',
+                    width='100%'
+                )
             ),
-            rx.select(
-                ["Overwhelming", "Heavy", "Moderate", "Light"],
-                placeholder="- Select -",
-                value=ReportState.staffing_workload,
-                variant='filled',
-                on_change=ReportState.set_staffing_workload,
-                is_required=True
+            # STAFFING - WORKLOADS ----------------------------------
+            rx.vstack(
+                rx.text(
+                    "How would you rate the average daily workload?"
+                ),
+                rx.select(
+                    ["Overwhelming", "Heavy", "Moderate", "Light"],
+                    placeholder="- Select -",
+                    value=ReportState.staffing_workload,
+                    variant='filled',
+                    on_change=ReportState.set_staffing_workload,
+                    is_required=True
+                ),
+                width='100%'
             ),
+            spacing='2em',
             width='100%'
         ),
         width='100%'
     )
-    # WHO DETERMINES STAFFING RATIOS
 
 def staffing() -> rx.Component:
     return rx.card(
         rx.vstack(
-            rx.heading(
-                "Staffing",
-                size='md'
-            ),
-            spacer(height='6px'),
-            rx.divider(),
-            spacer(height='6px'),
-            rx.box(
-                rx.span("How often is your area fully staffed with "),
-                rx.span(
-                    " nurses?",
-                    font_weight='bold'
+            rx.vstack(
+                rx.heading(
+                    "Staffing",
+                    size='md'
                 ),
-                text_align='center'
+                rx.divider(),
+                width='100%'
             ),
-            rx.select(
-                ["Always", "Usually", "Sometimes", "Rarely", "Never", "N/A"],
-                placeholder="- Select -",
-                value=ReportState.staffing_nursing_shortages,
-                variant='filled',
-                on_change=ReportState.set_staffing_nursing_shortages,
-                is_required=True
-            ),
-            spacer(height='10px'),
-            rx.box(
-                rx.span("How often is your area fully staffed with "),
-                rx.span(
-                    "nurse aides?",
-                    font_weight='bold'
+            # STAFFING - NURSE STAFFING -----------------------------
+            rx.vstack(
+                rx.box(
+                    rx.span("How often is your area appropriately staffed with "),
+                    rx.span(
+                        " nurses?",
+                        font_weight='bold'
+                    ),
+                    text_align='center'
                 ),
-                text_align='center'
+                rx.select(
+                    ["Always", "Usually", "Sometimes", "Rarely", "Never"],
+                    placeholder="- Select -",
+                    value=ReportState.staffing_nursing_shortages,
+                    variant='filled',
+                    on_change=ReportState.set_staffing_nursing_shortages,
+                    is_required=True
+                ),
+                width='100%'
             ),
-            rx.select(
-                ["Always", "Usually", "Sometimes", "Rarely", "Never", "N/A"],
-                placeholder="- Select -",
-                value=ReportState.staffing_aide_shortages,
-                variant='filled',
-                on_change=ReportState.set_staffing_aide_shortages,
-                is_required=True
+            # STAFFING - CNA STAFFING -------------------------------
+            rx.vstack(
+                rx.box(
+                    rx.span("How often is your area appropriately staffed with "),
+                    rx.span(
+                        "nurse aides?",
+                        font_weight='bold'
+                    ),
+                    text_align='center'
+                ),
+                rx.select(
+                    ["Always", "Usually", "Sometimes", "Rarely", "Never", "N/A"],
+                    placeholder="- Select -",
+                    value=ReportState.staffing_aide_shortages,
+                    variant='filled',
+                    on_change=ReportState.set_staffing_aide_shortages,
+                    is_required=True
+                ),
+                width='100%'
             ),
-            spacer(height='10px'),
-            # STAFFING - CHARGE
-            rx.text(
-                "Does your area have a charge nurse?"
+            # STAFFING - CHARGE -------------------------------------
+            rx.vstack(
+                rx.text(
+                    "Does your area have a charge nurse?"
+                ),
+                rx.select(
+                    ["Yes", "No"],
+                    placeholder="- Select -",
+                    value=ReportState.staffing_charge_response,
+                    variant='filled',
+                    on_change=ReportState.set_staffing_charge_response,
+                    is_required=True
+                ),
+                width='100%'
             ),
-            rx.select(
-                ["Yes", "No", "N/A"],
-                placeholder="- Select -",
-                value=ReportState.staffing_charge_response,
-                variant='filled',
-                on_change=ReportState.set_staffing_charge_response,
-                is_required=True
-            ),
-            spacer(height='10px'),
-            # STAFFING - CHARGE PATIENTS
+            # STAFFING - CHARGE PATIENTS ----------------------------
             rx.cond(
                 ReportState.has_charge,
                 rx.vstack(
@@ -238,29 +283,17 @@ def staffing() -> rx.Component:
                         "How often does charge take a patient assignment?"
                     ),
                     rx.select(
-                        ["Always", "Usually", "Sometimes", "Rarely", "Never", "N/A"],
+                        ["Always", "Usually", "Sometimes", "Rarely", "Never"],
                         placeholder="- Select -",
                         value=ReportState.staffing_charge_assignment,
                         variant='filled',
                         on_change=ReportState.set_staffing_charge_assignment,
                         is_required=True
                     ),
-                    spacer(height='10px'),
                     width='100%'
                 )
             ),
-            rx.text(
-                "Do nurses have any influence in staffing decisions for your area?",
-                text_align='center'
-            ),
-            rx.select(
-                ["Always", "Usually", "Sometimes", "Rarely", "Never"],
-                placeholder="- Select -",
-                value=ReportState.staffing_influence,
-                variant='filled',
-                on_change=ReportState.set_staffing_influence,
-                is_required=True
-            ),
+            spacing='2em',
             width='100%'
         ),
         width='100%'
@@ -269,16 +302,17 @@ def staffing() -> rx.Component:
 def support() -> rx.Component:
     return rx.card(
         rx.vstack(
-            rx.heading(
-                "Support",
-                size='md'
+            rx.vstack(
+                rx.heading(
+                    "Support",
+                    size='md'
+                ),
+                rx.text(
+                    "Select support staff available to you as a resource."
+                ),
+                rx.divider(),
+                width='100%'
             ),
-            rx.text(
-                "Select support staff available to you as a resource."
-            ),
-            spacer(height='6px'),
-            rx.divider(),
-            spacer(height='6px'),
             # SUPPORT - SELECT ALL
             rx.hstack(
                 rx.hstack(
@@ -339,21 +373,23 @@ def support() -> rx.Component:
                 wrap='wrap',
                 justify='center'
             ),
-            spacer(height='6px'),
             rx.divider(),
-            spacer(height='6px'),
-            rx.text(
-                "Is support staff readily available to help with tasks?",
-                text_align='center'
+            rx.vstack(
+                rx.text(
+                    "Is support staff readily available to help with tasks?",
+                    text_align='center'
+                ),
+                rx.select(
+                    ["Always", "Usually", "Sometimes", "Rarely", "Never", "N/A"],
+                    placeholder="- Select -",
+                    value=ReportState.staffing_support_available,
+                    variant='filled',
+                    on_change=ReportState.set_staffing_support_available,
+                    is_required=True
+                ),
+                width='100%'
             ),
-            rx.select(
-                ["Always", "Usually", "Sometimes", "Rarely", "Never", "N/A"],
-                placeholder="- Select -",
-                value=ReportState.staffing_support_available,
-                variant='filled',
-                on_change=ReportState.set_staffing_support_available,
-                is_required=True
-            ),
+            spacing='2em',
             width='100%'
         ),
         width='100%'
@@ -362,27 +398,31 @@ def support() -> rx.Component:
 def comments() -> rx.Component:
     return rx.card(
         rx.vstack(
-            rx.heading(
-                "Comments",
-                size='md'
-            ),
-            spacer(height='6px'),
-            rx.divider(),
-            spacer(height='6px'),
-            rx.text(
-                "Any comments for your nursing peers about staffing, workloads, and/or available resources?",
-                text_align='center'
-            ),
-            rx.debounce_input(
-                rx.text_area(
-                    ReportState.staffing_comments,
-                    placeholder="(Optional) Do not enter personally identifiable information.",
-                    on_change=ReportState.set_staffing_comments,
-                    on_blur=ReportState.set_staffing_comments,
-                    variant='filled',
-                    height='10em'
+            rx.vstack(
+                rx.heading(
+                    "Comments",
+                    size='md'
                 ),
-                debounce_timeout=1000
+                rx.divider(),
+                width='100%'
+            ),
+            rx.vstack(
+                rx.text(
+                    "Any comments for your nursing peers about staffing, workloads, and/or available resources?",
+                    text_align='center'
+                ),
+                rx.debounce_input(
+                    rx.text_area(
+                        ReportState.staffing_comments,
+                        placeholder="(Optional) Do not enter personally identifiable information.",
+                        on_change=ReportState.set_staffing_comments,
+                        on_blur=ReportState.set_staffing_comments,
+                        variant='filled',
+                        height='10em'
+                    ),
+                    debounce_timeout=1000
+                ),
+                width='100%'
             ),
             rx.cond(
                 ReportState.staffing_comments,
@@ -407,25 +447,27 @@ def comments() -> rx.Component:
                 rx.text(
                     "500 character limit."
                 )
-            )
-
+            ),
+            spacing='2em',
+            width='100%'
         )
     )
 
 def overall() -> rx.Component:
     return rx.card(
         rx.vstack(
-            rx.heading(
-                "Grade",
-                size='md'
+            rx.vstack(
+                rx.heading(
+                    "Grade",
+                    size='md'
+                ),
+                rx.text(
+                    "How would you grade staffing overall?",
+                    text_align='center'
+                ),
+                rx.divider(),
+                width='100%'
             ),
-            rx.text(
-                "How would you grade staffing overall?",
-                text_align='center'
-            ),
-            spacer(height='6px'),
-            rx.divider(),
-            spacer(height='6px'),
             rx.hstack(
                 rx.image(
                     src='/raster/icons/icon_rating_a.webp',
@@ -468,7 +510,6 @@ def overall() -> rx.Component:
                 ),
                 width='100%'
             ),
-            spacer(height='6px'),
             rx.cond(
                 ~ReportState.staffing_overall,
                 rx.alert(
@@ -491,7 +532,8 @@ def overall() -> rx.Component:
                     width='100%'
                 )
             ),
-            spacer(height='6px')
+            spacing='2em',
+            width='100%'
         ),
         width='100%'
     )

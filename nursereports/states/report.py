@@ -256,8 +256,6 @@ class ReportState(CookieState):
 
     staffing_charge_assignment: str
 
-    staffing_influence: str
-
     staffing_nursing_shortages: str
 
     staffing_aide_shortages: str
@@ -286,7 +284,7 @@ class ReportState(CookieState):
     
     @rx.var
     def same_ratio(self) -> bool:
-        return True if self.staffing_ratio_variable == "Same acuity" else False
+        return True if self.staffing_ratio_variable == "Staff" else False
         
     @rx.var
     def ratio_is_valid(self) -> bool:
@@ -367,12 +365,10 @@ class ReportState(CookieState):
                 progress = progress + 5
         if self.staffing_charge_response == "No":
             progress = progress + 10
-        if self.staffing_influence:
-            progress = progress + 10
         if self.staffing_nursing_shortages:
-            progress = progress + 10
+            progress = progress + 15
         if self.staffing_aide_shortages:
-            progress = progress + 10
+            progress = progress + 15
         if self.staffing_support_available:
             progress = progress + 15
         if self.staffing_overall:
@@ -403,13 +399,204 @@ class ReportState(CookieState):
     Unit fields and logic. ------------------------------------------
     """
 
+    assign_specific_unit: str
+
+    assign_select_unit: str
+
+    assign_input_unit_name: str
+
+    assign_select_acuity: str
+
+    assign_select_area: str
+
+    assign_input_area: str
+
+    assign_select_specialty_1: str
+
+    assign_select_specialty_2: str
+
+    assign_select_specialty_3: str
+
+    assign_select_teamwork: str
+
+    assign_select_providers: str
+
+    assign_select_contributions: str
+
+    assign_select_impact: str
+
+    assign_select_tools: str
+
+    assign_select_leaving: str
+
+    assign_select_leaving_reason: str
+
+    assign_select_recommend: str
+
+    assign_input_comments: str
+
+    assign_overall: str
+
+    def set_assign_specific_unit(self, unit: str) -> None:
+        self.assign_select_acuity = ""
+        self.assign_input_unit_abbr = ""
+        self.assign_input_unit_name = ""
+        self.assign_select_unit = ""
+        self.assign_specific_unit = unit
+
+    def set_assign_select_specialty_1(self, specialty: str) -> None:
+        self.assign_select_specialty_3 = ""
+        self.assign_select_specialty_2 = ""
+        self.assign_select_specialty_1 = specialty
+
+    def set_assign_select_specialty_2(self, specialty: str) -> None:
+        self.assign_select_specialty_3 = ""
+        self.assign_select_specialty_2 = specialty
+
     @rx.var
-    def unit_progress(self) -> int:
-        return 0
+    def name_too_long(self) -> bool:
+        if self.assign_input_unit_name:
+            if len(self.assign_input_unit_name) > 45:
+                return True
+            else:
+                return False
+        else:
+            return False
+
+    @rx.cached_var
+    def hospital_units(self) -> list[str]:
+        units = []
+        units.append("I don't see my unit")
+        return units
+    
+    @rx.cached_var
+    def hospital_areas(self) -> list[str]:
+        areas = []
+        areas.append("I don't see my area or role")
+        return areas
     
     @rx.var
-    def unit_can_progress(self) -> bool:
-        if self.unit_progress == 100:
+    def has_unit(self) -> bool:
+        return True if self.assign_specific_unit else False
+
+    @rx.var
+    def is_unit(self) -> bool:
+        return True if self.assign_specific_unit == "Yes" else False
+    
+    @rx.var
+    def unit_not_present(self) -> bool:
+        return True if self.assign_select_unit == "I don't see my unit"\
+            else False
+    
+    @rx.var
+    def area_not_present(self) -> bool:
+        return True if self.assign_select_area == "I don't see my area or role"\
+            else False
+            
+    @ rx.var
+    def has_specialty_1(self) -> bool:
+        return True if self.assign_select_specialty_1 else False
+
+    @rx.var
+    def has_specialty_2(self) -> bool:
+        return True if self.assign_select_specialty_2 else False
+    
+    @rx.var
+    def is_leaving(self) -> bool:
+        return True if self.assign_select_leaving == "Yes" else False
+    
+    @rx.var
+    def assign_input_comments_chars_over(self) -> bool:
+        if self.assign_input_comments_chars_left:
+            if self.assign_input_comments_chars_left < 0:
+                return True
+            else:
+                return False
+        
+    @rx.var
+    def assign_input_comments_chars_left(self) -> int:
+        if self.assign_input_comments:
+            return 500 - len(self.assign_input_comments)
+        
+    @rx.var
+    def assign_overall_description(self) -> str:
+        if self.assign_overall == "a":
+            return "Great"
+        if self.assign_overall == "b":
+            return "Good"
+        if self.assign_overall == "c":
+            return "So-so"
+        if self.assign_overall == "d":
+            return "Bad"
+        if self.assign_overall == "f":
+            return "Terrible"
+
+    @rx.var
+    def assign_overall_background(self) -> str:
+        if self.assign_overall == "a":
+            return "rgb(95, 163, 217)"
+        if self.assign_overall == "b":
+            return "rgb(95, 154, 100)"
+        if self.assign_overall == "c":
+            return "rgb(237, 234, 95)"
+        if self.assign_overall == "d":
+            return "rgb(197, 116, 57)"
+        if self.assign_overall == "f":
+            return "rgb(185, 65, 55)"
+
+    @rx.var
+    def assign_progress(self) -> int:
+        progress = 0
+        if self.assign_specific_unit == "Yes":
+            progress = progress + 10
+            if self.assign_select_unit:
+                if self.assign_select_unit != "I don't see my unit":
+                    progress = progress + 10
+                if self.assign_select_unit == "I don't see my unit":
+                    progress = progress + 5
+                    if self.assign_input_unit_name:
+                        progress = progress + 5
+                if self.assign_select_acuity:
+                    progress = progress + 10
+
+        if self.assign_specific_unit == "No":
+            progress = progress + 10
+            if self.assign_select_area:
+                if self.assign_select_area != "I don't see my area or role":
+                    progress = progress + 20
+                if self.assign_select_area == "I don't see my area or role":
+                    progress = progress + 10
+                    if self.assign_input_area:
+                        progress = progress + 10
+
+        if self.assign_select_teamwork:
+            progress = progress + 10
+        if self.assign_select_providers:
+            progress = progress + 10
+        if self.assign_select_contributions:
+            progress = progress + 10
+        if self.assign_select_impact:
+            progress = progress + 5
+        if self.assign_select_tools:
+            progress = progress + 5
+        if self.assign_select_leaving:
+            if self.is_leaving:
+                progress = progress + 5
+                if self.assign_select_leaving_reason:
+                    progress = progress + 5
+            else:
+                progress = progress + 10
+        if self.assign_select_recommend:
+            progress = progress + 10
+
+        if self.assign_overall:
+            progress = progress + 10
+
+        return progress
+    
+    @rx.var
+    def assign_can_progress(self) -> bool:
+        if self.assign_progress == 100:
             return True
         else:
             return False

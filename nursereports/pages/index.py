@@ -67,10 +67,9 @@ def index() -> rx.Component:
                 # TEXT AREA
                 rx.center(
                     rx.vstack(
-                        rx.text(
+                        rx.heading(
                             "The most important 5 minutes of your career.",
-                            font_size='2em',
-                            font_weight='800',
+                            size='lg',
                             text_align=['center', 'center', 'center', 'left', 'left'],
                         ),
                         spacer(height='4px', bg='white'),
@@ -127,12 +126,11 @@ def index() -> rx.Component:
                 # TEXT AREA
                 rx.center(
                     rx.vstack(
-                        rx.text(
+                        rx.heading(
                             """Reports are always anonymous, access is 
                             always free.
                             """,
-                            font_size='2em',
-                            font_weight='800',
+                            size='lg',
                             text_align=['center', 'center', 'center', 'left', 'left'],
                         ),
                         spacer(height='4px'),
