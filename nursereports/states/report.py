@@ -7,7 +7,6 @@ import httpx
 import json
 import os
 import reflex as rx
-import rich
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -21,6 +20,17 @@ class ReportState(CookieState):
     groups of the report; compensation, staffing, and assignment.
     """
 
+    @rx.var
+    def comp_is_active(self) -> bool:
+        return True if "compensation" in self.router.page.full_raw_path else False
+
+    @rx.var
+    def staffing_is_active(self) -> bool:
+        return True if "staffing" in self.router.page.full_raw_path else False
+
+    @rx.var
+    def assign_is_active(self) -> bool:
+        return True if "assignment" in self.router.page.full_raw_path else False
     """
     Compensation fields and logic. ----------------------------------
     """
@@ -77,8 +87,8 @@ class ReportState(CookieState):
         self.pay_emp_type = type
         self.pay_amount = 0
 
-    def set_pay_differential(self, pay: str) -> None:
-        self.pay_differential = pay
+    def set_pay_differential_response(self, response: str) -> None:
+        self.pay_differential_response = response
         self.pay_differential_nights = 0
         self.pay_differential_weekends = 0
 
@@ -231,10 +241,7 @@ class ReportState(CookieState):
     
     @rx.var
     def pay_can_progress(self) -> bool:
-        if self.pay_progress == 100:
-            return True
-        else:
-            return False
+        return True if self.pay_progress == 100 else False
 
     """
     Staffing fields and logic. --------------------------------------
@@ -347,14 +354,15 @@ class ReportState(CookieState):
         progress = 0
         if self.staffing_ratio_response == "Yes":
             progress = progress + 5
-            if self.staffing_ratio_variable == "Same acuity":
+            if self.staffing_ratio_variable == "Staff":
                 progress = progress + 5
                 if self.staffing_ratio and self.ratio_is_valid:
                     progress = progress + 5
                 if self.staffing_ratio_unsafe:
                     progress = progress + 5
-            if self.staffing_ratio_variable == "Variable acuity":
+            if self.staffing_ratio_variable == "Float":
                 progress = progress + 15
+
         if self.staffing_ratio_response == "No":
             progress = progress + 20
         if self.staffing_workload:
@@ -374,10 +382,6 @@ class ReportState(CookieState):
         if self.staffing_overall:
             progress = progress + 15
         return progress
-    
-    @rx.var
-    def staffing_can_progress(self) -> bool:
-        return True if self.staffing_progress == 100 else False
         
     def set_staffing_ratio_response(self, response: str) -> None:
         self.staffing_ratio = 0
@@ -394,6 +398,10 @@ class ReportState(CookieState):
     def set_staffing_charge_response(self, response: str) -> None:
         self.staffing_charge_assignment = ""
         self.staffing_charge_response = response
+
+    @rx.var
+    def staffing_can_progress(self) -> bool:
+        return True if self.staffing_progress == 100 else False
     
     """
     Unit fields and logic. ------------------------------------------
@@ -609,19 +617,53 @@ class ReportState(CookieState):
     def completed_report(self) -> bool:
         if self.pay_progress == 100 and\
         self.staffing_progress == 100 and\
-        self.unit_progress == 100:
+        self.assign_progress == 100:
             return True
         else:
             return False
         
     def handle_submit_pay(self, form_data: dict) -> Iterable[Callable]:
-        yield rx.redirect(f"/report/submit/{self.report_id}/staffing")
+        from ..states.navbar import NavbarState
+
+        if len(self.pay_desired_changes) > 500 or len(self.pay_comments) > 500:
+            return NavbarState.set_alert_message(
+                """Text input field contains too many characters! Please limit
+                your response to less than 500 characters."""
+                )
+        elif self.is_pay_invalid or self.is_experience_invalid:
+            return NavbarState.set_alert_message(
+                """Some fields contain invalid information. Please fix
+                before attempting to proceed."""
+                )
+        else:
+            return rx.redirect(f"/report/submit/{self.report_id}/staffing")
 
     def handle_submit_staffing(self, form_data: dict) -> Iterable[Callable]:
-        yield rx.redirect(f"/report/submit/{self.report_id}/assignment")
+        from ..states.navbar import NavbarState
 
-    def handle_submit_unit(self, form_data: dict) -> Iterable[Callable]:
-        yield ReportState.submit_full_report
+        if len(self.staffing_comments) > 500:
+            return NavbarState.set_alert_message(
+                """Text input field contains too many characters! Please limit
+                your response to less than 500 characters."""
+                )
+        elif not self.ratio_is_valid:
+            return NavbarState.set_alert_message(
+                """Some fields contain invalid information. Please fix
+                before attempting to proceed."""
+                )
+        else:
+            return rx.redirect(f"/report/submit/{self.report_id}/assignment")
+
+    def handle_submit_assign(self, form_data: dict) -> Iterable[Callable]:
+        from ..states.navbar import NavbarState
+
+        if len(self.assign_input_comments) > 500:
+            return NavbarState.set_alert_message(
+                """Text input field contains too many characters! Please limit
+                your response to less than 500 characters."""
+                )
+        else:
+            return ReportState.submit_full_report
     
     """
     API calls. ------------------------------------------------------

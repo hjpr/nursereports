@@ -82,7 +82,7 @@ def description() -> rx.Component:
                 width='100%'
             ),
             rx.text(
-                """This section captures information on workloads and
+                """Answer questions on workloads and
                 staffing ratios depending on if you take patient
                 assignments, or work somewhere like a cath lab or
                 operating room where ratios aren't applicable.""",
@@ -223,7 +223,7 @@ def staffing() -> rx.Component:
             # STAFFING - NURSE STAFFING -----------------------------
             rx.vstack(
                 rx.box(
-                    rx.span("How often is your area appropriately staffed with "),
+                    rx.span("Is your area or unit appropriately staffed with "),
                     rx.span(
                         " nurses?",
                         font_weight='bold'
@@ -231,7 +231,7 @@ def staffing() -> rx.Component:
                     text_align='center'
                 ),
                 rx.select(
-                    ["Always", "Usually", "Sometimes", "Rarely", "Never"],
+                    ["Always", "Usually", "Sometimes", "Rarely", "Never", "N/A"],
                     placeholder="- Select -",
                     value=ReportState.staffing_nursing_shortages,
                     variant='filled',
@@ -243,7 +243,7 @@ def staffing() -> rx.Component:
             # STAFFING - CNA STAFFING -------------------------------
             rx.vstack(
                 rx.box(
-                    rx.span("How often is your area appropriately staffed with "),
+                    rx.span("Is your area or unit appropriately staffed with "),
                     rx.span(
                         "nurse aides?",
                         font_weight='bold'
@@ -263,7 +263,7 @@ def staffing() -> rx.Component:
             # STAFFING - CHARGE -------------------------------------
             rx.vstack(
                 rx.text(
-                    "Does your area have a charge nurse?"
+                    "Does your area or unit have a charge nurse?"
                 ),
                 rx.select(
                     ["Yes", "No"],
@@ -417,36 +417,35 @@ def comments() -> rx.Component:
                         placeholder="(Optional) Do not enter personally identifiable information.",
                         on_change=ReportState.set_staffing_comments,
                         on_blur=ReportState.set_staffing_comments,
-                        variant='filled',
                         height='10em'
                     ),
                     debounce_timeout=1000
                 ),
-                width='100%'
-            ),
-            rx.cond(
-                ReportState.staffing_comments,
-                # If there is an entry in the comments
                 rx.cond(
-                    ReportState.staffing_comments_chars_over,
-                    # If chars over limit of 500.
-                    rx.alert(
-                        rx.alert_icon(),
-                        rx.alert_title(
-                            "Please limit response to < 500 characters!",
+                    ReportState.staffing_comments,
+                    # If there is an entry in the comments
+                    rx.cond(
+                        ReportState.staffing_comments_chars_over,
+                        # If chars over limit of 500.
+                        rx.alert(
+                            rx.alert_icon(),
+                            rx.alert_title(
+                                "Please limit response to < 500 characters!",
+                            ),
+                            status='error'
                         ),
-                        status='error'
+                        # If chars not over limit of 500.
+                        rx.text(
+                            f"{ReportState.staffing_comments_chars_left} chars left.",
+                            text_align="center"
+                        )
                     ),
-                    # If chars not over limit of 500.
+                    # If no entry yet in comments
                     rx.text(
-                        f"{ReportState.staffing_comments_chars_left} chars left.",
-                        text_align="center"
+                        "500 character limit."
                     )
                 ),
-                # If no entry yet in comments
-                rx.text(
-                    "500 character limit."
-                )
+                width='100%'
             ),
             spacing='2em',
             width='100%'
@@ -539,18 +538,22 @@ def overall() -> rx.Component:
     )
 
 def buttons() -> rx.Component:
-    return rx.button_group(
-        rx.button("Back",
+    return rx.center(
+        rx.button_group(
+            rx.button("Back",
+                    width='100%',
+                    on_click=ReportState.report_nav('compensation'),
+                    is_loading=~rx.State.is_hydrated,
+                    color_scheme='teal'
+            ),
+            rx.button("Next",
                 width='100%',
-                on_click=ReportState.report_nav('compensation'),
+                type_='submit',
                 is_loading=~rx.State.is_hydrated,
+                is_disabled=~ReportState.staffing_can_progress,
                 color_scheme='teal'
+            ),
+            width='50%'
         ),
-        rx.button("Next",
-            width='100%',
-            type_='submit',
-            is_loading=~rx.State.is_hydrated,
-            is_disabled=~ReportState.staffing_can_progress,
-            color_scheme='teal'
-        )
+        width='100%'
     )

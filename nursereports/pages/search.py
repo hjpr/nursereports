@@ -98,13 +98,20 @@ def search() -> rx.Component:
 def search_results() -> rx.Component:
     return rx.cond(
         SearchState.search_results,
-        rx.vstack(
-            rx.foreach(
-                SearchState.search_results,
-                render_results
+        rx.cond(
+            ~SearchState.results_failed,
+            rx.vstack(
+                rx.foreach(
+                    SearchState.search_results,
+                    render_results
+                ),
+                width='100%',
+                spacing='1em'
             ),
-            width='100%',
-            spacing='1em'
+            rx.center(
+                rx.text("Your token has expired, please refresh this page to login again."),
+                width='100%'
+            )
         )
     )
 

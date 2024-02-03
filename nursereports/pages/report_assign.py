@@ -49,7 +49,7 @@ def assign_page() -> rx.Component:
 
                     spacing='1em'
                 ),
-                on_submit=ReportState.handle_submit_unit
+                on_submit=ReportState.handle_submit_assign
             ),
             # STYLING FOR CONTENT CONTAINER
             padding_x='20px',
@@ -339,7 +339,7 @@ def culture() -> rx.Component:
                     text_align='center'
                 ),
                 rx.select(
-                    ["Always", "Usually", "Sometimes", "Rarely", "Never"],
+                    ["Always", "Usually", "Sometimes", "Rarely", "Never", "N/A"],
                     placeholder="- Select -",
                     value=ReportState.assign_select_teamwork,
                     variant='filled',
@@ -359,7 +359,7 @@ def culture() -> rx.Component:
                     text_align='center'
                 ),
                 rx.select(
-                    ["Always", "Usually", "Sometimes", "Rarely", "Never"],
+                    ["Always", "Usually", "Sometimes", "Rarely", "Never", "N/A"],
                     placeholder="- Select -",
                     value=ReportState.assign_select_providers,
                     variant='filled',
@@ -375,7 +375,7 @@ def culture() -> rx.Component:
                     text_align='center'
                 ),
                 rx.select(
-                    ["Always", "Usually", "Sometimes", "Rarely", "Never"],
+                    ["Always", "Usually", "Sometimes", "Rarely", "Never", "N/A"],
                     placeholder="- Select -",
                     value=ReportState.assign_select_contributions,
                     variant='filled',
@@ -391,7 +391,7 @@ def culture() -> rx.Component:
                     text_align='center'
                 ),
                 rx.select(
-                    ["Always", "Usually", "Sometimes", "Rarely", "Never"],
+                    ["Always", "Usually", "Sometimes", "Rarely", "Never", "N/A"],
                     placeholder="- Select -",
                     value=ReportState.assign_select_impact,
                     variant='filled',
@@ -406,7 +406,7 @@ def culture() -> rx.Component:
                     text_align='center'
                 ),
                 rx.select(
-                    ["Always", "Usually", "Sometimes", "Rarely", "Never"],
+                    ["Always", "Usually", "Sometimes", "Rarely", "Never", "N/A"],
                     placeholder="- Select -",
                     value=ReportState.assign_select_tools,
                     variant='filled',
@@ -512,36 +512,35 @@ def comments() -> rx.Component:
                             placeholder="(Optional) Do not enter personally identifiable information.",
                             on_change=ReportState.set_assign_input_comments,
                             on_blur=ReportState.set_assign_input_comments,
-                            variant='filled',
                             height='10em'
                         ),
                         debounce_timeout=1000
                     ),
-                    width='100%'
-                ),
-                rx.cond(
-                    ReportState.assign_input_comments,
-                    # If there is an entry in the comments
                     rx.cond(
-                        ReportState.assign_input_comments_chars_over,
-                        # If chars over limit of 500.
-                        rx.alert(
-                            rx.alert_icon(),
-                            rx.alert_title(
-                                "Please limit response to < 500 characters!",
+                        ReportState.assign_input_comments,
+                        # If there is an entry in the comments
+                        rx.cond(
+                            ReportState.assign_input_comments_chars_over,
+                            # If chars over limit of 500.
+                            rx.alert(
+                                rx.alert_icon(),
+                                rx.alert_title(
+                                    "Please limit response to < 500 characters!",
+                                ),
+                                status='error'
                             ),
-                            status='error'
+                            # If chars not over limit of 500.
+                            rx.text(
+                                f"{ReportState.assign_input_comments_chars_left} chars left.",
+                                text_align="center"
+                            )
                         ),
-                        # If chars not over limit of 500.
+                        # If no entry yet in comments
                         rx.text(
-                            f"{ReportState.assign_input_comments_chars_left} chars left.",
-                            text_align="center"
+                            "500 character limit."
                         )
                     ),
-                    # If no entry yet in comments
-                    rx.text(
-                        "500 character limit."
-                    )
+                    width='100%'
                 ),
                 spacing='2em',
                 width='100%'

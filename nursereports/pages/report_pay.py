@@ -37,6 +37,8 @@ def pay_page() -> rx.Component:
 
                     compensation(),
 
+                    comments(),
+
                     overall(),
                     
                     spacer(height='40px'),
@@ -84,11 +86,10 @@ def description() -> rx.Component:
             ),
             rx.vstack(
                 rx.text(
-                    """Answer questions about what nurses recieve as
-                    pay and benefits based on their experience, and 
+                    """Answer questions about what you recieve as
+                    pay and benefits based on your experience, and 
                     if the compensation packages available are
                     acceptable for your position.""",
-                    text_align='center'
                 ),
             ),
             spacing='2em',
@@ -193,7 +194,7 @@ def pay() -> rx.Component:
                     )
                 )
             ),
-            # PAY - DIFFERENTIAL
+            # PAY - DIFFERENTIAL ------------------------------------
             rx.vstack(
                 rx.text("Do you get extra pay for nights or weekends?"),
                 rx.select(
@@ -229,11 +230,11 @@ def pay() -> rx.Component:
                     width='100%'
                 )
             ),
-            # PAY - INCENTIVE BONUS
+            # PAY - INCENTIVE BONUS ---------------------------------
             rx.vstack(
                 rx.text(
-                    "Do you get incentives for picking up extra shifts"\
-                    " such as critical staffing or critical shift pay?",
+                    """Do you get incentives for picking up extra shifts?
+                    (e.g. critical shift pay)""",
                     text_align='center'
                     ),
                 rx.select(
@@ -485,7 +486,7 @@ def compensation() -> rx. Component:
                             placeholder="Do not enter personally identifiable information.",
                             on_change=ReportState.set_pay_desired_changes,
                             on_blur=ReportState.set_pay_desired_changes,
-                            variant='filled',
+                            is_invalid=ReportState.pay_compensation_changes_chars_over,
                             height='10em'
                         ),
                         debounce_timeout=1000
@@ -516,6 +517,23 @@ def compensation() -> rx. Component:
                     )
                 )
             ),
+            spacing='2em',
+            width='100%'
+        ),
+        width='100%'
+    )
+
+def comments() -> rx.Component:
+    return rx.card(
+        rx.vstack(
+            rx.vstack(
+                rx.heading(
+                    "Comments",
+                    size='md'
+                    ),
+                rx.divider(),
+                width='100%'
+            ),
             # COMP - COMMENTS ---------------------------------------
             rx.vstack(
                 rx.text(
@@ -529,36 +547,36 @@ def compensation() -> rx. Component:
                         placeholder="Do not enter personally identifiable information.",
                         on_change=ReportState.set_pay_comments,
                         on_blur=ReportState.set_pay_comments,
-                        variant='filled',
+                        is_invalid=ReportState.pay_compensation_comments_chars_over,
                         height='10em'
                     ),
                     debounce_timeout=1000
                 ),
-                width='100%'
-            ),
-            rx.cond(
-                ReportState.pay_comments,
-                # If there is an entry in the comments
                 rx.cond(
-                    ReportState.pay_compensation_comments_chars_over,
-                    # If chars over limit of 500.
-                    rx.alert(
-                        rx.alert_icon(),
-                        rx.alert_title(
-                            "Please limit response to < 500 characters!",
+                    ReportState.pay_comments,
+                    # If there is an entry in the comments
+                    rx.cond(
+                        ReportState.pay_compensation_comments_chars_over,
+                        # If chars over limit of 500.
+                        rx.alert(
+                            rx.alert_icon(),
+                            rx.alert_title(
+                                "Please limit response to < 500 characters!",
+                            ),
+                            status='error'
                         ),
-                        status='error'
+                        # If chars not over limit of 500.
+                        rx.text(
+                            f"{ReportState.pay_compensation_comments_chars_left} chars left.",
+                            text_align="center"
+                        )
                     ),
-                    # If chars not over limit of 500.
+                    # If no entry yet in comments
                     rx.text(
-                        f"{ReportState.pay_compensation_comments_chars_left} chars left.",
-                        text_align="center"
+                        "500 character limit."
                     )
                 ),
-                # If no entry yet in comments
-                rx.text(
-                    "500 character limit."
-                )
+                width='100%'
             ),
             spacing='2em',
             width='100%'

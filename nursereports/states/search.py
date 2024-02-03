@@ -72,6 +72,16 @@ class SearchState(CookieState):
         else:
             return []
         
+    @rx.var
+    def results_failed(self) -> bool:
+        if self.search_results:
+            if self.search_results[0] == "Unauthorized":
+                return True
+            else:
+                False
+        else:
+            False
+        
     @rx.cached_var
     def search_results(self) -> list[dict[str, str]]:
         if self.selected_state and self.selected_city and self.url_context:
@@ -98,8 +108,8 @@ class SearchState(CookieState):
                     hospital['hosp_addr'] = hospital['hosp_addr'].title()
                 return list_of_hospitals
             else:
-                rich.inspect(response)
-                logger.critical("Getting search results failed!")
+                if response.status_code == 401:
+                    return [response.reason_phrase] # "Unauthorized" if token expired
         else:
             return []
         
