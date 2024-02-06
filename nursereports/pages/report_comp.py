@@ -7,7 +7,7 @@ from ..states.report import ReportState
 
 import reflex as rx
 
-def pay_page() -> rx.Component:
+def comp_page() -> rx.Component:
     return rx.flex(
 
         navbar(),
@@ -27,8 +27,6 @@ def pay_page() -> rx.Component:
 
                     spacer(height='10px'),
 
-                    description(),
-
                     pay(),
 
                     demographics(),
@@ -37,9 +35,9 @@ def pay_page() -> rx.Component:
 
                     compensation(),
 
-                    comments(),
-
                     overall(),
+
+                    comments(),
                     
                     spacer(height='40px'),
 
@@ -50,7 +48,7 @@ def pay_page() -> rx.Component:
                     spacing='1em'
                 ),
                 # STYLING FOR FORM
-                on_submit=ReportState.handle_submit_pay,
+                on_submit=ReportState.handle_submit_comp,
             ),
             # STYLING FOR CONTENT CONTAINER
             padding_x='20px',
@@ -115,16 +113,16 @@ def pay() -> rx.Component:
                 rx.select(
                     ["Full-time", "Part-time", "Contract"],
                     placeholder="- Select -",
-                    value=ReportState.pay_emp_type,
+                    value=ReportState.comp_select_emp_type,
                     variant='filled',
-                    on_change=ReportState.set_pay_emp_type,
+                    on_change=ReportState.set_comp_select_emp_type,
                     is_required=True
                 ),
                 width='100%'
             ),
             # PAY - PAY AMOUNT --------------------------------------
             rx.cond(
-                ReportState.pay_emp_type,
+                ReportState.comp_select_emp_type,
                 rx.cond(
                     ReportState.is_contract,
                     # If contract
@@ -136,10 +134,10 @@ def pay() -> rx.Component:
                             text_align='center'
                         ),
                         rx.number_input(
-                            value=ReportState.pay_amount,
+                            value=ReportState.comp_input_pay_amount,
                             variant='filled',
                             input_mode='numeric',
-                            on_change=ReportState.set_pay_amount,
+                            on_change=ReportState.set_comp_input_pay_amount,
                             is_required=True,
                             min_=0
                         ),
@@ -168,10 +166,10 @@ def pay() -> rx.Component:
                             text_align='center'
                         ),
                         rx.number_input(
-                            value=ReportState.pay_amount,
+                            value=ReportState.comp_input_pay_amount,
                             variant='filled',
                             input_mode='numeric',
-                            on_change=ReportState.set_pay_amount,
+                            on_change=ReportState.set_comp_input_pay_amount,
                             is_required=True,
                             min_=0
 
@@ -200,9 +198,9 @@ def pay() -> rx.Component:
                 rx.select(
                     ["Yes", "No"],
                     placeholder="- Select -",
-                    value=ReportState.pay_differential_response,
+                    value=ReportState.comp_select_diff_response,
                     variant='filled',
-                    on_change=ReportState.set_pay_differential_response,
+                    on_change=ReportState.set_comp_select_diff_response,
                     is_required=True
                 ),
                 width='100%'
@@ -213,17 +211,17 @@ def pay() -> rx.Component:
                     rx.vstack(
                         rx.text("(Optional) Extra per hour for nights? (in $)"),
                         rx.number_input(
-                            value=ReportState.pay_differential_nights,
+                            value=ReportState.comp_select_diff_nights,
                             variant='filled',
-                            on_change=ReportState.set_pay_differential_nights,
+                            on_change=ReportState.set_comp_select_diff_nights,
                         )
                     ),
                     rx.vstack(
                         rx.text("(Optional) Extra per hour for weekends? (in $)"),
                         rx.number_input(
-                            value=ReportState.pay_differential_weekends,
+                            value=ReportState.comp_select_diff_weekends,
                             variant='filled',
-                            on_change=ReportState.set_pay_differential_weekends,
+                            on_change=ReportState.set_comp_select_diff_weekends,
                         )
                     ),
                     spacing='2em',
@@ -240,9 +238,9 @@ def pay() -> rx.Component:
                 rx.select(
                     ["Yes", "No"],
                     placeholder="- Select -",
-                    value=ReportState.pay_incentive_response,
+                    value=ReportState.comp_select_incentive_response,
                     variant='filled',
-                    on_change=ReportState.set_pay_incentive_response,
+                    on_change=ReportState.set_comp_select_incentive_response,
                     is_required=True
                 ),
                 width='100%'
@@ -254,9 +252,9 @@ def pay() -> rx.Component:
                         "(Optional) Extra per hour for incentive? (in $)"
                     ),
                     rx.number_input(
-                        value=ReportState.pay_incentive_amount,
+                        value=ReportState.comp_input_incentive_amount,
                         variant='filled',
-                        on_change=ReportState.set_pay_incentive_amount
+                        on_change=ReportState.set_comp_input_incentive_amount
                     )
                 )
             ),
@@ -283,9 +281,9 @@ def demographics() -> rx.Component:
                 rx.select(
                     ["Day", "Night", "Rotating"],
                     placeholder="- Select -",
-                    value=ReportState.pay_shift,
+                    value=ReportState.comp_select_shift,
                     variant='filled',
-                    on_change=ReportState.set_pay_shift,
+                    on_change=ReportState.set_comp_select_shift,
                     is_required=True
                 ),
                 width='100%'
@@ -296,8 +294,8 @@ def demographics() -> rx.Component:
                 rx.select(
                     ["1", "2", "3", "4", "5", "6", "7"],
                     placeholder="- Select -",
-                    value=ReportState.pay_weekly_shifts,
-                    on_change=ReportState.set_pay_weekly_shifts,
+                    value=ReportState.comp_select_weekly_shifts,
+                    on_change=ReportState.set_comp_select_weekly_shifts,
                     variant='filled',
                     is_required=True
                 ),
@@ -317,8 +315,8 @@ def demographics() -> rx.Component:
                 rx.select(
                     years_experience,
                     placeholder="- Select -",
-                    value=ReportState.pay_hospital_experience,
-                    on_change=ReportState.set_pay_hospital_experience,
+                    value=ReportState.comp_select_hospital_experience,
+                    on_change=ReportState.set_comp_select_hospital_experience,
                     variant='filled',
                     is_required=True
                 ),
@@ -338,8 +336,8 @@ def demographics() -> rx.Component:
                 rx.select(
                     years_experience,
                     placeholder="- Select -",
-                    value=ReportState.pay_total_experience,
-                    on_change=ReportState.set_pay_total_experience,
+                    value=ReportState.comp_select_total_experience,
+                    on_change=ReportState.set_comp_select_total_experience,
                     variant='filled',
                     is_invalid=ReportState.is_experience_invalid,
                     is_required=True
@@ -381,8 +379,8 @@ def benefits() -> rx.Component:
             rx.hstack(
                 rx.hstack(
                     rx.checkbox(
-                        on_change=ReportState.set_pay_benefit_pto,
-                        is_checked=ReportState.pay_benefit_pto
+                        on_change=ReportState.set_comp_check_benefit_pto,
+                        is_checked=ReportState.comp_check_benefit_pto
                         ),
                     rx.text("PTO"),
                     padding_x='0.5em',
@@ -390,8 +388,8 @@ def benefits() -> rx.Component:
                 ),
                 rx.hstack(
                     rx.checkbox(
-                        on_change=ReportState.set_pay_benefit_parental,
-                        is_checked=ReportState.pay_benefit_parental
+                        on_change=ReportState.set_comp_check_benefit_parental,
+                        is_checked=ReportState.comp_check_benefit_parental
                         ),
                     rx.text("Parental Leave"),
                     padding_x='0.5em',
@@ -399,8 +397,8 @@ def benefits() -> rx.Component:
                 ),
                 rx.hstack(
                     rx.checkbox(
-                        on_change=ReportState.set_pay_benefit_insurance,
-                        is_checked=ReportState.pay_benefit_insurance
+                        on_change=ReportState.set_comp_check_benefit_insurance,
+                        is_checked=ReportState.comp_check_benefit_insurance
                         ),
                     rx.text("Insurance"),
                     padding_x='0.5em',
@@ -408,8 +406,8 @@ def benefits() -> rx.Component:
                 ),
                 rx.hstack(
                     rx.checkbox(
-                        on_change=ReportState.set_pay_benefit_retirement,
-                        is_checked=ReportState.pay_benefit_retirement
+                        on_change=ReportState.set_comp_check_benefit_retirement,
+                        is_checked=ReportState.comp_check_benefit_retirement
                         ),
                     rx.text("Retirement"),
                     padding_x='0.5em',
@@ -417,8 +415,8 @@ def benefits() -> rx.Component:
                 ),
                 rx.hstack(
                     rx.checkbox(
-                        on_change=ReportState.set_pay_benefit_tuition,
-                        is_checked=ReportState.pay_benefit_tuition
+                        on_change=ReportState.set_comp_check_benefit_tuition,
+                        is_checked=ReportState.comp_check_benefit_tuition
                         ),
                     rx.text("Tuition Aid"),
                     padding_x='0.5em',
@@ -426,8 +424,8 @@ def benefits() -> rx.Component:
                 ),
                 rx.hstack(
                     rx.checkbox(
-                        on_change=ReportState.set_pay_benefit_pro_dev,
-                        is_checked=ReportState.pay_benefit_pro_dev
+                        on_change=ReportState.set_comp_check_benefit_pro_dev,
+                        is_checked=ReportState.comp_check_benefit_pro_dev
                         ),
                     rx.text("Professional Development"),
                     padding_x='0.5em',
@@ -464,9 +462,9 @@ def compensation() -> rx. Component:
                 rx.select(
                     ["Yes", "No"],
                     placeholder="- Select -",
-                    value=ReportState.pay_compensation,
+                    value=ReportState.comp_select_comp_adequate,
                     variant='filled',
-                    on_change=ReportState.set_pay_compensation,
+                    on_change=ReportState.set_comp_select_comp_adequate,
                     is_required=True
                 ),
                 width='100%'
@@ -482,20 +480,20 @@ def compensation() -> rx. Component:
                     ),
                     rx.debounce_input(
                         rx.text_area(
-                            value=ReportState.pay_desired_changes,
+                            value=ReportState.comp_input_desired_changes,
                             placeholder="Do not enter personally identifiable information.",
-                            on_change=ReportState.set_pay_desired_changes,
-                            on_blur=ReportState.set_pay_desired_changes,
-                            is_invalid=ReportState.pay_compensation_changes_chars_over,
+                            on_change=ReportState.set_comp_input_desired_changes,
+                            on_blur=ReportState.set_comp_input_desired_changes,
+                            is_invalid=ReportState.comp_desired_changes_chars_over,
                             height='10em'
                         ),
                         debounce_timeout=1000
                     ),
                     rx.cond(
-                        ReportState.pay_desired_changes,
+                        ReportState.comp_input_desired_changes,
                         # If there is an entry in the comments
                         rx.cond(
-                            ReportState.pay_compensation_changes_chars_over,
+                            ReportState.comp_desired_changes_chars_over,
                             # If chars over limit of 500.
                             rx.alert(
                                 rx.alert_icon(),
@@ -506,7 +504,7 @@ def compensation() -> rx. Component:
                             ),
                             # If chars not over limit of 500.
                             rx.text(
-                                f"{ReportState.pay_compensation_changes_chars_left} chars left.",
+                                f"{ReportState.comp_desired_changes_chars_left} chars left.",
                                 text_align="center"
                             )
                         ),
@@ -536,27 +534,32 @@ def comments() -> rx.Component:
             ),
             # COMP - COMMENTS ---------------------------------------
             rx.vstack(
-                rx.text(
-                    """(Optional) Any comments for your nursing peers about pay
-                    or benefits?""",
+                rx.box(
+                    rx.span(
+                        "(Optional) Any comments for your nursing peers about"
+                    ),
+                    rx.span(
+                        " pay or benefits?",
+                        font_weight='bold'
+                    ),
                     text_align='center'
                 ),
                 rx.debounce_input(
                     rx.text_area(
-                        ReportState.pay_comments,
+                        ReportState.comp_input_comments,
                         placeholder="Do not enter personally identifiable information.",
-                        on_change=ReportState.set_pay_comments,
-                        on_blur=ReportState.set_pay_comments,
-                        is_invalid=ReportState.pay_compensation_comments_chars_over,
+                        on_change=ReportState.set_comp_input_comments,
+                        on_blur=ReportState.set_comp_input_comments,
+                        is_invalid=ReportState.comp_comments_chars_over,
                         height='10em'
                     ),
                     debounce_timeout=1000
                 ),
                 rx.cond(
-                    ReportState.pay_comments,
+                    ReportState.comp_input_comments,
                     # If there is an entry in the comments
                     rx.cond(
-                        ReportState.pay_compensation_comments_chars_over,
+                        ReportState.comp_comments_chars_over,
                         # If chars over limit of 500.
                         rx.alert(
                             rx.alert_icon(),
@@ -567,7 +570,7 @@ def comments() -> rx.Component:
                         ),
                         # If chars not over limit of 500.
                         rx.text(
-                            f"{ReportState.pay_compensation_comments_chars_left} chars left.",
+                            f"{ReportState.comp_comments_chars_left} chars left.",
                             text_align="center"
                         )
                     ),
@@ -605,7 +608,7 @@ def overall() -> rx.Component:
                     height=['50px', '65px', '75px', '75px', '75px',],
                     width=['50px', '65px', '75px', '75px', '75px',],
                     border_radius='5px',
-                    on_click=ReportState.set_pay_overall("a")
+                    on_click=ReportState.set_comp_select_overall("a")
                 ),
                 rx.spacer(),
                 rx.image(
@@ -613,7 +616,7 @@ def overall() -> rx.Component:
                     height=['50px', '65px', '75px', '75px', '75px',],
                     width=['50px', '65px', '75px', '75px', '75px',],
                     border_radius='5px',
-                    on_click=ReportState.set_pay_overall("b")
+                    on_click=ReportState.set_comp_select_overall("b")
                 ),
                 rx.spacer(),
                 rx.image(
@@ -621,7 +624,7 @@ def overall() -> rx.Component:
                     height=['50px', '65px', '75px', '75px', '75px',],
                     width=['50px', '65px', '75px', '75px', '75px',],
                     border_radius='5px',
-                    on_click=ReportState.set_pay_overall("c")
+                    on_click=ReportState.set_comp_select_overall("c")
                 ),
                 rx.spacer(),
                 rx.image(
@@ -629,7 +632,7 @@ def overall() -> rx.Component:
                     height=['50px', '65px', '75px', '75px', '75px',],
                     width=['50px', '65px', '75px', '75px', '75px',],
                     border_radius='5px',
-                    on_click=ReportState.set_pay_overall("d")
+                    on_click=ReportState.set_comp_select_overall("d")
                 ),
                 rx.spacer(),
                 rx.image(
@@ -637,12 +640,12 @@ def overall() -> rx.Component:
                     height=['50px', '65px', '75px', '75px', '75px',],
                     width=['50px', '65px', '75px', '75px', '75px',],
                     border_radius='5px',
-                    on_click=ReportState.set_pay_overall("f")
+                    on_click=ReportState.set_comp_select_overall("f")
                 ),
                 width='100%'
             ),
             rx.cond(
-                ~ReportState.pay_overall,
+                ~ReportState.comp_select_overall,
                 rx.alert(
                     rx.alert_icon(),
                     rx.alert_title(
@@ -652,12 +655,12 @@ def overall() -> rx.Component:
                 ),
                 rx.center(
                     rx.heading(
-                        f"You graded: {ReportState.pay_overall.upper()} - {ReportState.pay_overall_description}",
+                        f"You graded: {ReportState.comp_select_overall.upper()} - {ReportState.comp_overall_description}",
                         color='white',
                         text_align='center',
                         size='lg'
                     ),
-                    background=ReportState.pay_overall_background,
+                    background=ReportState.comp_overall_background,
                     border_radius='5px',
                     height='3em',
                     width='100%'
@@ -682,7 +685,7 @@ def buttons() -> rx.Component:
                     width='100%',
                     type_='submit',
                     is_loading=~rx.State.is_hydrated,
-                    is_disabled=~ReportState.pay_can_progress,
+                    is_disabled=~ReportState.comp_can_progress,
                     color_scheme='teal'
             ),
             width='50%',

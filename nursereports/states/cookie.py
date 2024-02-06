@@ -60,7 +60,7 @@ class CookieState(rx.State):
             logger.critical("Claims invalid!")
             return "invalid"
         except Exception as e:
-            logger.warning(f"Can't retrieve claims - {e}")
+            logger.critical(f"Can't retrieve claims - {e}")
             return "other"
         
     @rx.cached_var
@@ -70,8 +70,11 @@ class CookieState(rx.State):
         is returned with an error status.
         """
         if isinstance(self.claims, dict):
-            logger.debug("User is authenticated.")
-            return True
+            if self.claims['aud'] == 'authenticated':
+                logger.debug("User is authenticated.")
+                return True
+            else:
+                return False
         if isinstance(self.claims, str):
             logger.warning("User is not authenticated.")
             return False

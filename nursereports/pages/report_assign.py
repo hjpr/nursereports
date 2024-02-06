@@ -27,19 +27,17 @@ def assign_page() -> rx.Component:
 
                     spacer(height='10px'),
 
-                    description(),
-
                     unit(),
 
                     specialty(),
 
                     culture(),
 
-                    burnout(),
-
-                    comments(),    
+                    burnout(),   
 
                     overall(),
+
+                    comments(),
 
                     spacer(height='40px'),
 
@@ -117,9 +115,9 @@ def unit() -> rx.Component:
                 rx.select(
                     ["Yes", "No"],
                     placeholder="- Select -",
-                    value=ReportState.assign_specific_unit,
+                    value=ReportState.assign_select_specific_unit,
                     variant='filled',
-                    on_change=ReportState.set_assign_specific_unit,
+                    on_change=ReportState.set_assign_select_specific_unit,
                     is_required=True
                 ),
                 width='100%'
@@ -501,15 +499,20 @@ def comments() -> rx.Component:
                     width='100%'
                 ),
                 rx.vstack(
-                    rx.text(
-                        """Any comments for your nursing peers about culture, management,
-                        or other experiences relevant to nursing at your assignment?""",
-                        text_align='center'
+                rx.box(
+                    rx.span(
+                        "(Optional) Any comments for your nursing peers about"
                     ),
+                    rx.span(
+                        " your experience on the job?",
+                        font_weight='bold'
+                    ),
+                    text_align='center'
+                ),
                     rx.debounce_input(
                         rx.text_area(
                             ReportState.assign_input_comments,
-                            placeholder="(Optional) Do not enter personally identifiable information.",
+                            placeholder="Do not enter personally identifiable information.",
                             on_change=ReportState.set_assign_input_comments,
                             on_blur=ReportState.set_assign_input_comments,
                             height='10em'
@@ -568,7 +571,7 @@ def overall() -> rx.Component:
                     height=['50px', '65px', '75px', '75px', '75px',],
                     width=['50px', '65px', '75px', '75px', '75px',],
                     border_radius='5px',
-                    on_click=ReportState.set_assign_overall("a")
+                    on_click=ReportState.set_assign_select_overall("a")
                 ),
                 rx.spacer(),
                 rx.image(
@@ -576,7 +579,7 @@ def overall() -> rx.Component:
                     height=['50px', '65px', '75px', '75px', '75px',],
                     width=['50px', '65px', '75px', '75px', '75px',],
                     border_radius='5px',
-                    on_click=ReportState.set_assign_overall("b")
+                    on_click=ReportState.set_assign_select_overall("b")
                 ),
                 rx.spacer(),
                 rx.image(
@@ -584,7 +587,7 @@ def overall() -> rx.Component:
                     height=['50px', '65px', '75px', '75px', '75px',],
                     width=['50px', '65px', '75px', '75px', '75px',],
                     border_radius='5px',
-                    on_click=ReportState.set_assign_overall("c")
+                    on_click=ReportState.set_assign_select_overall("c")
                 ),
                 rx.spacer(),
                 rx.image(
@@ -592,7 +595,7 @@ def overall() -> rx.Component:
                     height=['50px', '65px', '75px', '75px', '75px',],
                     width=['50px', '65px', '75px', '75px', '75px',],
                     border_radius='5px',
-                    on_click=ReportState.set_assign_overall("d")
+                    on_click=ReportState.set_assign_select_overall("d")
                 ),
                 rx.spacer(),
                 rx.image(
@@ -600,12 +603,12 @@ def overall() -> rx.Component:
                     height=['50px', '65px', '75px', '75px', '75px',],
                     width=['50px', '65px', '75px', '75px', '75px',],
                     border_radius='5px',
-                    on_click=ReportState.set_assign_overall("f")
+                    on_click=ReportState.set_assign_select_overall("f")
                 ),
                 width='100%'
             ),
             rx.cond(
-                ~ReportState.assign_overall,
+                ~ReportState.assign_select_overall,
                 rx.alert(
                     rx.alert_icon(),
                     rx.alert_title(
@@ -615,12 +618,12 @@ def overall() -> rx.Component:
                 ),
                 rx.center(
                     rx.heading(
-                        f"You graded: {ReportState.assign_overall.upper()} - {ReportState.assign_overall_description}",
+                        f"You graded: {ReportState.assign_select_overall.upper()} - {ReportState.assign_select_overall_description}",
                         color='white',
                         text_align='center',
                         size='lg'
                     ),
-                    background=ReportState.assign_overall_background,
+                    background=ReportState.assign_select_overall_background,
                     border_radius='5px',
                     height='3em',
                     width='100%'

@@ -6,7 +6,7 @@ from .pages.api_deauth import deauth_api
 from .pages.dashboard import dashboard
 from .pages.index import index
 from .pages.report_summary import summary
-from .pages.report_pay import pay_page
+from .pages.report_comp import comp_page
 from .pages.report_staffing import staffing_page
 from .pages.report_assign import assign_page
 from .pages.report_complete import complete
@@ -31,9 +31,8 @@ app = rx.App(
     # style=style,
     # stylesheets=stylesheets,
     middleware=[LoggingMiddleware()]
-    )
+)
 
-# ADD PAGES HERE
 """
 INDEX PAGE - on_load runs login_flow to check states to determine
 if user is already logged in, or is coming from an api auth/deauth
@@ -43,7 +42,7 @@ app.add_page(
     index,
     route="/",
     on_load=CookieState.standard_flow('req_none'),
-    )
+)
 
 """
 AUTH - pseudo endpoint for SSO redirects. Captures url and parses
@@ -54,7 +53,7 @@ app.add_page(
     auth_api,
     route="api/v1/auth",
     on_load=CookieState.standard_flow('req_none')
-    )
+)
 
 """
 DEAUTH - pseudo endpoint for SSO redirects. Captures url and parses
@@ -64,7 +63,7 @@ app.add_page(
     deauth_api,
     route="/api/v1/deauth",
     on_load=CookieState.standard_flow('req_login')
-    )
+)
 
 """
 DASHBOARD - Account panel after signin where user can edit/modify
@@ -106,7 +105,7 @@ app.add_page(
 REPORT PAY - Pay report by hospital
 """
 app.add_page(
-    pay_page,
+    comp_page,
     route="/report/submit/[report_id]/compensation",
     on_load=CookieState.standard_flow('req_login')
 )
