@@ -147,7 +147,6 @@ def summary() -> rx.Component:
         # STYLING FOR BODY CONTAINER
         width='100%',
         flex_direction='column',
-
         align_items='center',
         min_height='100vh',
     )

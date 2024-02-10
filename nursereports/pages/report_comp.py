@@ -120,12 +120,27 @@ def pay() -> rx.Component:
                 ),
                 width='100%'
             ),
+            # PAY - PAY TYPE ----------------------------------------
+            rx.vstack(
+                rx.text(
+                    "Are you paid at an hourly or weekly rate?"
+                    ),
+                rx.select(
+                    ["Hourly", "Weekly"],
+                    placeholder="- Select -",
+                    value=ReportState.comp_select_pay_type,
+                    variant='filled',
+                    on_change=ReportState.set_comp_select_pay_type,
+                    is_required=True
+                ),
+                width='100%'
+            ),
             # PAY - PAY AMOUNT --------------------------------------
             rx.cond(
-                ReportState.comp_select_emp_type,
+                ReportState.comp_select_pay_type,
                 rx.cond(
-                    ReportState.is_contract,
-                    # If contract
+                    ReportState.is_weekly,
+                    # If weekly
                     rx.vstack(
                         rx.box(
                             rx.span("Total rate "),
@@ -143,21 +158,17 @@ def pay() -> rx.Component:
                         ),
                         rx.cond(
                             ReportState.is_pay_invalid,
-                            rx.cond(
-                                ReportState.is_contract,
-                                rx.alert(
-                                    rx.alert_icon(),
-                                    rx.alert_title(
-                                        "A valid weekly rate must be entered."
-                                    ),
-                                    status='info',
-                                    border_radius='5px'
-                                )
+                            rx.alert(
+                                rx.alert_icon(),
+                                rx.alert_title(
+                                    "A valid weekly rate must be entered."
+                                ),
+                                status='info',
                             )
                         ),
                         width='100%'
                     ),
-                    # If not contract
+                    # If hourly
                     rx.vstack(
                         rx.box(
                             rx.span("Base rate "),
@@ -176,16 +187,13 @@ def pay() -> rx.Component:
                         ),
                         rx.cond(
                             ReportState.is_pay_invalid,
-                            rx.cond(
-                                ~ReportState.is_contract,
-                                rx.alert(
-                                    rx.alert_icon(),
-                                    rx.alert_title(
-                                        "A valid hourly rate must be entered."
-                                    ),
-                                    status='info',
-                                    border_radius='5px'
-                                )
+                            rx.alert(
+                                rx.alert_icon(),
+                                rx.alert_title(
+                                    "A valid hourly rate must be entered."
+                                ),
+                                status='info',
+                                border_radius='5px'
                             )
                         ),
                         width='100%'

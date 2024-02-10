@@ -137,15 +137,6 @@ class CookieState(rx.State):
                 "Failed to refresh session. Please sign in again."
             )
 
-    def standard_flow(self, access_level) -> Iterable[Callable] | None:
-            """
-            Check claims and access to determine if redirect is necessary.
-            If pages require a special flow, then use standard_flow as
-            a template and add additional checks.
-            """
-            yield from self.check_claims()
-            yield from self.check_access(access_level)
-
     def check_claims(self) -> Iterable[Callable] | None:
         from ..states.navbar import NavbarState
 
@@ -194,4 +185,13 @@ class CookieState(rx.State):
             yield rx.redirect('/')
         if access_level == 'req_report' and not self.user_has_reported:
             # Use req_report to force users to submit report before access.
-            yield rx.redirect('/search/report')
+            yield rx.redirect('/onboard')
+
+    def standard_flow(self, access_level) -> Iterable[Callable] | None:
+        """
+        Check claims and access to determine if redirect is necessary.
+        If pages require a special flow, then use standard_flow as
+        a template and add additional checks.
+        """
+        yield from self.check_claims()
+        yield from self.check_access(access_level)

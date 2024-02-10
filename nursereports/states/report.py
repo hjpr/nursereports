@@ -14,6 +14,8 @@ load_dotenv()
 
 api_url = os.getenv("SUPABASE_URL")
 api_key = os.getenv("SUPABASE_ANON_KEY")
+anyscale_url = os.getenv("ANYSCALE_URL")
+anyscale_api_key = os.getenv("ANYSCALE_API_KEY")
 
 class ReportState(CookieState):
     """
@@ -32,11 +34,14 @@ class ReportState(CookieState):
     @rx.var
     def assign_is_active(self) -> bool:
         return True if "assignment" in self.router.page.full_raw_path else False
+    
     """
     Compensation fields and logic. ----------------------------------
     """
 
     comp_select_emp_type: str
+
+    comp_select_pay_type: str
 
     comp_input_pay_amount: int
 
@@ -158,8 +163,8 @@ class ReportState(CookieState):
         return True if self.comp_select_incentive_response == "Yes" else False
 
     @rx.var
-    def is_contract(self) -> bool:
-        return True if self.comp_select_emp_type == "Contract" else False
+    def is_weekly(self) -> bool:
+        return True if self.comp_select_pay_type == "Weekly" else False
     
     @rx.var
     def compensation_is_inadequate(self) -> bool:
@@ -221,7 +226,9 @@ class ReportState(CookieState):
     def comp_progress(self) -> int:
         progress = 0
         if self.comp_select_emp_type:
-            progress = progress + 10
+            progress = progress + 5
+        if self.comp_select_pay_type:
+            progress = progress + 5
         if self.comp_input_pay_amount and not\
             self.is_pay_invalid:
             progress = progress + 10
@@ -406,7 +413,7 @@ class ReportState(CookieState):
     @rx.var
     def staffing_can_progress(self) -> bool:
         return True if self.staffing_progress == 100 else False
-    
+
     """
     Unit fields and logic. ------------------------------------------
     """
@@ -666,8 +673,13 @@ class ReportState(CookieState):
                 """Text input field contains too many characters! Please limit
                 your response to less than 500 characters."""
                 )
+        if self.comp_can_progress and self.staffing_can_progress and self.assign_can_progress:
+            yield ReportState.submit_full_report
+            yield ReportState.moderate_user_entries
         else:
-            return ReportState.submit_full_report
+            yield NavbarState.set_alert_message(
+                "Unable to submit report. Server-side error."
+            )
     
     """
     API calls. ------------------------------------------------------
@@ -716,8 +728,7 @@ class ReportState(CookieState):
         else:
             logger.critical("Error while submitting report!")
             yield rx.call_script("window.location.reload")
-            yield NavbarState.set_alert_message(response.reason_phrase)
-            rich.inspect(response)
+            yield NavbarState.set_alert_message(f"{response.reason_phrase} - {response.text}")
 
     """
     Navigation events. ----------------------------------------------
@@ -737,7 +748,7 @@ class ReportState(CookieState):
         """
         return self.router.page.params.get('report_id')
 
-    def report_nav(self, target_url: str) -> Iterable[Callable]:
+    def report_nav(self, target_url: str) -> Callable:
         """
         Takes a target_url and determines if on summary page or report
         page to route with medicare ID appropriately.
@@ -745,14 +756,14 @@ class ReportState(CookieState):
         from ..states.navbar import NavbarState
 
         if target_url == 'summary':
-            yield rx.redirect(f"/report/summary/{self.report_id}/")
+            return rx.redirect(f"/report/summary/{self.report_id}/")
         else:
             if self.report_id:
-                yield rx.redirect(f"/report/submit/{self.report_id}/{target_url}")
+                return rx.redirect(f"/report/submit/{self.report_id}/{target_url}")
             elif self.summary_id:
-                yield rx.redirect(f"/report/submit/{self.summary_id}/{target_url}")
+                return rx.redirect(f"/report/submit/{self.summary_id}/{target_url}")
             else:
-                yield NavbarState.set_alert_message(
+                return NavbarState.set_alert_message(
                     f"Invalid URL target - {target_url}"
             )
                 
@@ -774,6 +785,7 @@ class ReportState(CookieState):
         report = {
             "uuid": self.claims['sub'],
             "comp_select_emp_type": self.comp_select_emp_type,
+            "comp_select_pay_type": self.comp_select_pay_type,
             "comp_input_pay_amount": self.comp_input_pay_amount,
             "comp_select_diff_response": self.comp_select_diff_response,
             "comp_select_diff_nights": self.comp_select_diff_nights,
@@ -834,3 +846,84 @@ class ReportState(CookieState):
             "assign_select_overall": self.assign_select_overall
         }
         return report
+    
+    def moderate_user_entries(self) -> Iterable[Callable] | None:
+        """
+        Send all user entered fields to AI for moderation. AI will send
+        response flagging entries
+        """
+        user_entry_dict = {}
+        if self.comp_input_desired_changes:
+            user_entry_dict["comp_input_desired_changes"] = self.comp_input_desired_changes
+        if self.comp_input_comments:
+            user_entry_dict['comp_input_comments'] = self.comp_input_comments
+        if self.staffing_input_comments:
+            user_entry_dict['staffing_input_comments'] = self.staffing_input_comments
+        if self.assign_input_unit_name:
+            user_entry_dict['assign_input_unit_name'] = self.assign_input_unit_name
+        if self.assign_input_area:
+            user_entry_dict['assign_input_area'] = self.assign_input_area
+        if self.assign_input_comments:
+            user_entry_dict['assign_input_comments'] = self.assign_input_comments
+
+        system_prompt = """You moderate user entries for a hospital
+        review site, outputting responses in JSON"""
+        user_prompt = f"""Flag user entries for inappropriate material
+        if present. List of entries = {json.dumps(user_entry_dict)}"""
+        url = f"{anyscale_url}/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {anyscale_api_key}",
+            "Content-Type": "application/json"
+        }
+        data = {
+            "model": "mistralai/Mixtral-8x7B-Instruct-v0.1",
+            "messages": [
+                {
+                    "role": "system",
+                    "content": system_prompt
+                },
+                {
+                    "role": "user",
+                    "content": user_prompt
+                }
+                 
+            ],
+            "response_format": {
+                "type": "json_object",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "entries": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "entry_name": {"type": "string"},
+                                    "flag": {"type": "boolean"},
+                                    "flag_reason": {"type": "string"},
+                                },
+                                "required": ["entry_name", "flag", "flag_reason"]
+                            }
+                        }
+                    },
+                    "required": ["entries"]
+                }
+            },
+            "temperature": 0.5
+
+        }
+        response = httpx.post(
+            url=url,
+            headers=headers,
+            data=json.dumps(data)
+        )
+
+        if response.is_success:
+            logger.debug("User entry moderation successful.")
+            rich.inspect(json.loads(response.content))
+            rich.inspect(response)
+            yield None
+        else:
+            logger.warning("User entry moderation unsuccessful.")
+            rich.inspect(response)
+            yield None

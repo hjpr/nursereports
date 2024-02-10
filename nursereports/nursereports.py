@@ -5,6 +5,7 @@ from .pages.api_auth import auth_api
 from .pages.api_deauth import deauth_api
 from .pages.dashboard import dashboard
 from .pages.index import index
+from .pages.onboard import onboard_page
 from .pages.report_summary import summary
 from .pages.report_comp import comp_page
 from .pages.report_staffing import staffing_page
@@ -84,6 +85,18 @@ hospital page.
 app.add_page(
     search,
     route="/search/[context]",
+    on_load=CookieState.standard_flow('req_login')
+)
+
+#####################################################################
+#
+# ONBOARDING
+#
+#####################################################################
+
+app.add_page(
+    onboard_page,
+    route='/onboard/',
     on_load=CookieState.standard_flow('req_login')
 )
 
