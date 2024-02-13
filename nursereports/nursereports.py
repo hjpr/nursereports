@@ -7,9 +7,12 @@ from .pages.dashboard import dashboard
 from .pages.index import index
 from .pages.onboard import onboard_page
 from .pages.report_summary import summary
+from .pages.report_summary_comp import comp_summary_page
 from .pages.report_comp import comp_page
-from .pages.report_staffing import staffing_page
+from .pages.report_summary_assign import assign_summary_page
 from .pages.report_assign import assign_page
+from .pages.report_summary_staffing import staffing_summary_page
+from .pages.report_staffing import staffing_page
 from .pages.report_complete import complete
 from .pages.search import search
 
@@ -96,7 +99,7 @@ app.add_page(
 
 app.add_page(
     onboard_page,
-    route='/onboard/',
+    route='/onboard',
     on_load=CookieState.standard_flow('req_login')
 )
 
@@ -115,11 +118,43 @@ app.add_page(
     on_load=CookieState.standard_flow('req_login')
 )
 """
-REPORT PAY - Pay report by hospital
+REPORT COMPENSATION SUMMARY - Description of compensation.
+"""
+app.add_page(
+    comp_summary_page,
+    route="/report/submit/[report_id]/compensation/summary",
+    on_load=CookieState.standard_flow('req_login')
+)
+"""
+REPORT COMPENSATION - Pay/benefits report by hospital
 """
 app.add_page(
     comp_page,
     route="/report/submit/[report_id]/compensation",
+    on_load=CookieState.standard_flow('req_login')
+)
+"""
+REPORT ASSIGNMENT SUMMARY - Description of assignment.
+"""
+app.add_page(
+    assign_summary_page,
+    route="/report/submit/[report_id]/assignment/summary",
+    on_load=CookieState.standard_flow('req_login')
+)
+"""
+REPORT ASSIGNMENT - Assignment report by hospital.
+"""
+app.add_page(
+    assign_page,
+    route="/report/submit/[report_id]/assignment",
+    on_load=CookieState.standard_flow('req_login')
+)
+"""
+REPORT STAFFING SUMMARY - Description of staffing.
+"""
+app.add_page(
+    staffing_summary_page,
+    route="/report/submit/[report_id]/staffing/summary",
     on_load=CookieState.standard_flow('req_login')
 )
 """
@@ -128,14 +163,6 @@ REPORT STAFFING- Staffing report by hospital.
 app.add_page(
     staffing_page,
     route="/report/submit/[report_id]/staffing",
-    on_load=CookieState.standard_flow('req_login')
-)
-"""
-REPORT UNIT - Unit report by hospital.
-"""
-app.add_page(
-    assign_page(),
-    route="/report/submit/[report_id]/assignment",
     on_load=CookieState.standard_flow('req_login')
 )
 """

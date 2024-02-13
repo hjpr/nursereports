@@ -239,8 +239,8 @@ def pay() -> rx.Component:
             # PAY - INCENTIVE BONUS ---------------------------------
             rx.vstack(
                 rx.text(
-                    """Do you get incentives for picking up extra shifts?
-                    (e.g. critical shift pay)""",
+                    """Does your hospital have special incentive pay for
+                    certain shifts? (e.g. critical shift pay)""",
                     text_align='center'
                     ),
                 rx.select(
@@ -265,6 +265,22 @@ def pay() -> rx.Component:
                         on_change=ReportState.set_comp_input_incentive_amount
                     )
                 )
+            ),
+            rx.vstack(
+                rx.text(
+                    """Does your hospital pay extra for having certifications?
+                    (e.g. CCRN, CWON, RN-BC)""",
+                    text_align='center'
+                    ),
+                rx.select(
+                    ["Yes", "No"],
+                    placeholder="- Select -",
+                    value=ReportState.comp_select_certifications,
+                    variant='filled',
+                    on_change=ReportState.set_comp_select_certifications,
+                    is_required=True
+                ),
+                width='100%'
             ),
             spacing='2em',
             width='100%'
@@ -463,8 +479,8 @@ def compensation() -> rx. Component:
             # COMP - ADEQUATELY COMPENSATED -------------------------
             rx.vstack(
                 rx.text(
-                    """Is your compensation generally enough to keep you
-                    at this assignment?""",
+                    """Is your overall pay and benefits package generally
+                    enough to keep you satisfied in your current role?""",
                     text_align='center'
                 ),
                 rx.select(
@@ -476,52 +492,6 @@ def compensation() -> rx. Component:
                     is_required=True
                 ),
                 width='100%'
-            ),
-            # COMP - DESIRED ADDITIONAL COMPENSATION ----------------
-            rx.cond(
-                ReportState.compensation_is_inadequate,
-                rx.vstack(
-                    rx.text(
-                        """(Optional) How could compensation change to make this
-                        assignment worthwhile?""",
-                        text_align='center'
-                    ),
-                    rx.debounce_input(
-                        rx.text_area(
-                            value=ReportState.comp_input_desired_changes,
-                            placeholder="Do not enter personally identifiable information.",
-                            on_change=ReportState.set_comp_input_desired_changes,
-                            on_blur=ReportState.set_comp_input_desired_changes,
-                            is_invalid=ReportState.comp_desired_changes_chars_over,
-                            height='10em'
-                        ),
-                        debounce_timeout=1000
-                    ),
-                    rx.cond(
-                        ReportState.comp_input_desired_changes,
-                        # If there is an entry in the comments
-                        rx.cond(
-                            ReportState.comp_desired_changes_chars_over,
-                            # If chars over limit of 500.
-                            rx.alert(
-                                rx.alert_icon(),
-                                rx.alert_title(
-                                    "Please limit response to < 500 characters!",
-                                ),
-                                status='error'
-                            ),
-                            # If chars not over limit of 500.
-                            rx.text(
-                                f"{ReportState.comp_desired_changes_chars_left} chars left.",
-                                text_align="center"
-                            )
-                        ),
-                        # If no entry yet in comments
-                        rx.text(
-                            "500 character limit."
-                        )
-                    )
-                )
             ),
             spacing='2em',
             width='100%'
@@ -685,7 +655,7 @@ def buttons() -> rx.Component:
         rx.button_group(
             rx.button("Back",
                     width='100%',
-                    on_click=ReportState.report_nav('summary'),
+                    on_click=ReportState.report_nav('compensation/summary'),
                     is_loading=~rx.State.is_hydrated,
                     color_scheme='teal'
             ),
@@ -693,7 +663,6 @@ def buttons() -> rx.Component:
                     width='100%',
                     type_='submit',
                     is_loading=~rx.State.is_hydrated,
-                    is_disabled=~ReportState.comp_can_progress,
                     color_scheme='teal'
             ),
             width='50%',

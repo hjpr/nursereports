@@ -9,7 +9,6 @@ import httpx
 import json
 import os
 import reflex as rx
-import rich
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -96,10 +95,12 @@ class SearchState(CookieState):
                 "Content-Type": "application/json",
                 "Range": f"{self.search_range}"
             }
+
             response = httpx.get(
                 url=url,
                 headers=headers
             )
+            
             if response.is_success:
                 logger.debug("Response from Supabase.")
                 list_of_hospitals = json.loads(response.content)

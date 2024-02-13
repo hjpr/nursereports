@@ -27,9 +27,9 @@ def staffing_page() -> rx.Component:
 
                     spacer(height='10px'),
 
-                    ratios(),
-
                     staffing(),
+
+                    ratios(),
 
                     support(),
 
@@ -101,42 +101,8 @@ def ratios() -> rx.Component:
                 rx.divider(),
                 width='100%'
             ),
-            # STAFFING - RATIOS -------------------------------------
-            rx.vstack(
-                rx.text(
-                    "Do you get a set of patients assigned to you each shift?",
-                ),
-                rx.select(
-                    ["Yes", "No"],
-                    placeholder="- Select -",
-                    value=ReportState.staffing_select_ratio_response,
-                    variant='filled',
-                    on_change=ReportState.set_staffing_select_ratio_response,
-                    is_required=True
-                ),
-                width='100%'
-            ),
             rx.cond(
                 ReportState.has_ratios,
-                rx.vstack(
-                    # STAFFING - AREA -------------------------------
-                    rx.text(
-                        """Are you staffed to one area, or are you a
-                        float?"""
-                    ),
-                    rx.select(
-                    ["Staff", "Float"],
-                        placeholder="- Select -",
-                        value=ReportState.staffing_select_ratio_variable,
-                        variant='filled',
-                        on_change=ReportState.set_staffing_select_ratio_variable,
-                        is_required=True
-                    ),
-                    width='100%'
-                )
-            ),
-            rx.cond(
-                ReportState.same_ratio,
                 rx.vstack(
                     # STAFFING - PATIENT RATIOS ---------------------
                     rx.vstack(
@@ -221,7 +187,7 @@ def staffing() -> rx.Component:
             # STAFFING - NURSE STAFFING -----------------------------
             rx.vstack(
                 rx.box(
-                    rx.span("Is your area or unit appropriately staffed with "),
+                    rx.span("Is the area you work in appropriately staffed with "),
                     rx.span(
                         " nurses?",
                         font_weight='bold'
@@ -241,7 +207,7 @@ def staffing() -> rx.Component:
             # STAFFING - CNA STAFFING -------------------------------
             rx.vstack(
                 rx.box(
-                    rx.span("Is your area or unit appropriately staffed with "),
+                    rx.span("Is the area you work in appropriately staffed with "),
                     rx.span(
                         "nurse aides?",
                         font_weight='bold'
@@ -261,7 +227,7 @@ def staffing() -> rx.Component:
             # STAFFING - CHARGE -------------------------------------
             rx.vstack(
                 rx.text(
-                    "Does your area or unit have a charge nurse?"
+                    "Does the area you work in have a charge nurse?"
                 ),
                 rx.select(
                     ["Yes", "No"],
@@ -546,15 +512,14 @@ def buttons() -> rx.Component:
         rx.button_group(
             rx.button("Back",
                     width='100%',
-                    on_click=ReportState.report_nav('compensation'),
+                    on_click=ReportState.report_nav('assignment'),
                     is_loading=~rx.State.is_hydrated,
                     color_scheme='teal'
             ),
-            rx.button("Next",
+            rx.button("Submit",
                 width='100%',
                 type_='submit',
                 is_loading=~rx.State.is_hydrated,
-                is_disabled=~ReportState.staffing_can_progress,
                 color_scheme='teal'
             ),
             width='50%'

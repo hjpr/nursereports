@@ -333,7 +333,7 @@ def culture() -> rx.Component:
                         "nurses ",
                         font_weight='bold'
                     ),
-                    rx.span("in your unit or area work together and support each other?"),
+                    rx.span("around you work together and support each other?"),
                     text_align='center'
                 ),
                 rx.select(
@@ -353,7 +353,7 @@ def culture() -> rx.Component:
                         "providers ",
                         font_weight='bold'
                     ),
-                    rx.span("in your unit or area work well with nursing staff?"),
+                    rx.span("around you work well with nursing staff?"),
                     text_align='center'
                 ),
                 rx.select(
@@ -368,7 +368,7 @@ def culture() -> rx.Component:
             ),
             rx.vstack(
                 rx.text(
-                    """Do you feel like your contributions are valued
+                    """Do you feel like your input is valued
                     as a part of the care team?""",
                     text_align='center'
                 ),
@@ -400,15 +400,15 @@ def culture() -> rx.Component:
             ),
             rx.vstack(
                 rx.text(
-                    """Do you feel like management supports you?""",
+                    """Do you feel like management supports nursing interests?""",
                     text_align='center'
                 ),
                 rx.select(
                     ["Always", "Usually", "Sometimes", "Rarely", "Never", "N/A"],
                     placeholder="- Select -",
-                    value=ReportState.assign_select_tools,
+                    value=ReportState.assign_select_management,
                     variant='filled',
-                    on_change=ReportState.set_assign_select_tools,
+                    on_change=ReportState.set_assign_select_management,
                     is_required=True
                 ),
                 width='100%'
@@ -640,15 +640,14 @@ def buttons() -> rx.Component:
         rx.button_group(
             rx.button("Back",
                     width='100%',
-                    on_click=ReportState.report_nav('staffing'),
+                    on_click=ReportState.report_nav('compensation'),
                     is_loading=~rx.State.is_hydrated,
                     color_scheme='teal'
             ),
-            rx.button("Submit",
+            rx.button("Next",
                     width='100%',
                     type_='submit',
                     is_loading=~rx.State.is_hydrated,
-                    is_disabled=~ReportState.assign_can_progress,
                     color_scheme='teal'
             ),
             width='50%',

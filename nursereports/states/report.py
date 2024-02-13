@@ -1,11 +1,12 @@
 
 from loguru import logger
 from ..states.cookie import CookieState
-from typing import Callable, Iterable
+from typing import AsyncIterable, Callable, Iterable
 
 import httpx
 import json
 import os
+import uuid
 import reflex as rx
 import rich
 
@@ -22,22 +23,13 @@ class ReportState(CookieState):
     State for the report, variables grouped into the three major
     groups of the report; compensation, staffing, and assignment.
     """
-
-    @rx.var
-    def comp_is_active(self) -> bool:
-        return True if "compensation" in self.router.page.full_raw_path else False
-
-    @rx.var
-    def staffing_is_active(self) -> bool:
-        return True if "staffing" in self.router.page.full_raw_path else False
-
-    @rx.var
-    def assign_is_active(self) -> bool:
-        return True if "assignment" in self.router.page.full_raw_path else False
     
-    """
-    Compensation fields and logic. ----------------------------------
-    """
+
+    #################################################################
+    #
+    # COMPENSATION VARIABLES
+    #
+    #################################################################
 
     comp_select_emp_type: str
 
@@ -54,6 +46,8 @@ class ReportState(CookieState):
     comp_select_incentive_response: str
 
     comp_input_incentive_amount: int
+
+    comp_select_certifications: str
 
     comp_select_shift: str
 
@@ -76,8 +70,6 @@ class ReportState(CookieState):
     comp_check_benefit_tuition: bool
 
     comp_select_comp_adequate: str
-
-    comp_input_desired_changes: str
 
     comp_input_comments: str
 
@@ -113,10 +105,6 @@ class ReportState(CookieState):
     def set_comp_select_incentive_response(self, response: str) -> None:
         self.comp_input_incentive_amount = 0
         self.comp_select_incentive_response = response
-
-    def set_comp_select_comp_adequate(self, response: str) -> None:
-        self.comp_select_comp_adequate = response
-        self.comp_input_desired_changes = ""
 
     @rx.var
     def is_pay_invalid(self) -> bool:
@@ -169,24 +157,11 @@ class ReportState(CookieState):
     @rx.var
     def compensation_is_inadequate(self) -> bool:
         return True if self.comp_select_comp_adequate == "No" else False
-    
-    @rx.var
-    def comp_desired_changes_chars_left(self) -> int:
-        if self.comp_input_desired_changes:
-            return 500 - len(self.comp_input_desired_changes)
         
     @rx.var
     def comp_comments_chars_left(self) -> int:
         if self.comp_input_comments:
             return 500 - len(self.comp_input_comments)
-        
-    @rx.var
-    def comp_desired_changes_chars_over(self) -> bool:
-        if self.comp_desired_changes_chars_left:
-            if self.comp_desired_changes_chars_left < 0:
-                return True
-            else:
-                return False
         
     @rx.var
     def comp_comments_chars_over(self) -> bool:
@@ -235,7 +210,9 @@ class ReportState(CookieState):
         if self.comp_select_diff_response:
             progress = progress + 10
         if self.comp_select_incentive_response:
-            progress = progress + 10
+            progress = progress + 5
+        if self.comp_select_certifications:
+            progress = progress + 5
         if self.comp_select_shift:
             progress = progress + 10
         if self.comp_select_weekly_shifts:
@@ -254,169 +231,11 @@ class ReportState(CookieState):
     def comp_can_progress(self) -> bool:
         return True if self.comp_progress == 100 else False
 
-    """
-    Staffing fields and logic. --------------------------------------
-    """
-
-    staffing_select_ratio_response: str
-
-    staffing_input_ratio: int
-
-    staffing_select_ratio_variable: str
-
-    staffing_select_ratio_unsafe: str
-
-    staffing_select_workload: str
-
-    staffing_select_float: str
-
-    staffing_select_charge_response: str
-
-    staffing_select_charge_assignment: str
-
-    staffing_select_nursing_shortages: str
-
-    staffing_select_aide_shortages: str
-
-    staffing_check_transport: bool
-
-    staffing_check_lab: bool
-
-    staffing_check_cvad: bool
-
-    staffing_check_wocn: bool
-
-    staffing_check_chaplain: bool
-
-    staffing_check_educator: bool
-
-    staffing_select_support_available: str
-
-    staffing_input_comments: str
-
-    staffing_select_overall: str
-
-    @rx.var
-    def has_ratios(self) -> bool:
-        return True if self.staffing_select_ratio_response == "Yes" else False
-    
-    @rx.var
-    def same_ratio(self) -> bool:
-        return True if self.staffing_select_ratio_variable == "Staff" else False
-        
-    @rx.var
-    def ratio_is_valid(self) -> bool:
-        return True if 0 < self.staffing_input_ratio < 30 else False
-        
-    @rx.var
-    def has_charge(self) -> bool:
-        return True if self.staffing_select_charge_response == "Yes" else False
-    
-    @rx.var
-    def ratios_unsafe(self) -> bool:
-        if self.staffing_select_ratio_unsafe == "Always" or\
-        self.staffing_select_ratio_unsafe == "Usually" or\
-        self.staffing_select_ratio_unsafe == "Sometimes":
-            return True
-        else:
-            return False
-        
-    @rx.var
-    def staffing_input_comments_chars_over(self) -> bool:
-        if self.staffing_input_comments_chars_left:
-            if self.staffing_input_comments_chars_left < 0:
-                return True
-            else:
-                return False
-        
-    @rx.var
-    def staffing_input_comments_chars_left(self) -> int:
-        if self.staffing_input_comments:
-            return 500 - len(self.staffing_input_comments)
-        
-    @rx.var
-    def staffing_select_overall_description(self) -> str:
-        if self.staffing_select_overall == "a":
-            return "Great"
-        if self.staffing_select_overall == "b":
-            return "Good"
-        if self.staffing_select_overall == "c":
-            return "So-so"
-        if self.staffing_select_overall == "d":
-            return "Bad"
-        if self.staffing_select_overall == "f":
-            return "Terrible"
-
-    @rx.var
-    def staffing_select_overall_background(self) -> str:
-        if self.staffing_select_overall == "a":
-            return "rgb(95, 163, 217)"
-        if self.staffing_select_overall == "b":
-            return "rgb(95, 154, 100)"
-        if self.staffing_select_overall == "c":
-            return "rgb(237, 234, 95)"
-        if self.staffing_select_overall == "d":
-            return "rgb(197, 116, 57)"
-        if self.staffing_select_overall == "f":
-            return "rgb(185, 65, 55)"
-
-    @rx.var
-    def staffing_progress(self) -> int:
-        progress = 0
-        if self.staffing_select_ratio_response == "Yes":
-            progress = progress + 5
-            if self.staffing_select_ratio_variable == "Staff":
-                progress = progress + 5
-                if self.staffing_input_ratio and self.ratio_is_valid:
-                    progress = progress + 5
-                if self.staffing_select_ratio_unsafe:
-                    progress = progress + 5
-            if self.staffing_select_ratio_variable == "Float":
-                progress = progress + 15
-
-        if self.staffing_select_ratio_response == "No":
-            progress = progress + 20
-        if self.staffing_select_workload:
-            progress = progress + 10
-        if self.staffing_select_charge_response == "Yes":
-            progress = progress + 5
-            if self.staffing_select_charge_assignment:
-                progress = progress + 5
-        if self.staffing_select_charge_response == "No":
-            progress = progress + 10
-        if self.staffing_select_nursing_shortages:
-            progress = progress + 15
-        if self.staffing_select_aide_shortages:
-            progress = progress + 15
-        if self.staffing_select_support_available:
-            progress = progress + 15
-        if self.staffing_select_overall:
-            progress = progress + 15
-        return progress
-        
-    def set_staffing_select_ratio_response(self, response: str) -> None:
-        self.staffing_input_ratio = 0
-        self.staffing_select_ratio_variable = ""
-        self.staffing_select_ratio_unsafe = ""
-        self.staffing_select_ratio_response = response
-
-    def set_staffing_input_ratio(self, ratio: int | str) -> None:
-        if ratio == '' or ratio == '00':
-            self.staffing_input_ratio = 0
-        else:
-            self.staffing_input_ratio = int(ratio)
-
-    def set_staffing_select_charge_response(self, response: str) -> None:
-        self.staffing_select_charge_assignment = ""
-        self.staffing_select_charge_response = response
-
-    @rx.var
-    def staffing_can_progress(self) -> bool:
-        return True if self.staffing_progress == 100 else False
-
-    """
-    Unit fields and logic. ------------------------------------------
-    """
+    #################################################################
+    #
+    # ASSIGNMENT VARIABLES
+    #
+    #################################################################
 
     assign_select_specific_unit: str
 
@@ -444,7 +263,7 @@ class ReportState(CookieState):
 
     assign_select_impact: str
 
-    assign_select_tools: str
+    assign_select_management: str
 
     assign_select_leaving: str
 
@@ -596,7 +415,7 @@ class ReportState(CookieState):
             progress = progress + 10
         if self.assign_select_impact:
             progress = progress + 5
-        if self.assign_select_tools:
+        if self.assign_select_management:
             progress = progress + 5
         if self.assign_select_leaving:
             if self.is_leaving:
@@ -620,9 +439,179 @@ class ReportState(CookieState):
         else:
             return False
     
-    """
-    Handle form submissions and validate. ---------------------------
-    """
+
+
+    #################################################################
+    #
+    # STAFFING VARIABLES
+    #
+    #################################################################
+
+    staffing_input_ratio: int
+
+    staffing_select_ratio_unsafe: str
+
+    staffing_select_workload: str
+
+    staffing_select_float: str
+
+    staffing_select_charge_response: str
+
+    staffing_select_charge_assignment: str
+
+    staffing_select_nursing_shortages: str
+
+    staffing_select_aide_shortages: str
+
+    staffing_check_transport: bool
+
+    staffing_check_lab: bool
+
+    staffing_check_cvad: bool
+
+    staffing_check_wocn: bool
+
+    staffing_check_chaplain: bool
+
+    staffing_check_educator: bool
+
+    staffing_select_support_available: str
+
+    staffing_input_comments: str
+
+    staffing_select_overall: str
+
+    @rx.var
+    def has_ratios(self) -> bool:
+        if self.assign_select_acuity == "Intensive" or\
+            self.assign_select_acuity == "Intermediate" or\
+            self.assign_select_acuity == "Floor":
+            return True
+        else:
+            return False
+        
+    @rx.var
+    def ratio_is_valid(self) -> bool:
+        return True if 0 < self.staffing_input_ratio < 30 else False
+        
+    @rx.var
+    def has_charge(self) -> bool:
+        return True if self.staffing_select_charge_response == "Yes" else False
+    
+    @rx.var
+    def ratios_unsafe(self) -> bool:
+        if self.staffing_select_ratio_unsafe == "Always" or\
+        self.staffing_select_ratio_unsafe == "Usually" or\
+        self.staffing_select_ratio_unsafe == "Sometimes":
+            return True
+        else:
+            return False
+        
+    @rx.var
+    def staffing_input_comments_chars_over(self) -> bool:
+        if self.staffing_input_comments_chars_left:
+            if self.staffing_input_comments_chars_left < 0:
+                return True
+            else:
+                return False
+        
+    @rx.var
+    def staffing_input_comments_chars_left(self) -> int:
+        if self.staffing_input_comments:
+            return 500 - len(self.staffing_input_comments)
+        
+    @rx.var
+    def staffing_select_overall_description(self) -> str:
+        if self.staffing_select_overall == "a":
+            return "Great"
+        if self.staffing_select_overall == "b":
+            return "Good"
+        if self.staffing_select_overall == "c":
+            return "So-so"
+        if self.staffing_select_overall == "d":
+            return "Bad"
+        if self.staffing_select_overall == "f":
+            return "Terrible"
+
+    @rx.var
+    def staffing_select_overall_background(self) -> str:
+        if self.staffing_select_overall == "a":
+            return "rgb(95, 163, 217)"
+        if self.staffing_select_overall == "b":
+            return "rgb(95, 154, 100)"
+        if self.staffing_select_overall == "c":
+            return "rgb(237, 234, 95)"
+        if self.staffing_select_overall == "d":
+            return "rgb(197, 116, 57)"
+        if self.staffing_select_overall == "f":
+            return "rgb(185, 65, 55)"
+
+    @rx.var
+    def staffing_progress(self) -> int:
+        progress = 0
+        if self.has_ratios:
+            if self.staffing_input_ratio and self.ratio_is_valid:
+                progress = progress + 10
+            if self.staffing_select_ratio_unsafe:
+                progress = progress + 10
+        if not self.has_ratios and self.staffing_select_workload:
+            progress = progress + 20
+        if self.staffing_select_workload:
+            progress = progress + 10
+        if self.staffing_select_charge_response == "Yes":
+            progress = progress + 5
+            if self.staffing_select_charge_assignment:
+                progress = progress + 5
+        if self.staffing_select_charge_response == "No":
+            progress = progress + 10
+        if self.staffing_select_nursing_shortages:
+            progress = progress + 15
+        if self.staffing_select_aide_shortages:
+            progress = progress + 15
+        if self.staffing_select_support_available:
+            progress = progress + 15
+        if self.staffing_select_overall:
+            progress = progress + 15
+        return progress
+        
+    def set_staffing_select_ratio_response(self, response: str) -> None:
+        self.staffing_input_ratio = 0
+        self.staffing_select_ratio_unsafe = ""
+        self.staffing_select_ratio_response = response
+
+    def set_staffing_input_ratio(self, ratio: int | str) -> None:
+        if ratio == '' or ratio == '00':
+            self.staffing_input_ratio = 0
+        else:
+            self.staffing_input_ratio = int(ratio)
+
+    def set_staffing_select_charge_response(self, response: str) -> None:
+        self.staffing_select_charge_assignment = ""
+        self.staffing_select_charge_response = response
+
+    @rx.var
+    def staffing_can_progress(self) -> bool:
+        return True if self.staffing_progress == 100 else False
+
+    #################################################################
+    #
+    # UNCATEGORIZED REPORT VARIABLES
+    #
+    #################################################################
+           
+    id: str = str(uuid.uuid4())
+
+    @rx.var
+    def comp_is_active(self) -> bool:
+        return True if "compensation" in self.router.page.full_raw_path else False
+
+    @rx.var
+    def staffing_is_active(self) -> bool:
+        return True if "staffing" in self.router.page.full_raw_path else False
+
+    @rx.var
+    def assign_is_active(self) -> bool:
+        return True if "assignment" in self.router.page.full_raw_path else False
 
     @rx.var
     def completed_report(self) -> bool:
@@ -633,58 +622,6 @@ class ReportState(CookieState):
         else:
             return False
         
-    def handle_submit_comp(self, form_data: dict) -> Iterable[Callable]:
-        from ..states.navbar import NavbarState
-
-        if len(self.comp_input_desired_changes) > 500 or len(self.comp_input_comments) > 500:
-            return NavbarState.set_alert_message(
-                """Text input field contains too many characters! Please limit
-                your response to less than 500 characters."""
-                )
-        elif self.is_pay_invalid or self.is_experience_invalid:
-            return NavbarState.set_alert_message(
-                """Some fields contain invalid information. Please fix
-                before attempting to proceed."""
-                )
-        else:
-            return rx.redirect(f"/report/submit/{self.report_id}/staffing")
-
-    def handle_submit_staffing(self, form_data: dict) -> Callable:
-        from ..states.navbar import NavbarState
-
-        if len(self.staffing_input_comments) > 500:
-            return NavbarState.set_alert_message(
-                """Text input field contains too many characters! Please limit
-                your response to less than 500 characters."""
-                )
-        elif self.staffing_select_ratio_variable == "Staff" and not self.ratio_is_valid:
-            return NavbarState.set_alert_message(
-                """Some fields contain invalid information. Please fix
-                before attempting to proceed."""
-                )
-        else:
-            return rx.redirect(f"/report/submit/{self.report_id}/assignment")
-
-    def handle_submit_assign(self, form_data: dict) -> Iterable[Callable]:
-        from ..states.navbar import NavbarState
-
-        if len(self.assign_input_comments) > 500:
-            return NavbarState.set_alert_message(
-                """Text input field contains too many characters! Please limit
-                your response to less than 500 characters."""
-                )
-        if self.comp_can_progress and self.staffing_can_progress and self.assign_can_progress:
-            yield ReportState.submit_full_report
-            yield ReportState.moderate_user_entries
-        else:
-            yield NavbarState.set_alert_message(
-                "Unable to submit report. Server-side error."
-            )
-    
-    """
-    API calls. ------------------------------------------------------
-    """
-
     @rx.cached_var
     def hosp_info(self) -> dict:
         if self.summary_id:
@@ -706,22 +643,81 @@ class ReportState(CookieState):
                 return hospital[0]
             else:
                 logger.critical("Getting search results failed!")
+    
+    #################################################################
+    #
+    # REPORT SUBMISSION & HANDLERS
+    #
+    #################################################################
+        
+    def handle_submit_comp(self, form_data: dict) -> Iterable[Callable]:
+        from ..states.navbar import NavbarState
+
+        if len(self.comp_input_comments) > 500:
+            return NavbarState.set_alert_message(
+                """Text input field contains too many characters! Please limit
+                your response to less than 500 characters."""
+                )
+        elif self.is_pay_invalid or self.is_experience_invalid:
+            return NavbarState.set_alert_message(
+                """Some fields contain invalid information. Please fix
+                before attempting to proceed."""
+                )
+        else:
+            return rx.redirect(f"/report/submit/{self.report_id}/assignment/summary")
+
+    def handle_submit_assign(self, form_data: dict) -> Iterable[Callable]:
+        from ..states.navbar import NavbarState
+
+        if len(self.assign_input_comments) > 500:
+            return NavbarState.set_alert_message(
+                """Text input field contains too many characters! Please limit
+                your response to less than 500 characters."""
+                )
+        else:
+            return rx.redirect(f"/report/submit/{self.report_id}/staffing/summary")
+
+    def handle_submit_staffing(self, form_data: dict) -> Iterable[Callable] | Callable:
+        from ..states.navbar import NavbarState
+
+        if len(self.staffing_input_comments) > 500:
+            return NavbarState.set_alert_message(
+                """Text input field contains too many characters! Please limit
+                your response to less than 500 characters."""
+                )
+        elif self.has_ratios and not self.ratio_is_valid:
+            return NavbarState.set_alert_message(
+                """Some fields contain invalid information. Please fix
+                before attempting to proceed."""
+                )
+        elif self.comp_can_progress and self.staffing_can_progress and self.assign_can_progress:
+            if self.if_report_id_exists():
+                logger.debug("Found a duplicate uuid! Hell froze over! Buy a lottery ticket!")
+                self.id = str(uuid.uuid4())
+            yield ReportState.submit_full_report
+            yield ReportState.moderate_user_entries
+        else:
+            yield NavbarState.set_alert_message(
+                "Unable to submit report. Server-side error."
+            )
 
     def submit_full_report(self) -> Iterable[Callable]:
         from ..states.navbar import NavbarState
+
         url = f"{api_url}/rest/v1/reports"
         data = json.dumps(self.prepare_report_dict())
         headers = {
             "apikey": api_key,
             "Authorization": f"Bearer {self.access_token}",
             "Content-Type": "application/json",
-            "Prefer": "return=minimal",
         }
+
         response = httpx.post(
             url=url,
             headers=headers,
             data=data
         )
+        
         if response.is_success:
             logger.debug("Report submitted successfully.")
             yield rx.redirect(f"/report/submit/{self.report_id}/complete")
@@ -730,9 +726,97 @@ class ReportState(CookieState):
             yield rx.call_script("window.location.reload")
             yield NavbarState.set_alert_message(f"{response.reason_phrase} - {response.text}")
 
-    """
-    Navigation events. ----------------------------------------------
-    """
+    def prepare_report_dict(self) -> dict[str, str | int | None]:
+        report = {
+            "id": self.id,
+            "user_id": self.claims['sub'],
+            "comp_select_emp_type": self.comp_select_emp_type,
+            "comp_select_pay_type": self.comp_select_pay_type,
+            "comp_input_pay_amount": self.comp_input_pay_amount,
+            "comp_select_diff_response": self.comp_select_diff_response,
+            "comp_select_diff_nights": self.comp_select_diff_nights,
+            "comp_select_diff_weekends": self.comp_select_diff_weekends,
+            "comp_select_incentive_response": self.comp_select_incentive_response,
+            "comp_input_incentive_amount": self.comp_input_incentive_amount,
+            "comp_select_certifications": self.comp_select_certifications,
+            "comp_select_shift": self.comp_select_shift,
+            "comp_select_weekly_shifts": self.comp_select_weekly_shifts,
+            "comp_select_hospital_experience": self.comp_select_hospital_experience,
+            "comp_select_total_experience": self.comp_select_total_experience,
+            "comp_check_benefit_pto": self.comp_check_benefit_pto,
+            "comp_check_benefit_parental": self.comp_check_benefit_parental,
+            "comp_check_benefit_insurance": self.comp_check_benefit_insurance,
+            "comp_check_benefit_retirement": self.comp_check_benefit_retirement,
+            "comp_check_benefit_pro_dev": self.comp_check_benefit_pro_dev,
+            "comp_check_benefit_tuition": self.comp_check_benefit_tuition,
+            "comp_select_comp_adequate": self.comp_select_comp_adequate,
+            "comp_input_comments": self.comp_input_comments,
+            "comp_select_overall": self.comp_select_overall,
+            "assign_select_specific_unit": self.assign_select_specific_unit,
+            "assign_select_unit": self.assign_select_unit,
+            "assign_input_unit_name": self.assign_input_unit_name,
+            "assign_select_acuity": self.assign_select_acuity,
+            "assign_select_area": self.assign_select_area,
+            "assign_input_area": self.assign_input_area,
+            "assign_select_specialty_1": self.assign_select_specialty_1,
+            "assign_select_specialty_2": self.assign_select_specialty_2,
+            "assign_select_specialty_3": self.assign_select_specialty_3,
+            "assign_select_teamwork": self.assign_select_teamwork,
+            "assign_select_providers": self.assign_select_providers,
+            "assign_select_contributions": self.assign_select_contributions,
+            "assign_select_impact": self.assign_select_impact,
+            "assign_select_management": self.assign_select_management,
+            "assign_select_leaving": self.assign_select_leaving,
+            "assign_select_leaving_reason": self.assign_select_leaving_reason,
+            "assign_select_recommend": self.assign_select_recommend,
+            "assign_input_comments": self.assign_input_comments,
+            "assign_select_overall": self.assign_select_overall,
+            "staffing_input_ratio": self.staffing_input_ratio,
+            "staffing_select_ratio_unsafe": self.staffing_select_ratio_unsafe,
+            "staffing_select_workload": self.staffing_select_workload,
+            "staffing_select_float": self.staffing_select_float,
+            "staffing_select_charge_response": self.staffing_select_charge_response,
+            "staffing_select_charge_assignment": self.staffing_select_charge_assignment,
+            "staffing_select_nursing_shortages": self.staffing_select_nursing_shortages,
+            "staffing_select_aide_shortages": self.staffing_select_aide_shortages,
+            "staffing_check_transport": self.staffing_check_transport,
+            "staffing_check_lab": self.staffing_check_lab,
+            "staffing_check_cvad": self.staffing_check_cvad,
+            "staffing_check_wocn": self.staffing_check_wocn,
+            "staffing_check_chaplain": self.staffing_check_chaplain,
+            "staffing_check_educator": self.staffing_check_educator,
+            "staffing_select_support_available": self.staffing_select_support_available,
+            "staffing_input_comments": self.staffing_input_comments,
+            "staffing_select_overall": self.staffing_select_overall,
+        }
+        return report
+    
+    def if_report_id_exists(self) -> bool:
+        """Check if generated uuid exists in report database."""
+        url = f"{api_url}/rest/v1/reports?id=eq.{self.id}&select=*"
+        headers = {
+            "apikey": api_key,
+            "Authorization": f"Bearer {self.access_token}",
+            "Content-Type": "application/json",
+        }
+        response = httpx.get(
+            url=url,
+            headers=headers
+        )
+
+        if response.is_success:
+            logger.debug("Successfully checked for duplicate report id's.")
+            rich.inspect(response)
+            return True if json.loads(response.content) else False
+        else:
+            logger.critical("Unable to check for duplicate report id's.")
+            rich.inspect(response)
+
+    #################################################################
+    #
+    # NAVIGATION EVENTS & PAGE PARAMETERS
+    #
+    #################################################################
 
     @rx.var
     def summary_id(self) -> str:
@@ -774,87 +858,22 @@ class ReportState(CookieState):
         user accidentally hitting back can still go forward back to
         their report stored in state.
         """
-        yield rx.redirect(f"/report/submit/{self.summary_id}/compensation")
+        yield rx.redirect(f"/report/submit/{self.summary_id}/compensation/summary")
         self.reset()
 
-    """
-    Ancillary functions for report submission and preparation.
-    """
+    #################################################################
+    #
+    # REPORT MODERATION
+    #
+    #################################################################
 
-    def prepare_report_dict(self) -> dict[str, str | int | None]:
-        report = {
-            "uuid": self.claims['sub'],
-            "comp_select_emp_type": self.comp_select_emp_type,
-            "comp_select_pay_type": self.comp_select_pay_type,
-            "comp_input_pay_amount": self.comp_input_pay_amount,
-            "comp_select_diff_response": self.comp_select_diff_response,
-            "comp_select_diff_nights": self.comp_select_diff_nights,
-            "comp_select_diff_weekends": self.comp_select_diff_weekends,
-            "comp_select_incentive_response": self.comp_select_incentive_response,
-            "comp_input_incentive_amount": self.comp_input_incentive_amount,
-            "comp_select_shift": self.comp_select_shift,
-            "comp_select_weekly_shifts": self.comp_select_weekly_shifts,
-            "comp_select_hospital_experience": self.comp_select_hospital_experience,
-            "comp_select_total_experience": self.comp_select_total_experience,
-            "comp_check_benefit_pto": self.comp_check_benefit_pto,
-            "comp_check_benefit_parental": self.comp_check_benefit_parental,
-            "comp_check_benefit_insurance": self.comp_check_benefit_insurance,
-            "comp_check_benefit_retirement": self.comp_check_benefit_retirement,
-            "comp_check_benefit_pro_dev": self.comp_check_benefit_pro_dev,
-            "comp_check_benefit_tuition": self.comp_check_benefit_tuition,
-            "comp_select_comp_adequate": self.comp_select_comp_adequate,
-            "comp_input_desired_changes": self.comp_input_desired_changes,
-            "comp_input_comments": self.comp_input_comments,
-            "comp_select_overall": self.comp_select_overall,
-            "staffing_select_ratio_response": self.staffing_select_ratio_response,
-            "staffing_input_ratio": self.staffing_input_ratio,
-            "staffing_select_ratio_variable": self.staffing_select_ratio_variable,
-            "staffing_select_ratio_unsafe": self.staffing_select_ratio_unsafe,
-            "staffing_select_workload": self.staffing_select_workload,
-            "staffing_select_float": self.staffing_select_float,
-            "staffing_select_charge_response": self.staffing_select_charge_response,
-            "staffing_select_charge_assignment": self.staffing_select_charge_assignment,
-            "staffing_select_nursing_shortages": self.staffing_select_nursing_shortages,
-            "staffing_select_aide_shortages": self.staffing_select_aide_shortages,
-            "staffing_check_transport": self.staffing_check_transport,
-            "staffing_check_lab": self.staffing_check_lab,
-            "staffing_check_cvad": self.staffing_check_cvad,
-            "staffing_check_wocn": self.staffing_check_wocn,
-            "staffing_check_chaplain": self.staffing_check_chaplain,
-            "staffing_check_educator": self.staffing_check_educator,
-            "staffing_select_support_available": self.staffing_select_support_available,
-            "staffing_input_comments": self.staffing_input_comments,
-            "staffing_select_overall": self.staffing_select_overall,
-            "assign_select_specific_unit": self.assign_select_specific_unit,
-            "assign_select_unit": self.assign_select_unit,
-            "assign_input_unit_name": self.assign_input_unit_name,
-            "assign_select_acuity": self.assign_select_acuity,
-            "assign_select_area": self.assign_select_area,
-            "assign_input_area": self.assign_input_area,
-            "assign_select_specialty_1": self.assign_select_specialty_1,
-            "assign_select_specialty_2": self.assign_select_specialty_2,
-            "assign_select_specialty_3": self.assign_select_specialty_3,
-            "assign_select_teamwork": self.assign_select_teamwork,
-            "assign_select_providers": self.assign_select_providers,
-            "assign_select_contributions": self.assign_select_contributions,
-            "assign_select_impact": self.assign_select_impact,
-            "assign_select_tools": self.assign_select_tools,
-            "assign_select_leaving": self.assign_select_leaving,
-            "assign_select_leaving_reason": self.assign_select_leaving_reason,
-            "assign_select_recommend": self.assign_select_recommend,
-            "assign_input_comments": self.assign_input_comments,
-            "assign_select_overall": self.assign_select_overall
-        }
-        return report
-    
-    def moderate_user_entries(self) -> Iterable[Callable] | None:
+    @rx.background
+    async def moderate_user_entries(self) -> None:
         """
         Send all user entered fields to AI for moderation. AI will send
         response flagging entries
         """
         user_entry_dict = {}
-        if self.comp_input_desired_changes:
-            user_entry_dict["comp_input_desired_changes"] = self.comp_input_desired_changes
         if self.comp_input_comments:
             user_entry_dict['comp_input_comments'] = self.comp_input_comments
         if self.staffing_input_comments:
@@ -868,8 +887,8 @@ class ReportState(CookieState):
 
         system_prompt = """You moderate user entries for a hospital
         review site, outputting responses in JSON"""
-        user_prompt = f"""Flag user entries for inappropriate material
-        if present. List of entries = {json.dumps(user_entry_dict)}"""
+        user_prompt = f"""Flag user entries for abusive/racist language, links
+        to other sites, or spam. User entries = {json.dumps(user_entry_dict)}"""
         url = f"{anyscale_url}/chat/completions"
         headers = {
             "Authorization": f"Bearer {anyscale_api_key}",
@@ -912,18 +931,66 @@ class ReportState(CookieState):
             "temperature": 0.5
 
         }
-        response = httpx.post(
-            url=url,
-            headers=headers,
-            data=json.dumps(data)
-        )
 
-        if response.is_success:
-            logger.debug("User entry moderation successful.")
-            rich.inspect(json.loads(response.content))
-            rich.inspect(response)
-            yield None
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            response = await client.post(
+                url=url,
+                headers=headers,
+                data=json.dumps(data)
+            )
+            if response.is_success:
+                logger.debug("Retrieved moderation suggestions from Anyscale.")
+                self.parse_moderation_suggestions(json.loads(response.content))
+                return None
+            else:
+                logger.warning("User entry moderation to Anyscale unsuccessful.")
+                return None
+
+    def parse_moderation_suggestions(self, content) -> None:
+        """
+        flags['entries'] contains a list of dicts with keys 'entry_name', 'flag',
+        and 'flag_reason'. If the flag is true, add entry to moderation data
+        so that we can upload the flag_reason to our field _flag column to
+        prevent other users from accessing and having the capability to 
+        manually review that before releasing.
+        """
+        moderation_data = {}
+        flags = json.loads(content['choices'][0]['message']['content'])
+        for entry in flags['entries']:
+            """
+            Add entry. For example if assign_input_comments has issue, add
+            assign_input_comments_flag with the reason so we can manually
+            check it later.
+            """
+            if entry['flag'] is True:
+                flag_name = f"{entry['entry_name']}_flag".replace(" ", "_")
+                moderation_data[flag_name] = entry['flag_reason']
+
+        if moderation_data:
+            logger.warning(f"Found some entries requiring moderation. {moderation_data}")
+            url = f"{api_url}/rest/v1/reports?id=eq.{self.id}"
+            data = json.dumps(moderation_data)
+            headers = {
+                "apikey": api_key,
+                "Authorization": f"Bearer {self.access_token}",
+                "Content-Type": "application/json",
+                "Prefer": "return=minimal",
+            }
+
+            response = httpx.patch(
+                url=url,
+                headers=headers,
+                data=data
+            )
+
+            if response.is_success:
+                logger.debug("Successfully flagged entries for moderation in database.")
+                return None
+            else:
+                logger.critical("Error calling API for moderation.")
+                rich.inspect(response)
+                return None
         else:
-            logger.warning("User entry moderation unsuccessful.")
-            rich.inspect(response)
-            yield None
+            logger.debug("No entries found requiring moderation.")
+            return None
+

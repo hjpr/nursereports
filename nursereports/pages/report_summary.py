@@ -1,7 +1,6 @@
 
 from ..components.footer import footer
 from ..components.navbar import navbar, c2a_spacer
-from ..components.lists import cities_by_state
 from ..components.custom import spacer
 from ..states.report import ReportState
 
