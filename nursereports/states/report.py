@@ -1,12 +1,13 @@
 
 from loguru import logger
 from ..states.cookie import CookieState
-from typing import AsyncIterable, Callable, Iterable
+from typing import Callable, Iterable
 
 import httpx
 import json
 import os
 import uuid
+import re
 import reflex as rx
 import rich
 
@@ -23,7 +24,6 @@ class ReportState(CookieState):
     State for the report, variables grouped into the three major
     groups of the report; compensation, staffing, and assignment.
     """
-    
 
     #################################################################
     #
@@ -39,9 +39,9 @@ class ReportState(CookieState):
 
     comp_select_diff_response: str
 
-    comp_select_diff_nights: int
+    comp_input_diff_nights: int
 
-    comp_select_diff_weekends: int
+    comp_input_diff_weekends: int
 
     comp_select_incentive_response: str
 
@@ -75,45 +75,57 @@ class ReportState(CookieState):
 
     comp_select_overall: str
 
-    def set_comp_input_pay_amount(self, pay: int | str) -> None:
-        if pay == '' or pay == '00':
-            self.comp_input_pay_amount = 0
-        else:
+    def set_comp_input_pay_amount(self, pay: str) -> None:
+        if bool(re.match(r"^[0-9]+$", pay)):
             self.comp_input_pay_amount = int(pay)
+        if pay == "":
+            self.comp_input_pay_amount = 0
 
-    def set_comp_select_emp_type(self, type: str) -> None:
-        self.comp_select_emp_type = type
+    def set_comp_select_pay_type(self, type: str) -> None:
+        self.comp_select_pay_type = type
         self.comp_input_pay_amount = 0
 
     def set_comp_select_diff_response(self, response: str) -> None:
+        self.comp_input_diff_nights = 0
+        self.comp_input_diff_weekends = 0
         self.comp_select_diff_response = response
-        self.comp_select_diff_nights = 0
-        self.comp_select_diff_weekends = 0
 
-    def set_comp_select_diff_nights(self, pay: str) -> None:
-        if pay == '' or pay == '00':
-            self.comp_select_diff_nights = 0
-        else:
-            self.comp_select_diff_nights = int(pay)
+    def set_comp_input_diff_nights(self, pay: str) -> None:
+        if bool(re.match(r"^[0-9]+$", pay)):
+            self.comp_input_diff_nights = int(pay)
+        if pay == "":
+            self.comp_input_diff_nights = 0
 
-    def set_comp_select_diff_weekends(self, pay: str) -> None:
-        if pay == '' or pay == '00':
-            self.comp_select_diff_weekends = 0
-        else:
-            self.comp_select_diff_weekends = int(pay)
+    def set_comp_input_diff_weekends(self, pay: str) -> None:
+        if bool(re.match(r"^[0-9]+$", pay)):
+            self.comp_input_diff_weekends = int(pay)
+        if pay == "":
+            self.comp_input_diff_weekends = 0
 
     def set_comp_select_incentive_response(self, response: str) -> None:
-        self.comp_input_incentive_amount = 0
         self.comp_select_incentive_response = response
+        self.comp_input_incentive_amount = 0
+
+    def set_comp_input_incentive_amount(self, pay: str) -> None:
+        if bool(re.match(r"^[0-9]+$", pay)):
+            self.comp_input_incentive_amount = int(pay)
+        if pay == "":
+            self.comp_input_incentive_amount = 0
+
+    @rx.var
+    def is_hourly(self) -> bool:
+        if self.comp_select_pay_type:
+            return True if self.comp_select_pay_type == "Hourly" else False
 
     @rx.var
     def is_pay_invalid(self) -> bool:
-        if self.comp_input_pay_amount < 1 or\
-            self.comp_input_pay_amount > 125 and not self.is_contract:
-            return True
-        elif self.comp_input_pay_amount < 1 or\
-            self.comp_input_pay_amount > 12000 and self.is_contract:
-            return True
+        if self.comp_input_pay_amount:
+            if self.comp_input_pay_amount < 1 or\
+                self.comp_input_pay_amount > 125 and self.is_hourly:
+                return True
+            if self.comp_input_pay_amount < 1 or\
+                self.comp_input_pay_amount > 12000 and not self.is_hourly:
+                return True
         else:
             return False
         
@@ -481,6 +493,21 @@ class ReportState(CookieState):
 
     staffing_select_overall: str
 
+    def set_staffing_input_ratio(self, ratio: str) -> None:
+        if bool(re.match(r"^[0-9]+$", ratio)):
+            self.staffing_input_ratio = int(ratio)
+        if ratio == "":
+            self.staffing_input_ratio = 0
+
+    def set_staffing_select_ratio_response(self, response: str) -> None:
+        self.staffing_input_ratio = 0
+        self.staffing_select_ratio_unsafe = ""
+        self.staffing_select_ratio_response = response
+
+    def set_staffing_select_charge_response(self, response: str) -> None:
+        self.staffing_select_charge_assignment = ""
+        self.staffing_select_charge_response = response
+
     @rx.var
     def has_ratios(self) -> bool:
         if self.assign_select_acuity == "Intensive" or\
@@ -573,21 +600,6 @@ class ReportState(CookieState):
         if self.staffing_select_overall:
             progress = progress + 15
         return progress
-        
-    def set_staffing_select_ratio_response(self, response: str) -> None:
-        self.staffing_input_ratio = 0
-        self.staffing_select_ratio_unsafe = ""
-        self.staffing_select_ratio_response = response
-
-    def set_staffing_input_ratio(self, ratio: int | str) -> None:
-        if ratio == '' or ratio == '00':
-            self.staffing_input_ratio = 0
-        else:
-            self.staffing_input_ratio = int(ratio)
-
-    def set_staffing_select_charge_response(self, response: str) -> None:
-        self.staffing_select_charge_assignment = ""
-        self.staffing_select_charge_response = response
 
     @rx.var
     def staffing_can_progress(self) -> bool:
@@ -734,8 +746,8 @@ class ReportState(CookieState):
             "comp_select_pay_type": self.comp_select_pay_type,
             "comp_input_pay_amount": self.comp_input_pay_amount,
             "comp_select_diff_response": self.comp_select_diff_response,
-            "comp_select_diff_nights": self.comp_select_diff_nights,
-            "comp_select_diff_weekends": self.comp_select_diff_weekends,
+            "comp_input_diff_nights": self.comp_input_diff_nights,
+            "comp_input_diff_weekends": self.comp_input_diff_weekends,
             "comp_select_incentive_response": self.comp_select_incentive_response,
             "comp_input_incentive_amount": self.comp_input_incentive_amount,
             "comp_select_certifications": self.comp_select_certifications,

@@ -154,7 +154,6 @@ def pay() -> rx.Component:
                             input_mode='numeric',
                             on_change=ReportState.set_comp_input_pay_amount,
                             is_required=True,
-                            min_=0
                         ),
                         rx.cond(
                             ReportState.is_pay_invalid,
@@ -182,8 +181,6 @@ def pay() -> rx.Component:
                             input_mode='numeric',
                             on_change=ReportState.set_comp_input_pay_amount,
                             is_required=True,
-                            min_=0
-
                         ),
                         rx.cond(
                             ReportState.is_pay_invalid,
@@ -219,17 +216,19 @@ def pay() -> rx.Component:
                     rx.vstack(
                         rx.text("(Optional) Extra per hour for nights? (in $)"),
                         rx.number_input(
-                            value=ReportState.comp_select_diff_nights,
+                            value=ReportState.comp_input_diff_nights,
                             variant='filled',
-                            on_change=ReportState.set_comp_select_diff_nights,
+                            on_change=ReportState.set_comp_input_diff_nights,
+                            max=50
                         )
                     ),
                     rx.vstack(
                         rx.text("(Optional) Extra per hour for weekends? (in $)"),
                         rx.number_input(
-                            value=ReportState.comp_select_diff_weekends,
+                            value=ReportState.comp_input_diff_weekends,
                             variant='filled',
-                            on_change=ReportState.set_comp_select_diff_weekends,
+                            on_change=ReportState.set_comp_input_diff_weekends,
+                            max=50
                         )
                     ),
                     spacing='2em',
@@ -262,7 +261,8 @@ def pay() -> rx.Component:
                     rx.number_input(
                         value=ReportState.comp_input_incentive_amount,
                         variant='filled',
-                        on_change=ReportState.set_comp_input_incentive_amount
+                        on_change=ReportState.set_comp_input_incentive_amount,
+                        max_=100
                     )
                 )
             ),

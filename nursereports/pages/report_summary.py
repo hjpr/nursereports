@@ -6,7 +6,7 @@ from ..states.report import ReportState
 
 import reflex as rx
 
-def summary() -> rx.Component:
+def summary_page() -> rx.Component:
     return rx.flex(
 
         navbar(),

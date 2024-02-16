@@ -14,13 +14,11 @@ def auth_api():
     return rx.center(
         rx.vstack(
             rx.heading(
-                "Processing login, redirecting...",
+                "Redirecting from SSO...",
                 size='md',
             ),
             spacer(height='8px'),
-            rx.circular_progress(
-                is_indeterminate=True,
-            ),
+            rx.spinner()
         ),
         height='20em',
     )

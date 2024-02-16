@@ -1,5 +1,6 @@
 
 from ..states.cookie import CookieState
+from ..states.navbar import NavbarState
 from loguru import logger
 from typing import Callable, Iterable
 
@@ -17,9 +18,22 @@ jwt_key = os.getenv("SUPABASE_JWT_KEY")
 
 class AuthState(CookieState):
     """
-    User data returned via JWT from Supabase API call. API endpoints for
-    Supabase auth - https://github.com/supabase/gotrue
+    Functions for login, single sign on, logout, and account
+    management.
     """
+
+    @rx.var
+    def auth_params(self):
+        """
+        Pulls params from /api/auth/v1/[auth_params]
+        """
+        return self.router.page.params.get('auth_params')
+
+    #################################################################
+    #
+    # LOGIN/OUT WITH EMAIL
+    #
+    #################################################################
 
     def email_sign_in(self, form_data: dict) -> Iterable[Callable]:
         """
@@ -98,13 +112,20 @@ class AuthState(CookieState):
                 yield NavbarState.set_show_sign_in(False)
                 yield NavbarState.set_error_create_account_message("")
                 yield NavbarState.set_alert_message(
-                    "Sign up successful! Email sent with verification link."
+                    """Email sent with verification link. Allow a few
+                    minutes if email doesn't appear right away."""
                 )
             else:
                 response = response.json()
                 yield NavbarState.set_error_create_account_message(
                     response.get('msg')
                 )
+
+    #################################################################
+    #
+    # SINGLE SIGN ON
+    #
+    #################################################################
 
     def sso_sign_in(self, provider: str) -> Iterable[Callable]:
         """
@@ -119,6 +140,33 @@ class AuthState(CookieState):
             f"{api_url}/auth/v1/authorize?provider={provider}",
             )
         
+    def parse_auth(self) -> Iterable[Callable]:
+        """
+        Pull params from url and redirects to dashboard.
+        """
+        if self.auth_params:
+            try:
+                fragment = self.auth_params.split("#")[1]
+                access_token = fragment.split("&")[0].split("=")[1]
+                refresh_token = fragment.split("&")[4].split("=")[1]
+            except Exception as e:
+                logger.critical(f"Unable to parse url - {e}")
+                yield rx.redirect("/")
+                yield NavbarState.set_alert_message("Invalid login information during SSO attempt.")
+            yield CookieState.set_access_token(access_token)
+            yield CookieState.set_refresh_token(refresh_token)
+            yield rx.redirect("/dashboard")
+        else:
+            logger.warning("No auth parameters found.")
+            yield rx.redirect("/")
+            yield NavbarState.set_alert_message("Empty SSO information.")
+
+    #################################################################
+    #
+    # LOGOUT/REMOVE ACCOUNT
+    #
+    #################################################################   
+
     def logout(self) -> Iterable[Callable]:
         """
         Clears cookies and redirects back to root.
@@ -131,38 +179,3 @@ class AuthState(CookieState):
         yield rx.remove_cookie("access_token")
         yield rx.remove_cookie("refresh_token")
         yield NavbarState.set_alert_message("Successfully logged out.")
-
-    # def initial_setup(self) -> Iterable[Event]:
-    #     """
-    #     Creating user via email or SSO is different, so func runs to
-    #     ensure that user_metadata contains the proper fields for the
-    #     site flow. Namely helps us to know if user has submitted a 
-    #     report, what membership they have, and their trust level.
-
-    #     Membership:
-    #     "NR" = Hasn't submitted a report yet.
-    #     "F" = Free tier.
-    #     "P" = Paid tier.
-        
-    #     """
-    #     url = f'{api_url}/auth/v1/user'
-    #     headers = {
-    #         "apikey": api_key,
-    #         "Authorization" : f"Bearer {AuthState.access_token}",
-    #         "Content-Type": "application/json",
-    #         }
-    #     data = {
-    #         "data": {
-    #             "membership": "NR"
-    #             }
-    #     }
-    #     async with httpx.AsyncClient() as client:
-    #         response = client.put(
-    #             url=url,
-    #             headers=headers,
-    #             data=json.dumps(data),
-    #         )
-
-    #         if response.is_success:
-    #             logger.debug("Added user fields. Refreshing token.")
-    #             self.get_new_access_token()

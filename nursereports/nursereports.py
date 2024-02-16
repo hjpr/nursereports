@@ -6,7 +6,7 @@ from .pages.api_deauth import deauth_api
 from .pages.dashboard import dashboard
 from .pages.index import index
 from .pages.onboard import onboard_page
-from .pages.report_summary import summary
+from .pages.report_summary import summary_page
 from .pages.report_summary_comp import comp_summary_page
 from .pages.report_comp import comp_page
 from .pages.report_summary_assign import assign_summary_page
@@ -16,6 +16,7 @@ from .pages.report_staffing import staffing_page
 from .pages.report_complete import complete
 from .pages.search import search
 
+from .states.auth import AuthState
 from .states.cookie import CookieState
 from .style.style import style_dict
 
@@ -37,6 +38,12 @@ app = rx.App(
     middleware=[LoggingMiddleware()]
 )
 
+#####################################################################
+#
+# INDEX
+#
+#####################################################################
+
 """
 INDEX PAGE - on_load runs login_flow to check states to determine
 if user is already logged in, or is coming from an api auth/deauth
@@ -48,6 +55,12 @@ app.add_page(
     on_load=CookieState.standard_flow('req_none'),
 )
 
+#####################################################################
+#
+# AUTHORIZATION - REQ NONE
+#
+#####################################################################
+
 """
 AUTH - pseudo endpoint for SSO redirects. Captures url and parses
 it out to get access and refresh tokens as well as redirecting back
@@ -55,8 +68,8 @@ to root site allowing for seamless login flow.
 """
 app.add_page(
     auth_api,
-    route="api/v1/auth",
-    on_load=CookieState.standard_flow('req_none')
+    route="api/auth/v1/[auth_params]",
+    on_load=AuthState.parse_auth
 )
 
 """
@@ -65,12 +78,18 @@ it out to remove user data per request of user.
 """
 app.add_page(
     deauth_api,
-    route="/api/v1/deauth",
+    route="/api/deauth/v1/[deauth_params]",
     on_load=CookieState.standard_flow('req_login')
 )
 
+#####################################################################
+#
+# DASHBOARDS - REQ REPORTS
+#
+#####################################################################
+
 """
-DASHBOARD - Account panel after signin where user can edit/modify
+MAIN DASHBOARD - Account panel after signin where user can edit/modify
 account info see reports, save hospitals etc.
 """
 app.add_page(
@@ -78,6 +97,12 @@ app.add_page(
     route="/dashboard",
     on_load=CookieState.standard_flow('req_report')
 )
+
+#####################################################################
+#
+# SEARCH PAGES - REQ LOGIN/REPORT DEPENDING
+#
+#####################################################################
 
 """
 SEARCH- Search by hospital which routes to proper page depending on
@@ -93,7 +118,7 @@ app.add_page(
 
 #####################################################################
 #
-# ONBOARDING
+# ONBOARDING - REQ LOGIN
 #
 #####################################################################
 
@@ -105,7 +130,7 @@ app.add_page(
 
 #####################################################################
 #
-# REPORT PAGES
+# REPORT PAGES - REQ LOGIN
 # 
 #####################################################################
 
@@ -113,7 +138,7 @@ app.add_page(
 REPORT SUMMARY - Entry page for user report by hospital.
 """
 app.add_page(
-    summary,
+    summary_page,
     route="/report/summary/[summary_id]",
     on_load=CookieState.standard_flow('req_login')
 )
