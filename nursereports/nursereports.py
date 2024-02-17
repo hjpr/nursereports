@@ -1,8 +1,6 @@
 
 from .middleware.middleware import LoggingMiddleware
 
-from .pages.api_auth import auth_api
-from .pages.api_deauth import deauth_api
 from .pages.dashboard import dashboard
 from .pages.index import index
 from .pages.onboard import onboard_page
@@ -15,6 +13,7 @@ from .pages.report_summary_staffing import staffing_summary_page
 from .pages.report_staffing import staffing_page
 from .pages.report_complete import complete
 from .pages.search import search
+from .pages.sso import sso_page
 
 from .states.auth import AuthState
 from .states.cookie import CookieState
@@ -40,6 +39,21 @@ app = rx.App(
 
 #####################################################################
 #
+# API
+#
+#####################################################################
+
+"""
+SSO Endpoint
+"""
+app.add_page(
+    sso_page,
+    route="/api/auth/[params]",
+    on_load=AuthState.parse_auth
+)
+
+#####################################################################
+#
 # INDEX
 #
 #####################################################################
@@ -53,33 +67,6 @@ app.add_page(
     index,
     route="/",
     on_load=CookieState.standard_flow('req_none'),
-)
-
-#####################################################################
-#
-# AUTHORIZATION - REQ NONE
-#
-#####################################################################
-
-"""
-AUTH - pseudo endpoint for SSO redirects. Captures url and parses
-it out to get access and refresh tokens as well as redirecting back
-to root site allowing for seamless login flow.
-"""
-app.add_page(
-    auth_api,
-    route="api/auth/v1/[auth_params]",
-    on_load=AuthState.parse_auth
-)
-
-"""
-DEAUTH - pseudo endpoint for SSO redirects. Captures url and parses
-it out to remove user data per request of user.
-"""
-app.add_page(
-    deauth_api,
-    route="/api/deauth/v1/[deauth_params]",
-    on_load=CookieState.standard_flow('req_login')
 )
 
 #####################################################################

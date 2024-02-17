@@ -25,9 +25,9 @@ class AuthState(CookieState):
     @rx.var
     def auth_params(self):
         """
-        Pulls params from /api/auth/v1/[auth_params]
+        Pulls params from /api/auth/[params]
         """
-        return self.router.page.params.get('auth_params')
+        return self.router.page.params.get('params')
 
     #################################################################
     #
@@ -130,7 +130,7 @@ class AuthState(CookieState):
     def sso_sign_in(self, provider: str) -> Iterable[Callable]:
         """
         Takes positional str which determines the SSO provider to send
-        request to. Redirection chain ends up at the '/v1/auth/'
+        request to. Redirection chain ends up at the '/api/auth/v1'
         pseudoendpoint.
         """
         from ..states.navbar import NavbarState
@@ -172,8 +172,6 @@ class AuthState(CookieState):
         Clears cookies and redirects back to root.
         """
         from ..states.navbar import NavbarState
-        from ..states.report import ReportState
-        from ..states.search import SearchState
 
         yield rx.redirect("/")
         yield rx.remove_cookie("access_token")
