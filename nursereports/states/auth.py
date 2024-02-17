@@ -137,8 +137,9 @@ class AuthState(CookieState):
         
         yield NavbarState.set_show_sign_in(False)
         yield rx.redirect(
-            f"{api_url}/auth/v1/authorize?provider={provider}",
-            )
+            f'{api_url}/auth/v1/authorize?provider={provider}',
+            external=True
+        )
         
     def parse_auth(self) -> Iterable[Callable]:
         """
