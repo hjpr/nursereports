@@ -22,16 +22,16 @@ class SearchState(CookieState):
     """
     selected_state: str
     selected_city: str
-    current_search_range: int = 10
-    range_options: list[int] = [10, 20, 50]
+    current_search_range: int = "10"
+    range_options: list[str] = ["10", "20", "50"]
 
     @rx.var
     def search_range(self) -> str:
-        if self.current_search_range == 10:
+        if self.current_search_range == "10":
             return "0-9"
-        if self.current_search_range == 20:
+        if self.current_search_range == "20":
             return "0-20"
-        if self.current_search_range == 50:
+        if self.current_search_range == "50":
             return "0-50"
 
     @rx.var
@@ -53,7 +53,7 @@ class SearchState(CookieState):
             return ""
         
     @rx.var
-    def state_options(self) -> list:
+    def state_options(self) -> list[str]:
         return [state for state in state_abbr_dict.keys()]
 
     def do_selected_state(self, selection: str) -> Iterable[Callable]:
@@ -64,7 +64,7 @@ class SearchState(CookieState):
         yield SearchState.set_selected_city(selection)
 
     @rx.var
-    def city_options(self) -> list:
+    def city_options(self) -> list[str]:
         if self.selected_state:
             state_to_abbr = state_abbr_dict[self.selected_state]
             return sorted(cities_by_state.get(state_to_abbr))

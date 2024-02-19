@@ -17,24 +17,13 @@ from .pages.sso import sso_page
 
 from .states.auth import AuthState
 from .states.cookie import CookieState
-from .style.style import style_dict
 
 import reflex as rx
 
-"""
-STYLE SHEET - Alter sitewide styles on the stylesheet contained
-at '/assets'.
-"""
-style = style_dict
-stylesheets = [
-    "/stylesheet.css"
-]
-
 # INITIALIZE THE APP
 app = rx.App(
-    # style=style,
-    # stylesheets=stylesheets,
-    middleware=[LoggingMiddleware()]
+    middleware=[LoggingMiddleware()],
+    theme=rx.theme(accent_color='teal')
 )
 
 #####################################################################

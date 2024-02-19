@@ -25,8 +25,7 @@ def complete() -> rx.Component:
                     ),
                     rx.button(
                         "Let's get started!",
-                        on_click=rx.redirect('/dashboard'),
-                        is_loading=~rx.State.is_hydrated
+                        on_click=rx.redirect('/dashboard')
                     )
                 )
             ),

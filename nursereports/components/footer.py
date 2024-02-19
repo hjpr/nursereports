@@ -24,7 +24,6 @@ def footer() -> rx.Component:
                     ),
                     rx.heading(
                         "Nurse Reports",
-                        size='lg',
                         align_self='flex-end',
                     ),
                     flex_direction='row',
@@ -57,8 +56,18 @@ def footer() -> rx.Component:
                 rx.flex(
                     rx.text("REPORTS", font_size='0.9em', font_weight='700'),
                     spacer(height='12px'),
-                    rx.link("By Hospital", font_size='0.9em'),
-                    rx.link("By State", font_size='0.9em'),
+                    rx.link(
+                        "By Hospital",
+                        color='white',
+                        text_decoration_color='white',
+                        font_size='0.9em'
+                    ),
+                    rx.link(
+                        "By State",
+                        color='white',
+                        text_decoration_color='white',
+                        font_size='0.9em'
+                    ),
                     text_align='left',
                     flex_direction='column',
                 ),
@@ -66,9 +75,24 @@ def footer() -> rx.Component:
                 rx.flex(
                     rx.text("SUPPORT US",font_size='0.9em', font_weight='700'),
                     spacer(height='12px'),
-                    rx.link("Membership", font_size='0.9em'),
-                    rx.link("Donate", font_size='0.9em'),
-                    rx.link("Store", font_size='0.9em'),
+                    rx.link(
+                        "Membership",
+                        color='white',
+                        text_decoration_color='white',
+                        font_size='0.9em'
+                    ),
+                    rx.link(
+                        "Donate",
+                        color='white',
+                        text_decoration_color='white',
+                        font_size='0.9em'
+                    ),
+                    rx.link(
+                        "Store",
+                        color='white',
+                        text_decoration_color='white',
+                        font_size='0.9em'
+                    ),
                     text_align='left',
                     flex_direction='column',
                 ),
@@ -76,10 +100,30 @@ def footer() -> rx.Component:
                 rx.flex(
                     rx.text("INFO", font_size='0.9em', font_weight='700'),
                     spacer(height='12px'),
-                    rx.link("About Us", font_size='0.9em'),
-                    rx.link("Contact", font_size='0.9em'),
-                    rx.link("Privacy Policy", font_size='0.9em'),
-                    rx.link("AI Policy", font_size='0.9em'),
+                    rx.link(
+                        "About Us",
+                        color='white',
+                        text_decoration_color='white',
+                        font_size='0.9em'
+                    ),
+                    rx.link(
+                        "Contact",
+                        color='white',
+                        text_decoration_color='white',
+                        font_size='0.9em'
+                    ),
+                    rx.link(
+                        "Privacy Policy",
+                        color='white',
+                        text_decoration_color='white',
+                        font_size='0.9em'
+                    ),
+                    rx.link(
+                        "AI Policy",
+                        color='white',
+                        text_decoration_color='white',
+                        font_size='0.9em'
+                    ),
                     text_align='left',
                     flex_direction='column',
                 ),

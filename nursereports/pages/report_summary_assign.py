@@ -25,8 +25,6 @@ def assign_summary_page() -> rx.Component:
 
                 buttons(),
 
-                spacing='1em'
-
             ),
 
             # STYLING FOR CONTENT CONTAINER
@@ -73,21 +71,13 @@ def assignment_summary() -> rx.Component:
 
 def buttons() -> rx.Component:
     return rx.center(
-        rx.button_group(
-            rx.button("Back",
-                    width='100%',
-                    on_click=ReportState.report_nav('compensation'),
-                    is_loading=~rx.State.is_hydrated,
-                    color_scheme='teal'
-            ),
-            rx.button("Next",
-                    width='100%',
-                    on_click=ReportState.report_nav('assignment'),
-                    is_loading=~rx.State.is_hydrated,
-                    color_scheme='teal'
-            ),
-            width='50%',
+        rx.button("Back",
+                width='100%',
+                on_click=ReportState.report_nav('compensation'),
         ),
-        width='100%'
+        rx.button("Next",
+                width='100%',
+                on_click=ReportState.report_nav('assignment'),
+        ),
+        width='50%',
     )
-

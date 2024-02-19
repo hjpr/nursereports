@@ -21,7 +21,6 @@ def search() -> rx.Component:
             rx.vstack(
                 rx.heading(
                     "Find your hospital",
-                    size='md',
                     ),
                 spacer(height='20px'),
                 rx.hstack(
@@ -29,39 +28,31 @@ def search() -> rx.Component:
                         SearchState.state_options,
                         value=SearchState.selected_state,
                         placeholder="Select state",
-                        id="selected_state",
                         on_change=SearchState.do_selected_state
                     ),
                     rx.select(
                        SearchState.city_options,
                         placeholder="Select city",
                         value=SearchState.selected_city,
-                        id="selected_city",
                         on_change=SearchState.do_selected_city
                     ),
                     width=['100%', '100%', '600px', '600px', '600px'],
                 ),
-                rx.accordion(
-                    rx.accordion_item(
-                        rx.accordion_button(
-                            rx.text("Filters"),
-                            rx.accordion_icon()
-                        ),
-                        rx.accordion_panel(
-                            rx.center(
-                                rx.text(
-                                    "Max results per page",
-                                    width='100%'
-                                    ),
-                                rx.spacer(),
-                                rx.select(
-                                    SearchState.range_options,
-                                    on_change=SearchState.set_current_search_range,
-                                )
+                rx.accordion.root(
+                    rx.accordion.item(
+                        header="Filters",
+                        content=rx.center(
+                            rx.text(
+                                "Max results per page",
+                                width='100%'
+                                ),
+                            rx.spacer(),
+                            rx.select(
+                                SearchState.range_options,
+                                on_change=SearchState.set_current_search_range,
                             )
                         )
                     ),
-                    allow_toggle=True,
                     width='100%'
                 ),
 
@@ -109,7 +100,6 @@ def search_results() -> rx.Component:
                         render_results
                     ),
                     width='100%',
-                    spacing='1em'
                 ),
                 rx.center(
                     rx.text("Your token has expired, please refresh this page to login again."),
@@ -118,7 +108,7 @@ def search_results() -> rx.Component:
             )
         ),
         # STATE HYDRATED FALSE
-        rx.spinner()
+        rx.chakra.spinner()
     )
 
 def render_results(result: dict) -> rx.Component:
@@ -127,8 +117,7 @@ def render_results(result: dict) -> rx.Component:
             rx.hstack(
                 rx.vstack(
                     rx.heading(
-                        f"{result['hosp_name']}",
-                        size='md'
+                        f"{result['hosp_name']}"
                         ),
                     rx.text(f"{result['hosp_addr']}, "\
                             f"{result['hosp_state']} "\
@@ -140,16 +129,13 @@ def render_results(result: dict) -> rx.Component:
                 rx.flex(
                     rx.button(
                         "Select",
-                        color_scheme='teal',
                         on_click=SearchState.nav_to_report(result['hosp_id']),
-                        is_loading=~rx.State.is_hydrated
                     ),
                     width='30%',
-                    justify='flex-end',
+                    justify='end',
                 ),
                 # STYLING FOR HSTACK CONTAINER INSIDE FLEX
                 width='100%',
-                spacing='3em',
             ),
             # STYLING FOR FLEX CONTAINER INSIDE CARD
             flex_direction='row'

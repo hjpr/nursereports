@@ -47,12 +47,9 @@ def onboard_page() -> rx.Component:
                     ),
                     rx.button(
                         "I'm ready to submit a report",
-                        color_scheme='teal',
                         on_click=rx.redirect('/search/report'),
-                        is_loading=~rx.State.is_hydrated,
                     ),
                     width='600px',
-                    spacing='1em'
                 )
             ), 
 

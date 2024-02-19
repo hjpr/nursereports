@@ -28,26 +28,23 @@ def summary_page() -> rx.Component:
                             rx.vstack(
                                 rx.heading(
                                     "You are submitting a report for...",
-                                    size='md',
                                     text_align='center'
                                 ),
                                 rx.heading(
                                     f"{ReportState.hosp_info['hosp_name']}",
-                                    size='md',
                                     text_align='center'
                                 ),
                                 rx.heading(
                                     f"{ReportState.hosp_info['hosp_addr']}, "\
                                     f"{ReportState.hosp_info['hosp_state']} "\
                                     f"{ReportState.hosp_info['hosp_zip']}",
-                                    size='md',
                                     text_align='center'
                                 )
                             )
                             # HOSP INFO FALSE
                         ),
                         # STATE HYDRATED FALSE
-                        rx.spinner()
+                        rx.chakra.spinner()
                     ),
                     spacer(height='40px'),
                     rx.vstack(
@@ -111,18 +108,14 @@ def summary_page() -> rx.Component:
                             width='100%'
                         ),
 
-
                         # STYLING FOR VSTACK CONTAINING CARDS
-                        spacing='1.5em',
                         width='100%'
 
                     ),
                     spacer(height='40px'),
                     rx.button(
                         "Got it. Let's go!",
-                        color_scheme='teal',
                         on_click=ReportState.clear_and_nav_to_compensation,
-                        is_loading=~rx.State.is_hydrated,
                     ),
                     width='600px'
                 )
