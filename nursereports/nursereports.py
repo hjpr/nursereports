@@ -2,7 +2,7 @@
 from .middleware.middleware import LoggingMiddleware
 
 from .pages.dashboard import dashboard
-from .pages.index import index
+from .pages.index import index_page
 from .pages.onboard import onboard_page
 from .pages.report_summary import summary_page
 from .pages.report_summary_comp import comp_summary_page
@@ -53,7 +53,7 @@ if user is already logged in, or is coming from an api auth/deauth
 request.
 """
 app.add_page(
-    index,
+    index_page,
     route="/",
     on_load=CookieState.standard_flow('req_none'),
 )

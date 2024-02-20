@@ -164,7 +164,7 @@ def footer() -> rx.Component:
         ),
         spacer(height='40px'),
         # STYLING FOR FOOTER CONTAINER
-        bg='teal',
+        bg='#12A594',
         color='white',
         box_shadow='inset 0px 4px 5px -5px rgba(0, 0, 0, 0.5)',
         min_height='260px',

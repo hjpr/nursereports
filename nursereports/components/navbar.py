@@ -63,14 +63,12 @@ def navbar() -> rx.Component:
             width='100%',
         ),
 
-        c2a(),
-
         # STYLING FOR NAVBAR CONTAINER
         backdropFilter='blur(8px)',
         bg='rgba(255, 255, 255, 0.9)',
-        border_bottom='1px solid lightgrey',
-        position='fixed',
+        position='sticky',
         top='0px',
+        box_shadow='0px 4px 5px -5px rgba(0, 0, 0, 0.5)',
         flex_direction='down',
         width='100%',
         z_index='5',
@@ -436,38 +434,6 @@ def alert_modal() -> rx.Component:
 #             on_overlay_click=NavbarState.toggle_login()
 #         )
 #     )
-
-def c2a() -> rx.Component:
-    """
-    Renders call to action bar if NavbarState.show_c2a is True.
-    """
-    return rx.cond(
-        NavbarState.show_c2a,
-        rx.hstack(
-            rx.center(
-                rx.button(
-                    "In Beta. Click here to submit site issue.",
-                    cursor='pointer',
-                    color='white',
-                    on_click=NavbarState.toggle_feedback
-                ),
-                width='100%'
-            ),
-            rx.button(
-                rx.icon(
-                    tag='x',
-                    color='white',
-                ),
-                on_click=NavbarState.toggle_c2a
-            ),
-            # STYLING FOR C2A CONTAINER
-            bg='#12A594', # teal
-            box_shadow='inset 0px 4px 5px -5px rgba(0, 0, 0, 0.5)',
-            height='40px',
-            padding_x='12px',
-            padding_y='4px'
-        )
-    )
 
 def c2a_spacer() -> rx.Component:
     """
