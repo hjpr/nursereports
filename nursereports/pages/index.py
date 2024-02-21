@@ -72,7 +72,7 @@ def main_panel() -> rx.Component:
             max_width='768px',
             box_shadow='0px 4px 5px -5px rgba(0, 0, 0, 0.5)'
         ),
-        padding='40px',
+        padding='48px',
         background='url(/vector/pizzabg.svg)',
         background_size='cover',
         width='100%'
@@ -82,25 +82,23 @@ def first_panel() -> rx.Component:
     return rx.center(
         rx.vstack(
             rx.heading(
-                """The first comprehensive hospital report system for nurses,
+                """A comprehensive hospital report system for nurses,
                 by nurses.""",
                 size='8'
             ),
             rx.text(
-                """We are a bedside-developed, community-built
-                repository of hospital reports created to solely
-                benefit the national nursing community. Our aim is
-                twofold. First - create transparent communication
-                to build better, more sustainable careers. Second -
-                create a strong system of accountability which
-                ensures that the nursing voice is heard whenever
-                hospitals enact policies.
+                """We're proud to debut the first bedside-developed,
+                community-focused database of hospital reports focused
+                solely on nurse interests. Our goals include
+                increasing transparency and accountability, and providing
+                new tools for nurses to develop their careers in ways
+                not previously possible.
                 """
             )
         ),
         width='100%',
         max_width='768px',
-        padding_x='20px'
+        padding_x='24px'
     )
 
 def second_panel() -> rx.Component:
@@ -112,11 +110,10 @@ def second_panel() -> rx.Component:
                 ),
                 rx.text(
                     """
-                    Our reporting process was designed to capture a
-                    wide range of information while still taking
-                    as little of your time as possible. Reports 
-                    include details on pay and benefits, staffing
-                    ratios, and even unit culture.
+                    Understanding the state of nursing both locally and
+                    nationwide requires coordinated communication. Learn
+                    vital details from a structured report about pay,
+                    benefits, ratios, culture and much more.
                     """
                 ),
                 width='100%'  
@@ -130,7 +127,7 @@ def second_panel() -> rx.Component:
         ),
         width='100%',
         max_width='768px',
-        padding_x='20px'
+        padding_x='24px'
     )
 
 def third_panel() -> rx.Component:
@@ -138,14 +135,13 @@ def third_panel() -> rx.Component:
         rx.hstack(
             rx.vstack(
                 rx.heading(
-                    "Always anonymous, free forever."
+                    "Speak freely and anonymously."
                 ),
                 rx.text(
                     """
-                    Building a system of accountability that will
-                    benefit us all requires trust. We hold that
-                    trust sacred and don't provide your personal
-                    information to any third party for any reason.
+                    Report information without fear of blowback.
+                    Your personal information won't be shared
+                    with hospitals or any other third party.
                     """
                 ),
                 width='100%'  
@@ -159,7 +155,7 @@ def third_panel() -> rx.Component:
         ),
         width='100%',
         max_width='768px',
-        padding_x='20px'
+        padding_x='24px'
     )
 
 def fourth_panel() -> rx.Component:
