@@ -8,16 +8,12 @@ class NavbarState(rx.State):
     State for the navbar component. Controls the login screens, the
     error screens, and feedback messages for issues during login.
     """
-    show_c2a: bool = True
     show_feedback: bool = False
     show_sign_in: bool = False
     alert_message: str
     error_sign_in_message: str
     error_create_account_message: str
     error_feedback_message: str
-
-    def toggle_c2a(self):
-        self.show_c2a = not self.show_c2a
 
     def toggle_feedback(self):
         self.show_feedback = not self.show_feedback

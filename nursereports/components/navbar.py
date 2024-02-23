@@ -15,7 +15,7 @@ def navbar() -> rx.Component:
         alert_modal(),
 
         # MODAL FOR C2A FEEDBACK
-        # feedback_modal(),
+        feedback_modal(),
 
         # MODAL FOR SIGN IN
         # login_modal(),
@@ -139,78 +139,36 @@ def alert_modal() -> rx.Component:
         )
     )
 
-# def feedback_modal() -> rx.Component:
-#     """
-#     Renders feedback modal if NavbarState.show_feedback is True.
-#     """
-#     return rx.box(
-#         rx.modal(
-#             rx.modal_overlay(
-#                 rx.modal_content(
-#                     # WRAP HEADER - BODY - FOOTER AS FORM
-#                     rx.form(
-#                         # MODAL HEADER
-#                         rx.modal_header(
-#                             rx.hstack(
-#                                 rx.text("Submit issues/feedback..."),
-#                                 rx.spacer(),
-#                                 rx.button(                        
-#                                     rx.icon(
-#                                         tag='close',
-#                                     ),
-#                                     size='sm',
-#                                     variant='ghost',
-#                                     _hover='none',
-#                                     on_click=NavbarState.toggle_feedback
-#                                 ),
-#                                 width='100%'
-#                             )
-#                         ),
-#                         # MODAL BODY
-#                         rx.modal_body(
-#                             rx.text_area(
-#                                 placeholder='Enter here...',
-#                                 height='100%',
-#                                 is_disabled=~AuthState.user_is_authenticated,
-#                                 is_required=True,
-#                             ),
-#                             height='10em',
-#                         ),
-#                         # MODAL FOOTER
-#                         rx.modal_footer(
-#                             rx.cond(
-#                                 ~AuthState.user_is_authenticated,
-#                                 rx.alert(
-#                                     rx.alert_icon(),
-#                                     rx.alert_title(
-#                                         "To help combat spam, please login."
-#                                     ),
-#                                 status="error",
-#                                 border_radius='6px'
-#                                 ),
-#                                 rx.button(
-#                                     "Submit",
-#                                     width='100%',
-#                                     type_='submit',
-#                                     variant='solid',
-#                                     color_scheme='teal',
-#                                     is_loading=~rx.State.is_hydrated
-#                                 )
-#                             ),
-#                             flex_direction='column'
-#                         )
-#                     ),
-#                     # STYLING FOR MODAL CONTENT
-#                     top='-5px',
-#                 ),
-#                 # STYLING FOR MODAL OVERLAY
-#                 backdrop_filter='blur(2px)',
-#             ),
-#             # STYLING FOR MODAL COMPONENT
-#             is_open=NavbarState.show_feedback,
-#             on_overlay_click=NavbarState.toggle_feedback
-#         )
-#     )
+def feedback_modal() -> rx.Component:
+    return rx.dialog.root(
+        rx.dialog.content(
+            rx.dialog.title("Provide feedback."),
+            rx.dialog.description(
+                rx.text_area(
+                    placeholder="What can we improve?"
+                )
+            ),
+            spacer(height='16px'),
+            rx.flex(
+                rx.dialog.close(
+                    rx.button(
+                        "Cancel",
+                        variant='soft',
+                        on_click=NavbarState.toggle_feedback
+                    )
+                ),
+                rx.dialog.close(
+                    rx.button(
+                        "Submit",
+                        on_click=NavbarState.toggle_feedback
+                    )
+                ),
+                spacing='3',
+                justify='end'
+            )
+        ),
+        open=NavbarState.show_feedback
+    )
 
 # def login_modal() -> rx.Component:
 #     """
