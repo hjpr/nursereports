@@ -94,7 +94,7 @@ class NavbarState(BaseState):
 
     def event_state_sso_login(self, provider: str) -> Callable:
         self.show_login = False
-        return event_supabase_sso_login(provider)
+        return rx.redirect(f'/api/auth/sso/v1/{provider}')
     
     def event_state_logout(self) -> Iterable[Callable]:
         yield rx.redirect("/")

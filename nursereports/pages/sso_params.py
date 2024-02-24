@@ -3,7 +3,7 @@ from ..components.custom import spacer
 
 import reflex as rx
 
-def sso_page():
+def sso_params_page():
     return rx.center(
         rx.vstack(
             rx.heading(

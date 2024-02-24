@@ -377,9 +377,9 @@ def login_tab_account() -> rx.Component:
                     ),
                     rx.popover.content(
                         rx.text(
-                            """Students get access to our reports
-                            for 6 months and then must submit a report
-                            once they get hired."""
+                            """Students can access our resources
+                            for 1 year and then must submit a report
+                            after hire to maintain access."""
                         )
                     )
                 ),

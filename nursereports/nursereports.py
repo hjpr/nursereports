@@ -14,6 +14,7 @@ from .pages.report_staffing import staffing_page
 from .pages.report_complete import complete
 from .pages.search import search
 from .pages.sso import sso_page
+from .pages.sso_params import sso_params_page
 
 from .states.auth import AuthState
 from .states.base import BaseState
@@ -32,14 +33,18 @@ app = rx.App(
 #
 #####################################################################
 
-"""
-SSO Endpoint
-"""
 app.add_page(
     sso_page,
-    route="/api/auth/[params]",
-    on_load=AuthState.parse_auth
+    route="/api/auth/sso/v1/[provider]",
+    on_load=AuthState.event_state_sso_redirect
 )
+
+app.add_page(
+    sso_params_page,
+    route='/api/auth/[params]',
+    on_load=AuthState.event_state_sso_parse_params
+)
+
 
 #####################################################################
 #
