@@ -1,6 +1,6 @@
 
 from ..components.lists import cities_by_state, state_abbr_dict
-from ..states.cookie import CookieState
+from ..states.base import BaseState
 
 from loguru import logger
 from typing import Callable, Iterable
@@ -16,10 +16,7 @@ load_dotenv()
 api_url = os.getenv("SUPABASE_URL")
 api_key = os.getenv("SUPABASE_ANON_KEY")
 
-class SearchState(CookieState):
-    """
-    State for search functionality.
-    """
+class SearchState(BaseState):
     selected_state: str
     selected_city: str
     current_search_range: int = "10"
@@ -57,11 +54,11 @@ class SearchState(CookieState):
         return [state for state in state_abbr_dict.keys()]
 
     def do_selected_state(self, selection: str) -> Iterable[Callable]:
-        yield SearchState.set_selected_state(selection)
-        yield SearchState.set_selected_city("")
+        self.selected_state = selection
+        self.selected_city = ""
 
     def do_selected_city(self, selection: str) -> Iterable[Callable]:
-        yield SearchState.set_selected_city(selection)
+        self.selected_city = selection
 
     @rx.var
     def city_options(self) -> list[str]:
@@ -110,17 +107,11 @@ class SearchState(CookieState):
                 return list_of_hospitals
             else:
                 if response.status_code == 401:
-                    return [response.reason_phrase] # "Unauthorized" if token expired
+                    return [response.reason_phrase]
         else:
             return []
         
     def nav_to_report(self, summary_id) -> Iterable[Callable]:
-        """
-        Prior to navigating, since all values are stored in state if
-        report is completed during session, we need to clear values
-        on navigating to a report in case user is submitting multiple
-        reports that session.
-        """
-        yield SearchState.set_selected_state("")
-        yield SearchState.set_selected_city("")
+        self.selected_city = ""
+        self.selected_state = ""
         yield rx.redirect(f"/report/summary/{summary_id}")

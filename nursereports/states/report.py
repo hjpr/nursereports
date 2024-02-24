@@ -1,6 +1,6 @@
 
+from ..states.base import BaseState
 from loguru import logger
-from ..states.cookie import CookieState
 from typing import Callable, Iterable
 
 import httpx
@@ -19,7 +19,7 @@ api_key = os.getenv("SUPABASE_ANON_KEY")
 anyscale_url = os.getenv("ANYSCALE_URL")
 anyscale_api_key = os.getenv("ANYSCALE_API_KEY")
 
-class ReportState(CookieState):
+class ReportState(BaseState):
     """
     State for the report, variables grouped into the three major
     groups of the report; compensation, staffing, and assignment.

@@ -1,6 +1,7 @@
 
+from ..components.c2a import c2a    
 from ..components.footer import footer
-from ..components.navbar import navbar, c2a_spacer
+from ..components.navbar import navbar
 from ..components.custom import spacer
 
 import reflex as rx
@@ -8,9 +9,9 @@ import reflex as rx
 def dashboard() -> rx.Component:
     return rx.flex(
 
-        navbar(),
+        c2a(),
 
-        c2a_spacer(),
+        navbar(),
         
         # CONTENT CONTAINER
         rx.flex(

@@ -1,7 +1,9 @@
+
+from ..components.c2a import c2a
 from ..components.custom import spacer
 from ..components.footer import footer
 from ..components.lists import unit_specialties
-from ..components.navbar import navbar, c2a_spacer
+from ..components.navbar import navbar
 from ..components.report_progress import progress
 from ..states.report import ReportState
 
@@ -10,9 +12,9 @@ import reflex as rx
 def assign_page() -> rx.Component:
     return rx.flex(
 
-        navbar(),
+        c2a(),
 
-        c2a_spacer(),
+        navbar(),
 
         spacer(height='40px'),
 

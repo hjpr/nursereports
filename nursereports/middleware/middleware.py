@@ -18,7 +18,7 @@ class LoggingMiddleware(rx.Middleware):
         including cookies accessed via event.router_data.get('access_token')
     """
     def preprocess(self, app, state, event):
-        logger.debug(event.name)
+        logger.debug(f"{state.router.session.session_id} - {event.name}")
         # if event.name == "state.on_load_internal":
         #     rich.inspect(event)
         # if event.name == "state.set_is_hydrated":

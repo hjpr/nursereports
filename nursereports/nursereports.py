@@ -16,7 +16,7 @@ from .pages.search import search
 from .pages.sso import sso_page
 
 from .states.auth import AuthState
-from .states.cookie import CookieState
+from .states.base import BaseState
 
 import reflex as rx
 
@@ -55,7 +55,7 @@ request.
 app.add_page(
     index_page,
     route="/",
-    on_load=CookieState.standard_flow('req_none'),
+    on_load=BaseState.standard_flow('req_none'),
 )
 
 #####################################################################
@@ -71,7 +71,7 @@ account info see reports, save hospitals etc.
 app.add_page(
     dashboard,
     route="/dashboard",
-    on_load=CookieState.standard_flow('req_report')
+    on_load=BaseState.standard_flow('req_report')
 )
 
 #####################################################################
@@ -89,7 +89,7 @@ hospital page.
 app.add_page(
     search,
     route="/search/[context]",
-    on_load=CookieState.standard_flow('req_login')
+    on_load=BaseState.standard_flow('req_login')
 )
 
 #####################################################################
@@ -101,7 +101,7 @@ app.add_page(
 app.add_page(
     onboard_page,
     route='/onboard',
-    on_load=CookieState.standard_flow('req_login')
+    on_load=BaseState.standard_flow('req_login')
 )
 
 #####################################################################
@@ -116,7 +116,7 @@ REPORT SUMMARY - Entry page for user report by hospital.
 app.add_page(
     summary_page,
     route="/report/summary/[summary_id]",
-    on_load=CookieState.standard_flow('req_login')
+    on_load=BaseState.standard_flow('req_login')
 )
 """
 REPORT COMPENSATION SUMMARY - Description of compensation.
@@ -124,7 +124,7 @@ REPORT COMPENSATION SUMMARY - Description of compensation.
 app.add_page(
     comp_summary_page,
     route="/report/submit/[report_id]/compensation/summary",
-    on_load=CookieState.standard_flow('req_login')
+    on_load=BaseState.standard_flow('req_login')
 )
 """
 REPORT COMPENSATION - Pay/benefits report by hospital
@@ -132,7 +132,7 @@ REPORT COMPENSATION - Pay/benefits report by hospital
 app.add_page(
     comp_page,
     route="/report/submit/[report_id]/compensation",
-    on_load=CookieState.standard_flow('req_login')
+    on_load=BaseState.standard_flow('req_login')
 )
 """
 REPORT ASSIGNMENT SUMMARY - Description of assignment.
@@ -140,7 +140,7 @@ REPORT ASSIGNMENT SUMMARY - Description of assignment.
 app.add_page(
     assign_summary_page,
     route="/report/submit/[report_id]/assignment/summary",
-    on_load=CookieState.standard_flow('req_login')
+    on_load=BaseState.standard_flow('req_login')
 )
 """
 REPORT ASSIGNMENT - Assignment report by hospital.
@@ -148,7 +148,7 @@ REPORT ASSIGNMENT - Assignment report by hospital.
 app.add_page(
     assign_page,
     route="/report/submit/[report_id]/assignment",
-    on_load=CookieState.standard_flow('req_login')
+    on_load=BaseState.standard_flow('req_login')
 )
 """
 REPORT STAFFING SUMMARY - Description of staffing.
@@ -156,7 +156,7 @@ REPORT STAFFING SUMMARY - Description of staffing.
 app.add_page(
     staffing_summary_page,
     route="/report/submit/[report_id]/staffing/summary",
-    on_load=CookieState.standard_flow('req_login')
+    on_load=BaseState.standard_flow('req_login')
 )
 """
 REPORT STAFFING- Staffing report by hospital.
@@ -164,7 +164,7 @@ REPORT STAFFING- Staffing report by hospital.
 app.add_page(
     staffing_page,
     route="/report/submit/[report_id]/staffing",
-    on_load=CookieState.standard_flow('req_login')
+    on_load=BaseState.standard_flow('req_login')
 )
 """
 REPORT COMPLETE - Unit report by hospital.
@@ -172,5 +172,5 @@ REPORT COMPLETE - Unit report by hospital.
 app.add_page(
     complete,
     route="/report/submit/[report_id]/complete",
-    on_load=CookieState.standard_flow('req_login')
+    on_load=BaseState.standard_flow('req_login')
 )

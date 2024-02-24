@@ -1,5 +1,4 @@
 
-from ..states.navbar import NavbarState
 from ..states.report import ReportState
 
 import reflex as rx
@@ -50,6 +49,5 @@ def progress() -> rx.Component:
         box_shadow='0px 0px 10px 10px white',
         padding_y='20px',
         position='sticky',
-        top=rx.cond(NavbarState.show_c2a, '100px', '60px'),
         width='100%'
     )

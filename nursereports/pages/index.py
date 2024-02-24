@@ -3,6 +3,7 @@ from ..components.c2a import c2a
 from ..components.footer import footer
 from ..components.navbar import navbar
 from ..components.custom import spacer
+from ..states.navbar import NavbarState
 
 import reflex as rx
 
@@ -64,7 +65,8 @@ def main_panel() -> rx.Component:
                 rx.divider(),
                 rx.button(
                     "Sign up for access.",
-                    color_scheme='crimson'
+                    color_scheme='crimson',
+                    on_click=NavbarState.event_state_c2a_main
                 ),
                 gap=["1em","1em","2em", "2em", "2em"]
             ),

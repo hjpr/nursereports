@@ -6,24 +6,11 @@ from ..states.navbar import NavbarState
 import reflex as rx
 
 def navbar() -> rx.Component:
-    """
-    Main navbar component.
-    """
     return rx.box(
-
-        # MODAL FOR ALERTS
         alert_modal(),
-
-        # MODAL FOR C2A FEEDBACK
         feedback_modal(),
-
-        # MODAL FOR SIGN IN
-        # login_modal(),
-
-        # NAVBAR CONTAINER
+        login_modal(),
         rx.center(
-
-            # SITE HEADING
             rx.image(
                  src='/vector/icon_web_header.svg',
                  height='32px',
@@ -33,7 +20,6 @@ def navbar() -> rx.Component:
                  cursor='pointer',
                  on_click=rx.redirect("/")
             ),
-
             rx.heading(
                 "Nurse Reports",
                 size='6',
@@ -49,21 +35,14 @@ def navbar() -> rx.Component:
                 margin_right= '20px',
                 margin_left='4px',
             ),
-
             cond_options(),
-
             rx.spacer(),
-
             cond_account(),
-
-            # STYLING FOR NAVBAR
             height='60px',
             padding_x='24px',
             padding_y='12px',
             width='100%',
         ),
-
-        # STYLING FOR NAVBAR CONTAINER
         backdropFilter='blur(8px)',
         bg='rgba(255, 255, 255, 0.9)',
         position='sticky',
@@ -75,38 +54,26 @@ def navbar() -> rx.Component:
     )
 
 def cond_account() -> rx.Component:
-    """
-    Conditional sign in/account button. Shows a clickable button 'Sign in'
-    that toggles the login modal using 'login_modal' when not logged in.
-    When logged in shows an avatar that opens menu on click.
-    """
     return rx.cond(
         AuthState.user_is_authenticated,
-        # ACCOUNT OPTIONS IF LOGGED IN
         rx.menu.root(
             rx.menu.trigger(
                 rx.avatar()
             ),
             rx.menu.content(
                 rx.menu.item("Account"),
-                rx.menu.item("Logout", on_click=AuthState.logout)
+                rx.menu.item("Logout", on_click=NavbarState.event_state_logout)
             )
         ),
-        # SIGN IN IF NOT LOGGED IN
         rx.button(
             "Sign In",
-            on_click=NavbarState.toggle_login,
+            on_click=NavbarState.event_ui_toggle_login,
         ),
     )
 
 def cond_options() -> rx.Component:
-    """
-    Links that populate next to header once logged in and user has
-    submitted a report.
-    """
     return rx.cond(
         AuthState.user_is_authenticated & AuthState.user_has_reported,
-        # MENU OPTIONS IF LOGGED IN
         rx.hstack(
             rx.link(
                 "Hospital Search",
@@ -122,290 +89,339 @@ def cond_options() -> rx.Component:
     )
 
 def alert_modal() -> rx.Component:
-    """
-    Renders alert modal if NavbarState.alert_message contains a str.
-    """
-    return rx.cond(
-        NavbarState.alert_message,
-        rx.alert_dialog.root(
-            rx.alert_dialog.content(
-                rx.alert_dialog.title(
-                    "Site message."
-                ),
-                rx.alert_dialog.description(NavbarState.alert_message),
-                rx.alert_dialog.action("OK", on_click=NavbarState.set_alert_message(""))
+    return rx.alert_dialog.root(
+        rx.alert_dialog.content(
+            rx.alert_dialog.title(
+                "Site message."
             ),
-            backdrop_filter='blur(2px)'
-        )
+            rx.alert_dialog.description(NavbarState.alert_message),
+            rx.alert_dialog.action("OK", on_click=NavbarState.set_alert_message(""))
+        ),
+        open=NavbarState.show_alert_message
     )
 
 def feedback_modal() -> rx.Component:
     return rx.dialog.root(
         rx.dialog.content(
             rx.dialog.title("Provide feedback."),
-            rx.dialog.description(
-                rx.text_area(
-                    placeholder="What can we improve?"
-                )
-            ),
-            spacer(height='16px'),
-            rx.flex(
-                rx.dialog.close(
-                    rx.button(
-                        "Cancel",
-                        variant='soft',
-                        on_click=NavbarState.toggle_feedback
+            rx.form(
+                rx.dialog.description(
+                    rx.text_area(
+                        name='feedback',
+                        placeholder="What can we improve?",
+                        height='100px',
+                        max_length=500,
+                        spell_check=True
                     )
                 ),
-                rx.dialog.close(
-                    rx.button(
-                        "Submit",
-                        on_click=NavbarState.toggle_feedback
+                spacer(height='16px'),
+                rx.flex(
+                    rx.dialog.close(
+                        rx.button(
+                            "Cancel",
+                            type='button',
+                            variant='soft',
+                            on_click=NavbarState.event_ui_toggle_feedback,
+                        )
+                    ),
+                    rx.dialog.close(
+                        rx.button(
+                            "Submit",
+                            type='submit',
+                        )
+                    ),
+                    spacing='3',
+                    justify='end',
+                ),
+                spacer(height='4px'),
+                rx.cond(
+                    NavbarState.error_feedback_message,
+                    rx.callout(
+                        NavbarState.error_feedback_message,
+                        icon="alert_triangle",
+                        color_scheme="red",
+                        role="alert"
                     )
                 ),
-                spacing='3',
-                justify='end'
+                on_submit=NavbarState.event_state_submit_feedback
             )
         ),
-        open=NavbarState.show_feedback
+        open=NavbarState.show_feedback,
     )
 
-# def login_modal() -> rx.Component:
-#     """
-#     Renders login modal if NavbarState.show_sign_in is True.
-#     """
-#     return rx.box(
-#         rx.modal(
-#             rx.modal_overlay(
-#                 rx.modal_content(
-#                     # MODAL HEADER
-#                     rx.modal_header(
-#                         rx.hstack(
-#                             rx.spacer(),
-#                             rx.button(                        
-#                                 rx.icon(
-#                                     tag='close'
-#                                 ),
-#                                 size='sm',
-#                                 variant='ghost',
-#                                 _hover='none',
-#                                 on_click=NavbarState.toggle_login()
-#                             ),
-#                             width='100%',
-#                         )
-#                     ),
-#                     # MODAL BODY
-#                     rx.modal_body(
-#                         rx.tabs(
-#                             rx.tab_list(
-#                                 rx.tab(
-#                                     "Sign in",
-#                                     font_weight='700',
-#                                     ),
-#                                 rx.tab(
-#                                     "Create account",
-#                                     font_weight='700',
-#                                     ),
-#                             ),
-#                             rx.tab_panels(
-#                                 rx.tab_panel(
-#                                     # TAB PANEL SIGN IN
-#                                     rx.form(
-#                                         rx.vstack(
-#                                             spacer(height='28px'),
-#                                             rx.text(
-#                                                 "Email",
-#                                                 text_align='left',
-#                                                 font_size='0.9em',
-#                                                 width='100%',
-#                                                 ),
-#                                             rx.input(
-#                                                 placeholder='Enter e-mail',
-#                                                 id='sign_in_email',
-#                                                 is_required=True,
-#                                             ),
-#                                             spacer(height='8px'),
-#                                             rx.text(
-#                                                 "Password",
-#                                                 text_align='left',
-#                                                 font_size='0.9em',
-#                                                 width='100%',
-#                                                 ),
-#                                             rx.input(
-#                                                 placeholder='Enter password',
-#                                                 id='sign_in_password',
-#                                                 type_='password',
-#                                                 is_required=True,
-#                                             ),
-#                                             spacer(height='8px'),
-#                                             rx.button(
-#                                                 'Sign in',
-#                                                 variant='solid',
-#                                                 color_scheme='teal',
-#                                                 width='100%',
-#                                                 type_='submit',
-#                                                 is_loading=~rx.State.is_hydrated
-#                                             ),
-#                                             rx.cond(
-#                                                 NavbarState.error_sign_in_message,
-#                                                 rx.alert(
-#                                                     rx.alert_icon(),
-#                                                     rx.alert_title(
-#                                                         NavbarState.error_sign_in_message
-#                                                     ),
-#                                                     status="error",
-#                                                     border_radius='6px',
-#                                                 )
-#                                             ),
-#                                             width='100%',
-#                                         ),
-#                                         on_submit=AuthState.email_sign_in,
-#                                     )
-#                                 ),
-#                                 rx.tab_panel(
-#                                     # TAB PANEL CREATE ACCOUNT
-#                                     rx.form(
-#                                         rx.vstack(
-#                                             spacer(height='28px'),
-#                                             rx.text(
-#                                                 "Email",
-#                                                 text_align='left',
-#                                                 font_size='0.9em',
-#                                                 width='100%',
-#                                                 ),                                           
-#                                             rx.input(
-#                                                 placeholder='Enter e-mail',
-#                                                 id='create_account_email',
-#                                                 is_required=True,
-#                                             ),
-#                                             spacer(height='8px'),
-#                                             rx.text(
-#                                                 "Password",
-#                                                 text_align='left',
-#                                                 font_size='0.9em',
-#                                                 width='100%',
-#                                                 ),                                            
-#                                             rx.input(
-#                                                 placeholder='Enter password',
-#                                                 id='create_account_password',
-#                                                 type_='password',
-#                                                 is_required=True,
-#                                             ),
-#                                             rx.text(
-#                                                 "Confirm password",
-#                                                 text_align='left',
-#                                                 font_size='0.9em',
-#                                                 width='100%',
-#                                                 ),                                           
-#                                             rx.input(
-#                                                 placeholder='Re-enter password',
-#                                                 id='create_account_password_confirm',
-#                                                 type_='password',
-#                                                 is_required=True,
-#                                             ), 
-#                                             spacer(height='8px'),                                     
-#                                             rx.button(
-#                                                 'Create account',
-#                                                 color_scheme='teal',
-#                                                 variant='solid',
-#                                                 width='100%',
-#                                                 type_='submit',
-#                                                 is_loading=~rx.State.is_hydrated,
-#                                             ),
-#                                             rx.cond(
-#                                                 NavbarState.error_create_account_message,
-#                                                 rx.alert(
-#                                                     rx.alert_icon(),
-#                                                     rx.alert_title(
-#                                                         NavbarState.error_create_account_message,
-#                                                     ),
-#                                                     status="error",
-#                                                     border_radius='6px'
-#                                                 )
-#                                             ),
-#                                             width='100%'
-#                                         ),
-#                                         on_submit=AuthState.email_create_account
-#                                     )
-#                                 )
-#                             ),
-#                             align='center',
-#                             is_fitted=True,
-#                             variant='enclosed'
-#                         )
-#                     ),
-#                     # MODAL FOOTER - SINGLE SIGN ON
-#                     rx.modal_footer(
-#                         rx.vstack(
-#                             rx.hstack(
-#                                 rx.divider(),
-#                                 rx.text(
-#                                     "Or continue with",
-#                                     width='100%',
-#                                     margin_x='16px',
-#                                     text_align='center',
-#                                     font_size='0.9em',
-#                                     ),
-#                                 rx.divider(),
-#                                 width='100%'
-#                             ),
-#                             spacer(height='24px'),
-#                             rx.hstack(
-#                                 rx.spacer(),
-#                                 rx.image(
-#                                     src='/sso/google_sso.png',
-#                                     height='44px',
-#                                     cursor='pointer',
-#                                     on_click=AuthState.sso_sign_in('google')
-#                                 ),
-#                                 rx.spacer(),
-#                                 rx.image(
-#                                     src='/sso/facebook_sso.png',
-#                                     height='44px',
-#                                     cursor='pointer',
-#                                     on_click=AuthState.sso_sign_in('facebook')
-#                                 ),
-#                                 rx.spacer(),
-#                                 rx.image(
-#                                     src='/sso/linkedin_sso.png',
-#                                     height='44px',
-#                                     cursor='pointer',
-#                                     on_click=AuthState.sso_sign_in('linkedin_oidc')
-#                                 ),
-#                                 rx.spacer(),
-#                                 width='100%',
-#                                 padding_x='40px'
-#                             ),
-#                             spacer(height='32px'),
-#                             width='100%'
-#                         ),
-#                     ),
-#                     # STYLING FOR MODAL CONTENT
-#                     top='-5px',
-#                 ),
-#                 # STYLING FOR MODAL OVERLAY
-#                 backdrop_filter='blur(2px)',
-#             ),
-#             # STYLING FOR MODAL COMPONENT
-#             motion_preset='scale',
-#             is_open=NavbarState.show_sign_in,
-#             on_overlay_click=NavbarState.toggle_login()
-#         )
-#     )
+def login_modal() -> rx.Component:
+    return rx.dialog.root(
+        rx.dialog.content(
+            rx.dialog.title(
+                rx.flex(
+                    rx.button(
+                        rx.icon(
+                            tag='x'
+                        ),
+                        size='1',
+                        variant='ghost',
+                        on_click=NavbarState.set_show_login(False)
+                    ),
+                    justify='end',
+                    width='100%'
+                )
+            ),
+            rx.form(
+                rx.flex(
+                    rx.tabs.root(
+                        rx.center(
+                            rx.tabs.list(
+                                rx.tabs.trigger(
+                                    "Login",
+                                    value='login',
+                                    on_click=NavbarState.set_login_tab(
+                                        "login"
+                                    )
+                                ),
+                                rx.tabs.trigger(
+                                    "Create Account",
+                                    value='create_account',
+                                    on_click=NavbarState.set_login_tab(
+                                        "create_account"
+                                    )
+                                ),
+                                size='2',
+                            ),
+                            width='100%'
+                        ),
+                        rx.tabs.content(
+                            login_tab_login(),
+                            value="login",
+                        ),
+                        rx.tabs.content(
+                            login_tab_account(),
+                            value='create_account'
+                        ),
+                        value=NavbarState.login_tab,
+                        width='100%',
+                    ),
+                    justify='center',
+                ),
+                on_submit=NavbarState.event_state_login_modal_submit
+            ),
+            max_width='400px',
+            on_escape_key_down=NavbarState.set_show_login(False),
+        ),
+        open=NavbarState.show_login,
+    )
 
-def c2a_spacer() -> rx.Component:
-    """
-    Inserts spacer if NavbarState.show_c2a is True, to allow page to
-    space correctly if c2a is open or closed.
-    """
-    return rx.cond(
-        NavbarState.show_c2a,
-        rx.box(
-            height='100px',
-            width='100%',
+def login_tab_login() -> rx.Component:
+    return rx.flex(
+        spacer(),
+        rx.heading(
+            "Login to your account",
+            size='6',
+            text_align='center',
+            width='100%'
         ),
-        rx.box(
-            height='60px',
-            width='100%',
+        rx.center(
+            rx.vstack(
+                rx.text(
+                    "Email",
+                    size='2'
+                ),
+                rx.input(
+                    placeholder='Enter email',
+                    name='login_email',
+                    size='3',
+                    required=True,
+                )
+            )
         ),
+        rx.center(
+            rx.vstack(
+                rx.text(
+                    "Password",
+                    size='2'
+                    ),
+                rx.input(
+                    placeholder='Enter password',
+                    name='login_password',
+                    type='password',
+                    size='3',
+                    required=True
+                )
+            )
+        ),
+        rx.center(
+            rx.button(
+                "Login",
+                width='100%',
+                type='submit'
+            ),
+            margin_top="12px",
+            width='100%'
+        ),
+        rx.cond(
+            NavbarState.error_sign_in_message,
+            rx.callout(
+                NavbarState.error_sign_in_message,
+                icon="alert_triangle",
+                color_scheme="red",
+                role="alert"
+            )
+        ),
+        rx.hstack(
+            rx.divider(),
+            rx.text(
+                "OR",
+                size='2',
+                padding='6px',
+                white_space='nowrap'
+                ),
+            rx.divider(),
+            align='center',
+            width='100%'
+        ),
+        rx.hstack(
+            rx.image(
+                src='/sso/google_sso.png',
+                height='44px',
+                cursor='pointer',
+                on_click=NavbarState.event_state_sso_login('google')
+            ),
+            rx.image(
+                src='/sso/facebook_sso.png',
+                height='44px',
+                cursor='pointer',
+                on_click=NavbarState.event_state_sso_login('facebook')
+            ),
+            rx.image(
+                src='/sso/linkedin_sso.png',
+                height='44px',
+                cursor='pointer',
+                on_click=NavbarState.event_state_sso_login('linkedin_oidc')
+            ),
+            width='100%',
+            justify='center',
+            gap='48px'
+        ),
+        spacer(),
+        width='100%',
+        gap='24px',
+        flex_direction='column'
+    )
+
+def login_tab_account() -> rx.Component:
+    return rx.flex(
+        spacer(),
+        rx.heading(
+            "Create new account",
+            size='6',
+            text_align='center',
+            width='100%'
+        ),
+        rx.center(
+            rx.vstack(
+                rx.text(
+                    "Email",
+                    size='2'
+                ),
+                rx.input(
+                    placeholder='Enter email',
+                    name='create_account_email',
+                    size='3',
+                    required=True,
+                )
+            )
+        ),
+        rx.center(
+            rx.vstack(
+                rx.vstack(
+                    rx.text(
+                        "Password",
+                        size='2'
+                    ),
+                    rx.input(
+                        placeholder="Enter password",
+                        name='create_account_password',
+                        type='password',
+                        size='3',
+                        required=True
+                    )
+                ),
+                rx.vstack(
+                    rx.text(
+                        "Confirm password",
+                        size='2'
+                    ),
+                    rx.input(
+                        placeholder="Re-enter password",
+                        name='create_account_password_confirm',
+                        type='password',
+                        size='3',
+                        required=True
+                    )
+                )
+            )
+        ),
+        rx.center(
+            rx.switch(
+                name='create_account_student',
+                default_checked=False,
+            ),
+            rx.text(
+                "I'm a ",
+                rx.popover.root(
+                    rx.popover.trigger(
+                        rx.link(
+                            "nursing student.",
+                            color_scheme='blue',
+                            size='2'
+                        ),
+                    ),
+                    rx.popover.content(
+                        rx.text(
+                            """Students get access to our reports
+                            for 6 months and then must submit a report
+                            once they get hired."""
+                        )
+                    )
+                ),
+                size='2'
+            ),
+            gap='8px',
+            margin_top='8px'
+        ),
+        rx.center(
+            rx.button(
+                "Create account",
+                width='100%',
+                type='submit'
+            ),
+            margin_top='12px',
+            width='100%'
+        ),
+        rx.cond(
+            NavbarState.error_create_account_message,
+            rx.callout(
+                NavbarState.error_create_account_message,
+                icon='alert_triangle',
+                color_scheme='red',
+                role='alert'
+            )
+        ),
+        rx.center(
+            rx.hstack(
+                rx.link(
+                    "Privacy Policy",
+                    size='2'
+                ),
+                rx.divider(width='12px'),
+                rx.link(
+                    "AI Policy",
+                    size='2'
+                ),
+                align='center'
+            )
+        ),
+        spacer(),
+        width='100%',
+        gap='24px',
+        flex_direction='column'
     )
