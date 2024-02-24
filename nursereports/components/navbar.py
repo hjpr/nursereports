@@ -1,5 +1,6 @@
 
 from ..components.custom import spacer
+from ..events.auth import event_supabase_sso_login
 from ..states.auth import AuthState
 from ..states.navbar import NavbarState
 
@@ -283,19 +284,19 @@ def login_tab_login() -> rx.Component:
                 src='/sso/google_sso.png',
                 height='44px',
                 cursor='pointer',
-                on_click=rx.redirect('/sso/google')
+                on_click=event_supabase_sso_login('google')
             ),
             rx.image(
                 src='/sso/facebook_sso.png',
                 height='44px',
                 cursor='pointer',
-                on_click=rx.redirect('/sso/facebook')
+                on_click=event_supabase_sso_login('facebook')
             ),
             rx.image(
                 src='/sso/linkedin_sso.png',
                 height='44px',
                 cursor='pointer',
-                on_click=rx.redirect('/sso/linkedin_oidc')
+                on_click=event_supabase_sso_login('linkedin_oidc')
             ),
             width='100%',
             justify='center',

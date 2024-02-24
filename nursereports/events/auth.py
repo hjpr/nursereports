@@ -163,4 +163,4 @@ def event_supabase_get_new_access_token(
 def event_supabase_sso_login(provider) -> Callable:
     return rx.redirect(
         f'{api_url}/auth/v1/authorize?provider={provider}'
-        )
+    )
