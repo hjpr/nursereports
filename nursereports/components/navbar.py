@@ -283,19 +283,19 @@ def login_tab_login() -> rx.Component:
                 src='/sso/google_sso.png',
                 height='44px',
                 cursor='pointer',
-                on_click=NavbarState.event_state_sso_login('google')
+                on_click=rx.redirect('/sso/google')
             ),
             rx.image(
                 src='/sso/facebook_sso.png',
                 height='44px',
                 cursor='pointer',
-                on_click=NavbarState.event_state_sso_login('facebook')
+                on_click=rx.redirect('/sso/facebook')
             ),
             rx.image(
                 src='/sso/linkedin_sso.png',
                 height='44px',
                 cursor='pointer',
-                on_click=NavbarState.event_state_sso_login('linkedin_oidc')
+                on_click=rx.redirect('/sso/linkedin_oidc')
             ),
             width='100%',
             justify='center',

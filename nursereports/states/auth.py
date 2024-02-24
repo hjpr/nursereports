@@ -13,10 +13,9 @@ class AuthState(BaseState):
     def auth_params(self):
         return self.router.page.params.get('provider')
     
-    def event_state_sso_redirect(self) -> Callable:
-        if self.auth_params:
-            redirect = event_supabase_sso_login(self.auth_params)
-            return redirect
+    def event_state_sso_onload(self) -> Callable:
+        redirect = event_supabase_sso_login(self.auth_params)
+        return redirect
         
     def event_state_sso_parse_params(self) -> Iterable[Callable]:
         if self.auth_params[2] == "#":

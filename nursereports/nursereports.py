@@ -35,16 +35,9 @@ app = rx.App(
 
 app.add_page(
     sso_page,
-    route="/api/auth/sso/v1/[provider]",
-    on_load=AuthState.event_state_sso_redirect
+    route="/sso/[provider]",
+    on_load=AuthState.event_state_sso_onload
 )
-
-app.add_page(
-    sso_params_page,
-    route='/api/auth/[params]',
-    on_load=AuthState.event_state_sso_parse_params
-)
-
 
 #####################################################################
 #
