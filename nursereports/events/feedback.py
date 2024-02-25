@@ -1,4 +1,5 @@
 
+from ..events.rate_limit import rate_limit
 from dotenv import load_dotenv
 from loguru import logger
 
@@ -11,13 +12,25 @@ api_url = os.getenv("SUPABASE_URL")
 api_key = os.getenv("SUPABASE_ANON_KEY")
 jwt_key = os.getenv("SUPABASE_JWT_KEY")
 
+@rate_limit(table='feedback', entry_limit=1, time_limit=60)
 def event_supabase_submit_feedback(
         access_token,
-        feedback
+        data
     ) -> dict:
-    """Submits feedback to /rest/v1/feedback."""
+    """
+    Submits feedback to /rest/v1/feedback. Returns a dict with
+    explanation of failure if occurs.
+
+    Args:
+        access_token: user jwt
+        data: dict of values to upload
+
+    Returns:
+        success: bool
+        status: user-readable reason for failure
+    """
     url = f"{api_url}/rest/v1/feedback"
-    data = json.dumps(feedback)
+    data = json.dumps(data)
     headers = {
         "apikey": api_key,
         "Authorization": f"Bearer {access_token}",

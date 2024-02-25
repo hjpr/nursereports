@@ -33,10 +33,12 @@ class NavbarState(BaseState):
         self.error_create_account_message = None
     
     def event_state_submit_feedback(self, form_data: dict) -> None:
+        """Event to trigger submission of feedback."""
         if form_data['feedback']:
             data = {
                 "user_feedback": f"{form_data['feedback']}",
-                "email": self.claims['email']
+                "email": self.claims['email'],
+                "user_id": self.claims['sub']
             }
             response = event_supabase_submit_feedback(
                 self.access_token,
