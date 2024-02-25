@@ -141,7 +141,8 @@ def feedback_modal() -> rx.Component:
                         NavbarState.error_feedback_message,
                         icon="alert_triangle",
                         color_scheme="red",
-                        role="alert"
+                        role="alert",
+                        margin_top='12px'
                     )
                 ),
                 on_submit=NavbarState.event_state_submit_feedback
