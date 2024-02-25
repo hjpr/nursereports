@@ -93,10 +93,17 @@ def alert_modal() -> rx.Component:
     return rx.alert_dialog.root(
         rx.alert_dialog.content(
             rx.alert_dialog.title(
-                "Site message."
+                "Message"
             ),
-            rx.alert_dialog.description(NavbarState.alert_message),
-            rx.alert_dialog.action("OK", on_click=NavbarState.set_alert_message(""))
+            rx.alert_dialog.description(
+                NavbarState.alert_message
+            ),
+            rx.alert_dialog.action(
+                rx.button(
+                    "OK",
+                    on_click=NavbarState.set_alert_message("")
+                )
+            )
         ),
         open=NavbarState.show_alert_message
     )
