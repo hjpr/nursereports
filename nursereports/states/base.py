@@ -110,14 +110,14 @@ class BaseState(rx.State):
             yield rx.redirect('/onboard')
 
     def standard_flow(self, access_level) -> Iterable[Callable] | None:
-        self.check_if_sso_redirect()
+        yield from self.check_if_sso_redirect()
         yield from self.check_claims()
         yield from self.check_access(access_level)
 
-    def check_if_sso_redirect(self) -> None:
+    def check_if_sso_redirect(self) -> Iterable[Callable]:
         raw_path = self.router.page.raw_path
-        logger.debug(raw_path)
         if "access_token" in raw_path:
             fragment = raw_path.split("#")[1]
             self.access_token = fragment.split("&")[0].split("=")[1]
             self.refresh_token = fragment.split("&")[4].split("=")[1]
+            yield rx.redirect('/')
