@@ -16,7 +16,6 @@ from .pages.search import search
 from .pages.sso import sso_page
 from .pages.sso_params import sso_params_page
 
-from .states.auth import AuthState
 from .states.base import BaseState
 
 import reflex as rx
@@ -25,18 +24,6 @@ import reflex as rx
 app = rx.App(
     middleware=[LoggingMiddleware()],
     theme=rx.theme(accent_color='teal')
-)
-
-#####################################################################
-#
-# API
-#
-#####################################################################
-
-app.add_page(
-    sso_page,
-    route="/auth/[auth_params]",
-    on_load=AuthState.event_state_sso_parse_params
 )
 
 #####################################################################

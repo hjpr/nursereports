@@ -1,7 +1,7 @@
 
 from ..components.custom import spacer
 from ..events.auth import event_supabase_sso_login
-from ..states.auth import AuthState
+from ..states.base import BaseState
 from ..states.navbar import NavbarState
 
 import reflex as rx
@@ -56,7 +56,7 @@ def navbar() -> rx.Component:
 
 def cond_account() -> rx.Component:
     return rx.cond(
-        AuthState.user_is_authenticated,
+        BaseState.user_is_authenticated,
         rx.menu.root(
             rx.menu.trigger(
                 rx.avatar()
@@ -74,7 +74,7 @@ def cond_account() -> rx.Component:
 
 def cond_options() -> rx.Component:
     return rx.cond(
-        AuthState.user_is_authenticated & AuthState.user_has_reported,
+        BaseState.user_is_authenticated & BaseState.user_has_reported,
         rx.hstack(
             rx.link(
                 "Hospital Search",
