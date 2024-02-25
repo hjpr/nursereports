@@ -98,11 +98,15 @@ def alert_modal() -> rx.Component:
             rx.alert_dialog.description(
                 NavbarState.alert_message
             ),
-            rx.alert_dialog.action(
-                rx.button(
-                    "OK",
-                    on_click=NavbarState.set_alert_message("")
-                )
+            rx.flex(
+                rx.alert_dialog.action(
+                    rx.button(
+                        "OK",
+                        on_click=NavbarState.set_alert_message("")
+                    )
+                ),
+                margin_top='16px',
+                justify='end'
             )
         ),
         open=NavbarState.show_alert_message
