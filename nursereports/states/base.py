@@ -115,9 +115,11 @@ class BaseState(rx.State):
         yield from self.check_access(access_level)
 
     def check_if_sso_redirect(self) -> Iterable[Callable]:
+        from ..states.navbar import NavbarState
         raw_path = self.router.page.raw_path
         if "access_token" in raw_path:
             fragment = raw_path.split("#")[1]
             self.access_token = fragment.split("&")[0].split("=")[1]
             self.refresh_token = fragment.split("&")[4].split("=")[1]
+            yield NavbarState.set_show_login(False)
             yield rx.redirect('/')
