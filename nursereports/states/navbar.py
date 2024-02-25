@@ -32,12 +32,12 @@ class NavbarState(BaseState):
         self.error_sign_in_message = None
         self.error_create_account_message = None
     
-    def event_state_submit_feedback(self, form_data) -> None:
+    def event_state_submit_feedback(self, form_data: dict) -> None:
         if form_data['feedback']:
             data = {
                 "user_feedback": f"{form_data['feedback']}",
                 "ip_addr": self.router.session.client_ip,
-                "user_id": self.claims['email']
+                "email": self.claims['email']
             }
             response = event_supabase_submit_feedback(
                 self.access_token,

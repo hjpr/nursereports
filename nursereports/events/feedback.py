@@ -21,7 +21,8 @@ def event_supabase_submit_feedback(
     headers = {
         "apikey": api_key,
         "Authorization": f"Bearer {access_token}",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "Prefer": "return=minimal"
     }
     response = httpx.post(
         url=url,
