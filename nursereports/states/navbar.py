@@ -36,7 +36,6 @@ class NavbarState(BaseState):
         if form_data['feedback']:
             data = {
                 "user_feedback": f"{form_data['feedback']}",
-                "ip_addr": self.router.session.client_ip,
                 "email": self.claims['email']
             }
             response = event_supabase_submit_feedback(
@@ -44,7 +43,8 @@ class NavbarState(BaseState):
                 data
             )
             if response['success']:
-                self.event_ui_toggle_feedback
+                self.show_feedback = False
+                self.alert_message = "Thanks for your feedback!"
             else:
                 self.error_feedback_message = response['status']
 
