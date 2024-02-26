@@ -23,9 +23,10 @@ class NavbarState(BaseState):
     @rx.var
     def show_alert_message(self) -> bool:
         return True if self.alert_message else False
-
-    def event_ui_toggle_feedback(self):
-        self.show_feedback = not self.show_feedback
+    
+    def set_show_feedback(self, feedback) -> None:
+        self.error_feedback_message = ""
+        self.show_feedback = feedback
 
     def event_ui_toggle_login(self):
         self.show_login = not self.show_login

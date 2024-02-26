@@ -1,5 +1,5 @@
 
-from ..events.rate_limit import rate_limit
+from ..events.rate_limit import rate_limit_supabase
 from dotenv import load_dotenv
 from loguru import logger
 
@@ -12,7 +12,7 @@ api_url = os.getenv("SUPABASE_URL")
 api_key = os.getenv("SUPABASE_ANON_KEY")
 jwt_key = os.getenv("SUPABASE_JWT_KEY")
 
-@rate_limit(table='feedback', entry_limit=1, time_limit=60)
+@rate_limit_supabase('feedback', 1, 1)
 def event_supabase_submit_feedback(
         access_token,
         data

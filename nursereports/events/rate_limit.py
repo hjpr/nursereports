@@ -2,9 +2,11 @@
 from dotenv import load_dotenv
 from functools import wraps
 from loguru import logger
-from supabase import Client, create_client
 
 import datetime
+import httpx
+import json
+import rich
 import time
 import os
 
@@ -12,22 +14,20 @@ load_dotenv()
 api_url: str = os.getenv("SUPABASE_URL")
 api_key: str = os.getenv("SUPABASE_ANON_KEY")
 jwt_key: str = os.getenv("SUPABASE_JWT_KEY")
-supabase: Client = create_client(api_url, api_key)
-
-def rate_limit(
-        table: str,
-        entry_limit: int,
-        time_limit: int,
-        ):
+ 
+def rate_limit_supabase(
+          table: str,
+          entry_limit: int,
+          time_limit: int
+          ):
     """
-    Provides a rate limiter when making supabase calls. Allows request
-    to continue if rate limit not met, otherwise returns a dict with
-    explanation of failure.
+    Provides a rate limiter when making supabase calls.
     
     Args:
         table: target table to limit
         entry_limit: number of entries allowed within time limit
         time_limit: timeout in minutes
+        access_token: bearer token of user as jwt
     
     Returns:
         dict:
@@ -36,37 +36,43 @@ def rate_limit(
     """
     def decorator(func):
         @wraps(func)
-        def wrapper(data, *args, **kwargs):
-            # Get unix time now
+        def wrapper(*args, **kwargs):
+            access_token = args[0]
             current_unix_time = time.time()
-
-            # Subtract time limit to search for entries within period
             exclusion_period = current_unix_time - (time_limit * 60)
-
-            # Convert unix time to datetime object
             exclusion_obj = datetime.datetime.utcfromtimestamp(
                 exclusion_period
-            )
-
-            # Convert datetime obj to PostgreSQL format
+                )
             exclusion_tz = exclusion_obj.strftime(
                 "%Y-%m-%d %H:%M:%S %z"
-            )
-
-            response = supabase.from_(table).select('*')\
-                .eq('user_id', data['user_id'])\
-                .gte('created_at', exclusion_tz)\
-                .order('created_at', desc=True)\
-                .limit(entry_limit)
-            if response['data']:
-                logger.critical("Rate limit exceeded!")
+                )
+            url = f"{api_url}/rest/v1/{table}?" +\
+                f"created_at=gte.{exclusion_tz}"
+            headers = {
+                "apikey": api_key,
+                "Authorization": f"Bearer {access_token}",
+                "Content-Type": "application/json",
+                "Range": f"0-{entry_limit - 1}"
+                }
+            response = httpx.get(
+                url=url,
+                headers=headers,
+                )
+            if response.is_success:
+                entries = json.loads(response.content)
+                if entries:
+                    return {
+                        "success": False,
+                        "status": f"""Too many submissions. The limit is
+                            {entry_limit} submission(s) per {time_limit}
+                            minute(s)."""
+                        }
+                else:
+                    return func(*args, **kwargs)
+            else:
                 return {
                     "success": False,
-                    "status": f"""Too many submissions. The limit is
-                        {entry_limit} submission(s) per {time_limit * 60}
-                        minutes."""
-                }
-            else:
-                return func(*args, **kwargs)
+                    "status": f"{response.status_code} - {response.reason_phrase}"
+                    }
         return wrapper
     return decorator

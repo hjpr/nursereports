@@ -19,7 +19,7 @@ def c2a() -> rx.Component:
                         cursor='pointer',
                         color='white',
                         color_scheme='crimson',
-                        on_click=NavbarState.event_ui_toggle_feedback
+                        on_click=NavbarState.set_show_feedback(True)
                     ),
                     width='100%'
                 ),

@@ -133,7 +133,7 @@ def feedback_modal() -> rx.Component:
                             "Cancel",
                             type='button',
                             variant='soft',
-                            on_click=NavbarState.event_ui_toggle_feedback,
+                            on_click=NavbarState.set_show_feedback(False),
                         )
                     ),
                     rx.dialog.close(

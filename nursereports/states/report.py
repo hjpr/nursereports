@@ -832,16 +832,10 @@ class ReportState(BaseState):
 
     @rx.var
     def summary_id(self) -> str:
-        """
-        Pulls params from /report/summary/{summary_id}
-        """
         return self.router.page.params.get('summary_id')
 
     @rx.var
     def report_id(self) -> str:
-        """
-        Pulls params from /report/submit/{report_id}/report_page
-        """
         return self.router.page.params.get('report_id')
 
     def report_nav(self, target_url: str) -> Callable:
