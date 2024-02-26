@@ -1,10 +1,9 @@
 
-from ..events.auth import event_supabase_get_new_access_token
+from ..server.supabase.auth import supabase_get_new_access_token
 
 import jwt
 import os
 import reflex as rx
-import rich
 import time
 
 from dotenv import load_dotenv
@@ -30,6 +29,8 @@ class BaseState(rx.State):
         same_site='strict',
         secure=True,
     )
+
+    user_data: dict
 
     @rx.cached_var
     def claims(self) -> dict[str, str] | str:
@@ -77,7 +78,7 @@ class BaseState(rx.State):
             return False
 
     def get_new_access_token(self) -> Iterable:
-        response = event_supabase_get_new_access_token(
+        response = supabase_get_new_access_token(
             self.access_token,
             self.refresh_token
             )
@@ -97,17 +98,28 @@ class BaseState(rx.State):
                 self.get_new_access_token()
         else:
             if self.claims == 'expired':
+                self.access_token = ""
+                self.refresh_token = ""
                 yield NavbarState.set_alert_message(
                     "For security you've been logged out for inactivity."
                 )
 
     def check_access(self, access_level) -> Iterable | None:
+        from ..states.navbar import NavbarState
         if access_level == 'req_none':
             yield None
         if access_level == 'req_login' and not self.user_is_authenticated:
             yield rx.redirect('/')
+            yield NavbarState.set_login_tab("login")
+            yield NavbarState.set_show_login(True)
+            yield NavbarState.set_error_sign_in_message(
+                "You must be logged in to access that content."
+            )
         if access_level == 'req_report' and not self.user_has_reported:
             yield rx.redirect('/onboard')
+            yield NavbarState.set_alert_message(
+                "Please submit a report before accessing that content."
+            )
 
     def standard_flow(self, access_level) -> Iterable[Callable] | None:
         yield from self.check_if_sso_redirect()
@@ -117,7 +129,7 @@ class BaseState(rx.State):
     def check_if_sso_redirect(self) -> Iterable[Callable]:
         from ..states.navbar import NavbarState
         raw_path = self.router.page.raw_path
-        if "access_token" in raw_path:
+        if ("access_token" in raw_path) and ("refresh_token" in raw_path):
             fragment = raw_path.split("#")[1]
             self.access_token = fragment.split("&")[0].split("=")[1]
             self.refresh_token = fragment.split("&")[4].split("=")[1]

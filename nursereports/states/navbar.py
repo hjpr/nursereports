@@ -1,10 +1,9 @@
 
-from ..events.auth import (
-    event_supabase_login_with_email,
-    event_supabase_create_account_with_email,
-    event_supabase_sso_login
+from ..server.supabase.auth import (
+    supabase_login_with_email,
+    supabase_create_account_with_email
 )
-from ..events.feedback import event_supabase_submit_feedback
+from ..server.supabase.feedback import supabase_submit_feedback
 from ..states.base import BaseState
 
 from typing import Callable, Iterable
@@ -28,7 +27,11 @@ class NavbarState(BaseState):
         self.error_feedback_message = ""
         self.show_feedback = feedback
 
-    def event_ui_toggle_login(self):
+    def event_state_navbar_pressed_sign_in(self) -> None:
+        self.login_tab = 'login'
+        self.show_login = True
+
+    def event_state_toggle_login(self) -> None:
         self.show_login = not self.show_login
         self.error_sign_in_message = None
         self.error_create_account_message = None
@@ -41,7 +44,7 @@ class NavbarState(BaseState):
                 "email": self.claims['email'],
                 "user_id": self.claims['sub']
             }
-            response = event_supabase_submit_feedback(
+            response = supabase_submit_feedback(
                 self.access_token,
                 data
             )
@@ -65,7 +68,7 @@ class NavbarState(BaseState):
     def event_state_login_with_email(self, form_data: dict) -> Callable | None:
         email = form_data.get("login_email")
         password = form_data.get("login_password")
-        response = event_supabase_login_with_email(email, password)
+        response = supabase_login_with_email(email, password)
         if response['success']:
             self.access_token = response['payload']['access_token']
             self.refresh_token = response['payload']['refresh_token']
@@ -78,14 +81,12 @@ class NavbarState(BaseState):
         email = form_data.get("create_account_email")
         password = form_data.get("create_account_password")
         password_confirm = form_data.get("create_account_password_confirm")
-        is_student = form_data.get("create_account_student")
         if password != password_confirm:
             self.error_create_account_message = "Passwords do not match."
         else:
-            response = event_supabase_create_account_with_email(
+            response = supabase_create_account_with_email(
                 email,
-                password,
-                is_student
+                password
             )
             if response['success']:
                 self.show_login = False
@@ -95,10 +96,6 @@ class NavbarState(BaseState):
                     right away."""
             else:
                 self.error_create_account_message = response['status']
-
-    def event_state_sso_login(self, provider: str) -> Callable:
-        self.show_login = False
-        return rx.redirect(f'/api/auth/sso/v1/{provider}')
     
     def event_state_logout(self) -> Iterable[Callable]:
         yield rx.redirect("/")
