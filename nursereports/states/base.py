@@ -153,7 +153,7 @@ class BaseState(rx.State):
         if ("access_token" in raw_path) and ("refresh_token" in raw_path):
             self.set_tokens_from_sso_redirect(raw_path)
             self.set_user_data()
-            yield NavbarState.set_show_login
+            yield NavbarState.set_show_login(False)
 
     def set_tokens_from_sso_redirect(self, raw_path) -> None:
         fragment = raw_path.split("#")[1]
@@ -183,6 +183,12 @@ class BaseState(rx.State):
                 )
             else:
                 return rx.redirect('/')
+            
+    def redirect_for_report_status(self) -> Iterable[Callable]:
+        if self.user_has_reported:
+            yield rx.redirect('/dashboard')
+        else:
+            yield rx.redirect('/onboard')
 
     def event_state_standard_flow(
             self,
@@ -199,3 +205,4 @@ class BaseState(rx.State):
         yield from self.check_if_sso_redirect()
         self.refresh_claims_if_needed()
         yield from self.redirect_if_access_denied(access_req)
+        yield from self.redirect_for_report_status()
