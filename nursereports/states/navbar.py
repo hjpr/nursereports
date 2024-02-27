@@ -117,24 +117,18 @@ class NavbarState(BaseState):
             f'{api_url}/auth/v1/authorize?provider={provider}'
         )
     
-    def event_state_logout(self) -> Iterable[Callable]:
+    def event_state_logout(self) -> Callable:
+        self.access_token = ""
+        self.refresh_token = ""
         if self.reason_for_logout == 'user':
-            self.access_token = ""
-            self.refresh_token = ""
             self.alert_message = "Successfully logged out."
-            return rx.redirect("/")
         if self.reason_for_logout == 'error':
-            self.access_token = ""
-            self.refresh_token = ""
             self.alert_message = """Encountered error requiring reset.
                 If this message persists, the backend is likely down
                 and we are in the process of recovering.
                 """
-            return rx.redirect("/")
         if self.reason_for_logout == 'expired':
-            self.access_token = ""
-            self.refresh_token = ""
             self.alert_message = """For your security, you've been
                 logged out for inactivity.
                 """
-            return rx.redirect('/')
+        #return rx.redirect('/')
