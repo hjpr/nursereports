@@ -1,6 +1,5 @@
 
 from ..components.custom import spacer
-from ...server.supabase.auth import supabase_sso_login
 from ...states.base import BaseState
 from ...states.navbar import NavbarState
 

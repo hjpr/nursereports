@@ -1,14 +1,9 @@
 
-from ...states.base import BaseState
-from ...states.navbar import NavbarState
+from ...states import *
 
 import reflex as rx
 
 def c2a() -> rx.Component:
-    """
-    Renders call to action bar if NavbarState.show_c2a is True and
-    the user is logged in.
-    """
     return rx.cond(
         BaseState.user_is_authenticated,
         rx.box(

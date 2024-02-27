@@ -1,16 +1,9 @@
-from dotenv import load_dotenv
+
+from . import api_url, api_key
 from loguru import logger
 
 import httpx
 import json
-import os
-import reflex as rx
-import rich
-
-load_dotenv()
-api_url = os.getenv("SUPABASE_URL")
-api_key = os.getenv("SUPABASE_ANON_KEY")
-jwt_key = os.getenv("SUPABASE_JWT_KEY")
 
 def supabase_get_user_info(access_token: str) -> dict:
     """Use access token to retrieve a user info from the 
@@ -36,7 +29,6 @@ def supabase_get_user_info(access_token: str) -> dict:
         headers=headers
     )
     if response.is_success:
-        rich.inspect(response)
         content = json.loads(response.content)
         return {
             "success": True,

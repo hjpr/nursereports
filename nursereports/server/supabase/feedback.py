@@ -1,16 +1,10 @@
 
-from ..supabase.rate_limit import rate_limit_supabase
-from dotenv import load_dotenv
+from .import api_url, api_key
+from .rate_limit import rate_limit_supabase
 from loguru import logger
 
 import httpx
 import json
-import os
-
-load_dotenv()
-api_url = os.getenv("SUPABASE_URL")
-api_key = os.getenv("SUPABASE_ANON_KEY")
-jwt_key = os.getenv("SUPABASE_JWT_KEY")
 
 @rate_limit_supabase('feedback', 1, 1)
 def supabase_submit_feedback(

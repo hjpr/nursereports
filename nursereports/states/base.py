@@ -1,12 +1,10 @@
 
 from ..server.supabase.auth import supabase_get_new_access_token
-from ..server.supabase.user import supabase_get_user_info
-from typing import Literal
+from ..server.supabase.users import supabase_get_user_info
 
 import jwt
 import os
 import reflex as rx
-import rich
 import time
 
 from dotenv import load_dotenv
@@ -95,7 +93,7 @@ class BaseState(rx.State):
         else:
             return False
 
-    def refresh_claims_if_needed(self) -> None:
+    def check_claims_for_expiring_soon(self) -> None:
         if self.access_token:
             if self.user_claims['valid']:
                 current_time = int(time.time())
@@ -147,8 +145,21 @@ class BaseState(rx.State):
             "reason": None
         }
 
+    def event_state_standard_flow(self, access_req: str
+        ) -> Iterable[Callable]:
+        """Simple standard login flow.
+            1: Check if we are coming from an auth redirect.
+            2: Refresh our claims if user is active and between 30-59 min.
+            3: Redirect our user if they don't have proper access.
+
+            Args:
+                access_req: 'none', 'login', or 'report'
+        """
+        yield from self.check_if_sso_redirect()
+        self.check_claims_for_expiring_soon()
+        yield from self.redirect_if_access_denied(access_req)
+
     def check_if_sso_redirect(self) -> Iterable[Callable]:
-        from ..states.navbar import NavbarState
         raw_path = self.router.page.raw_path
         if ("access_token" in raw_path) and ("refresh_token" in raw_path):
             self.set_tokens_from_sso_redirect(raw_path)
@@ -164,6 +175,12 @@ class BaseState(rx.State):
         response = supabase_get_user_info(self.access_token)
         if response['success']:
             self.user_info = response['payload']
+
+    def redirect_for_report_status(self) -> Iterable[Callable]:
+        if self.user_has_reported:
+            yield rx.redirect('/dashboard')
+        else:
+            yield rx.redirect('/onboard')
 
     def redirect_if_access_denied(self, access_req) -> Iterable[Callable]:
         from ..states.navbar import NavbarState
@@ -183,25 +200,3 @@ class BaseState(rx.State):
                 )
             else:
                 return rx.redirect('/')
-            
-    def redirect_for_report_status(self) -> Iterable[Callable]:
-        if self.user_has_reported:
-            yield rx.redirect('/dashboard')
-        else:
-            yield rx.redirect('/onboard')
-
-    def event_state_standard_flow(
-            self,
-            access_req: Literal['none', 'login', 'report']
-            ) -> Iterable[Callable] | None:
-        """Simple standard login flow.
-            1: Check if we are coming from an auth redirect.
-            2: Refresh our claims if user is active and between 30-59 min.
-            3: Redirect our user if they don't have proper access.
-
-            Args:
-                access_req: 'none', 'login', or 'report'
-        """
-        yield from self.check_if_sso_redirect()
-        self.refresh_claims_if_needed()
-        yield from self.redirect_if_access_denied(access_req)

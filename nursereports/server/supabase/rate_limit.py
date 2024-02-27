@@ -1,5 +1,5 @@
 
-from dotenv import load_dotenv
+from . import api_url, api_key
 from functools import wraps
 from loguru import logger
 
@@ -7,12 +7,6 @@ import datetime
 import httpx
 import json
 import time
-import os
-
-load_dotenv()
-api_url: str = os.getenv("SUPABASE_URL")
-api_key: str = os.getenv("SUPABASE_ANON_KEY")
-jwt_key: str = os.getenv("SUPABASE_JWT_KEY")
  
 def rate_limit_supabase(
           table: str,
