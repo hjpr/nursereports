@@ -147,11 +147,13 @@ class BaseState(rx.State):
             "reason": None
         }
 
-    def check_if_sso_redirect(self) -> None:
+    def check_if_sso_redirect(self) -> Iterable[Callable]:
+        from ..states.navbar import NavbarState
         raw_path = self.router.page.raw_path
         if ("access_token" in raw_path) and ("refresh_token" in raw_path):
             self.set_tokens_from_sso_redirect(raw_path)
             self.set_user_data()
+            yield NavbarState.set_show_login
 
     def set_tokens_from_sso_redirect(self, raw_path) -> None:
         fragment = raw_path.split("#")[1]
@@ -194,6 +196,6 @@ class BaseState(rx.State):
             Args:
                 access_req: 'none', 'login', or 'report'
         """
-        self.check_if_sso_redirect()
+        yield from self.check_if_sso_redirect()
         self.refresh_claims_if_needed()
         yield from self.redirect_if_access_denied(access_req)
