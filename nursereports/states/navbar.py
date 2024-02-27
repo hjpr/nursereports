@@ -122,7 +122,7 @@ class NavbarState(BaseState):
             self.access_token = ""
             self.refresh_token = ""
             self.alert_message = "Successfully logged out."
-            yield rx.redirect("/")
+            return rx.redirect("/")
         if self.reason_for_logout == 'error':
             self.access_token = ""
             self.refresh_token = ""
@@ -130,9 +130,11 @@ class NavbarState(BaseState):
                 If this message persists, the backend is likely down
                 and we are in the process of recovering.
                 """
+            return rx.redirect("/")
         if self.reason_for_logout == 'expired':
             self.access_token = ""
             self.refresh_token = ""
             self.alert_message = """For your security, you've been
                 logged out for inactivity.
                 """
+            return rx.redirect('/')
