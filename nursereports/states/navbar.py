@@ -1,7 +1,8 @@
 
 from ..server.supabase.auth import (
     supabase_login_with_email,
-    supabase_create_account_with_email
+    supabase_create_account_with_email,
+    supabase_sso_login
 )
 from ..server.supabase.feedback import supabase_submit_feedback
 from ..states.base import BaseState
@@ -73,7 +74,6 @@ class NavbarState(BaseState):
             self.access_token = response['payload']['access_token']
             self.refresh_token = response['payload']['refresh_token']
             self.show_login = False
-            return rx.redirect('/dashboard')
         else:
             self.error_sign_in_message = response['status']
 
@@ -96,6 +96,10 @@ class NavbarState(BaseState):
                     right away."""
             else:
                 self.error_create_account_message = response['status']
+
+    def event_state_login_with_sso(self, provider: str) -> Iterable[Callable]:
+        self.show_login = False
+        yield from supabase_sso_login(provider)
     
     def event_state_logout(self) -> Iterable[Callable]:
         if self.access_token:

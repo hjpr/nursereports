@@ -302,19 +302,19 @@ def login_tab_login() -> rx.Component:
                 src='/sso/google_sso.png',
                 height='44px',
                 cursor='pointer',
-                on_click=supabase_sso_login('google')
+                on_click=NavbarState.event_state_login_with_sso('google')
             ),
             rx.image(
                 src='/sso/facebook_sso.png',
                 height='44px',
                 cursor='pointer',
-                on_click=supabase_sso_login('facebook')
+                on_click=NavbarState.event_state_login_with_sso('facebook')
             ),
             rx.image(
                 src='/sso/linkedin_sso.png',
                 height='44px',
                 cursor='pointer',
-                on_click=supabase_sso_login('linkedin_oidc')
+                on_click=NavbarState.event_state_login_with_sso('linkedin_oidc')
             ),
             width='100%',
             justify='center',

@@ -1,7 +1,7 @@
 
 from dotenv import load_dotenv
 from loguru import logger
-from typing import Callable
+from typing import Callable, Iterable
 
 import httpx
 import json
@@ -156,7 +156,7 @@ def supabase_get_new_access_token(
             "payload": None
         }
     
-def supabase_sso_login(provider) -> Callable:
-    return rx.redirect(
+def supabase_sso_login(provider) -> Iterable[Callable]:
+    yield rx.redirect(
         f'{api_url}/auth/v1/authorize?provider={provider}'
     )
