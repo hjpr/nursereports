@@ -24,10 +24,6 @@ class NavbarState(BaseState):
     def show_alert_message(self) -> bool:
         return True if self.alert_message else False
     
-    @rx.var
-    def reason_for_logout(self) -> str:
-        return self.router.page.params.get('logout_reason')
-    
     def set_show_feedback(self, feedback) -> None:
         self.error_feedback_message = ""
         self.show_feedback = feedback
@@ -116,19 +112,3 @@ class NavbarState(BaseState):
         return rx.redirect(
             f'{api_url}/auth/v1/authorize?provider={provider}'
         )
-    
-    def event_state_logout(self) -> Callable:
-        self.access_token = ""
-        self.refresh_token = ""
-        if self.reason_for_logout == 'user':
-            self.alert_message = "Successfully logged out."
-        if self.reason_for_logout == 'error':
-            self.alert_message = """Encountered error requiring reset.
-                If this message persists, the backend is likely down
-                and we are in the process of recovering.
-                """
-        if self.reason_for_logout == 'expired':
-            self.alert_message = """For your security, you've been
-                logged out for inactivity.
-                """
-        #return rx.redirect('/')

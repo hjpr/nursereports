@@ -34,6 +34,10 @@ class BaseState(rx.State):
         secure=True,
     )
     user_info: dict
+
+    @rx.var
+    def reason_for_logout(self) -> str:
+        return self.router.page.params.get('logout_reason')
     
     @rx.cached_var
     def user_claims(self) -> dict:
@@ -288,3 +292,20 @@ class BaseState(rx.State):
                 )
             else:
                 yield rx.redirect('/')
+
+    def event_state_logout(self) -> Iterable[Callable]:
+        from . import NavbarState
+        self.access_token = ""
+        self.refresh_token = ""
+        if self.reason_for_logout == 'user':
+            yield NavbarState.set_alert_message("Successfully logged out.")
+        if self.reason_for_logout == 'error':
+            yield NavbarState.set_alert_message("""Encountered error requiring reset.
+                If this message persists, the backend is likely down
+                and we are in the process of recovering.
+                """)
+        if self.reason_for_logout == 'expired':
+           yield NavbarState.set_alert_message("""For your security, you've been
+                logged out for inactivity.
+                """)
+        yield rx.redirect('/')
