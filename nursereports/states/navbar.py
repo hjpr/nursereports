@@ -42,8 +42,8 @@ class NavbarState(BaseState):
         if form_data['feedback']:
             data = {
                 "user_feedback": f"{form_data['feedback']}",
-                "email": self.claims['email'],
-                "user_id": self.claims['sub']
+                "email": self.user_claims['payload']['email'],
+                "user_id": self.user_claims['payload']['sub']
             }
             response = supabase_submit_feedback(
                 self.access_token,
