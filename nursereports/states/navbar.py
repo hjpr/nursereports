@@ -99,6 +99,8 @@ class NavbarState(BaseState):
     
     def event_state_logout(self) -> Iterable[Callable]:
         yield rx.redirect("/")
-        yield rx.remove_cookie("access_token")
-        yield rx.remove_cookie("refresh_token")
+        if self.access_token:
+            self.access_token = ""
+        if self.refresh_token:
+            self.refresh_token = ""
         self.alert_message = "Successfully logged out."

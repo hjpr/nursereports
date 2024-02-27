@@ -70,7 +70,7 @@ def cond_account() -> rx.Component:
                 rx.menu.item("Dashboard"),
                 rx.menu.separator(),
                 rx.menu.item("Account"),
-                rx.menu.item("Logout", on_click=NavbarState.event_state_logout)
+                rx.menu.item("Logout", on_click=rx.redirect('/logout'))
             )
         ),
         rx.button(

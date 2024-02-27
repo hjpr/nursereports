@@ -1,5 +1,6 @@
 from .dashboard import dashboard_page
 from .index import index_page
+from .logout import logout_page
 from .onboard import onboard_page
 from .report_assign import assign_page
 from .report_comp import comp_page
