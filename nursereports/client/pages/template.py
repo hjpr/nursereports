@@ -1,8 +1,8 @@
 
 from ..components.c2a import c2a
+from ..components.custom import spacer
 from ..components.footer import footer
 from ..components.navbar import navbar
-from ..components.custom import spacer
 
 import reflex as rx
 

@@ -1,8 +1,8 @@
 
 from ..components.c2a import c2a
+from ..components.custom import spacer
 from ..components.footer import footer
 from ..components.navbar import navbar
-from ..components.custom import spacer
 from ...states.base import BaseState
 from ...states.navbar import NavbarState
 
@@ -11,7 +11,7 @@ import reflex as rx
 @rx.page(
         route='/',
         title='Nurse Reports',
-        on_load=BaseState.standard_flow('req_none')
+        on_load=BaseState.event_state_standard_flow('none')
 )
 def index_page() -> rx.Component:
     return rx.flex(

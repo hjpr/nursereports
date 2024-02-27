@@ -1,9 +1,12 @@
 
 from ..server.supabase.auth import supabase_get_new_access_token
+from ..server.supabase.user import supabase_get_user_info
+from typing import Literal
 
 import jwt
 import os
 import reflex as rx
+import rich
 import time
 
 from dotenv import load_dotenv
@@ -23,115 +26,174 @@ class BaseState(rx.State):
         same_site='strict',
         secure=True,
     )
-
     refresh_token: str = rx.Cookie(
         name="refresh_token",
         same_site='strict',
         secure=True,
     )
-
-    user_data: dict
-
+    user_info: dict
+    
     @rx.cached_var
-    def claims(self) -> dict[str, str] | str:
-        try:
-            claims = jwt.decode(
-                self.access_token,
-                jwt_key,
-                audience='authenticated',
-                algorithms=['HS256'],
-            )
-            return claims
-        except jwt.ExpiredSignatureError:
-            logger.warning("Claims expired!")
-            return "expired"
-        except jwt.InvalidAudienceError:
-            logger.critical("Claims invalid!")
-            return "invalid"
-        except Exception as e:
-            logger.critical(f"Can't retrieve claims - {e}")
-            return "other"
-        
+    def user_claims(self) -> dict:
+        """Ensures that claims are valid and unexpired.
+
+        Returns:
+            dict:
+                valid: bool
+                payload: dict of claims if valid
+                reason: if claims invalid - why
+        """
+        if self.access_token:
+            try:
+                claims = jwt.decode(
+                    self.access_token,
+                    jwt_key,
+                    audience='authenticated',
+                    algorithms=['HS256'],
+                )
+                return {
+                    "valid": True,
+                    "payload": claims,
+                    "reason": None
+                }
+            except jwt.ExpiredSignatureError:
+                return {
+                    "valid": False,
+                    "payload": None,
+                    "reason": "expired"
+                }
+            except jwt.InvalidSignatureError:
+                return {
+                    "valid": False,
+                    "payload": None,
+                    "reason": "invalid"
+                }
+        else:
+            return {
+                "valid": False,
+                "payload": None,
+                "reason": "empty"
+            }
+
     @rx.cached_var
     def user_is_authenticated(self) -> bool:
-        if isinstance(self.claims, dict):
-            if self.claims['aud'] == 'authenticated':
-                logger.debug("User is authenticated.")
+        if self.access_token:
+            if self.user_claims['valid']:
                 return True
             else:
                 return False
-        if isinstance(self.claims, str):
-            logger.warning("User is not authenticated.")
+        else:
             return False
         
     @rx.cached_var
     def user_has_reported(self) -> bool:
-        if isinstance(self.claims, dict):
-            if self.claims.get("has_reported"):
-                logger.debug("User has submitted the required report.")
-                return True
-            else:
-                logger.warning("User hasn't submitted the required report.")
+        if self.access_token and self.user_info:
+            if self.user_info['needs_onboard']:
                 return False
+            else:
+                return True
         else:
-            logger.warning("No claims to pull user report status.")
             return False
 
-    def get_new_access_token(self) -> Iterable:
+    def refresh_claims_if_needed(self) -> None:
+        if self.access_token:
+            if self.user_claims['valid']:
+                current_time = int(time.time())
+                expires_at = self.user_claims['payload']['exp']
+                time_left_sec = (expires_at - current_time)
+                if 5 <= time_left_sec <= 1800:
+                    self.refresh_access_token()
+
+    def refresh_access_token(self) -> None:
         response = supabase_get_new_access_token(
             self.access_token,
             self.refresh_token
-            )
+        )
         if response["success"]:
             self.access_token = response["payload"]["access_token"]
             self.refresh_token = response["payload"]["refresh_token"]
-        else:
-            yield rx.redirect('/')
 
-    def check_claims(self) -> Iterable | None:
-        from ..states.navbar import NavbarState
-        if isinstance(self.claims, dict):
-            current_time = int(time.time())
-            expires_at = self.claims['exp']
-            time_left_sec = (expires_at - current_time)
-            if 5 <= time_left_sec <= 1800:
-                self.get_new_access_token()
-        else:
-            if self.claims == 'expired':
-                self.access_token = ""
-                self.refresh_token = ""
-                yield NavbarState.set_alert_message(
-                    "For security you've been logged out for inactivity."
-                )
+    def user_access_granted(self, access_level) -> dict[bool, str]:
+        """Returns dict containing access bool, and reason if denied.
+        
+        Args:
+            access_level: 'login' or 'report' depending on what user 
+                needs in order to access.
 
-    def check_access(self, access_level) -> Iterable | None:
-        from ..states.navbar import NavbarState
-        if access_level == 'req_none':
-            yield None
-        if access_level == 'req_login' and not self.user_is_authenticated:
-            yield rx.redirect('/')
-            yield NavbarState.set_login_tab("login")
-            yield NavbarState.set_show_login(True)
-            yield NavbarState.set_error_sign_in_message(
-                "You must be logged in to access that content."
-            )
-        if access_level == 'req_report' and not self.user_has_reported:
-            yield rx.redirect('/onboard')
-            yield NavbarState.set_alert_message(
-                "Please submit a report before accessing that content."
-            )
+        Returns:
+            dict:
+                access_granted: bool
+                reason: 'login' or 'report' depending on what the user was
+                    missing.
+        """
+        if access_level == 'login' and not self.user_is_authenticated:
+            return {
+                "access_granted": False,
+                "reason": "login"
+            }
+        if access_level == 'report' and not self.user_has_reported:
+            if self.user_is_authenticated:
+                return {
+                    "access_granted": False,
+                    "reason": "report"
+                }
+            else:
+                return {
+                    "access_granted": False,
+                    "reason": "login"
+                }
+        return {
+            "access_granted": True,
+            "reason": None
+        }
 
-    def standard_flow(self, access_level) -> Iterable[Callable] | None:
-        yield from self.check_if_sso_redirect()
-        yield from self.check_claims()
-        yield from self.check_access(access_level)
-
-    def check_if_sso_redirect(self) -> Iterable[Callable]:
-        from ..states.navbar import NavbarState
+    def check_if_sso_redirect(self) -> None:
         raw_path = self.router.page.raw_path
         if ("access_token" in raw_path) and ("refresh_token" in raw_path):
-            fragment = raw_path.split("#")[1]
-            self.access_token = fragment.split("&")[0].split("=")[1]
-            self.refresh_token = fragment.split("&")[4].split("=")[1]
-            yield NavbarState.set_show_login(False)
-            yield rx.redirect('/')
+            self.set_tokens_from_sso_redirect(raw_path)
+            self.set_user_data()
+
+    def set_tokens_from_sso_redirect(self, raw_path) -> None:
+        fragment = raw_path.split("#")[1]
+        self.access_token = fragment.split("&")[0].split("=")[1]
+        self.refresh_token = fragment.split("&")[4].split("=")[1]
+
+    def set_user_data(self) -> None:
+        response = supabase_get_user_info(self.access_token)
+        if response['success']:
+            self.user_info = response['payload']
+
+    def redirect_if_access_denied(self, access_req) -> Iterable[Callable]:
+        from ..states.navbar import NavbarState
+        status = self.user_access_granted(access_req)
+        if not status['access_granted']:
+            if status['reason'] == 'login':
+                yield rx.redirect('/')
+                yield NavbarState.set_login_tab("login")
+                yield NavbarState.set_show_login(True)
+                yield NavbarState.set_error_sign_in_message(
+                    "You must be logged in to access that content."
+                )
+            elif status['reason'] == 'report':
+                yield rx.redirect('/onboard')
+                yield NavbarState.set_alert_message(
+                    "Please submit a report before accessing that content."
+                )
+            else:
+                return rx.redirect('/')
+
+    def event_state_standard_flow(
+            self,
+            access_req: Literal['none', 'login', 'report']
+            ) -> Iterable[Callable] | None:
+        """Simple standard login flow.
+            1: Check if we are coming from an auth redirect.
+            2: Refresh our claims if user is active and between 30-59 min.
+            3: Redirect our user if they don't have proper access.
+
+            Args:
+                access_req: 'none', 'login', or 'report'
+        """
+        self.check_if_sso_redirect()
+        self.refresh_claims_if_needed()
+        yield from self.redirect_if_access_denied(access_req)

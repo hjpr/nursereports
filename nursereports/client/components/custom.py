@@ -1,7 +1,7 @@
 
-from functools import wraps
 from ...states.base import BaseState
 
+import functools
 import reflex as rx
 
 def spacer(**props) -> rx.Component:
@@ -10,13 +10,22 @@ def spacer(**props) -> rx.Component:
     """
     return rx.box(**props)
 
-def protected(page: rx.Component) -> rx.Component:
-    def decorator(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs) -> rx.Component:
-            if BaseState.user_is_authenticated:
-                return func(*args, **kwargs)
-            else:
-                return rx.chakra.spinner()
-        return wrapper
-    return decorator
+def login_protected(page) -> rx.Component:
+    @functools.wraps(page)
+    def _wrapper() -> rx.Component:
+        return rx.cond(
+            BaseState.user_is_authenticated,
+            page(),
+            rx.box()
+        )
+    return _wrapper
+
+def report_protected(page) -> rx.Component:
+    @functools.wraps(page)
+    def _wrapper() -> rx.Component:
+        return rx.cond(
+            BaseState.user_has_reported,
+            page(),
+            rx.box()
+        )
+    return _wrapper

@@ -1,6 +1,6 @@
 
 from ..components.c2a import c2a
-from ..components.custom import spacer
+from ..components.custom import spacer, login_protected
 from ..components.footer import footer
 from ..components.navbar import navbar
 from ...states.base import BaseState
@@ -11,8 +11,9 @@ import reflex as rx
 @rx.page(
         title="Search",
         route="/search/[context]",
-        on_load=BaseState.standard_flow('req_login')
+        on_load=BaseState.event_state_standard_flow('login')
 )
+@login_protected
 def search_page() -> rx.Component:
     return rx.flex(
         c2a(),

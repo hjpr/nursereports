@@ -8,5 +8,8 @@ import reflex as rx
 # INITIALIZE THE APP
 app = rx.App(
     middleware=[LoggingMiddleware()],
-    theme=rx.theme(accent_color='teal')
+    theme=rx.theme(
+        accent_color='teal',
+        appearance='light'
+    )
 )

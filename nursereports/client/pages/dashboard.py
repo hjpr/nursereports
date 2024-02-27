@@ -1,8 +1,8 @@
 
-from ..components.c2a import c2a    
+from ..components.c2a import c2a   
+from ..components.custom import spacer, report_protected 
 from ..components.footer import footer
 from ..components.navbar import navbar
-from ..components.custom import spacer
 from ...states.base import BaseState
 
 import reflex as rx
@@ -10,8 +10,9 @@ import reflex as rx
 @rx.page(
         route='/dashboard',
         title="Nurse Reports",
-        on_load=BaseState.standard_flow('req_report')
+        on_load=BaseState.event_state_standard_flow('report')
 )
+@report_protected
 def dashboard_page() -> rx.Component:
     return rx.flex(
         c2a(),
