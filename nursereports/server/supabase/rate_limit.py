@@ -23,7 +23,6 @@ def rate_limit_supabase(
         table: target table to limit
         entry_limit: number of entries allowed within time limit
         time_limit: timeout in minutes
-        access_token: bearer token of user as jwt
     
     Returns:
         dict:

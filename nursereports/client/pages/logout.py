@@ -5,7 +5,7 @@ from ...states.navbar import NavbarState
 import reflex as rx
 
 @rx.page(
-    route='/logout',
+    route='/logout/[logout_reason]',
     title='Logging out...',
     on_load=NavbarState.event_state_logout
 )

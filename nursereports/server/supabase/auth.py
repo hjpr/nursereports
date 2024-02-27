@@ -15,6 +15,10 @@ def supabase_login_with_email(
     """
     Login using email and password. Returns dict of values.
 
+    Args:
+        email: <-
+        password: <-
+
     Returns:
         success: If API call successful.
         status: Status codes if any.refle
@@ -68,6 +72,10 @@ def supabase_create_account_with_email(
     """
     Create account using email and password. Returns dict of values.
 
+    Args:
+        email: <-
+        password: <-
+
     Returns:
         success: If API call successful.
         status: Status codes if any.
@@ -101,12 +109,18 @@ def supabase_create_account_with_email(
             "status": f"{error['msg']}"
         }
     
+
+
 def supabase_get_new_access_token(
         access_token: str,
         refresh_token: str,
         ) -> dict:
     """
     Get new access token using refresh token. Returns dict of values.
+
+    Args:
+        access_token: jwt object of user
+        refresh_token: refresh token to be used to refresh expiration
 
     Returns:
         success: If API call successful.
@@ -149,8 +163,3 @@ def supabase_get_new_access_token(
                         {response.reason_phrase}",
             "payload": None
         }
-    
-def supabase_sso_login(provider) -> Iterable[Callable]:
-    yield rx.redirect(
-        f'{api_url}/auth/v1/authorize?provider={provider}'
-    )

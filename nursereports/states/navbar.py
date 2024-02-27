@@ -1,8 +1,8 @@
 
+from ..server.supabase import api_url
 from ..server.supabase.auth import (
     supabase_login_with_email,
-    supabase_create_account_with_email,
-    supabase_sso_login
+    supabase_create_account_with_email
 )
 from ..server.supabase.feedback import supabase_submit_feedback
 from ..states.base import BaseState
@@ -23,6 +23,10 @@ class NavbarState(BaseState):
     @rx.var
     def show_alert_message(self) -> bool:
         return True if self.alert_message else False
+    
+    @rx.var
+    def reason_for_logout(self) -> str:
+        return self.router.page.params.get('logout_reason')
     
     def set_show_feedback(self, feedback) -> None:
         self.error_feedback_message = ""
@@ -66,14 +70,24 @@ class NavbarState(BaseState):
         if form_data.get("create_account_email"):
             self.event_state_email_create_account(form_data)
 
-    def event_state_login_with_email(self, form_data: dict) -> Callable | None:
+    def event_state_login_with_email(self, form_data: dict) -> Iterable[Callable] | None:
         email = form_data.get("login_email")
         password = form_data.get("login_password")
         response = supabase_login_with_email(email, password)
         if response['success']:
             self.access_token = response['payload']['access_token']
             self.refresh_token = response['payload']['refresh_token']
-            self.show_login = False
+            response = self.set_user_data()
+            if response['success']:
+                self.show_login = False
+                if self.user_info['needs_onboard']:
+                    yield rx.redirect('/onboard')
+                else:
+                    yield rx.redirect('/dashboard')
+            else:
+                self.access_token = ""
+                self.refresh_token = ""
+                self.error_sign_in_message = response['status']
         else:
             self.error_sign_in_message = response['status']
 
@@ -97,14 +111,28 @@ class NavbarState(BaseState):
             else:
                 self.error_create_account_message = response['status']
 
-    def event_state_login_with_sso(self, provider: str) -> Iterable[Callable]:
+    def event_state_login_with_sso(self, provider: str) -> Callable:
         self.show_login = False
-        yield from supabase_sso_login(provider)
+        return rx.redirect(
+            f'{api_url}/auth/v1/authorize?provider={provider}'
+        )
     
     def event_state_logout(self) -> Iterable[Callable]:
-        if self.access_token:
+        if self.reason_for_logout == 'user':
             self.access_token = ""
-        if self.refresh_token:
             self.refresh_token = ""
-        self.alert_message = "Successfully logged out."
-        yield rx.redirect("/")
+            self.alert_message = "Successfully logged out."
+            yield rx.redirect("/")
+        if self.reason_for_logout == 'error':
+            self.access_token = ""
+            self.refresh_token = ""
+            self.alert_message = """Encountered error requiring reset.
+                If this message persists, the backend is likely down
+                and we are in the process of recovering.
+                """
+        if self.reason_for_logout == 'expired':
+            self.access_token = ""
+            self.refresh_token = ""
+            self.alert_message = """For your security, you've been
+                logged out for inactivity.
+                """
