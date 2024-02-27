@@ -154,6 +154,7 @@ class BaseState(rx.State):
             self.set_tokens_from_sso_redirect(raw_path)
             self.set_user_data()
             yield NavbarState.set_show_login(False)
+            yield from self.redirect_for_report_status
 
     def set_tokens_from_sso_redirect(self, raw_path) -> None:
         fragment = raw_path.split("#")[1]
@@ -205,4 +206,3 @@ class BaseState(rx.State):
         yield from self.check_if_sso_redirect()
         self.refresh_claims_if_needed()
         yield from self.redirect_if_access_denied(access_req)
-        yield from self.redirect_for_report_status()
