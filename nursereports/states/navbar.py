@@ -98,12 +98,9 @@ class NavbarState(BaseState):
                 self.error_create_account_message = response['status']
     
     def event_state_logout(self) -> Iterable[Callable]:
-        # if self.access_token:
-        #     self.access_token = ""
-        # if self.refresh_token:
-        #     self.refresh_token = ""
-        # self.alert_message = "Successfully logged out."
-        yield BaseState.set_access_token("")
-        yield BaseState.set_refresh_token("")
-        yield NavbarState.set_alert_message("")
+        if self.access_token:
+            self.access_token = ""
+        if self.refresh_token:
+            self.refresh_token = ""
+        self.alert_message = "Successfully logged out."
         yield rx.redirect("/")
