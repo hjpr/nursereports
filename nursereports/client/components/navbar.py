@@ -379,34 +379,6 @@ def login_tab_account() -> rx.Component:
             )
         ),
         rx.center(
-            rx.switch(
-                name='create_account_student',
-                default_checked=False,
-            ),
-            rx.text(
-                "I'm a ",
-                rx.popover.root(
-                    rx.popover.trigger(
-                        rx.link(
-                            "nursing student.",
-                            color_scheme='blue',
-                            size='2'
-                        ),
-                    ),
-                    rx.popover.content(
-                        rx.text(
-                            """Students can access our resources
-                            for 1 year and then must submit a report
-                            after hire to maintain access."""
-                        )
-                    )
-                ),
-                size='2'
-            ),
-            gap='8px',
-            margin_top='8px'
-        ),
-        rx.center(
             rx.button(
                 "Create account",
                 width='100%',

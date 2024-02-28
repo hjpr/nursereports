@@ -41,7 +41,7 @@ class BaseState(rx.State):
     
     @rx.cached_var
     def user_claims(self) -> dict:
-        """Ensures that claims are valid and unexpired.
+        """Pull claims from JWT if valid and not expired.
 
         Returns:
             dict:
