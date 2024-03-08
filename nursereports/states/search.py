@@ -1,6 +1,6 @@
 
-from ..components.lists import cities_by_state, state_abbr_dict
-from ..states.cookie import CookieState
+from ..client.components.lists import cities_by_state, state_abbr_dict
+from ..states.base import BaseState
 
 from loguru import logger
 from typing import Callable, Iterable
@@ -16,22 +16,19 @@ load_dotenv()
 api_url = os.getenv("SUPABASE_URL")
 api_key = os.getenv("SUPABASE_ANON_KEY")
 
-class SearchState(CookieState):
-    """
-    State for search functionality.
-    """
+class SearchState(BaseState):
     selected_state: str
     selected_city: str
-    current_search_range: int = 10
-    range_options: list[int] = [10, 20, 50]
+    current_search_range: int = "10"
+    range_options: list[str] = ["10", "20", "50"]
 
     @rx.var
     def search_range(self) -> str:
-        if self.current_search_range == 10:
+        if self.current_search_range == "10":
             return "0-9"
-        if self.current_search_range == 20:
+        if self.current_search_range == "20":
             return "0-20"
-        if self.current_search_range == 50:
+        if self.current_search_range == "50":
             return "0-50"
 
     @rx.var
@@ -53,18 +50,18 @@ class SearchState(CookieState):
             return ""
         
     @rx.var
-    def state_options(self) -> list:
+    def state_options(self) -> list[str]:
         return [state for state in state_abbr_dict.keys()]
 
     def do_selected_state(self, selection: str) -> Iterable[Callable]:
-        yield SearchState.set_selected_state(selection)
-        yield SearchState.set_selected_city("")
+        self.selected_state = selection
+        self.selected_city = ""
 
     def do_selected_city(self, selection: str) -> Iterable[Callable]:
-        yield SearchState.set_selected_city(selection)
+        self.selected_city = selection
 
     @rx.var
-    def city_options(self) -> list:
+    def city_options(self) -> list[str]:
         if self.selected_state:
             state_to_abbr = state_abbr_dict[self.selected_state]
             return sorted(cities_by_state.get(state_to_abbr))
@@ -110,17 +107,11 @@ class SearchState(CookieState):
                 return list_of_hospitals
             else:
                 if response.status_code == 401:
-                    return [response.reason_phrase] # "Unauthorized" if token expired
+                    return [response.reason_phrase]
         else:
             return []
         
     def nav_to_report(self, summary_id) -> Iterable[Callable]:
-        """
-        Prior to navigating, since all values are stored in state if
-        report is completed during session, we need to clear values
-        on navigating to a report in case user is submitting multiple
-        reports that session.
-        """
-        yield SearchState.set_selected_state("")
-        yield SearchState.set_selected_city("")
+        self.selected_city = ""
+        self.selected_state = ""
         yield rx.redirect(f"/report/summary/{summary_id}")
