@@ -32,13 +32,16 @@ def onboard_page() -> rx.Component:
 
 def content() -> rx.Component:
     return rx.flex(
-        header_image(),
-        first_panel(),
+        rx.flex(
+            header_image(),
+            first_panel(),
+            gap='20px',
+            flex_direction=['column', 'column', 'row', 'row', 'row']
+        ),
         second_panel(),
         gap='40px',
         padding_x='20px',
-        width=['100%', '100%', '600px', '600px', '600px'],
-        max_width='1200px',
+        width=['100%', '100%', '800px', '800px', '800px'],
         align='center',
         flex_direction='column',
         flex_basis='auto',
@@ -47,42 +50,45 @@ def content() -> rx.Component:
     )
 
 def header_image() -> rx.Component:
-    return rx.center(
-        rx.box(
-            height="200px",
-            width="300px",
-            border='1px solid black'
+    return rx.flex(
+        rx.text(
+            "onboard_image"
         ),
-        width="100%"
+        width='100%',
+        padding='100px 0px 100px 0px',
+        border='1px dashed black',
+        align_items='center',
+        justify_content='center'
     )
 
 def first_panel() -> rx.Component:
-    return rx.flex(
+    return rx.flex( 
         rx.vstack(
             rx.heading(
                 "Thanks for joining us!",
-                align="center",
                 width='100%'
             ),
             rx.text(
                 """
-                Hey, I'm Jeremy, an active ICU nurse from the East
-                Coast. I started this project after watching
+                Hey, I'm Jeremy, a current bedside ICU nurse
+                from the East Coast. I started building this site
+                after watching
                 hospitals ignore the needs of the nursing community
-                during COVID. If you want to read more about
+                during COVID. To read more about
                 our lofty goals and what makes this project special
                 """,
                 rx.link("click here.")
             ),
             rx.text(
                 """
-                Our community is and always will be free to access - 
-                I simply ask that you share a report first. Thanks!
+                Our community is and always will be free to access. 
+                I simply ask that you share a report first. If you
+                are a student, or haven't worked bedside within the
+                past year you may still access our site but will
+                need to submit a report once you are hired.
                 """
             ),
             gap="20px",
-            max_width='400px',
-            text_align='center',
         ),
         width='100%',
         justify='center'
@@ -90,40 +96,45 @@ def first_panel() -> rx.Component:
 
 def second_panel() -> rx.Component:
     return rx.flex(
-        rx.vstack(
-            rx.center(
-                rx.checkbox(
-                    name='create_account_student',
-                    default_checked=False,
-                ),
-                rx.text(
-                    "I'm a ",
-                    rx.popover.root(
-                        rx.popover.trigger(
-                            rx.link(
-                                "nursing student.",
-                                color_scheme='blue',
-                                size='2'
-                            ),
-                        ),
-                        rx.popover.content(
-                            rx.text(
-                                """Students can access our resources
-                                for 1 year and then must submit a report
-                                after hire to maintain access."""
-                            )
-                        )
+        rx.form(
+            rx.vstack(
+                rx.center(
+                    rx.checkbox(
+                        name='no_recent_experience',
+                        default_checked=False,
                     ),
-                    size='2'
+                    rx.text(
+                        "I don't have ",
+                        rx.popover.root(
+                            rx.popover.trigger(
+                                rx.link(
+                                    "recent hospital experience",
+                                    color_scheme='blue',
+                                    size='2'
+                                ),
+                            ),
+                            rx.popover.content(
+                                rx.text(
+                                    """Working in a bedside role within
+                                    the past 1 year."""
+                                )
+                            )
+                        ),
+                        size='2'
+                    ),
+                    gap='8px',
                 ),
-                gap='8px',
-            ),
-            rx.button(
-                "Let's go!"
+                rx.button(
+                    "Let's go!",
+                    color_scheme='crimson',
+                    type='submit'
+                ),
+                width='100%',
+                gap='24px',
+                align='center',
             ),
             width='100%',
-            gap='20px',
-            align='center',
+            on_submit=OnboardState.event_state_submit_onboard
         ),
-        width='100%',
+        width='100%'
     )

@@ -1,5 +1,6 @@
 
 from . import api_url, api_key
+from datetime import datetime, timezone
 from loguru import logger
 
 import httpx
@@ -81,6 +82,8 @@ def supabase_create_initial_user_info(
     Default values set during initial user creation via default
     supabase settings:
         user_id: user provided uuid
+        created_at: user creation date
+        modified_at: user modified last date
         membership: 'free'
         needs_onboard: True
         my_hospitals: {}
@@ -117,7 +120,8 @@ def supabase_create_initial_user_info(
         
 def supabase_update_user_info(
         access_token: str,
-        data: dict,
+        user_id: str,
+        data: list,
     ) -> dict:
     """
     Updates public users table with users access_token and dict of
@@ -125,17 +129,20 @@ def supabase_update_user_info(
 
     Args:
         access_token: jwt object of user
-        data: dict of rows to update
+        user_id: claims id of user
+        data: list of columns to update
 
     Returns:
         success: If API call successful.
         status: Status codes if any.
     """
-    url = f'{api_url}/rest/v1/users'
+    data['modified_at'] = get_current_utc_timestamp_as_str()
+    url = f'{api_url}/rest/v1/users?user_id=eq.{user_id}'
     headers = {
         "apikey": api_key,
         "Authorization": f"Bearer {access_token}",
         "Content-Type": "application/json",
+        "Prefer": "return=minimal"
     }
     response = httpx.patch(
         url=url,
@@ -150,8 +157,13 @@ def supabase_update_user_info(
         }
     else:
         logger.critical("Failed to update user info in public/users!")
+        rich.inspect(response)
         return {
             "success": False,
             "status": f"{response.status_code} - \
                 {response.reason_phrase}"
         }
+    
+def get_current_utc_timestamp_as_str() -> str:
+    now = datetime.now(timezone.utc)
+    return now.strftime('%Y-%m-%d %H:%M:%S.%f%z')
