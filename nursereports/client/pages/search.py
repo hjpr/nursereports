@@ -5,6 +5,7 @@ from ..components.footer import footer
 from ..components.navbar import navbar
 from ...states.base import BaseState
 from ...states.search import SearchState
+from typing import Dict
 
 import reflex as rx
         
@@ -19,89 +20,79 @@ def search_page() -> rx.Component:
         c2a(),
         navbar(),
         spacer(height='40px'),
-         rx.flex(
-            rx.vstack(
-                rx.heading(
-                    "Find your hospital",
-                    ),
-                spacer(height='20px'),
-                rx.hstack(
-                    rx.select(
-                        SearchState.state_options,
-                        value=SearchState.selected_state,
-                        placeholder="Select state",
-                        on_change=SearchState.do_selected_state
-                    ),
-                    rx.select(
-                       SearchState.city_options,
-                        placeholder="Select city",
-                        value=SearchState.selected_city,
-                        on_change=SearchState.do_selected_city
-                    ),
-                    width=['100%', '100%', '600px', '600px', '600px'],
-                ),
-                rx.accordion.root(
-                    rx.accordion.item(
-                        header="Filters",
-                        content=rx.center(
-                            rx.text(
-                                "Max results per page",
-                                width='100%'
-                                ),
-                            rx.spacer(),
-                            rx.select(
-                                SearchState.range_options,
-                                on_change=SearchState.set_current_search_range,
-                            )
-                        )
-                    ),
-                    width='100%'
-                ),
-                spacer(height='40px'),
-                search_results(),
-                spacer(height='80px'),
-                width=['100%', '100%', '600px', '600px', '600px'],
-            ),
-            padding_x='20px',
-            width='100%',
-            max_width='1200px',
-            align='center',
-            flex_direction='column',
-            flex_basis='auto',
-            flex_grow='1',
-            flex_shrink='0',
-        ),
+        content(),
         footer(),
-        width='100%',
         flex_direction='column',
         align='center',
         min_height='100vh',
     )
 
-def search_results() -> rx.Component:
-    return rx.cond(
-        rx.State.is_hydrated,
-        rx.cond(
-            SearchState.search_results,
-            rx.cond(
-                ~SearchState.results_failed,
-                rx.vstack(
-                    rx.foreach(
-                        SearchState.search_results,
-                        render_results
-                    ),
-                    width='100%',
-                ),
-                rx.center(
-                    rx.text("Your token has expired, please refresh this page to login again."),
-                    width='100%'
-                )
-            )
-        ),
-        rx.chakra.spinner()
+def content() -> rx.Component:
+    return rx.flex(
+        header(),
+        search_dropdowns(),
+        rx.divider(),
+        search_results(),
+        padding_x='20px',
+        width='100%',
+        max_width='768px',
+        spacing='4',
+        align='center',
+        flex_direction='column',
+        flex_basis='auto',
+        flex_grow='1',
+        flex_shrink='0',
     )
 
-def render_results(result: dict) -> rx.Component:
+def header() -> rx.Component:
+    """url_context can be either 'hospital' or 'report'."""
+    return rx.flex(
+        rx.heading(
+            "Find your hospital"
+        ),
+        width='100%',
+        justify='center'
+    )
+
+def search_dropdowns() -> rx.Component:
+    return rx.flex(
+        rx.select(
+            SearchState.state_options,
+            value=SearchState.selected_state,
+            placeholder="- Select state -",
+            on_change=SearchState.event_state_state_selected,
+        ),
+        rx.select(
+            SearchState.city_options,
+            placeholder="- Select city -",
+            value=SearchState.selected_city,
+            on_change=SearchState.event_state_city_selected,
+        ),
+        rx.button(
+            "Search",
+            color_scheme='crimson',
+            on_click=SearchState.event_state_search
+        ),
+        gap='8px',
+        width='100%',
+        justify_content='center'
+    )
+
+
+def search_results() -> rx.Component:
+    return rx.cond(
+        SearchState.search_results,
+        rx.vstack(
+            rx.foreach(
+                SearchState.search_results,
+                render_results
+            ),
+            width='100%',
+            spacing='4'
+        )
+    )
+
+def render_results(result: Dict) -> rx.Component:
     return rx.card(
         rx.flex(
             rx.hstack(
@@ -121,8 +112,10 @@ def render_results(result: dict) -> rx.Component:
                         "Select",
                         on_click=SearchState.nav_to_report(result['hosp_id']),
                     ),
+                    height='100%',
                     width='30%',
                     justify='end',
+                    align='center'
                 ),
                 width='100%',
             ),

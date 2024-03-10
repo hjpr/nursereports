@@ -84,8 +84,9 @@ def first_panel() -> rx.Component:
                 Our community is and always will be free to access. 
                 I simply ask that you share a report first. If you
                 are a student, or haven't worked bedside within the
-                past year you may still access our site but will
-                need to submit a report once you are hired.
+                past year check the box below. You may still access
+                our site but will need to submit a report once you
+                are hired.
                 """
             ),
             gap="20px",
