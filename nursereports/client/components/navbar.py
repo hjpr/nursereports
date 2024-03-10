@@ -38,7 +38,7 @@ def navbar() -> rx.Component:
             cond_options(),
             rx.spacer(),
             cond_account(),
-            height='60px',
+            height='72px',
             padding_x='24px',
             padding_y='12px',
             width='100%',

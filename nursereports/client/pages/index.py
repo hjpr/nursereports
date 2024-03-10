@@ -29,11 +29,11 @@ def content() -> rx.Component:
     return rx.flex(
         main_panel(),
         first_panel(),
-        rx.divider(max_width='768px'),
+        rx.divider(max_width='728px'),
         second_panel(),
-        rx.divider(max_width='768px'),
+        rx.divider(max_width='728px'),
         third_panel(),
-        rx.divider(max_width='768px'),
+        rx.divider(max_width='728px'),
         fourth_panel(),
         spacer(height='16px'),
         width='100%',
@@ -90,18 +90,10 @@ def first_panel() -> rx.Component:
     return rx.center(
         rx.vstack(
             rx.heading(
-                """A comprehensive hospital report system for nurses,
-                by nurses.""",
-                size='8'
-            ),
-            rx.text(
-                """We're proud to debut the first bedside-developed,
-                community-focused database of hospital reports focused
-                solely on nurse interests. Our goals include
-                increasing transparency and accountability, and providing
-                new tools for nurses to develop their careers in ways
-                not previously possible.
-                """
+                """Discover information on pay, benefits, staffing,
+                and culture across hospitals nationwide.""",
+                size='8',
+                text_align='center'
             )
         ),
         width='100%',
@@ -147,7 +139,7 @@ def third_panel() -> rx.Component:
                 ),
                 rx.text(
                     """
-                    Report information without fear of blowback.
+                    Submit reports without fear of blowback.
                     Your personal information won't be shared
                     with hospitals or any other third party.
                     """

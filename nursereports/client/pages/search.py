@@ -60,24 +60,26 @@ def search_dropdowns() -> rx.Component:
             SearchState.state_options,
             value=SearchState.selected_state,
             placeholder="- Select state -",
+            position='popper',
             on_change=SearchState.event_state_state_selected,
+            width='40%'
         ),
         rx.select(
             SearchState.city_options,
             placeholder="- Select city -",
             value=SearchState.selected_city,
+            position='popper',
             on_change=SearchState.event_state_city_selected,
+            width='40%'
         ),
         rx.button(
             "Search",
-            color_scheme='crimson',
             on_click=SearchState.event_state_search
         ),
         gap='8px',
         width='100%',
         justify_content='center'
     )
-
 
 def search_results() -> rx.Component:
     return rx.cond(
