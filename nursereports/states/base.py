@@ -16,9 +16,6 @@ from loguru import logger
 from typing import Callable, Iterable
 
 load_dotenv()
-
-api_url = os.getenv("SUPABASE_URL")
-api_key = os.getenv("SUPABASE_ANON_KEY")
 jwt_key = os.getenv("SUPABASE_JWT_KEY")
 
 class BaseState(rx.State):
