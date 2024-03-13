@@ -651,7 +651,7 @@ def button() -> rx.Component:
     return rx.card(
         rx.flex(
             rx.button(
-                "Go to next section",
+                "Go to Assignment",
                 rx.icon("arrow-big-right"),
                 on_click=ReportState.handle_submit_comp,
                 variant='ghost',

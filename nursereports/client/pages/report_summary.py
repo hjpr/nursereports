@@ -109,9 +109,10 @@ def section_anonymous() -> rx.Component:
                     width='100px'
                 ),
                 rx.flex(
-                    rx.text("""Reports are anonymous. No
-                        personal information will be displayed
-                        on your report.
+                    rx.text(
+                        """
+                        All reporting is anonymous. No personal details
+                        are attached to your report.
                         """,
                         padding_x='20px'
                     ),
@@ -134,10 +135,11 @@ def section_motivation() -> rx.Component:
                     width='100px'
                 ),
                 rx.flex(
-                    rx.text("""Our report database is built to
-                        only benefit nurses. We are not
-                        affiliated with hospitals or other
-                        business interests.
+                    rx.text(
+                        """
+                        This database is only for nursing interests.
+                        I am not affiliated with hospitals or
+                        corporations.
                         """,
                         padding_x='20px'
                     ),
@@ -160,12 +162,13 @@ def section_time() -> rx.Component:
                     width='100px'
                 ),
                 rx.flex(
-                    rx.text("""We value your time. Submitting your
-                            report will only take you about 4-7
-                            minutes.
-                            """,
-                            padding_x='20px'
-                            ),
+                    rx.text(
+                        """
+                        Your time is valuable. This should only take
+                        about 5 minutes. 
+                        """,
+                        padding_x='20px'
+                        ),
                     height='100%',
                     width='100%',
                     align_items='center',

@@ -125,7 +125,7 @@ def down_arrow() -> rx.Component:
 def buttons() -> rx.Component:
     return rx.card(
         rx.flex(
-            rx.button("Go to compensation",
+            rx.button("Go to Compensation",
                 rx.icon("arrow-big-right"),
                 size='3',
                 variant='ghost',
