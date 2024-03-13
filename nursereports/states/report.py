@@ -1,5 +1,5 @@
 
-from ..states.base import BaseState
+from ..states.page import PageState
 from loguru import logger
 from typing import Callable, Iterable
 
@@ -19,7 +19,7 @@ api_key = os.getenv("SUPABASE_ANON_KEY")
 anyscale_url = os.getenv("ANYSCALE_URL")
 anyscale_api_key = os.getenv("ANYSCALE_API_KEY")
 
-class ReportState(BaseState):
+class ReportState(PageState):
     """
     State for the report, variables grouped into the three major
     groups of the report; compensation, staffing, and assignment.
@@ -57,23 +57,25 @@ class ReportState(BaseState):
 
     comp_select_total_experience: str
 
-    comp_check_benefit_pto: bool
+    comp_check_benefit_pto: bool = False
 
-    comp_check_benefit_parental: bool
+    comp_check_benefit_parental: bool = False
 
-    comp_check_benefit_insurance: bool
+    comp_check_benefit_insurance: bool = False
 
-    comp_check_benefit_retirement: bool
+    comp_check_benefit_retirement: bool = False
 
-    comp_check_benefit_pro_dev: bool
+    comp_check_benefit_pro_dev: bool = False
 
-    comp_check_benefit_tuition: bool
+    comp_check_benefit_tuition: bool = False
 
     comp_select_comp_adequate: str
 
     comp_input_comments: str
 
     comp_select_overall: str
+
+    comp_error_message: str
 
     def set_comp_input_pay_amount(self, pay: str) -> None:
         if bool(re.match(r"^[0-9]+$", pay)):
@@ -119,12 +121,12 @@ class ReportState(BaseState):
 
     @rx.var
     def is_pay_invalid(self) -> bool:
-        if self.comp_input_pay_amount:
-            if self.comp_input_pay_amount < 1 or\
-                self.comp_input_pay_amount > 125 and self.is_hourly:
+        if self.comp_input_pay_amount or self.comp_input_pay_amount == 0:
+            if (self.comp_input_pay_amount < 20 or
+                self.comp_input_pay_amount > 200) and self.is_hourly:
                 return True
-            if self.comp_input_pay_amount < 1 or\
-                self.comp_input_pay_amount > 12000 and not self.is_hourly:
+            if (self.comp_input_pay_amount < 500 or
+                self.comp_input_pay_amount > 12000) and not self.is_hourly:
                 return True
         else:
             return False
@@ -173,7 +175,7 @@ class ReportState(BaseState):
     @rx.var
     def comp_comments_chars_left(self) -> int:
         if self.comp_input_comments:
-            return 500 - len(self.comp_input_comments)
+            return 1000 - len(self.comp_input_comments)
         
     @rx.var
     def comp_comments_chars_over(self) -> bool:
@@ -242,6 +244,10 @@ class ReportState(BaseState):
     @rx.var
     def comp_can_progress(self) -> bool:
         return True if self.comp_progress == 100 else False
+    
+    @rx.var
+    def comp_has_error(self) -> bool:
+        return True if self.comp_error_message else False
 
     #################################################################
     #
@@ -614,18 +620,6 @@ class ReportState(BaseState):
     id: str = str(uuid.uuid4())
 
     @rx.var
-    def comp_is_active(self) -> bool:
-        return True if "compensation" in self.router.page.full_raw_path else False
-
-    @rx.var
-    def staffing_is_active(self) -> bool:
-        return True if "staffing" in self.router.page.full_raw_path else False
-
-    @rx.var
-    def assign_is_active(self) -> bool:
-        return True if "assignment" in self.router.page.full_raw_path else False
-
-    @rx.var
     def completed_report(self) -> bool:
         if self.comp_progress == 100 and\
         self.staffing_progress == 100 and\
@@ -633,50 +627,48 @@ class ReportState(BaseState):
             return True
         else:
             return False
-        
-    @rx.cached_var
-    def hosp_info(self) -> dict:
-        if self.summary_id:
-            url = f"{api_url}/rest/v1/hospitals"\
-            f"?hosp_id=eq.{self.summary_id}"\
-            "&select=*"
-            headers = {
-                "apikey": api_key,
-                "Authorization": f"Bearer {self.access_token}",
-                "Content-Type": "application/json",
-            }
-            response = httpx.get(
-                url=url,
-                headers=headers
-            )
-            if response.is_success:
-                logger.debug("Response from Supabase.")
-                hospital = json.loads(response.content)
-                return hospital[0]
-            else:
-                logger.critical("Getting search results failed!")
     
     #################################################################
     #
-    # REPORT SUBMISSION & HANDLERS
+    # REPORT SUBMISSION \ HANDLERS
     #
     #################################################################
         
-    def handle_submit_comp(self, form_data: dict) -> Iterable[Callable]:
-        from ..states.navbar import NavbarState
+    def handle_submit_comp(self) -> Callable:
+        required_forms= {
+            "comp_select_emp_type": self.comp_select_emp_type,
+            "comp_select_pay_type": self.comp_select_pay_type,
+            "comp_input_pay_amount": self.comp_input_pay_amount,
+            "comp_select_diff_response": self.comp_select_diff_response,
+            "comp_select_incentive_response": self.comp_select_incentive_response,
+            "comp_select_certifications": self.comp_select_certifications,
+            "comp_select_shift": self.comp_select_shift,
+            "comp_select_weekly_shifts": self.comp_select_weekly_shifts,
+            "comp_select_hospital_experience": self.comp_select_hospital_experience,
+            "comp_select_total_experience": self.comp_select_total_experience,
+            "comp_select_comp_adequate": self.comp_select_comp_adequate,
+            "comp_select_overall": self.comp_select_overall
+        }
+        logger.debug(required_forms)
+        required_forms_complete = True
+        for key, value in required_forms.items():
+            if not value:
+                required_forms_complete = False
 
-        if len(self.comp_input_comments) > 500:
-            return NavbarState.set_alert_message(
-                """Text input field contains too many characters! Please limit
-                your response to less than 500 characters."""
-                )
-        elif self.is_pay_invalid or self.is_experience_invalid:
-            return NavbarState.set_alert_message(
-                """Some fields contain invalid information. Please fix
-                before attempting to proceed."""
-                )
-        else:
-            return rx.redirect(f"/report/submit/{self.report_id}/assignment/summary")
+        if not required_forms_complete:
+            self.comp_error_message = "Some fields incomplete or invalid."
+            return
+        if self.is_pay_invalid or self.is_experience_invalid:
+            self.comp_error_message = "Some fields incomplete or invalid."
+            return
+        if len(self.comp_input_comments) > 1000:
+            self.comp_error_message = "Comments contain too many characters."
+            return
+        
+        self.comp_error_message = ""
+        return rx.redirect(
+            f"/report/submit/{self.hosp_id_param}/assignment/summary"
+        )
 
     def handle_submit_assign(self, form_data: dict) -> Iterable[Callable]:
         from ..states.navbar import NavbarState
@@ -687,7 +679,7 @@ class ReportState(BaseState):
                 your response to less than 500 characters."""
                 )
         else:
-            return rx.redirect(f"/report/submit/{self.report_id}/staffing/summary")
+            return rx.redirect(f"/report/submit/{self.hosp_id_param}/staffing/summary")
 
     def handle_submit_staffing(self, form_data: dict) -> Iterable[Callable] | Callable:
         from ..states.navbar import NavbarState
@@ -824,48 +816,17 @@ class ReportState(BaseState):
             logger.critical("Unable to check for duplicate report id's.")
             rich.inspect(response)
 
+    def reset_report(self) -> None:
+        self.reset()
+
     #################################################################
     #
     # NAVIGATION EVENTS & PAGE PARAMETERS
     #
     #################################################################
 
-    @rx.var
-    def summary_id(self) -> str:
-        return self.router.page.params.get('summary_id')
-
-    @rx.var
-    def report_id(self) -> str:
-        return self.router.page.params.get('report_id')
-
     def report_nav(self, target_url: str) -> Callable:
-        """
-        Takes a target_url and determines if on summary page or report
-        page to route with medicare ID appropriately.
-        """
-        from ..states.navbar import NavbarState
-
-        if target_url == 'summary':
-            return rx.redirect(f"/report/summary/{self.report_id}/")
-        else:
-            if self.report_id:
-                return rx.redirect(f"/report/submit/{self.report_id}/{target_url}")
-            elif self.summary_id:
-                return rx.redirect(f"/report/submit/{self.summary_id}/{target_url}")
-            else:
-                return NavbarState.set_alert_message(
-                    f"Invalid URL target - {target_url}"
-            )
-                
-    def clear_and_nav_to_compensation(self) -> Iterable[Callable]:
-        """
-        Reset all vars in ReportState to prep for a new report. Do it
-        using the button nav between summary and compensation so that
-        user accidentally hitting back can still go forward back to
-        their report stored in state.
-        """
-        yield rx.redirect(f"/report/submit/{self.summary_id}/compensation/summary")
-        self.reset()
+        return rx.redirect(f"/report/submit/{self.hosp_id_param}/{target_url}")
 
     #################################################################
     #

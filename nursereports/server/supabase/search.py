@@ -1,5 +1,6 @@
 
 from . import api_key, api_url
+from loguru import logger
 
 import httpx
 import json
@@ -18,7 +19,7 @@ def supabase_get_hospital_search_results(
         city: user selected city
 
     Returns:
-        success: if API call successful
+        success: bool
         status: user readable status codes if fail
         payload: returned hospital list
     """
@@ -36,14 +37,17 @@ def supabase_get_hospital_search_results(
         headers=headers
     )
     if response.is_success:
+        logger.debug(f"Retrieved search results for {city}, {state} from /hospitals")
         return {
             'success': True,
             'status': None,
             'payload': json.loads(response.content)
             }
     else:
+        logger.critical(f"Failed to get results for {city}, {state} from /hospitals")
         return {
             'success': False,
             'status': f"{response.status_code} - {response.reason_phrase}",
             'payload': None
         }
+    

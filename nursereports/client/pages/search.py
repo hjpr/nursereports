@@ -45,7 +45,6 @@ def content() -> rx.Component:
     )
 
 def header() -> rx.Component:
-    """url_context can be either 'hospital' or 'report'."""
     return rx.flex(
         rx.heading(
             "Find your hospital"

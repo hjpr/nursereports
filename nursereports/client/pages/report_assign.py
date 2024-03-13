@@ -11,7 +11,7 @@ from ...states.report import ReportState
 import reflex as rx
 
 @rx.page(
-        route="/report/submit/[report_id]/assignment",
+        route="/report/submit/[hosp_id]/assignment",
         title="Nurse Reports",
         on_load=BaseState.event_state_standard_flow('login')
 )
@@ -572,7 +572,7 @@ def buttons() -> rx.Component:
         rx.button(
             "Back",
             width='100%',
-            on_click=ReportState.report_nav('compensation'),
+            on_click=ReportState.report_nav('assignment/summary'),
         ),
         rx.button("Next",
             width='100%',

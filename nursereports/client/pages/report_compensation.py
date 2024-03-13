@@ -5,6 +5,7 @@ from ..components.footer import footer
 from ..components.lists import years_experience
 from ..components.navbar import navbar
 from ..components.report_progress import progress
+from reflex_motion import motion
 from ...states.base import BaseState
 from ...states.report import ReportState
 
@@ -12,42 +13,17 @@ import reflex as rx
 
 
 @rx.page(
-        route="/report/submit/[report_id]/compensation",
+        route="/report/submit/[hosp_id]/compensation",
         title="Nurse Reports",
         on_load=BaseState.event_state_standard_flow('login')
 )
 @login_protected
-def comp_page() -> rx.Component:
+def compensation_page() -> rx.Component:
     return rx.flex(
         c2a(),
         navbar(),
         spacer(height='1em'),
-        rx.flex(
-            rx.form(
-                rx.vstack(
-                    spacer(height='10px'),
-                    progress(),
-                    spacer(height='10px'),
-                    pay(),
-                    demographics(),
-                    benefits(),
-                    compensation(),
-                    overall(),
-                    comments(),
-                    spacer(height='40px'),
-                    buttons(),
-                    spacer(height='40px'),
-                ),
-                on_submit=ReportState.handle_submit_comp,
-            ),
-            padding_x='20px',
-            width=['100%', '100%', '600px', '600px', '600px'],
-            max_width='1200px',
-            flex_direction='column',
-            flex_basis='auto',
-            flex_grow='1',
-            flex_shrink='0',
-        ),
+        content(),
         spacer(height='1em'),
         footer(),
         width='100%',
@@ -56,39 +32,39 @@ def comp_page() -> rx.Component:
         min_height='100vh',
     )
 
-def description() -> rx.Component:
-    return rx.card(
-        rx.vstack(
-            rx.vstack(
-                rx.heading(
-                    "Compensation"
-                ),
-                rx.divider(),
-                width='100%'
-            ),
-            rx.vstack(
-                rx.text(
-                    """Answer questions about what you recieve as
-                    pay and benefits based on your experience, and 
-                    if the compensation packages available are
-                    acceptable for your position.""",
-                ),
-            ),
-            width='100%'
-        )
+def content() -> rx.Component:
+    return rx.flex(
+        progress(),
+        pay(),
+        demographics(),
+        benefits(),
+        compensation(),
+        overall(),
+        comments(),
+        callout(),
+        button(),
+        spacer(height='40px'),
+        gap='24px',
+        padding_x='20px',
+        width=['100%', '500px', '500px', '500px', '500px'],
+        max_width='1200px',
+        flex_direction='column',
+        flex_basis='auto',
+        flex_grow='1',
+        flex_shrink='0',
     )
 
 def pay() -> rx.Component:
     return rx.card(
         rx.vstack(
-            # PAY - EMPLOYMENT TYPE ---------------------------------
-            rx.vstack(
-                rx.heading(
-                    "Pay"
-                ),
-                rx.divider(),
-                width='100%'
+            rx.heading(
+                "Pay"
             ),
+            rx.divider(),
+            width='100%'
+        ),
+        spacer(height='24px'),
+        rx.flex(
             rx.vstack(
                 rx.text(
                     "What is your employment type?"
@@ -98,11 +74,12 @@ def pay() -> rx.Component:
                     placeholder="- Select -",
                     value=ReportState.comp_select_emp_type,
                     on_change=ReportState.set_comp_select_emp_type,
-                    required=True
+                    required=True,
+                    size='3',
+                    width='100%'
                 ),
                 width='100%'
             ),
-            # PAY - PAY TYPE ----------------------------------------
             rx.vstack(
                 rx.text(
                     "Are you paid at an hourly or weekly rate?"
@@ -112,60 +89,64 @@ def pay() -> rx.Component:
                     placeholder="- Select -",
                     value=ReportState.comp_select_pay_type,
                     on_change=ReportState.set_comp_select_pay_type,
-                    required=True
+                    required=True,
+                    size='3',
+                    width='100%'
                 ),
                 width='100%'
             ),
-            # PAY - PAY AMOUNT --------------------------------------
             rx.cond(
                 ReportState.comp_select_pay_type,
                 rx.cond(
                     ReportState.is_weekly,
-                    # If weekly
                     rx.vstack(
                         rx.text(
                             "Total rate per week? (in $)",
-                            text_align='center'
                         ),
                         rx.chakra.number_input(
                             value=ReportState.comp_input_pay_amount,
                             input_mode='numeric',
                             on_change=ReportState.set_comp_input_pay_amount,
                             is_required=True,
+                            width='100%'
                         ),
                         rx.cond(
                             ReportState.is_pay_invalid,
                             rx.callout(
                                 "A valid weekly rate must be entered.",
-                                icon='info'
+                                width='100%',
+                                icon='alert-triangle',
+                                color_scheme='red',
+                                role='alert'
                             )
                         ),
                         width='100%'
                     ),
-                    # If hourly
                     rx.vstack(
                         rx.text(
                             " Base rate per hour? (in $)",
-                            text_align='center'
                         ),
                         rx.chakra.number_input(
                             value=ReportState.comp_input_pay_amount,
                             input_mode='numeric',
                             on_change=ReportState.set_comp_input_pay_amount,
                             is_required=True,
+                            width='100%'
                         ),
                         rx.cond(
                             ReportState.is_pay_invalid,
                             rx.callout(
                                 "A valid hourly rate must be entered.",
-                                icon='info'
+                                width='100%',
+                                icon='alert-triangle',
+                                color_scheme='red',
+                                role='alert'
                             )
                         ),
                         width='100%'
                     )
                 )
             ),
-            # PAY - DIFFERENTIAL ------------------------------------
             rx.vstack(
                 rx.text("Do you get extra pay for nights or weekends?"),
                 rx.select(
@@ -173,7 +154,9 @@ def pay() -> rx.Component:
                     placeholder="- Select -",
                     value=ReportState.comp_select_diff_response,
                     on_change=ReportState.set_comp_select_diff_response,
-                    required=True
+                    required=True,
+                    size='3',
+                    width='100%'
                 ),
                 width='100%'
             ),
@@ -185,33 +168,38 @@ def pay() -> rx.Component:
                         rx.chakra.number_input(
                             value=ReportState.comp_input_diff_nights,
                             on_change=ReportState.set_comp_input_diff_nights,
-                            max=50
-                        )
+                            max=100,
+                            width='100%'
+                        ),
+                        width='100%'
                     ),
                     rx.vstack(
                         rx.text("(Optional) Extra per hour for weekends? (in $)"),
                         rx.chakra.number_input(
                             value=ReportState.comp_input_diff_weekends,
                             on_change=ReportState.set_comp_input_diff_weekends,
-                            max=50
-                        )
+                            max=100,
+                            width='100%'
+                        ),
+                        width='100%'
                     ),
+                    gap='24px',
                     width='100%'
                 )
             ),
-            # PAY - INCENTIVE BONUS ---------------------------------
             rx.vstack(
                 rx.text(
                     """Does your hospital have special incentive pay for
                     certain shifts? (e.g. critical shift pay)""",
-                    text_align='center'
                 ),
                 rx.select(
                     ["Yes", "No"],
                     placeholder="- Select -",
                     value=ReportState.comp_select_incentive_response,
                     on_change=ReportState.set_comp_select_incentive_response,
-                    required=True
+                    required=True,
+                    size='3',
+                    width='100%'
                 ),
                 width='100%'
             ),
@@ -224,7 +212,8 @@ def pay() -> rx.Component:
                     rx.chakra.number_input(
                         value=ReportState.comp_input_incentive_amount,
                         on_change=ReportState.set_comp_input_incentive_amount,
-                        max_=100
+                        max_=200,
+                        width='100%'
                     )
                 )
             ),
@@ -232,17 +221,20 @@ def pay() -> rx.Component:
                 rx.text(
                     """Does your hospital pay extra for having certifications?
                     (e.g. CCRN, CWON, RN-BC)""",
-                    text_align='center'
                     ),
                 rx.select(
                     ["Yes", "No"],
                     placeholder="- Select -",
                     value=ReportState.comp_select_certifications,
                     on_change=ReportState.set_comp_select_certifications,
-                    required=True
+                    required=True,
+                    size='3',
+                    width='100%'
                 ),
                 width='100%'
             ),
+            flex_direction='column',
+            gap='24px',
             width='100%'
         ),
         width='100%',
@@ -251,14 +243,14 @@ def pay() -> rx.Component:
 def demographics() -> rx.Component:
     return rx.card(
         rx.vstack(
-            rx.vstack(
-                rx.heading(
-                    "Demographics",
-                ),
-                rx.divider(),
-                width='100%'
+            rx.heading(
+                "Demographics",
             ),
-            # DEMO - SHIFTS -----------------------------------------
+            rx.divider(),
+            width='100%'
+        ),
+        spacer(height='24px'),
+        rx.flex(
             rx.vstack(
                 rx.text("What shifts do you typically work?"),
                 rx.select(
@@ -266,19 +258,22 @@ def demographics() -> rx.Component:
                     placeholder="- Select -",
                     value=ReportState.comp_select_shift,
                     on_change=ReportState.set_comp_select_shift,
-                    required=True
+                    required=True,
+                    size='3',
+                    width='100%'
                 ),
                 width='100%'
             ),
-            # DEMO - AVERAGE DAYS WORKED A WEEK ---------------------
             rx.vstack(
                 rx.text("On average, how many shifts do you work per week?"),
                 rx.select(
-                    ["1", "2", "3", "4", "5", "6", "7"],
+                    ["1", "2", "3", "4", "5", "6"],
                     placeholder="- Select -",
                     value=ReportState.comp_select_weekly_shifts,
                     on_change=ReportState.set_comp_select_weekly_shifts,
-                    required=True
+                    required=True,
+                    size='3',
+                    width='100%'
                 ),
                 width='100%'
             ),
@@ -292,7 +287,9 @@ def demographics() -> rx.Component:
                     placeholder="- Select -",
                     value=ReportState.comp_select_hospital_experience,
                     on_change=ReportState.set_comp_select_hospital_experience,
-                    required=True
+                    required=True,
+                    size='3',
+                    width='100%'
                 ),
                 width='100%'
             ),
@@ -306,7 +303,9 @@ def demographics() -> rx.Component:
                     placeholder="- Select -",
                     value=ReportState.comp_select_total_experience,
                     on_change=ReportState.set_comp_select_total_experience,
-                    required=True
+                    required=True,
+                    size='3',
+                    width='100%'
                 ),
                 width='100%'
             ),
@@ -314,11 +313,14 @@ def demographics() -> rx.Component:
                 ReportState.is_experience_invalid,
                 rx.callout(
                     "Can't have less total years than years at current hospital.",
+                    width='100%',
                     icon="alert_triangle",
                     color_scheme="red",
                     role='alert'
                 )
             ),
+            flex_direction='column',
+            gap='24px',
             width='100%'
         ),
         width='100%'
@@ -327,76 +329,128 @@ def demographics() -> rx.Component:
 def benefits() -> rx.Component:
     return rx.card(
         rx.vstack(
-            rx.vstack(
-                rx.heading(
-                    "Benefits",
-                ),
-                rx.text(
-                    "Select the benefits that are offered for your position.",
-                    text_align='center'
-                ),
-                rx.divider(),
-                width='100%'
+            rx.heading(
+                "Benefits",
             ),
-            rx.hstack(
-                rx.hstack(
-                    rx.checkbox(
-                        on_change=ReportState.set_comp_check_benefit_pto,
-                        checked=ReportState.comp_check_benefit_pto
+            rx.divider(),
+            width='100%'
+        ),
+        spacer(height='24px'),
+        rx.text(
+            "Select the benefits that are offered for your position.",
+            text_align='center'
+        ),
+        spacer(height='24px'),
+        rx.flex(
+            motion(
+                rx.card(
+                    rx.flex(
+                        rx.checkbox(
+                            on_change=ReportState.set_comp_check_benefit_pto,
+                            checked=ReportState.comp_check_benefit_pto
+                        ),
+                        rx.text("PTO"),
+                        gap='8px',
+                        align_items='center',
+                        justify_content='center'
                     ),
-                    rx.text("PTO"),
-                    padding_x='0.5em',
-                    padding_y='1em'
+                    cursor='pointer',
+                    width='100%',
+                    on_click=ReportState.set_comp_check_benefit_pto(
+                        ~ReportState.comp_check_benefit_pto
+                    )
                 ),
-                rx.hstack(
+                initial={"scale": 1},
+                while_tap={"scale": 0.9},
+                transition={"type": "spring", "stiffness": 200, "damping": 10}
+            ),
+            rx.card(
+                rx.flex(
                     rx.checkbox(
                         on_change=ReportState.set_comp_check_benefit_parental,
                         checked=ReportState.comp_check_benefit_parental
                         ),
                     rx.text("Parental Leave"),
-                    padding_x='0.5em',
-                    padding_y='1em'
+                    gap='8px',
+                    align_items='center',
+                    justify_content='center'
                 ),
-                rx.hstack(
+                cursor='pointer',
+                width='100%',
+                on_click=ReportState.set_comp_check_benefit_parental(
+                    ~ReportState.comp_check_benefit_parental
+                )
+            ),
+            rx.card(
+                rx.flex(
                     rx.checkbox(
                         on_change=ReportState.set_comp_check_benefit_insurance,
                         checked=ReportState.comp_check_benefit_insurance
                         ),
                     rx.text("Insurance"),
-                    padding_x='0.5em',
-                    padding_y='1em'
+                    gap='8px',
+                    align_items='center',
+                    justify_content='center'
                 ),
-                rx.hstack(
+                cursor='pointer',
+                width='100%',
+                on_click=ReportState.set_comp_check_benefit_insurance(
+                    ~ReportState.comp_check_benefit_insurance
+                )
+            ),
+            rx.card(
+                rx.flex(
                     rx.checkbox(
                         on_change=ReportState.set_comp_check_benefit_retirement,
                         checked=ReportState.comp_check_benefit_retirement
                         ),
                     rx.text("Retirement"),
-                    padding_x='0.5em',
-                    padding_y='1em'
+                    gap='8px',
+                    align_items='center',
+                    justify_content='center'
                 ),
-                rx.hstack(
+                cursor='pointer',
+                width='100%',
+                on_click=ReportState.set_comp_check_benefit_retirement(
+                    ~ReportState.comp_check_benefit_retirement
+                )
+            ),
+            rx.card(
+                rx.flex(
                     rx.checkbox(
                         on_change=ReportState.set_comp_check_benefit_tuition,
                         checked=ReportState.comp_check_benefit_tuition
                         ),
                     rx.text("Tuition Aid"),
-                    padding_x='0.5em',
-                    padding_y='1em'
+                    gap='8px',
+                    align_items='center',
+                    justify_content='center'
                 ),
-                rx.hstack(
+                cursor='pointer',
+                width='100%',
+                on_click=ReportState.set_comp_check_benefit_tuition(
+                    ~ReportState.comp_check_benefit_tuition
+                )
+            ),
+            rx.card(
+                rx.flex(
                     rx.checkbox(
                         on_change=ReportState.set_comp_check_benefit_pro_dev,
                         checked=ReportState.comp_check_benefit_pro_dev
                         ),
                     rx.text("Professional Development"),
-                    padding_x='0.5em',
-                    padding_y='1em'
+                    gap='8px',
+                    align_items='center',
+                    justify_content='center'
                 ),
+                cursor='pointer',
                 width='100%',
-                wrap='wrap',
-                justify='center'
+                on_click=ReportState.set_comp_check_benefit_pro_dev(
+                    ~ReportState.comp_check_benefit_pro_dev
+                )
             ),
+            flex_direction='column',
+            gap='10px',
             width='100%'
         ),
         width='100%'
@@ -405,26 +459,27 @@ def benefits() -> rx.Component:
 def compensation() -> rx. Component:
     return rx.card(
         rx.vstack(
-            rx.vstack(
-                rx.heading(
-                    "Compensation",
-                ),
-                rx.divider(),
-                width='100%'
+            rx.heading(
+                "Compensation",
             ),
-            # COMP - ADEQUATELY COMPENSATED -------------------------
+            rx.divider(),
+            width='100%'
+        ),
+        spacer(height='24px'),
+        rx.vstack(
             rx.vstack(
                 rx.text(
                     """Is your overall pay and benefits package generally
                     enough to keep you satisfied in your current role?""",
-                    text_align='center'
                 ),
                 rx.select(
                     ["Yes", "No"],
                     placeholder="- Select -",
                     value=ReportState.comp_select_comp_adequate,
                     on_change=ReportState.set_comp_select_comp_adequate,
-                    required=True
+                    required=True,
+                    size='3',
+                    width='100%'
                 ),
                 width='100%'
             ),
@@ -436,14 +491,14 @@ def compensation() -> rx. Component:
 def comments() -> rx.Component:
     return rx.card(
         rx.vstack(
-            rx.vstack(
-                rx.heading(
-                    "Comments",
-                ),
-                rx.divider(),
-                width='100%'
+            rx.heading(
+                "Comments",
             ),
-            # COMP - COMMENTS ---------------------------------------
+            rx.divider(),
+            width='100%'
+        ),
+        spacer(height='24px'),
+        rx.vstack(
             rx.vstack(
                 rx.text(
                     "(Optional) Any comments for your nursing peers about pay or benefits?"
@@ -454,7 +509,9 @@ def comments() -> rx.Component:
                         placeholder="Do not enter personally identifiable information.",
                         on_change=ReportState.set_comp_input_comments,
                         on_blur=ReportState.set_comp_input_comments,
-                        height='10em'
+                        height='10em',
+                        size='3',
+                        width='100%'
                     ),
                     debounce_timeout=1000
                 ),
@@ -463,22 +520,32 @@ def comments() -> rx.Component:
                     # If there is an entry in the comments
                     rx.cond(
                         ReportState.comp_comments_chars_over,
-                        # If chars over limit of 500.
+                        # If chars over limit of 1000.
                         rx.callout(
-                            "Please limit response to < 500 characters!",
+                            "Please limit response to < 1000 characters!",
+                            width='100%',
                             icon="alert_triangle",
                             color_scheme="red",
                             role="alert"
                         ),
                         # If chars not over limit of 500.
-                        rx.text(
-                            f"{ReportState.comp_comments_chars_left} chars left.",
-                            text_align="center"
+                        rx.flex(
+                            rx.text(
+                                f"{ReportState.comp_comments_chars_left} chars left.",
+                                text_align="center"
+                            ),
+                            justify_content='center',
+                            width='100%'
                         )
                     ),
                     # If no entry yet in comments
-                    rx.text(
-                        "500 character limit."
+                    rx.flex(
+                        rx.text(
+                            "1000 character limit.",
+                            text_align='center'
+                        ),
+                        justify_content='center',
+                        width='100%'
                     )
                 ),
                 width='100%'
@@ -491,64 +558,75 @@ def comments() -> rx.Component:
 def overall() -> rx.Component:
     return rx.card(
         rx.vstack(
-            rx.vstack(
-                rx.heading(
-                    "Grade"
-                ),
-                rx.text(
-                    "How would you grade your compensation overall?",
-                    text_align='center'
-                ),
-                rx.divider(),
-                width='100%'
+            rx.heading(
+                "Grade"
             ),
-            rx.hstack(
+            rx.divider(),
+            width='100%'
+        ),
+        spacer(height='24px'),
+        rx.flex(
+            rx.text(
+                "How would you grade your compensation overall?",
+                text_align='center'
+            ),
+            rx.flex(
                 rx.image(
                     src='/raster/icons/icon_rating_a.webp',
-                    height=['50px', '65px', '75px', '75px', '75px',],
-                    width=['50px', '65px', '75px', '75px', '75px',],
+                    height=['65px', '65px', '75px', '75px', '75px',],
+                    width=['65px', '65px', '75px', '75px', '75px',],
                     border_radius='5px',
+                    cursor='pointer',
                     on_click=ReportState.set_comp_select_overall("a")
                 ),
                 rx.spacer(),
                 rx.image(
                     src='/raster/icons/icon_rating_b.webp',
-                    height=['50px', '65px', '75px', '75px', '75px',],
-                    width=['50px', '65px', '75px', '75px', '75px',],
+                    height=['65px', '65px', '75px', '75px', '75px',],
+                    width=['65px', '65px', '75px', '75px', '75px',],
                     border_radius='5px',
+                    cursor='pointer',
                     on_click=ReportState.set_comp_select_overall("b")
                 ),
                 rx.spacer(),
                 rx.image(
                     src='/raster/icons/icon_rating_c.webp',
-                    height=['50px', '65px', '75px', '75px', '75px',],
-                    width=['50px', '65px', '75px', '75px', '75px',],
+                    height=['65px', '65px', '75px', '75px', '75px',],
+                    width=['65px', '65px', '75px', '75px', '75px',],
                     border_radius='5px',
+                    cursor='pointer',
                     on_click=ReportState.set_comp_select_overall("c")
                 ),
                 rx.spacer(),
                 rx.image(
                     src='/raster/icons/icon_rating_d.webp',
-                    height=['50px', '65px', '75px', '75px', '75px',],
-                    width=['50px', '65px', '75px', '75px', '75px',],
+                    height=['65px', '65px', '75px', '75px', '75px',],
+                    width=['65px', '65px', '75px', '75px', '75px',],
                     border_radius='5px',
+                    cursor='pointer',
                     on_click=ReportState.set_comp_select_overall("d")
                 ),
                 rx.spacer(),
                 rx.image(
                     src='/raster/icons/icon_rating_f.webp',
-                    height=['50px', '65px', '75px', '75px', '75px',],
-                    width=['50px', '65px', '75px', '75px', '75px',],
+                    height=['65px', '65px', '75px', '75px', '75px',],
+                    width=['65px', '65px', '75px', '75px', '75px',],
                     border_radius='5px',
+                    cursor='pointer',
                     on_click=ReportState.set_comp_select_overall("f")
                 ),
+                flex_direction='row',
+                justify_content='space-between',
                 width='100%'
             ),
             rx.cond(
                 ~ReportState.comp_select_overall,
                 rx.callout(
                     "Please make a selection.",
-                    icon="info"
+                    width='100%',
+                    icon='alert_triangle',
+                    color_scheme='red',
+                    role='alert'
                 ),
                 rx.center(
                     rx.heading(
@@ -562,20 +640,41 @@ def overall() -> rx.Component:
                     width='100%'
                 )
             ),
+            flex_direction='column',
+            gap='24px',
             width='100%'
         ),
         width='100%'
     )
 
-def buttons() -> rx.Component:
-    return rx.center(
-        rx.button("Back",
-                width='100%',
-                on_click=ReportState.report_nav('compensation/summary'),
+def button() -> rx.Component:
+    return rx.card(
+        rx.flex(
+            rx.button(
+                "Go to next section",
+                rx.icon("arrow-big-right"),
+                on_click=ReportState.handle_submit_comp,
+                variant='ghost',
+                size='3'
+            ),
+            align_items='center',
+            justify_content='center',
+            width='100%',
         ),
-        rx.button("Next",
+        width='100%'
+    )
+
+def callout() -> rx.Component:
+    return rx.flex(
+        rx.cond(
+            ReportState.comp_has_error,
+            rx.callout(
+                ReportState.comp_error_message,
                 width='100%',
-                type='submit',
+                icon='alert_triangle',
+                color_scheme='red',
+                role='alert'
+            )
         ),
-        width='50%',
+        width='100%'
     )

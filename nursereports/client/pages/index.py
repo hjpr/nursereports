@@ -163,17 +163,12 @@ def fourth_panel() -> rx.Component:
         rx.hstack(
             rx.box(
                 height='200px',
-                width='25%',
+                width='100%',
                 border='1px dashed black'
             ),
             rx.box(
                 height='200px',
-                width='25%',
-                border='1px dashed black'
-            ),
-            rx.box(
-                height='200px',
-                width='25%',
+                width='100%',
                 border='1px dashed black'
             ),
             width='100%',

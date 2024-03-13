@@ -9,19 +9,19 @@ from ...states.report import ReportState
 import reflex as rx
 
 @rx.page(
-    route="/report/submit/[report_id]/compensation/summary",
+    route="/report/submit/[hosp_id]/assignment/summary",
     title='Nurse Reports',
     on_load=BaseState.event_state_standard_flow('login')
 )
 @login_protected
-def comp_summary_page() -> rx.Component:
+def assignment_summary_page() -> rx.Component:
     return rx.flex(
         c2a(),
         navbar(),
         spacer(height='40px'),
         rx.flex(
             rx.vstack(
-                compensation_summary(),
+                assignment_summary(),
                 spacer(height='40px'),
                 buttons(),
             ),
@@ -41,19 +41,20 @@ def comp_summary_page() -> rx.Component:
         min_height='100vh',
     )
 
-def compensation_summary() -> rx.Component:
+def assignment_summary() -> rx.Component:
     return rx.center(
         rx.vstack(
             rx.heading(
-                "Compensation"
+                "Assignment"
             ),
             rx.divider(),
             rx.text(
-                """First up we'll ask questions in a category called
-                compensation, which is composed of all payouts the
-                hospital gives you in return for your work. This covers
-                things like base pay, differentials, incentives, and 
-                benefits.
+                """Next, we'll ask questions in a category called assignment.
+                This covers details about the area or unit you are assigned
+                to like culture, environment, and management.
+
+                We'll ask about ratios and workload in the section after 
+                this one.
                 """,
                 text_align='center'
             )
@@ -63,12 +64,12 @@ def compensation_summary() -> rx.Component:
 def buttons() -> rx.Component:
     return rx.center(
         rx.button("Back",
-            width='100%',
-            on_click=ReportState.report_nav('summary'),
+                width='100%',
+                on_click=ReportState.report_nav('compensation'),
         ),
         rx.button("Next",
-            width='100%',
-            on_click=ReportState.report_nav('compensation'),
+                width='100%',
+                on_click=ReportState.report_nav('assignment'),
         ),
         width='50%',
     )
