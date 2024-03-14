@@ -43,7 +43,7 @@ def content() -> rx.Component:
         comments(),
         callout(),
         button(),
-        spacer(height='40px'),
+        spacer(height='48px'),
         gap='24px',
         padding_x='20px',
         width=['100%', '500px', '500px', '500px', '500px'],
@@ -337,7 +337,10 @@ def benefits() -> rx.Component:
         ),
         spacer(height='24px'),
         rx.text(
-            "Select the benefits that are offered for your position.",
+            """
+            Select all the benefits that are offered for your
+            position.
+            """,
             text_align='center'
         ),
         spacer(height='24px'),
@@ -346,11 +349,11 @@ def benefits() -> rx.Component:
                 rx.card(
                     rx.flex(
                         rx.checkbox(
-                            on_change=ReportState.set_comp_check_benefit_pto,
-                            checked=ReportState.comp_check_benefit_pto
+                        on_change=ReportState.set_comp_check_benefit_pto,
+                        checked=ReportState.comp_check_benefit_pto
                         ),
                         rx.text("PTO"),
-                        gap='8px',
+                        gap='12px',
                         align_items='center',
                         justify_content='center'
                     ),
@@ -361,96 +364,115 @@ def benefits() -> rx.Component:
                     )
                 ),
                 initial={"scale": 1},
-                while_tap={"scale": 0.9},
-                transition={"type": "spring", "stiffness": 200, "damping": 10}
+                while_tap={"scale": 0.95}
             ),
-            rx.card(
-                rx.flex(
-                    rx.checkbox(
-                        on_change=ReportState.set_comp_check_benefit_parental,
-                        checked=ReportState.comp_check_benefit_parental
+            motion(
+                rx.card(
+                    rx.flex(
+                        rx.checkbox(
+                            on_change=ReportState.set_comp_check_benefit_parental,
+                            checked=ReportState.comp_check_benefit_parental
                         ),
-                    rx.text("Parental Leave"),
-                    gap='8px',
-                    align_items='center',
-                    justify_content='center'
+                        rx.text("Parental Leave"),
+                        gap='12px',
+                        align_items='center',
+                        justify_content='center'
+                    ),
+                    cursor='pointer',
+                    width='100%',
+                    on_click=ReportState.set_comp_check_benefit_parental(
+                        ~ReportState.comp_check_benefit_parental
+                    )
                 ),
-                cursor='pointer',
-                width='100%',
-                on_click=ReportState.set_comp_check_benefit_parental(
-                    ~ReportState.comp_check_benefit_parental
-                )
+                initial={"scale": 1},
+                while_tap={"scale": 0.95}
             ),
-            rx.card(
-                rx.flex(
-                    rx.checkbox(
-                        on_change=ReportState.set_comp_check_benefit_insurance,
-                        checked=ReportState.comp_check_benefit_insurance
-                        ),
-                    rx.text("Insurance"),
-                    gap='8px',
-                    align_items='center',
-                    justify_content='center'
+            motion(
+                rx.card(
+                    rx.flex(
+                        rx.checkbox(
+                            on_change=ReportState.set_comp_check_benefit_insurance,
+                            checked=ReportState.comp_check_benefit_insurance
+                            ),
+                        rx.text("Insurance"),
+                        gap='12px',
+                        align_items='center',
+                        justify_content='center'
+                    ),
+                    cursor='pointer',
+                    width='100%',
+                    on_click=ReportState.set_comp_check_benefit_insurance(
+                        ~ReportState.comp_check_benefit_insurance
+                    )
                 ),
-                cursor='pointer',
-                width='100%',
-                on_click=ReportState.set_comp_check_benefit_insurance(
-                    ~ReportState.comp_check_benefit_insurance
-                )
+                initial={"scale": 1},
+                while_tap={"scale": 0.95}
             ),
-            rx.card(
-                rx.flex(
-                    rx.checkbox(
-                        on_change=ReportState.set_comp_check_benefit_retirement,
-                        checked=ReportState.comp_check_benefit_retirement
-                        ),
-                    rx.text("Retirement"),
-                    gap='8px',
-                    align_items='center',
-                    justify_content='center'
+            motion(
+                rx.card(
+                    rx.flex(
+                        rx.checkbox(
+                            on_change=ReportState.set_comp_check_benefit_retirement,
+                            checked=ReportState.comp_check_benefit_retirement
+                            ),
+                        rx.text("Retirement"),
+                        gap='12px',
+                        align_items='center',
+                        justify_content='center'
+                    ),
+                    cursor='pointer',
+                    width='100%',
+                    on_click=ReportState.set_comp_check_benefit_retirement(
+                        ~ReportState.comp_check_benefit_retirement
+                    )
                 ),
-                cursor='pointer',
-                width='100%',
-                on_click=ReportState.set_comp_check_benefit_retirement(
-                    ~ReportState.comp_check_benefit_retirement
-                )
+                initial={"scale": 1},
+                while_tap={"scale": 0.95}
             ),
-            rx.card(
-                rx.flex(
-                    rx.checkbox(
-                        on_change=ReportState.set_comp_check_benefit_tuition,
-                        checked=ReportState.comp_check_benefit_tuition
-                        ),
-                    rx.text("Tuition Aid"),
-                    gap='8px',
-                    align_items='center',
-                    justify_content='center'
+            motion(
+                rx.card(
+                    rx.flex(
+                        rx.checkbox(
+                            on_change=ReportState.set_comp_check_benefit_tuition,
+                            checked=ReportState.comp_check_benefit_tuition
+                            ),
+                        rx.text("Tuition Aid"),
+                        gap='12px',
+                        align_items='center',
+                        justify_content='center'
+                    ),
+                    cursor='pointer',
+                    width='100%',
+                    on_click=ReportState.set_comp_check_benefit_tuition(
+                        ~ReportState.comp_check_benefit_tuition
+                    )
                 ),
-                cursor='pointer',
-                width='100%',
-                on_click=ReportState.set_comp_check_benefit_tuition(
-                    ~ReportState.comp_check_benefit_tuition
-                )
+                initial={"scale": 1},
+                while_tap={"scale": 0.95}
             ),
-            rx.card(
-                rx.flex(
-                    rx.checkbox(
-                        on_change=ReportState.set_comp_check_benefit_pro_dev,
-                        checked=ReportState.comp_check_benefit_pro_dev
-                        ),
-                    rx.text("Professional Development"),
-                    gap='8px',
-                    align_items='center',
-                    justify_content='center'
+            motion(
+                rx.card(
+                    rx.flex(
+                        rx.checkbox(
+                            on_change=ReportState.set_comp_check_benefit_pro_dev,
+                            checked=ReportState.comp_check_benefit_pro_dev
+                            ),
+                        rx.text("Professional Development"),
+                        gap='12px',
+                        align_items='center',
+                        justify_content='center'
+                    ),
+                    cursor='pointer',
+                    width='100%',
+                    on_click=ReportState.set_comp_check_benefit_pro_dev(
+                        ~ReportState.comp_check_benefit_pro_dev
+                    )
                 ),
-                cursor='pointer',
-                width='100%',
-                on_click=ReportState.set_comp_check_benefit_pro_dev(
-                    ~ReportState.comp_check_benefit_pro_dev
-                )
+                initial={"scale": 1},
+                while_tap={"scale": 0.95}
             ),
             flex_direction='column',
-            gap='10px',
+            gap='12px',
             width='100%'
         ),
         width='100%'
@@ -567,53 +589,71 @@ def overall() -> rx.Component:
         spacer(height='24px'),
         rx.flex(
             rx.text(
-                "How would you grade your compensation overall?",
+                """
+                How would you grade your compensation overall?
+                """,
                 text_align='center'
             ),
             rx.flex(
-                rx.image(
-                    src='/raster/icons/icon_rating_a.webp',
-                    height=['65px', '65px', '75px', '75px', '75px',],
-                    width=['65px', '65px', '75px', '75px', '75px',],
-                    border_radius='5px',
-                    cursor='pointer',
-                    on_click=ReportState.set_comp_select_overall("a")
+                motion(
+                    rx.image(
+                        src='/raster/icons/icon_rating_a.webp',
+                        height=['65px', '65px', '75px', '75px', '75px',],
+                        width=['65px', '65px', '75px', '75px', '75px',],
+                        border_radius='5px',
+                        cursor='pointer',
+                        on_click=ReportState.set_comp_select_overall("a")
+                    ),
+                    initial={"scale": 1},
+                    while_tap={"scale": 0.95}   
                 ),
-                rx.spacer(),
-                rx.image(
-                    src='/raster/icons/icon_rating_b.webp',
-                    height=['65px', '65px', '75px', '75px', '75px',],
-                    width=['65px', '65px', '75px', '75px', '75px',],
-                    border_radius='5px',
-                    cursor='pointer',
-                    on_click=ReportState.set_comp_select_overall("b")
+                motion(
+                    rx.image(
+                        src='/raster/icons/icon_rating_b.webp',
+                        height=['65px', '65px', '75px', '75px', '75px',],
+                        width=['65px', '65px', '75px', '75px', '75px',],
+                        border_radius='5px',
+                        cursor='pointer',
+                        on_click=ReportState.set_comp_select_overall("b")
+                    ),
+                    initial={"scale": 1},
+                    while_tap={"scale": 0.95}
                 ),
-                rx.spacer(),
-                rx.image(
-                    src='/raster/icons/icon_rating_c.webp',
-                    height=['65px', '65px', '75px', '75px', '75px',],
-                    width=['65px', '65px', '75px', '75px', '75px',],
-                    border_radius='5px',
-                    cursor='pointer',
-                    on_click=ReportState.set_comp_select_overall("c")
+                motion(
+                    rx.image(
+                        src='/raster/icons/icon_rating_c.webp',
+                        height=['65px', '65px', '75px', '75px', '75px',],
+                        width=['65px', '65px', '75px', '75px', '75px',],
+                        border_radius='5px',
+                        cursor='pointer',
+                        on_click=ReportState.set_comp_select_overall("c")
+                    ),
+                    initial={"scale": 1},
+                    while_tap={"scale": 0.95}
                 ),
-                rx.spacer(),
-                rx.image(
-                    src='/raster/icons/icon_rating_d.webp',
-                    height=['65px', '65px', '75px', '75px', '75px',],
-                    width=['65px', '65px', '75px', '75px', '75px',],
-                    border_radius='5px',
-                    cursor='pointer',
-                    on_click=ReportState.set_comp_select_overall("d")
+                motion(
+                    rx.image(
+                        src='/raster/icons/icon_rating_d.webp',
+                        height=['65px', '65px', '75px', '75px', '75px',],
+                        width=['65px', '65px', '75px', '75px', '75px',],
+                        border_radius='5px',
+                        cursor='pointer',
+                        on_click=ReportState.set_comp_select_overall("d")
+                    ),
+                    initial={"scale": 1},
+                    while_tap={"scale": 0.95}
                 ),
-                rx.spacer(),
-                rx.image(
-                    src='/raster/icons/icon_rating_f.webp',
-                    height=['65px', '65px', '75px', '75px', '75px',],
-                    width=['65px', '65px', '75px', '75px', '75px',],
-                    border_radius='5px',
-                    cursor='pointer',
-                    on_click=ReportState.set_comp_select_overall("f")
+                motion(
+                    rx.image(
+                        src='/raster/icons/icon_rating_f.webp',
+                        height=['65px', '65px', '75px', '75px', '75px',],
+                        width=['65px', '65px', '75px', '75px', '75px',],
+                        border_radius='5px',
+                        cursor='pointer',
+                        on_click=ReportState.set_comp_select_overall("f")
+                    ),
+                    initial={"scale": 1},
+                    while_tap={"scale": 0.95}
                 ),
                 flex_direction='row',
                 justify_content='space-between',

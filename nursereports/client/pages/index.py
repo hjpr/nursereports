@@ -76,11 +76,11 @@ def main_panel() -> rx.Component:
                 ),
                 gap=["1em","1em","2em", "2em", "2em"]
             ),
-            padding='48px',
+            padding='24px',
             max_width='768px',
             box_shadow='0px 4px 5px -5px rgba(0, 0, 0, 0.5)'
         ),
-        padding='48px',
+        padding='24px',
         background='url(/vector/pizzabg.svg)',
         background_size='cover',
         width='100%'
@@ -102,57 +102,59 @@ def first_panel() -> rx.Component:
     )
 
 def second_panel() -> rx.Component:
-    return rx.center(
-        rx.hstack(
-            rx.vstack(
-                rx.heading(
-                    "The most important 5 minutes of your career."
-                ),
-                rx.text(
-                    """
-                    Understanding the state of nursing both locally and
-                    nationwide requires coordinated communication. Learn
-                    vital details from a structured report about pay,
-                    benefits, ratios, culture and much more.
-                    """
-                ),
-                width='100%'  
+    return rx.flex(
+        rx.vstack(
+            rx.heading(
+                "The most important 5 minutes of your career."
             ),
-            rx.box(
-                height='200px',
-                width='100%',
-                border='1px dashed black'
+            rx.text(
+                """
+                Understanding the state of nursing both locally and
+                nationwide requires coordinated communication. Learn
+                vital details from a structured report about pay,
+                benefits, ratios, culture and much more.
+                """
             ),
-            align='center',
+            width='100%'  
         ),
+        rx.box(
+            height='200px',
+            width='100%',
+            border='1px dashed black'
+        ),
+        gap='12px',
+        flex_direction=['column', 'row', 'row', 'row', 'row'],
+        align_items='center',
+        justify_content='center',
         width='100%',
         max_width='768px',
         padding_x='24px'
     )
 
 def third_panel() -> rx.Component:
-    return rx.center(
-        rx.hstack(
-            rx.vstack(
-                rx.heading(
-                    "Speak freely and anonymously."
-                ),
-                rx.text(
-                    """
-                    Submit reports without fear of blowback.
-                    Your personal information won't be shared
-                    with hospitals or any other third party.
-                    """
-                ),
-                width='100%'  
+    return rx.flex(
+        rx.vstack(
+            rx.heading(
+                "Speak freely and anonymously."
             ),
-            rx.box(
-                height='200px',
-                width='100%',
-                border='1px dashed black'
+            rx.text(
+                """
+                Submit reports without fear of blowback.
+                Your personal information won't be shared
+                with hospitals or any other third party.
+                """
             ),
-            align='center',
+            width='100%'  
         ),
+        rx.box(
+            height='200px',
+            width='100%',
+            border='1px dashed black'
+        ),
+        gap='12px',
+        flex_direction=['column', 'row', 'row', 'row', 'row'],
+        align_items='center',
+        justify_content='center',
         width='100%',
         max_width='768px',
         padding_x='24px'

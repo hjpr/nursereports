@@ -37,7 +37,7 @@ def content() -> rx.Component:
         assignment_summary(),
         down_arrow(),
         staffing_summary(),
-        spacer(height='12px'),
+        spacer(height='36px'),
         buttons(),
         gap='12px',
         padding_x='20px',
@@ -70,7 +70,7 @@ def compensation_summary() -> rx.Component:
             rx.text(
                 """
                 First, I ask you questions about pay, differentials,
-                and benefits. 
+                and benefits offered. 
                 """
             )
         ),
@@ -87,7 +87,7 @@ def assignment_summary() -> rx.Component:
             rx.text(
                 """
                 Next, I ask details about unit culture, the work 
-                environment, and direct management.
+                environment, and nursing leadership.
                 """
             )
         ),
@@ -103,8 +103,8 @@ def staffing_summary() -> rx.Component:
             rx.divider(),
             rx.text(
                 """
-                Lastly, I finish up with questions on ratios, workloads,
-                and support/resources available to you.
+                Lastly, I finish up with questions on patient ratios,
+                workloads, and resources available to you.
                 """
             )
         ),
