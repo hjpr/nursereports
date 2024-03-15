@@ -518,6 +518,8 @@ class ReportState(PageState):
 
     staffing_select_overall: str
 
+    staffing_error_message: str
+
     def set_staffing_input_ratio(self, ratio: str) -> None:
         if bool(re.match(r"^[0-9]+$", ratio)):
             self.staffing_input_ratio = int(ratio)
@@ -570,7 +572,7 @@ class ReportState(PageState):
     @rx.var
     def staffing_input_comments_chars_left(self) -> int:
         if self.staffing_input_comments:
-            return 500 - len(self.staffing_input_comments)
+            return 1000 - len(self.staffing_input_comments)
         
     @rx.var
     def staffing_select_overall_description(self) -> str:
@@ -629,6 +631,10 @@ class ReportState(PageState):
     @rx.var
     def staffing_can_progress(self) -> bool:
         return True if self.staffing_progress == 100 else False
+    
+    @rx.var
+    def staffing_has_error(self) -> bool:
+        return
 
     #################################################################
     #
@@ -654,7 +660,7 @@ class ReportState(PageState):
     #################################################################
         
     def handle_submit_compensation(self) -> Callable:
-        if self.comp_can_progress < 100:
+        if not self.comp_can_progress:
             self.comp_error_message = "Some fields incomplete or invalid."
         if len(self.comp_input_comments) > 1000:
             self.comp_error_message = "Comments contain too many characters."
@@ -665,7 +671,7 @@ class ReportState(PageState):
         )
 
     def handle_submit_assignment(self) -> Iterable[Callable]:
-        if self.assign_can_progress < 100:
+        if not self.assign_can_progress:
             self.assign_error_message = "Some fields incomplete or invalid."
             return
         if len(self.assign_input_comments) > 1000:

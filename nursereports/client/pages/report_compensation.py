@@ -539,10 +539,8 @@ def comments() -> rx.Component:
                 ),
                 rx.cond(
                     ReportState.comp_input_comments,
-                    # If there is an entry in the comments
                     rx.cond(
                         ReportState.comp_comments_chars_over,
-                        # If chars over limit of 1000.
                         rx.callout(
                             "Please limit response to < 1000 characters!",
                             width='100%',
@@ -550,7 +548,6 @@ def comments() -> rx.Component:
                             color_scheme="red",
                             role="alert"
                         ),
-                        # If chars not over limit of 500.
                         rx.flex(
                             rx.text(
                                 f"{ReportState.comp_comments_chars_left} chars left.",
@@ -560,7 +557,6 @@ def comments() -> rx.Component:
                             width='100%'
                         )
                     ),
-                    # If no entry yet in comments
                     rx.flex(
                         rx.text(
                             "1000 character limit.",
@@ -588,7 +584,8 @@ def overall() -> rx.Component:
         ),
         spacer(height='24px'),
         rx.flex(
-            rx.text("How would you grade your compensation overall?",
+            rx.text(
+                "How would you grade your compensation overall?",
                 text_align='center'
             ),
             rx.flex(

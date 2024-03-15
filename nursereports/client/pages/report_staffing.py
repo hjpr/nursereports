@@ -4,6 +4,7 @@ from ..components.custom import spacer, login_protected
 from ..components.footer import footer
 from ..components.navbar import navbar
 from ..components.report_progress import progress
+from reflex_motion import motion
 from ...states.base import BaseState
 from ...states.report import ReportState
 
@@ -20,31 +21,7 @@ def staffing_page() -> rx.Component:
         c2a(),
         navbar(),
         spacer(height='1em'),
-        rx.flex(
-            rx.form(
-                rx.vstack(
-                    spacer(height='10px'),
-                    progress(),
-                    spacer(height='10px'),
-                    staffing(),
-                    ratios(),
-                    support(),
-                    overall(),
-                    comments(),
-                    spacer(height='40px'),
-                    buttons(),
-                    spacer(height='40px'),
-                ),
-                on_submit=ReportState.handle_submit_staffing
-            ),
-            padding_x='20px',
-            width=['100%', '100%', '600px', '600px', '600px'],
-            max_width='1200px',
-            flex_direction='column',
-            flex_basis='auto',
-            flex_grow='1',
-            flex_shrink='0',
-        ),
+        content(),
         spacer(height='1em'),
         footer(),
         width='100%',
@@ -53,79 +30,80 @@ def staffing_page() -> rx.Component:
         min_height='100vh',
     )
 
-def description() -> rx.Component:
-    return rx.card(
-        rx.vstack(
-            rx.vstack(
-                rx.heading(
-                    "Staffing"
-                ),
-                rx.divider(),
-                width='100%'
-            ),
-            rx.text(
-                """Answer questions on workloads and
-                staffing ratios depending on if you take patient
-                assignments, or work somewhere like a cath lab or
-                operating room where ratios aren't applicable.""",
-            ),
-            width='100%'
-        )
+def content() -> rx.Component:
+    return rx.flex(
+        progress(),
+        staffing(),
+        ratios(),
+        support(),
+        overall(),
+        comments(),
+        spacer(height='40px'),
+        buttons(),
+        spacer(height='40px'),
+        gap='24px',
+        padding_x='24px',
+        width=['100%', '480px', '480px', '480px', '480px'],
+        max_width='1200px',
+        flex_direction='column',
+        flex_basis='auto',
+        flex_grow='1',
+        flex_shrink='0',
     )
 
-def ratios() -> rx.Component:
+def staffing() -> rx.Component:
     return rx.card(
         rx.vstack(
+            rx.heading(
+                "Staffing"
+            ),
+            rx.divider(),
+            width='100%'
+        ),
+        spacer(height='24px'),
+        rx.flex(
             rx.vstack(
-                rx.heading(
-                    "Ratios"
+                rx.text(
+                    """
+                    Do you have enough nurses each day to ensure
+                    reasonable ratios?
+                    """,
                 ),
-                rx.divider(),
+                rx.select(
+                    ["Always", "Usually", "Sometimes", "Rarely", "Never", "N/A"],
+                    placeholder="- Select -",
+                    value=ReportState.staffing_select_nursing_shortages,
+                    on_change=ReportState.set_staffing_select_nursing_shortages,
+                    required=True,
+                    size='3',
+                    width='100%'
+                ),
                 width='100%'
             ),
-            rx.cond(
-                ReportState.has_ratios,
-                rx.vstack(
-                    # STAFFING - PATIENT RATIOS ---------------------
-                    rx.vstack(
-                        rx.text(
-                            "How many patients are you typically assigned?"
-                        ),
-                        rx.chakra.number_input(
-                            value=ReportState.staffing_input_ratio,
-                            input_mode='numeric',
-                            on_change=ReportState.set_staffing_input_ratio,
-                            is_required=True,
-                        ),
-                        rx.cond(
-                            ~ReportState.ratio_is_valid,
-                            rx.callout(
-                                "A valid number must be entered.",
-                                icon='alert_triangle',
-                                color_scheme="red",
-                                role='alert'
-                            )
-                        ),
-                        width='100%'
+            rx.vstack(
+                rx.text(
+                    "Do you have enough ",
+                    rx.text(
+                        "nurse aides ",
+                        display='inline',
+                        font_weight='bold'
                     ),
-                    # STAFFING - RATIOS SAFE ------------------------
-                    rx.vstack(
-                        rx.text(
-                            "How often does this ratio feel unsafe?"
-                        ),
-                        rx.select(
-                            ["Always", "Usually", "Sometimes", "Rarely", "Never"],
-                            placeholder="- Select -",
-                            value=ReportState.staffing_select_ratio_unsafe,
-                            on_change=ReportState.set_staffing_select_ratio_unsafe,
-                            required=True
-                        ),
-                        width='100%'
-                    ),
+                    rx.text(
+                        "each day to ensure availability when needed?",
+                        display='inline'
+                    )
+                ),
+                rx.select(
+                    ["Always", "Usually", "Sometimes", "Rarely", "Never", "N/A"],
+                    placeholder="- Select -",
+                    value=ReportState.staffing_select_aide_shortages,
+                    on_change=ReportState.set_staffing_select_aide_shortages,
+                    required=True,
+                    size='3',
                     width='100%'
-                )
+                ),
+                width='100%'
             ),
-            # STAFFING - WORKLOADS ----------------------------------
             rx.vstack(
                 rx.text(
                     "How would you rate the average daily workload?"
@@ -135,56 +113,12 @@ def ratios() -> rx.Component:
                     placeholder="- Select -",
                     value=ReportState.staffing_select_workload,
                     on_change=ReportState.set_staffing_select_workload,
-                    required=True
+                    required=True,
+                    size='3',
+                    width='100%'
                 ),
                 width='100%'
             ),
-            width='100%'
-        ),
-        width='100%'
-    )
-
-def staffing() -> rx.Component:
-    return rx.card(
-        rx.vstack(
-            rx.vstack(
-                rx.heading(
-                    "Staffing"
-                ),
-                rx.divider(),
-                width='100%'
-            ),
-            # STAFFING - NURSE STAFFING -----------------------------
-            rx.vstack(
-                rx.text(
-                    "Is the area you work in appropriately staffed with nurses?",
-                    text_align='center'
-                ),
-                rx.select(
-                    ["Always", "Usually", "Sometimes", "Rarely", "Never", "N/A"],
-                    placeholder="- Select -",
-                    value=ReportState.staffing_select_nursing_shortages,
-                    on_change=ReportState.set_staffing_select_nursing_shortages,
-                    required=True
-                ),
-                width='100%'
-            ),
-            # STAFFING - CNA STAFFING -------------------------------
-            rx.vstack(
-                rx.text(
-                    "Is the area you work in appropriately staffed with nurse aides?",
-                    text_align='center'
-                ),
-                rx.select(
-                    ["Always", "Usually", "Sometimes", "Rarely", "Never", "N/A"],
-                    placeholder="- Select -",
-                    value=ReportState.staffing_select_aide_shortages,
-                    on_change=ReportState.set_staffing_select_aide_shortages,
-                    required=True
-                ),
-                width='100%'
-            ),
-            # STAFFING - CHARGE -------------------------------------
             rx.vstack(
                 rx.text(
                     "Does the area you work in have a charge nurse?"
@@ -194,11 +128,12 @@ def staffing() -> rx.Component:
                     placeholder="- Select -",
                     value=ReportState.staffing_select_charge_response,
                     on_change=ReportState.set_staffing_select_charge_response,
-                    required=True
+                    required=True,
+                    size='3',
+                    width='100%'
                 ),
                 width='100%'
             ),
-            # STAFFING - CHARGE PATIENTS ----------------------------
             rx.cond(
                 ReportState.has_charge,
                 rx.vstack(
@@ -210,11 +145,77 @@ def staffing() -> rx.Component:
                         placeholder="- Select -",
                         value=ReportState.staffing_select_charge_assignment,
                         on_change=ReportState.set_staffing_select_charge_assignment,
-                        required=True
+                        required=True,
+                        size='3',
+                        width='100%'
                     ),
                     width='100%'
                 )
             ),
+            flex_direction='column',
+            gap='24px',
+            width='100%'
+        ),
+        width='100%'
+    )
+
+def ratios() -> rx.Component:
+    return rx.card(
+        rx.vstack(
+            rx.heading(
+                "Ratios"
+            ),
+            rx.divider(),
+            width='100%'
+        ),
+        spacer(height='24px'),
+        rx.flex(
+            rx.cond(
+                ReportState.has_ratios,
+                rx.vstack(
+                    rx.vstack(
+                        rx.text(
+                            "How many patients are you typically assigned?"
+                        ),
+                        rx.chakra.number_input(
+                            value=ReportState.staffing_input_ratio,
+                            input_mode='numeric',
+                            on_change=ReportState.set_staffing_input_ratio,
+                            is_required=True,
+                            width='100%'
+                        ),
+                        rx.cond(
+                            ~ReportState.ratio_is_valid,
+                            rx.callout(
+                                "A valid number must be entered.",
+                                width='100%',
+                                icon='alert_triangle',
+                                color_scheme="red",
+                                role='alert'
+                            )
+                        ),
+                        width='100%'
+                    ),
+                    rx.vstack(
+                        rx.text(
+                            "How often does this ratio feel unsafe?"
+                        ),
+                        rx.select(
+                            ["Always", "Usually", "Sometimes", "Rarely", "Never"],
+                            placeholder="- Select -",
+                            value=ReportState.staffing_select_ratio_unsafe,
+                            on_change=ReportState.set_staffing_select_ratio_unsafe,
+                            required=True,
+                            size='3',
+                            width='100%'
+                        ),
+                        width='100%'
+                    ),
+                    width='100%'
+                )
+            ),
+            flex_direction='column',
+            gap='24px',
             width='100%'
         ),
         width='100%'
@@ -223,75 +224,141 @@ def staffing() -> rx.Component:
 def support() -> rx.Component:
     return rx.card(
         rx.vstack(
-            rx.vstack(
-                rx.heading(
-                    "Support"
-                ),
-                rx.text(
-                    "Select support staff available to you as a resource."
-                ),
-                rx.divider(),
-                width='100%'
+            rx.heading(
+                "Support"
             ),
-            # SUPPORT - SELECT ALL
-            rx.hstack(
-                rx.hstack(
-                    rx.checkbox(
+            rx.text(
+                "Select support staff available to you as a resource."
+            ),
+            rx.divider(),
+            width='100%'
+        ),
+        rx.flex(
+            motion(
+                rx.card(
+                    rx.flex(
+                        rx.checkbox(
                         on_change=ReportState.set_staffing_check_transport,
                         checked=ReportState.staffing_check_transport
+                        ),
+                        rx.text("Transport"),
+                        gap='12px',
+                        align_items='center',
+                        justify_content='center'
                     ),
-                    rx.text("Transport"),
-                    padding_x='0.5em',
-                    padding_y='1em'
+                    cursor='pointer',
+                    width='100%',
+                    on_click=ReportState.set_staffing_check_transport(
+                        ~ReportState.staffing_check_transport
+                    )
                 ),
-                rx.hstack(
-                    rx.checkbox(
+                initial={"scale": 1},
+                while_tap={"scale": 0.95}
+            ),
+            motion(
+                rx.card(
+                    rx.flex(
+                        rx.checkbox(
                         on_change=ReportState.set_staffing_check_lab,
                         checked=ReportState.staffing_check_lab
+                        ),
+                        rx.text("Phlebotomy"),
+                        gap='12px',
+                        align_items='center',
+                        justify_content='center'
                     ),
-                    rx.text("Phlebotomy"),
-                    padding_x='0.5em',
-                    padding_y='1em'
+                    cursor='pointer',
+                    width='100%',
+                    on_click=ReportState.set_staffing_check_lab(
+                        ~ReportState.staffing_check_lab
+                    )
                 ),
-                rx.hstack(
-                    rx.checkbox(
+                initial={"scale": 1},
+                while_tap={"scale": 0.95}
+            ),
+            motion(
+                rx.card(
+                    rx.flex(
+                        rx.checkbox(
                         on_change=ReportState.set_staffing_check_cvad,
                         checked=ReportState.staffing_check_cvad
+                        ),
+                        rx.text("CVAD"),
+                        gap='12px',
+                        align_items='center',
+                        justify_content='center'
                     ),
-                    rx.text("CVAD"),
-                    padding_x='0.5em',
-                    padding_y='1em'
+                    cursor='pointer',
+                    width='100%',
+                    on_click=ReportState.set_staffing_check_cvad(
+                        ~ReportState.staffing_check_cvad
+                    )
                 ),
-                rx.hstack(
-                    rx.checkbox(
+                initial={"scale": 1},
+                while_tap={"scale": 0.95}
+            ),
+            motion(
+                rx.card(
+                    rx.flex(
+                        rx.checkbox(
                         on_change=ReportState.set_staffing_check_wocn,
                         checked=ReportState.staffing_check_wocn
+                        ),
+                        rx.text("Wound Care"),
+                        gap='12px',
+                        align_items='center',
+                        justify_content='center'
                     ),
-                    rx.text("Wound Care"),
-                    padding_x='0.5em',
-                    padding_y='1em'
+                    cursor='pointer',
+                    width='100%',
+                    on_click=ReportState.set_staffing_check_wocn(
+                        ~ReportState.staffing_check_wocn
+                    )
                 ),
-                rx.hstack(
-                    rx.checkbox(
+                initial={"scale": 1},
+                while_tap={"scale": 0.95}
+            ),
+            motion(
+                rx.card(
+                    rx.flex(
+                        rx.checkbox(
                         on_change=ReportState.set_staffing_check_chaplain,
                         checked=ReportState.staffing_check_chaplain
+                        ),
+                        rx.text("Chaplain"),
+                        gap='12px',
+                        align_items='center',
+                        justify_content='center'
                     ),
-                    rx.text("Chaplain"),
-                    padding_x='0.5em',
-                    padding_y='1em'
+                    cursor='pointer',
+                    width='100%',
+                    on_click=ReportState.set_staffing_check_chaplain(
+                        ~ReportState.staffing_check_chaplain
+                    )
                 ),
-                rx.hstack(
-                    rx.checkbox(
+                initial={"scale": 1},
+                while_tap={"scale": 0.95}
+            ),
+            motion(
+                rx.card(
+                    rx.flex(
+                        rx.checkbox(
                         on_change=ReportState.set_staffing_check_educator,
                         checked=ReportState.staffing_check_educator
+                        ),
+                        rx.text("Educator"),
+                        gap='12px',
+                        align_items='center',
+                        justify_content='center'
                     ),
-                    rx.text("Educator"),
-                    padding_x='0.5em',
-                    padding_y='1em'
+                    cursor='pointer',
+                    width='100%',
+                    on_click=ReportState.set_staffing_check_educator(
+                        ~ReportState.staffing_check_educator
+                    )
                 ),
-                width='100%',
-                wrap='wrap',
-                justify='center'
+                initial={"scale": 1},
+                while_tap={"scale": 0.95}
             ),
             rx.divider(),
             rx.vstack(
@@ -304,10 +371,14 @@ def support() -> rx.Component:
                     placeholder="- Select -",
                     value=ReportState.staffing_select_support_available,
                     on_change=ReportState.set_staffing_select_support_available,
-                    required=True
+                    required=True,
+                    size='3',
+                    width='100%'
                 ),
                 width='100%'
             ),
+            flex_direction='column',
+            gap='12px',
             width='100%'
         ),
         width='100%'
@@ -316,17 +387,20 @@ def support() -> rx.Component:
 def comments() -> rx.Component:
     return rx.card(
         rx.vstack(
-            rx.vstack(
-                rx.heading(
-                    "Comments"
-                ),
-                rx.divider(),
-                width='100%'
+            rx.heading(
+                "Comments"
             ),
+            rx.divider(),
+            width='100%'
+        ),
+        spacer(height='24px'),
+        rx.flex(
             rx.vstack(
                 rx.text(
-                    "(Optional) Any comments for your nursing peers about staffing, workloads, or resources?",
-                    text_align='center'
+                    """
+                    (Optional) Any comments for your nursing peers 
+                    about staffing, workloads, or resources?
+                    """,
                 ),
                 rx.debounce_input(
                     rx.text_area(
@@ -334,104 +408,142 @@ def comments() -> rx.Component:
                         placeholder="Do not enter personally identifiable information.",
                         on_change=ReportState.set_staffing_input_comments,
                         on_blur=ReportState.set_staffing_input_comments,
-                        height='10em'
+                        height='10em',
+                        size='3',
+                        width='100%'
                     ),
                     debounce_timeout=1000
                 ),
                 rx.cond(
                     ReportState.staffing_input_comments,
-                    # If there is an entry in the comments
                     rx.cond(
                         ReportState.staffing_input_comments_chars_over,
-                        # If chars over limit of 500.
                         rx.callout(
-                            "Please limit response to < 500 characters!",
+                            "Please limit response to < 1000 characters!",
+                            width='100%',
                             icon='alert_triangle',
                             color_scheme='red',
                             role='alert'
                         ),
-                        # If chars not over limit of 500.
-                        rx.text(
-                            f"{ReportState.staffing_input_comments_chars_left} chars left.",
-                            text_align="center"
+                        rx.flex(
+                            rx.text(
+                                f"{ReportState.staffing_input_comments_chars_left} chars left.",
+                            ),
+                            width='100%',
+                            align_items='center',
+                            justify_content='center'
                         )
                     ),
-                    # If no entry yet in comments
-                    rx.text(
-                        "500 character limit."
+                    rx.flex(
+                        rx.text(
+                            "1000 character limit."
+                        ),
+                        width='100%',
+                        align_items='center',
+                        justify_content='center'
                     )
                 ),
                 width='100%'
             ),
+            flex_direction='column',
+            gap='24px',
             width='100%'
         )
     )
 
 def overall() -> rx.Component:
     return rx.card(
-        rx.vstack(
             rx.vstack(
                 rx.heading(
                     "Grade"
                 ),
+                rx.divider(),
+                width='100%'
+            ),
+            spacer(height='24px'),
+            rx.flex(
                 rx.text(
                     "How would you grade staffing overall?",
                     text_align='center'
                 ),
-                rx.divider(),
-                width='100%'
-            ),
-            rx.hstack(
-                rx.image(
-                    src='/raster/icons/icon_rating_a.webp',
-                    height=['50px', '65px', '75px', '75px', '75px',],
-                    width=['50px', '65px', '75px', '75px', '75px',],
-                    border_radius='5px',
-                    on_click=ReportState.set_staffing_select_overall("a")
-                ),
-                rx.spacer(),
-                rx.image(
-                    src='/raster/icons/icon_rating_b.webp',
-                    height=['50px', '65px', '75px', '75px', '75px',],
-                    width=['50px', '65px', '75px', '75px', '75px',],
-                    border_radius='5px',
-                    on_click=ReportState.set_staffing_select_overall("b")
-                ),
-                rx.spacer(),
-                rx.image(
-                    src='/raster/icons/icon_rating_c.webp',
-                    height=['50px', '65px', '75px', '75px', '75px',],
-                    width=['50px', '65px', '75px', '75px', '75px',],
-                    border_radius='5px',
-                    on_click=ReportState.set_staffing_select_overall("c")
-                ),
-                rx.spacer(),
-                rx.image(
-                    src='/raster/icons/icon_rating_d.webp',
-                    height=['50px', '65px', '75px', '75px', '75px',],
-                    width=['50px', '65px', '75px', '75px', '75px',],
-                    border_radius='5px',
-                    on_click=ReportState.set_staffing_select_overall("d")
-                ),
-                rx.spacer(),
-                rx.image(
-                    src='/raster/icons/icon_rating_f.webp',
-                    height=['50px', '65px', '75px', '75px', '75px',],
-                    width=['50px', '65px', '75px', '75px', '75px',],
-                    border_radius='5px',
-                    on_click=ReportState.set_staffing_select_overall("f")
-                ),
-                width='100%'
+                rx.flex(
+                    motion(
+                        rx.image(
+                            src='/raster/icons/icon_rating_a.webp',
+                            height=['65px', '65px', '75px', '75px', '75px',],
+                            width=['65px', '65px', '75px', '75px', '75px',],
+                            border_radius='5px',
+                            cursor='pointer',
+                            on_click=ReportState.set_staffing_select_overall("a")
+                        ),
+                        initial={"scale": 1},
+                        while_tap={"scale": 0.95}   
+                    ),
+                    motion(
+                        rx.image(
+                            src='/raster/icons/icon_rating_a.webp',
+                            height=['65px', '65px', '75px', '75px', '75px',],
+                            width=['65px', '65px', '75px', '75px', '75px',],
+                            border_radius='5px',
+                            cursor='pointer',
+                            on_click=ReportState.set_staffing_select_overall("b")
+                        ),
+                        initial={"scale": 1},
+                        while_tap={"scale": 0.95}   
+                    ),
+                    motion(
+                        rx.image(
+                            src='/raster/icons/icon_rating_a.webp',
+                            height=['65px', '65px', '75px', '75px', '75px',],
+                            width=['65px', '65px', '75px', '75px', '75px',],
+                            border_radius='5px',
+                            cursor='pointer',
+                            on_click=ReportState.set_staffing_select_overall("c")
+                        ),
+                        initial={"scale": 1},
+                        while_tap={"scale": 0.95}   
+                    ),
+                    motion(
+                        rx.image(
+                            src='/raster/icons/icon_rating_a.webp',
+                            height=['65px', '65px', '75px', '75px', '75px',],
+                            width=['65px', '65px', '75px', '75px', '75px',],
+                            border_radius='5px',
+                            cursor='pointer',
+                            on_click=ReportState.set_staffing_select_overall("d")
+                        ),
+                        initial={"scale": 1},
+                        while_tap={"scale": 0.95}   
+                    ),
+                    motion(
+                        rx.image(
+                            src='/raster/icons/icon_rating_a.webp',
+                            height=['65px', '65px', '75px', '75px', '75px',],
+                            width=['65px', '65px', '75px', '75px', '75px',],
+                            border_radius='5px',
+                            cursor='pointer',
+                            on_click=ReportState.set_staffing_select_overall("f")
+                        ),
+                        initial={"scale": 1},
+                        while_tap={"scale": 0.95}   
+                    ),
+                    flex_direction='row',
+                    justify_content='space-between',
+                    width='100%'
             ),
             rx.cond(
                 ~ReportState.staffing_select_overall,
                 rx.callout(
                     "Please make a selection.",
-                    icon='info'
+                    width='100%',
+                    icon='alert_triangle',
+                    color_scheme='red',
+                    role='alert'
                 ),
                 rx.center(
                     rx.heading(
-                        f"You graded: {ReportState.staffing_select_overall.upper()} - {ReportState.staffing_select_overall_description}",
+                        f"You graded: {ReportState.staffing_select_overall.upper()}\
+                            - {ReportState.staffing_select_overall_description}",
                         color='white',
                         text_align='center',
                     ),
@@ -441,20 +553,41 @@ def overall() -> rx.Component:
                     width='100%'
                 )
             ),
+            flex_direction='column',
+            gap='24px',
             width='100%'
         ),
         width='100%'
     )
 
-def buttons() -> rx.Component:
-    return rx.center(
-        rx.button("Back",
+def button() -> rx.Component:
+    return rx.card(
+        rx.flex(
+            rx.button(
+                "Submit Report",
+                rx.icon("arrow-big-right"),
+                on_click=ReportState.handle_submit_staffing,
+                variant='ghost',
+                size='3'
+            ),
+            align_items='center',
+            justify_content='center',
             width='100%',
-            on_click=ReportState.report_nav('staffing/summary'),
         ),
-        rx.button("Submit",
-            width='100%',
-            type='submit',
+        width='100%'
+    )
+
+def callout() -> rx.Component:
+    return rx.flex(
+        rx.cond(
+            ReportState.staffing_has_error,
+            rx.callout(
+                ReportState.staffing_error_message,
+                width='100%',
+                icon='alert_triangle',
+                color_scheme='red',
+                role='alert'
+            )
         ),
-        width='50%'
+        width='100%'
     )
