@@ -273,7 +273,9 @@ class ReportState(PageState):
 
     assign_select_specialty_3: str
 
-    assign_select_teamwork: str
+    assign_select_teamwork_rn: str
+
+    assign_select_teamwork_na: str
 
     assign_select_providers: str
 
@@ -293,11 +295,14 @@ class ReportState(PageState):
 
     assign_select_overall: str
 
+    assign_error_message: str
+
     def set_assign_select_specific_unit(self, unit: str) -> None:
         self.assign_select_acuity = ""
-        self.assign_input_unit_abbr = ""
-        self.assign_input_unit_name = ""
         self.assign_select_unit = ""
+        self.assign_select_area = ""
+        self.assign_input_area = ""
+        self.assign_input_unit_name = ""
         self.assign_select_specific_unit = unit
 
     def set_assign_select_specialty_1(self, specialty: str) -> None:
@@ -312,7 +317,17 @@ class ReportState(PageState):
     @rx.var
     def name_too_long(self) -> bool:
         if self.assign_input_unit_name:
-            if len(self.assign_input_unit_name) > 45:
+            if len(self.assign_input_unit_name) > 30:
+                return True
+            else:
+                return False
+        else:
+            return False
+        
+    @rx.var
+    def area_too_long(self) -> bool:
+        if self.assign_input_area:
+            if len(self.assign_input_area) > 50:
                 return True
             else:
                 return False
@@ -372,7 +387,7 @@ class ReportState(PageState):
     @rx.var
     def assign_input_comments_chars_left(self) -> int:
         if self.assign_input_comments:
-            return 500 - len(self.assign_input_comments)
+            return 1000 - len(self.assign_input_comments)
         
     @rx.var
     def assign_select_overall_description(self) -> str:
@@ -425,8 +440,10 @@ class ReportState(PageState):
                     if self.assign_input_area:
                         progress = progress + 10
 
-        if self.assign_select_teamwork:
-            progress = progress + 10
+        if self.assign_select_teamwork_rn:
+            progress = progress + 5
+        if self.assign_select_teamwork_na:
+            progress = progress + 5
         if self.assign_select_providers:
             progress = progress + 10
         if self.assign_select_contributions:
@@ -456,9 +473,11 @@ class ReportState(PageState):
             return True
         else:
             return False
+        
+    @rx.var
+    def assign_has_error(self) -> bool:
+        return True if self.assign_error_message else False
     
-
-
     #################################################################
     #
     # STAFFING VARIABLES
@@ -634,56 +653,30 @@ class ReportState(PageState):
     #
     #################################################################
         
-    def handle_submit_comp(self) -> Callable:
-        required_forms= {
-            "comp_select_emp_type": self.comp_select_emp_type,
-            "comp_select_pay_type": self.comp_select_pay_type,
-            "comp_input_pay_amount": self.comp_input_pay_amount,
-            "comp_select_diff_response": self.comp_select_diff_response,
-            "comp_select_incentive_response": self.comp_select_incentive_response,
-            "comp_select_certifications": self.comp_select_certifications,
-            "comp_select_shift": self.comp_select_shift,
-            "comp_select_weekly_shifts": self.comp_select_weekly_shifts,
-            "comp_select_hospital_experience": self.comp_select_hospital_experience,
-            "comp_select_total_experience": self.comp_select_total_experience,
-            "comp_select_comp_adequate": self.comp_select_comp_adequate,
-            "comp_select_overall": self.comp_select_overall
-        }
-        logger.debug(required_forms)
-        required_forms_complete = True
-        for key, value in required_forms.items():
-            if not value:
-                required_forms_complete = False
-
-        if not required_forms_complete:
+    def handle_submit_compensation(self) -> Callable:
+        if self.comp_can_progress < 100:
             self.comp_error_message = "Some fields incomplete or invalid."
-            return
-        if self.is_pay_invalid or self.is_experience_invalid:
-            self.comp_error_message = "Some fields incomplete or invalid."
-            return
         if len(self.comp_input_comments) > 1000:
             self.comp_error_message = "Comments contain too many characters."
             return
-        
         self.comp_error_message = ""
         return rx.redirect(
-            f"/report/submit/{self.hosp_id_param}/assignment/summary"
+            f"/report/submit/{self.hosp_id_param}/assignment"
         )
 
-    def handle_submit_assign(self, form_data: dict) -> Iterable[Callable]:
-        from ..states.navbar import NavbarState
-
-        if len(self.assign_input_comments) > 500:
-            return NavbarState.set_alert_message(
-                """Text input field contains too many characters! Please limit
-                your response to less than 500 characters."""
-                )
-        else:
-            return rx.redirect(f"/report/submit/{self.hosp_id_param}/staffing/summary")
+    def handle_submit_assignment(self) -> Iterable[Callable]:
+        if self.assign_can_progress < 100:
+            self.assign_error_message = "Some fields incomplete or invalid."
+            return
+        if len(self.assign_input_comments) > 1000:
+            self.assign_error_message = "Comments contain too many characters."
+            return
+        self.assign_error_message = ""
+        return rx.redirect(
+            f"/report/submit/{self.hosp_id_param}/staffing"
+            )
 
     def handle_submit_staffing(self, form_data: dict) -> Iterable[Callable] | Callable:
-        from ..states.navbar import NavbarState
-
         if len(self.staffing_input_comments) > 500:
             return NavbarState.set_alert_message(
                 """Text input field contains too many characters! Please limit

@@ -45,8 +45,8 @@ def content() -> rx.Component:
         button(),
         spacer(height='48px'),
         gap='24px',
-        padding_x='20px',
-        width=['100%', '500px', '500px', '500px', '500px'],
+        padding_x='24px',
+        width=['100%', '480px', '480px', '480px', '480px'],
         max_width='1200px',
         flex_direction='column',
         flex_basis='auto',
@@ -588,10 +588,7 @@ def overall() -> rx.Component:
         ),
         spacer(height='24px'),
         rx.flex(
-            rx.text(
-                """
-                How would you grade your compensation overall?
-                """,
+            rx.text("How would you grade your compensation overall?",
                 text_align='center'
             ),
             rx.flex(
@@ -693,7 +690,7 @@ def button() -> rx.Component:
             rx.button(
                 "Go to Assignment",
                 rx.icon("arrow-big-right"),
-                on_click=ReportState.handle_submit_comp,
+                on_click=ReportState.handle_submit_compensation,
                 variant='ghost',
                 size='3'
             ),

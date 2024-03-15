@@ -9,7 +9,7 @@ from ...states.summary import SummaryState
 import reflex as rx
 
 @rx.page(
-    route="/report/submit/[hosp_id]/summary",
+    route="/report/submit/[hosp_id]/overview",
     title='Nurse Reports',
     on_load=[
         BaseState.event_state_standard_flow('login'),
@@ -17,7 +17,7 @@ import reflex as rx
         ]
 )
 @login_protected
-def summary_page() -> rx.Component:
+def overview_page() -> rx.Component:
     return rx.flex(
         c2a(),
         navbar(),

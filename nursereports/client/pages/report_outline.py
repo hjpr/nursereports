@@ -9,12 +9,12 @@ from ...states.report import ReportState
 import reflex as rx
 
 @rx.page(
-    route="/report/submit/[hosp_id]/compensation/summary",
+    route="/report/submit/[hosp_id]/outline",
     title='Nurse Reports',
     on_load=BaseState.event_state_standard_flow('login')
 )
 @login_protected
-def compensation_summary_page() -> rx.Component:
+def outline_page() -> rx.Component:
     return rx.flex(
         c2a(),
         navbar(),

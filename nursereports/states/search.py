@@ -62,4 +62,4 @@ class SearchState(BaseState):
         self.selected_city = ""
         self.selected_state = ""
         self.search_results = []
-        return rx.redirect(f"/report/submit/{report_id}/summary")
+        return rx.redirect(f"/report/submit/{report_id}/overview")

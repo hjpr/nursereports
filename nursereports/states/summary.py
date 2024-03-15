@@ -26,5 +26,5 @@ class SummaryState(PageState):
 
     def event_state_goto_report(self) -> Iterable[Callable]:
         if self.hosp_info:
-            yield rx.redirect(f"/report/submit/{self.hosp_id_param}/compensation/summary")
+            yield rx.redirect(f"/report/submit/{self.hosp_id_param}/outline")
             yield ReportState.reset_report

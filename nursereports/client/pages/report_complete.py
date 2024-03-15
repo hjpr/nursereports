@@ -21,7 +21,7 @@ def complete_page() -> rx.Component:
         rx.flex(
             rx.center(
                 rx.vstack(
-                    rx.heading("Wow, what a healthcare hero!"),
+                    rx.heading("One report closer to hospital transparency!"),
                     rx.text(
                         """We'd throw you a pizza party, but that's a real logistical
                         nightmare, so instead check out our database of high quality
