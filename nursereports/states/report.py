@@ -1,7 +1,10 @@
-
+from ..server.supabase.report import (
+    supabase_no_report_id_conflict,
+    supabase_submit_full_report
+)
 from ..states.page import PageState
 from loguru import logger
-from typing import Callable, Iterable
+from typing import Callable
 
 import httpx
 import json
@@ -10,6 +13,7 @@ import uuid
 import re
 import reflex as rx
 import rich
+import time
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -643,15 +647,6 @@ class ReportState(PageState):
     #################################################################
            
     id: str = str(uuid.uuid4())
-
-    @rx.var
-    def completed_report(self) -> bool:
-        if self.comp_progress == 100 and\
-        self.staffing_progress == 100 and\
-        self.assign_progress == 100:
-            return True
-        else:
-            return False
     
     #################################################################
     #
@@ -661,75 +656,82 @@ class ReportState(PageState):
         
     def handle_submit_compensation(self) -> Callable:
         if not self.comp_can_progress:
-            self.comp_error_message = "Some fields incomplete or invalid."
+            self.comp_error_message = \
+                "Some fields incomplete or invalid."
         if len(self.comp_input_comments) > 1000:
-            self.comp_error_message = "Comments contain too many characters."
+            self.comp_error_message = \
+                "Comments contain too many characters."
             return
         self.comp_error_message = ""
         return rx.redirect(
             f"/report/submit/{self.hosp_id_param}/assignment"
         )
 
-    def handle_submit_assignment(self) -> Iterable[Callable]:
+    def handle_submit_assignment(self) -> Callable:
         if not self.assign_can_progress:
-            self.assign_error_message = "Some fields incomplete or invalid."
+            self.assign_error_message = \
+                "Some fields incomplete or invalid."
             return
         if len(self.assign_input_comments) > 1000:
-            self.assign_error_message = "Comments contain too many characters."
+            self.assign_error_message = \
+                "Comments contain too many characters."
             return
         self.assign_error_message = ""
         return rx.redirect(
             f"/report/submit/{self.hosp_id_param}/staffing"
             )
 
-    def handle_submit_staffing(self, form_data: dict) -> Iterable[Callable] | Callable:
-        if len(self.staffing_input_comments) > 500:
-            return NavbarState.set_alert_message(
-                """Text input field contains too many characters! Please limit
-                your response to less than 500 characters."""
-                )
-        elif self.has_ratios and not self.ratio_is_valid:
-            return NavbarState.set_alert_message(
-                """Some fields contain invalid information. Please fix
-                before attempting to proceed."""
-                )
-        elif self.comp_can_progress and self.staffing_can_progress and self.assign_can_progress:
-            if self.if_report_id_exists():
-                logger.debug("Found a duplicate uuid! Hell froze over! Buy a lottery ticket!")
-                self.id = str(uuid.uuid4())
-            yield ReportState.submit_full_report
-            yield ReportState.moderate_user_entries
-        else:
-            yield NavbarState.set_alert_message(
-                "Unable to submit report. Server-side error."
+    def handle_submit_staffing(self) -> Callable:
+        if not self.staffing_can_progress:
+            self.staffing_error_message = \
+                "Some fields incomplete or invalid."
+            return
+        if self.has_ratios and not self.ratio_is_valid:
+            self.staffing_error_message = \
+                "Some fields incomplete or invalid."
+        if len(self.staffing_input_comments) > 1000:
+            self.staffing_error_message = \
+                "Comments contain too many characters."
+            return
+        self.staffing_error_message = ""
+        self.submit_report()
+    
+    def submit_report(self) -> Callable:
+        if not self.comp_can_progress:
+            self.comp_error_message = \
+                "Some fields incomplete or invalid."
+            return rx.redirect(
+                f"/report/submit/{self.hosp_id_param}/compensation"
             )
-
-    def submit_full_report(self) -> Iterable[Callable]:
-        from ..states.navbar import NavbarState
-
-        url = f"{api_url}/rest/v1/reports"
-        data = json.dumps(self.prepare_report_dict())
-        headers = {
-            "apikey": api_key,
-            "Authorization": f"Bearer {self.access_token}",
-            "Content-Type": "application/json",
-        }
-
-        response = httpx.post(
-            url=url,
-            headers=headers,
-            data=data
+        if not self.assign_can_progress:
+            self.assign_error_message = \
+                "Some fields incomplete or invalid."
+            return rx.redirect(
+                f"/report/submit/{self.hosp_id_param}/compensation"
+            )
+        if not self.ensure_no_duplicate_report_id():
+            self.staffing_error_message = \
+                "Server error - UUID conflict check failed."
+            return
+        report = self.prepare_report_dict()
+        response = supabase_submit_full_report(
+            self.access_token, report
         )
-        
-        if response.is_success:
-            logger.debug("Report submitted successfully.")
-            yield rx.redirect(f"/report/submit/{self.report_id}/complete")
+        if response['success']:
+            try:
+                self.moderate_user_entries()
+            except Exception as e:
+                logger.warning(
+                    f"Unable to moderate {self.id}"
+                )
+            return rx.redirect(
+                f"/report/submit/{self.hosp_id_param}/complete"
+                )
         else:
-            logger.critical("Error while submitting report!")
-            yield rx.call_script("window.location.reload")
-            yield NavbarState.set_alert_message(f"{response.reason_phrase} - {response.text}")
+            self.staffing_error_message = \
+                "Server error - Failed to upload report to database."
 
-    def prepare_report_dict(self) -> dict[str, str | int | None]:
+    def prepare_report_dict(self) -> dict:
         report = {
             "id": self.id,
             "user_id": self.claims['sub'],
@@ -764,7 +766,8 @@ class ReportState(PageState):
             "assign_select_specialty_1": self.assign_select_specialty_1,
             "assign_select_specialty_2": self.assign_select_specialty_2,
             "assign_select_specialty_3": self.assign_select_specialty_3,
-            "assign_select_teamwork": self.assign_select_teamwork,
+            "assign_select_teamwork_rn": self.assign_select_teamwork_rn,
+            "assign_select_teamwork_na": self.assign_select_teamwork_na,
             "assign_select_providers": self.assign_select_providers,
             "assign_select_contributions": self.assign_select_contributions,
             "assign_select_impact": self.assign_select_impact,
@@ -794,26 +797,26 @@ class ReportState(PageState):
         }
         return report
     
-    def if_report_id_exists(self) -> bool:
-        """Check if generated uuid exists in report database."""
-        url = f"{api_url}/rest/v1/reports?id=eq.{self.id}&select=*"
-        headers = {
-            "apikey": api_key,
-            "Authorization": f"Bearer {self.access_token}",
-            "Content-Type": "application/json",
-        }
-        response = httpx.get(
-            url=url,
-            headers=headers
-        )
-
-        if response.is_success:
-            logger.debug("Successfully checked for duplicate report id's.")
-            rich.inspect(response)
-            return True if json.loads(response.content) else False
-        else:
-            logger.critical("Unable to check for duplicate report id's.")
-            rich.inspect(response)
+    def ensure_no_duplicate_report_id(self) -> bool:
+        response = supabase_no_report_id_conflict(
+            self.access_token, self.id
+            )
+        if response['success']:
+            return True
+        if not response['success'] and response['status'] == "Conflict":
+            for x in range(4):
+                logger.warning(
+                    ""
+                    )
+                self.id = uuid.uuid4()
+                response = supabase_no_report_id_conflict(
+                    self.access_token, self.id
+                )
+                if response['success']:
+                    return True
+                time.sleep(1)
+            return False
+        return False
 
     def reset_report(self) -> None:
         self.reset()
@@ -851,10 +854,11 @@ class ReportState(PageState):
         if self.assign_input_comments:
             user_entry_dict['assign_input_comments'] = self.assign_input_comments
 
-        system_prompt = """You moderate user entries for a hospital
-        review site, outputting responses in JSON"""
-        user_prompt = f"""Flag user entries for abusive/racist language, links
-        to other sites, or spam. User entries = {json.dumps(user_entry_dict)}"""
+        system_prompt = """You moderate user entries by nurses for a hospital
+        review site. Output responses in JSON"""
+        user_prompt = f"""Flag user entries for racism, threats, links
+        to other sites, spam, or personally identifiable information.
+        User entries = {json.dumps(user_entry_dict)}"""
         url = f"{anyscale_url}/chat/completions"
         headers = {
             "Authorization": f"Bearer {anyscale_api_key}",
@@ -898,7 +902,7 @@ class ReportState(PageState):
 
         }
 
-        async with httpx.AsyncClient(timeout=15.0) as client:
+        async with httpx.AsyncClient(timeout=20.0) as client:
             response = await client.post(
                 url=url,
                 headers=headers,
