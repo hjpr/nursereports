@@ -157,6 +157,7 @@ def supabase_get_new_access_token(
         }
     else:
         logger.warning("Unable to refresh access token.")
+        rich.inspect(response)
         return {
             "success": False,
             "status": f"{response.status_code} - \

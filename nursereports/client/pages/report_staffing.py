@@ -38,8 +38,7 @@ def content() -> rx.Component:
         support(),
         overall(),
         comments(),
-        spacer(height='40px'),
-        buttons(),
+        button(),
         spacer(height='40px'),
         gap='24px',
         padding_x='24px',
@@ -160,65 +159,62 @@ def staffing() -> rx.Component:
     )
 
 def ratios() -> rx.Component:
-    return rx.card(
-        rx.vstack(
-            rx.heading(
-                "Ratios"
+    return rx.cond(
+        ReportState.has_ratios,
+        rx.card(
+            rx.vstack(
+                rx.heading(
+                    "Ratios"
+                ),
+                rx.divider(),
+                width='100%'
             ),
-            rx.divider(),
-            width='100%'
-        ),
-        spacer(height='24px'),
-        rx.flex(
-            rx.cond(
-                ReportState.has_ratios,
+            spacer(height='24px'),
+            rx.flex(
                 rx.vstack(
-                    rx.vstack(
-                        rx.text(
-                            "How many patients are you typically assigned?"
-                        ),
-                        rx.chakra.number_input(
-                            value=ReportState.staffing_input_ratio,
-                            input_mode='numeric',
-                            on_change=ReportState.set_staffing_input_ratio,
-                            is_required=True,
-                            width='100%'
-                        ),
-                        rx.cond(
-                            ~ReportState.ratio_is_valid,
-                            rx.callout(
-                                "A valid number must be entered.",
-                                width='100%',
-                                icon='alert_triangle',
-                                color_scheme="red",
-                                role='alert'
-                            )
-                        ),
+                    rx.text(
+                        "How many patients are you typically assigned?"
+                    ),
+                    rx.chakra.number_input(
+                        value=ReportState.staffing_input_ratio,
+                        input_mode='numeric',
+                        on_change=ReportState.set_staffing_input_ratio,
+                        is_required=True,
                         width='100%'
                     ),
-                    rx.vstack(
-                        rx.text(
-                            "How often does this ratio feel unsafe?"
-                        ),
-                        rx.select(
-                            ["Always", "Usually", "Sometimes", "Rarely", "Never"],
-                            placeholder="- Select -",
-                            value=ReportState.staffing_select_ratio_unsafe,
-                            on_change=ReportState.set_staffing_select_ratio_unsafe,
-                            required=True,
-                            size='3',
-                            width='100%'
-                        ),
+                    rx.cond(
+                        ~ReportState.ratio_is_valid,
+                        rx.callout(
+                            "A valid number must be entered.",
+                            width='100%',
+                            icon='alert_triangle',
+                            color_scheme="red",
+                            role='alert'
+                        )
+                    ),
+                    width='100%'
+                ),
+                rx.vstack(
+                    rx.text(
+                        "How often does this ratio feel unsafe?"
+                    ),
+                    rx.select(
+                        ["Always", "Usually", "Sometimes", "Rarely", "Never"],
+                        placeholder="- Select -",
+                        value=ReportState.staffing_select_ratio_unsafe,
+                        on_change=ReportState.set_staffing_select_ratio_unsafe,
+                        required=True,
+                        size='3',
                         width='100%'
                     ),
                     width='100%'
-                )
+                ),
+                flex_direction='column',
+                gap='24px',
+                width='100%'
             ),
-            flex_direction='column',
-            gap='24px',
             width='100%'
-        ),
-        width='100%'
+        )
     )
 
 def support() -> rx.Component:
@@ -227,12 +223,15 @@ def support() -> rx.Component:
             rx.heading(
                 "Support"
             ),
-            rx.text(
-                "Select support staff available to you as a resource."
-            ),
             rx.divider(),
             width='100%'
         ),
+        spacer(height='24px'),
+        rx.text(
+            "Select support staff available to you as a resource.",
+            text_align='center'
+        ),
+        spacer(height='24px'),
         rx.flex(
             motion(
                 rx.card(
@@ -360,25 +359,25 @@ def support() -> rx.Component:
                 initial={"scale": 1},
                 while_tap={"scale": 0.95}
             ),
-            rx.divider(),
-            rx.vstack(
-                rx.text(
-                    "Is support staff readily available to help with tasks?",
-                    text_align='center'
-                ),
-                rx.select(
-                    ["Always", "Usually", "Sometimes", "Rarely", "Never", "N/A"],
-                    placeholder="- Select -",
-                    value=ReportState.staffing_select_support_available,
-                    on_change=ReportState.set_staffing_select_support_available,
-                    required=True,
-                    size='3',
-                    width='100%'
-                ),
-                width='100%'
-            ),
             flex_direction='column',
             gap='12px',
+            width='100%'
+        ),
+        spacer(height='24px'),
+        rx.vstack(
+            rx.text(
+                "Of the selected resources, are they available for help?",
+                text_align='center'
+            ),
+            rx.select(
+                ["Always", "Usually", "Sometimes", "Rarely", "Never", "N/A"],
+                placeholder="- Select -",
+                value=ReportState.staffing_select_support_available,
+                on_change=ReportState.set_staffing_select_support_available,
+                required=True,
+                size='3',
+                width='100%'
+            ),
             width='100%'
         ),
         width='100%'
@@ -481,7 +480,7 @@ def overall() -> rx.Component:
                     ),
                     motion(
                         rx.image(
-                            src='/raster/icons/icon_rating_a.webp',
+                            src='/raster/icons/icon_rating_b.webp',
                             height=['65px', '65px', '75px', '75px', '75px',],
                             width=['65px', '65px', '75px', '75px', '75px',],
                             border_radius='5px',
@@ -493,7 +492,7 @@ def overall() -> rx.Component:
                     ),
                     motion(
                         rx.image(
-                            src='/raster/icons/icon_rating_a.webp',
+                            src='/raster/icons/icon_rating_c.webp',
                             height=['65px', '65px', '75px', '75px', '75px',],
                             width=['65px', '65px', '75px', '75px', '75px',],
                             border_radius='5px',
@@ -505,7 +504,7 @@ def overall() -> rx.Component:
                     ),
                     motion(
                         rx.image(
-                            src='/raster/icons/icon_rating_a.webp',
+                            src='/raster/icons/icon_rating_d.webp',
                             height=['65px', '65px', '75px', '75px', '75px',],
                             width=['65px', '65px', '75px', '75px', '75px',],
                             border_radius='5px',
@@ -517,7 +516,7 @@ def overall() -> rx.Component:
                     ),
                     motion(
                         rx.image(
-                            src='/raster/icons/icon_rating_a.webp',
+                            src='/raster/icons/icon_rating_f.webp',
                             height=['65px', '65px', '75px', '75px', '75px',],
                             width=['65px', '65px', '75px', '75px', '75px',],
                             border_radius='5px',

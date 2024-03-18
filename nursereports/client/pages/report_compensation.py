@@ -101,7 +101,9 @@ def pay() -> rx.Component:
                     ReportState.is_weekly,
                     rx.vstack(
                         rx.text(
-                            "Total rate per week? (in $)",
+                            "Total rate per ",
+                            rx.text("week? ", display='inline', font_weight='bold'),
+                            rx.text("(in $)", display='inline'),
                         ),
                         rx.chakra.number_input(
                             value=ReportState.comp_input_pay_amount,
@@ -124,7 +126,9 @@ def pay() -> rx.Component:
                     ),
                     rx.vstack(
                         rx.text(
-                            " Base rate per hour? (in $)",
+                            " Base rate per ", 
+                            rx.text("hour? ", display='inline', font_weight='bold'),
+                            rx.text("(in $)", display='inline'),
                         ),
                         rx.chakra.number_input(
                             value=ReportState.comp_input_pay_amount,
@@ -164,7 +168,18 @@ def pay() -> rx.Component:
                 ReportState.gets_differential,
                 rx.vstack(
                     rx.vstack(
-                        rx.text("(Optional) Extra per hour for nights? (in $)"),
+                        rx.text(
+                            "(Optional) Extra per hour for ",
+                            rx.text(
+                                "nights? ",
+                                display='inline',
+                                font_weight='bold'
+                            ),
+                            rx.text(
+                                "(in $)",
+                                display='inline'
+                            )
+                        ),
                         rx.chakra.number_input(
                             value=ReportState.comp_input_diff_nights,
                             on_change=ReportState.set_comp_input_diff_nights,
@@ -174,7 +189,18 @@ def pay() -> rx.Component:
                         width='100%'
                     ),
                     rx.vstack(
-                        rx.text("(Optional) Extra per hour for weekends? (in $)"),
+                        rx.text(
+                            "(Optional) Extra per hour for ",
+                            rx.text(
+                                "weekends? ",
+                                display='inline',
+                                font_weight='bold',
+                            ),
+                            rx.text(
+                                "(in $)",
+                                display='inline'
+                            )
+                        ),
                         rx.chakra.number_input(
                             value=ReportState.comp_input_diff_weekends,
                             on_change=ReportState.set_comp_input_diff_weekends,
@@ -585,7 +611,7 @@ def overall() -> rx.Component:
         spacer(height='24px'),
         rx.flex(
             rx.text(
-                "How would you grade your compensation overall?",
+                "How would you grade compensation overall?",
                 text_align='center'
             ),
             rx.flex(

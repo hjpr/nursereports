@@ -445,8 +445,8 @@ def burnout() -> rx.Component:
                         [
                             "Transitioning to another unit",
                             "Transitioning to a different hospital",
-                            "Pursuing higher education",
                             "Leaving bedside for different nursing role",
+                            "Pursuing higher education",
                             "Leaving nursing completely"
                         ],
                         placeholder="- Select -",

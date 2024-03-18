@@ -4,7 +4,7 @@ from ..server.supabase.report import (
 )
 from ..states.page import PageState
 from loguru import logger
-from typing import Callable
+from typing import Callable, Iterable
 
 import httpx
 import json
@@ -494,8 +494,6 @@ class ReportState(PageState):
 
     staffing_select_workload: str
 
-    staffing_select_float: str
-
     staffing_select_charge_response: str
 
     staffing_select_charge_assignment: str
@@ -694,9 +692,22 @@ class ReportState(PageState):
                 "Comments contain too many characters."
             return
         self.staffing_error_message = ""
-        self.submit_report()
+        return ReportState.submit_report
     
-    def submit_report(self) -> Callable:
+    def submit_report(self) -> Iterable[Callable]:
+        """
+        Final checkpoint for submitting report.
+
+        1. Check that all sections are completed to 100%, if not then
+        redirect to those sections and add warning message.
+
+        2. Ensure that no duplicated report ID's exist. If so,
+        attempts to regen code 5 times before fails to server error.
+
+        3. Submits report to /report
+
+        4. Submits user entries to AI moderation.
+        """
         if not self.comp_can_progress:
             self.comp_error_message = \
                 "Some fields incomplete or invalid."
@@ -707,26 +718,26 @@ class ReportState(PageState):
             self.assign_error_message = \
                 "Some fields incomplete or invalid."
             return rx.redirect(
-                f"/report/submit/{self.hosp_id_param}/compensation"
+                f"/report/submit/{self.hosp_id_param}/assignment"
+            )
+        if not self.staffing_can_progress:
+            self.staffing_can_progress = \
+                "Some fields incomplete or invalid."
+            return rx.redirect(
+                f"/report/submit/{self.hosp_id_param}/staffing"
             )
         if not self.ensure_no_duplicate_report_id():
             self.staffing_error_message = \
                 "Server error - UUID conflict check failed."
             return
-        report = self.prepare_report_dict()
         response = supabase_submit_full_report(
-            self.access_token, report
+            self.access_token, self.prepare_report_dict()
         )
         if response['success']:
-            try:
-                self.moderate_user_entries()
-            except Exception as e:
-                logger.warning(
-                    f"Unable to moderate {self.id}"
-                )
-            return rx.redirect(
+            yield ReportState.moderate_user_entries
+            yield rx.redirect(
                 f"/report/submit/{self.hosp_id_param}/complete"
-                )
+            )
         else:
             self.staffing_error_message = \
                 "Server error - Failed to upload report to database."
@@ -734,7 +745,7 @@ class ReportState(PageState):
     def prepare_report_dict(self) -> dict:
         report = {
             "id": self.id,
-            "user_id": self.claims['sub'],
+            "user_id": self.user_claims['payload']['sub'],
             "comp_select_emp_type": self.comp_select_emp_type,
             "comp_select_pay_type": self.comp_select_pay_type,
             "comp_input_pay_amount": self.comp_input_pay_amount,
@@ -780,7 +791,6 @@ class ReportState(PageState):
             "staffing_input_ratio": self.staffing_input_ratio,
             "staffing_select_ratio_unsafe": self.staffing_select_ratio_unsafe,
             "staffing_select_workload": self.staffing_select_workload,
-            "staffing_select_float": self.staffing_select_float,
             "staffing_select_charge_response": self.staffing_select_charge_response,
             "staffing_select_charge_assignment": self.staffing_select_charge_assignment,
             "staffing_select_nursing_shortages": self.staffing_select_nursing_shortages,
@@ -806,7 +816,10 @@ class ReportState(PageState):
         if not response['success'] and response['status'] == "Conflict":
             for x in range(4):
                 logger.warning(
-                    ""
+                    f"""
+                    Found a uuid conflict in /report with {self.id}.
+                    Trying {4-x} more times to generate new uuid.
+                    """
                     )
                 self.id = uuid.uuid4()
                 response = supabase_no_report_id_conflict(
@@ -814,7 +827,8 @@ class ReportState(PageState):
                 )
                 if response['success']:
                     return True
-                time.sleep(1)
+                else:
+                    time.sleep(1)
             return False
         return False
 
@@ -946,21 +960,26 @@ class ReportState(PageState):
                 "Content-Type": "application/json",
                 "Prefer": "return=minimal",
             }
-
             response = httpx.patch(
                 url=url,
                 headers=headers,
                 data=data
             )
-
             if response.is_success:
-                logger.debug("Successfully flagged entries for moderation in database.")
-                return None
+                logger.debug(
+                    f"Successfully flagged entries in {self.id}\
+                    for moderation in database."
+                    )
+                return
             else:
-                logger.critical("Error calling API for moderation.")
+                logger.critical(
+                    f"Error calling API to moderate {self.id}."
+                    )
                 rich.inspect(response)
-                return None
+                return
         else:
-            logger.debug("No entries found requiring moderation.")
-            return None
-
+            logger.debug(
+                f"User report {self.id} seems ok. No entries found\
+                requiring moderation."
+                )
+            return
