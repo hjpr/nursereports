@@ -139,7 +139,7 @@ def unit() -> rx.Component:
                             "What's the acuity of your unit?",
                         ),
                         rx.select(
-                            ["Intensive", "Intermediate", "Floor", "N/A"],
+                            ["Intensive", "Intermediate", "Floor", "Mixed", "N/A"],
                             placeholder="- Select -",
                             value=ReportState.assign_select_acuity,
                             on_change=ReportState.set_assign_select_acuity,

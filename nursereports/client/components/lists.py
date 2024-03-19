@@ -47,7 +47,7 @@ state_abbr_dict = {
     "Virginia": "VA",
     "Washington": "WA",
     "Washington (DC)": "DC",
-    "West Virgina": "WV",
+    "West Virginia": "WV",
     "Wisconsin": "WI",
     "Wyoming": "WY"
 }

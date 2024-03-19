@@ -1,19 +1,22 @@
+
+from ..states.navbar import NavbarState
 from ..server.supabase.report import (
     supabase_no_report_id_conflict,
     supabase_submit_full_report
 )
+from ..server.supabase.users import supabase_update_user_info
 from ..states.page import PageState
 from loguru import logger
 from typing import Callable, Iterable
 
 import httpx
+import inspect
 import json
 import os
 import uuid
 import re
 import reflex as rx
 import rich
-import time
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -702,11 +705,13 @@ class ReportState(PageState):
         redirect to those sections and add warning message.
 
         2. Ensure that no duplicated report ID's exist. If so,
-        attempts to regen code 5 times before fails to server error.
+        user is trying to resubmit the report they have open.
 
         3. Submits report to /report
 
         4. Submits user entries to AI moderation.
+
+        5. Updates user info to reflect submission.
         """
         if not self.comp_can_progress:
             self.comp_error_message = \
@@ -726,18 +731,27 @@ class ReportState(PageState):
             return rx.redirect(
                 f"/report/submit/{self.hosp_id_param}/staffing"
             )
-        if not self.ensure_no_duplicate_report_id():
-            self.staffing_error_message = \
-                "Server error - UUID conflict check failed."
-            return
+        if not self.ensure_no_duplicate():
+            if not response['success']:
+                if response['status'] == "Conflict":
+                    yield NavbarState.set_alert_message(
+                        "You already submitted this report."
+                    )
+                    yield rx.redirect('/dashboard')
+                    self.reset()
+                else:
+                    self.staffing_error_message = response['status']
+                return
         response = supabase_submit_full_report(
             self.access_token, self.prepare_report_dict()
         )
         if response['success']:
+            yield ReportState.update_user_info
             yield ReportState.moderate_user_entries
             yield rx.redirect(
                 f"/report/submit/{self.hosp_id_param}/complete"
             )
+            self.reset()
         else:
             self.staffing_error_message = \
                 "Server error - Failed to upload report to database."
@@ -746,6 +760,9 @@ class ReportState(PageState):
         report = {
             "id": self.id,
             "user_id": self.user_claims['payload']['sub'],
+            "license": self.user_info['license'],
+            "license_state": self.user_info['license_state'],
+            "trust": self.user_info['trust'],
             "comp_select_emp_type": self.comp_select_emp_type,
             "comp_select_pay_type": self.comp_select_pay_type,
             "comp_input_pay_amount": self.comp_input_pay_amount,
@@ -807,30 +824,11 @@ class ReportState(PageState):
         }
         return report
     
-    def ensure_no_duplicate_report_id(self) -> bool:
+    def ensure_no_duplicate(self) -> dict:
         response = supabase_no_report_id_conflict(
             self.access_token, self.id
             )
-        if response['success']:
-            return True
-        if not response['success'] and response['status'] == "Conflict":
-            for x in range(4):
-                logger.warning(
-                    f"""
-                    Found a uuid conflict in /report with {self.id}.
-                    Trying {4-x} more times to generate new uuid.
-                    """
-                    )
-                self.id = uuid.uuid4()
-                response = supabase_no_report_id_conflict(
-                    self.access_token, self.id
-                )
-                if response['success']:
-                    return True
-                else:
-                    time.sleep(1)
-            return False
-        return False
+        return response
 
     def reset_report(self) -> None:
         self.reset()
@@ -868,11 +866,15 @@ class ReportState(PageState):
         if self.assign_input_comments:
             user_entry_dict['assign_input_comments'] = self.assign_input_comments
 
-        system_prompt = """You moderate user entries by nurses for a hospital
+        system_prompt = inspect.cleandoc(
+            """You moderate user entries by nurses for a hospital
         review site. Output responses in JSON"""
-        user_prompt = f"""Flag user entries for racism, threats, links
+        )
+        user_prompt = inspect.cleandoc(
+            f"""Flag user entries for racism, threats, links
         to other sites, spam, or personally identifiable information.
         User entries = {json.dumps(user_entry_dict)}"""
+        )
         url = f"{anyscale_url}/chat/completions"
         headers = {
             "Authorization": f"Bearer {anyscale_api_key}",
@@ -923,35 +925,43 @@ class ReportState(PageState):
                 data=json.dumps(data)
             )
             if response.is_success:
-                logger.debug("Retrieved moderation suggestions from Anyscale.")
+                logger.debug(
+                    "Retrieved moderation suggestions from Anyscale."
+                )
                 self.parse_moderation_suggestions(json.loads(response.content))
                 return None
             else:
-                logger.warning("User entry moderation to Anyscale unsuccessful.")
+                logger.warning(
+                    "User entry moderation to Anyscale unsuccessful."
+                )
                 return None
 
     def parse_moderation_suggestions(self, content) -> None:
         """
-        flags['entries'] contains a list of dicts with keys 'entry_name', 'flag',
-        and 'flag_reason'. If the flag is true, add entry to moderation data
-        so that we can upload the flag_reason to our field _flag column to
-        prevent other users from accessing and having the capability to 
-        manually review that before releasing.
+        flags['entries'] contains a list of dicts with keys
+        'entry_name', 'flag', and 'flag_reason'. If the flag
+        is true, add entry to moderation data so that we can
+        upload the flag_reason to our field _flag column to
+        prevent other users from accessing and having the
+        capability to manually review that before releasing.
         """
         moderation_data = {}
         flags = json.loads(content['choices'][0]['message']['content'])
         for entry in flags['entries']:
             """
-            Add entry. For example if assign_input_comments has issue, add
-            assign_input_comments_flag with the reason so we can manually
-            check it later.
+            Add entry. For example if assign_input_comments has
+            issue, add assign_input_comments_flag with the reason
+            so we can manually check it later.
             """
             if entry['flag'] is True:
                 flag_name = f"{entry['entry_name']}_flag".replace(" ", "_")
                 moderation_data[flag_name] = entry['flag_reason']
 
         if moderation_data:
-            logger.warning(f"Found some entries requiring moderation. {moderation_data}")
+            logger.warning(inspect.cleandoc(
+                f"""Found some entries requiring moderation.
+                {moderation_data}"""
+            ))
             url = f"{api_url}/rest/v1/reports?id=eq.{self.id}"
             data = json.dumps(moderation_data)
             headers = {
@@ -978,8 +988,49 @@ class ReportState(PageState):
                 rich.inspect(response)
                 return
         else:
-            logger.debug(
-                f"User report {self.id} seems ok. No entries found\
-                requiring moderation."
-                )
+            logger.debug(inspect.cleandoc(
+                f"""User report {self.id} seems ok. No entries found
+                requiring moderation."""
+                ))
             return
+        
+    #################################################################
+    #
+    #   USER UPDATE SHIT
+    #
+    #################################################################
+        
+    def update_user_info(self) -> None:
+        if self.user_info['needs_onboard']:
+            first_time = True
+            self.user_info['needs_onboard'] = False
+        data = {
+            "needs_onboard": self.user_info['needs_onboard'],
+            "reports": self.user_info['reports'] + 1
+        }
+        response = supabase_update_user_info(
+            self.access_token,
+            self.user_claims['payload']['sub'],
+            data=data
+        )
+        if response['success']:
+            self.user_info['reports'] += 1
+            logger.debug(
+                f"""Successfully gave {self.user_claims['payload']['sub']}
+                credit for report."""
+            )
+        else:
+            if first_time:
+                logger.critical(
+                f"""Failed to give {self.user_claims['payload']['sub']}
+                credit for report. As it was their first report, this WILL
+                block them from accessing report database"""
+                )
+            else:
+                logger.warning(
+                    f"""Failed to give {self.user_claims['payload']['sub']}
+                    credit for report. User has already submitted their 
+                    first report and will just need credit for this one at
+                    some point."""
+                )
+    

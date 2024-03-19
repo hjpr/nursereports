@@ -23,11 +23,16 @@ def supabase_get_user_info(access_token: str) -> dict:
     Payload contains:
         dict:
             uuid: str - users id as uuid
+            license: str - user license type
+            license_state: str user license state
             membership: str - membership level
             my_hospitals: dict - list of saved hospitals by id
             my_jobs: dict - list of saved jobs by id
             needs_onboard: bool - has user completed a report
             trust: int - trust level
+            reports: int - how many successful reports submitted
+            created_at: unix timestamp when user profile created
+            modified_at: unix timestamp when user last changed info
     """
     url = f"{api_url}/rest/v1/users?select=*"
     headers = {
@@ -133,8 +138,8 @@ def supabase_update_user_info(
         data: list of columns to update
 
     Returns:
-        success: If API call successful.
-        status: Status codes if any.
+        success: if API call successful
+        status: user readable errors if any
     """
     data['modified_at'] = get_current_utc_timestamp_as_str()
     url = f'{api_url}/rest/v1/users?user_id=eq.{user_id}'

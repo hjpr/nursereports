@@ -30,7 +30,7 @@ def navbar() -> rx.Component:
                 on_click=rx.redirect('/'),
             ),
             rx.badge(
-                "In development",
+                "v0.2",
                 display='inline',
                 margin_right= '20px',
                 margin_left='4px',
@@ -58,18 +58,24 @@ def cond_account() -> rx.Component:
         BaseState.user_is_authenticated,
         rx.menu.root(
             rx.menu.trigger(
-                rx.button(
-                    rx.icon('circle-user-round'),
-                    variant='ghost',
-                    color_scheme='crimson',
-                    radius='full'
+                rx.icon(
+                    'menu',
+                    color='teal',
+                    cursor='pointer'
                     )
             ),
             rx.menu.content(
-                rx.menu.item("Dashboard"),
+                rx.menu.item(
+                    "Dashboard",
+                    on_click=rx.redirect('/dashboard')
+                ),
                 rx.menu.separator(),
                 rx.menu.item("Account"),
-                rx.menu.item("Logout", on_click=rx.redirect('/logout/user'))
+                rx.menu.item(
+                    "Logout",
+                    on_click=rx.redirect('/logout/user')
+                ),
+                size='2'
             )
         ),
         rx.button(

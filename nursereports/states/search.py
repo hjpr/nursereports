@@ -31,11 +31,9 @@ class SearchState(BaseState):
     def event_state_state_selected(self, selection: str) -> None:
         self.selected_state = selection
         self.selected_city = ""
-        self.search_results = []
 
     def event_state_city_selected(self, selection: str) -> None:
         self.selected_city = selection
-        self.search_results = []
 
     def event_state_search(self) -> None:
         """

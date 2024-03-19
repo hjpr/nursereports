@@ -51,7 +51,7 @@ def content() -> rx.Component:
 def header() -> rx.Component:
     return rx.flex(
         rx.heading(
-            "A quick primer on the sections.",
+            "A quick primer on the 3 sections.",
             text_align='center'
         ),
         flex_direction='column',
@@ -64,7 +64,7 @@ def compensation_summary() -> rx.Component:
     return rx.card(
         rx.vstack(
             rx.heading(
-                "Compensation"
+                "1. Compensation"
             ),
             rx.divider(),
             rx.text(
@@ -81,7 +81,7 @@ def assignment_summary() -> rx.Component:
     return rx.card(
         rx.vstack(
             rx.heading(
-                "Assignment"
+                "2. Assignment"
             ),
             rx.divider(),
             rx.text(
@@ -98,7 +98,7 @@ def staffing_summary() -> rx.Component:
     return rx.card(
         rx.vstack(
             rx.heading(
-                "Staffing"
+                "3. Staffing"
             ),
             rx.divider(),
             rx.text(

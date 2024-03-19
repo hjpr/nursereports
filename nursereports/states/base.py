@@ -5,6 +5,7 @@ from ..server.supabase.users import (
     supabase_create_initial_user_info
     )
 
+import inspect
 import jwt
 import os
 import reflex as rx
@@ -30,7 +31,10 @@ class BaseState(rx.State):
         same_site='strict',
         secure=True,
     )
+
     user_info: dict
+
+    is_loading: bool
 
     @rx.var
     def reason_for_logout(self) -> str:
@@ -143,17 +147,29 @@ class BaseState(rx.State):
                     missing.
         """
         if access_level == 'login' and not self.user_is_authenticated:
+            logger.warning(inspect.cleandoc(
+                """Unknown user attempted to access resources requiring
+                login."""
+            ))
             return {
                 "granted": False,
                 "reason": "login"
             }
         if access_level == 'report' and not self.user_has_reported:
             if self.user_is_authenticated:
+                logger.warning(inspect.cleandoc(
+                    """Authenticated user attempted to access resources
+                    requiring report."""
+                ))
                 return {
                     "granted": False,
                     "reason": "report"
                 }
             else:
+                logger.warning(inspect.cleandoc(
+                    """Unknown user attempted to access resources
+                    requiring login."""
+                ))
                 return {
                     "granted": False,
                     "reason": "login"
@@ -171,7 +187,9 @@ class BaseState(rx.State):
                 User is logged in, so check if they have
                 reported or not and refresh token as needed.
             If claims are valid but no user info:
-                Set user info or kick out to error if not
+                Set user info from public entry in /users,
+                create an entry if entry doesn't exist,
+                or kick out to error if not possible.
                 possible.
             If claims aren't valid:
                 Check claims reason and redirect accordingly.
@@ -217,6 +235,9 @@ class BaseState(rx.State):
                 yield rx.redirect('/logout/error')
 
     def set_tokens_from_sso_redirect(self, raw_path) -> None:
+        logger.debug(
+            "Coming from SSO redirect. Parsing URL for tokens."
+        )
         fragment = raw_path.split("#")[1]
         self.access_token = fragment.split("&")[0].split("=")[1]
         self.refresh_token = fragment.split("&")[4].split("=")[1]
@@ -225,7 +246,7 @@ class BaseState(rx.State):
         """
         Attempts to pull user data from supabase. If first time and 
         user has no info, will create entry in public/users with default
-        values. If ser
+        values.
 
         Returns:
             dict:
@@ -251,6 +272,8 @@ class BaseState(rx.State):
                 logger.debug("Setting user info to default values.")
                 self.user_info = {
                     "uuid": self.user_claims['payload']['sub'],
+                    "license": "",
+                    "license_state": "",
                     "membership": "free",
                     "needs_onboard": True,
                     "my_hospitals": {},
@@ -292,16 +315,20 @@ class BaseState(rx.State):
 
     def event_state_logout(self) -> Iterable[Callable]:
         from . import NavbarState
-        self.access_token = ""
-        self.refresh_token = ""
         if self.reason_for_logout == 'user':
+            self.reset()
             yield NavbarState.set_alert_message("Successfully logged out.")
         if self.reason_for_logout == 'error':
-            yield NavbarState.set_alert_message("""Encountered error requiring reset.
+            logger.critical(
+                "Logged user out forcefully - probably server error."
+            )
+            self.reset()
+            yield NavbarState.set_alert_message(inspect.cleandoc("""Encountered error requiring reset.
                 If this message persists, the backend is likely down
                 and we are in the process of recovering.
-                """)
+                """))
         if self.reason_for_logout == 'expired':
+           self.reset()
            yield NavbarState.set_alert_message("""For your security, you've been
                 logged out for inactivity.
                 """)
