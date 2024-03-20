@@ -707,6 +707,7 @@ class ReportState(PageState):
 
         5. Updates user info to reflect submission.
         """
+        self.generate_report_id()
         report = self.prepare_report_dict()
 
         if not self.comp_can_progress:

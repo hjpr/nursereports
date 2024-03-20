@@ -574,7 +574,6 @@ def button() -> rx.Component:
                     rx.text("Submit Report"),
                     rx.chakra.spinner()
                 ),
-                "Submit Report",
                 rx.icon("arrow-big-right"),
                 on_click=ReportState.handle_submit_staffing,
                 variant='ghost',
