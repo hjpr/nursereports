@@ -570,7 +570,7 @@ def button() -> rx.Component:
         rx.flex(
             rx.button(
                 rx.cond(
-                    ReportState.is_hydrated,
+                    ~ReportState.is_loading,
                     rx.text("Submit Report"),
                     rx.chakra.spinner()
                 ),

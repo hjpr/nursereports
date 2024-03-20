@@ -23,6 +23,8 @@ class ReportState(PageState):
 
     is_test: bool = False
 
+    is_loading: bool
+
     def reset_report(self) -> None:
         self.reset()
 
@@ -707,6 +709,7 @@ class ReportState(PageState):
 
         5. Updates user info to reflect submission.
         """
+        self.is_loading=True
         self.generate_report_id()
         report = self.prepare_report_dict()
 
@@ -745,7 +748,9 @@ class ReportState(PageState):
             yield rx.redirect(
                 f"/report/submit/{self.hosp_id_param}/complete"
             )
+            self.is_loading = False
         else:
+            self.is_loading = False
             self.staffing_error_message = \
                 "Server error - Failed to upload report to database."
 
