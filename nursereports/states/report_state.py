@@ -19,7 +19,6 @@ class ReportState(PageState):
     State for the report, variables grouped into the three major
     groups of the report; compensation, staffing, and assignment.
     """
-
     report_id: str
 
     is_test: bool = False
@@ -652,6 +651,7 @@ class ReportState(PageState):
         if not self.comp_can_progress:
             self.comp_error_message = \
                 "Some fields incomplete or invalid."
+            return
         if len(self.comp_input_comments) > 1000:
             self.comp_error_message = \
                 "Comments contain too many characters."
@@ -683,6 +683,7 @@ class ReportState(PageState):
         if self.has_ratios and not self.ratio_is_valid:
             self.staffing_error_message = \
                 "Some fields incomplete or invalid."
+            return
         if len(self.staffing_input_comments) > 1000:
             self.staffing_error_message = \
                 "Comments contain too many characters."
@@ -729,17 +730,10 @@ class ReportState(PageState):
                 f"/report/submit/{self.hosp_id_param}/staffing"
             )
         
-        if not self.ensure_no_duplicate(report):
-            if not response['success']:
-                if response['status'] == "Conflict":
-                    yield NavbarState.set_alert_message(
-                        "You already submitted this report."
-                    )
-                    yield rx.redirect('/dashboard')
-                    self.reset()
-                else:
-                    self.staffing_error_message = response['status']
-                return
+        response = self.ensure_no_duplicate(report)
+        if not response['success']:
+            self.staffing_error_message = response['status']
+            return
             
         response = supabase_submit_full_report(
             self.access_token, report

@@ -13,7 +13,6 @@ import reflex as rx
     on_load=[
         BaseState.event_state_standard_flow('login'),
         OverviewState.event_state_get_hospital_info,
-        ReportState.reset_report,
         ReportState.generate_report_id
         ]
 )

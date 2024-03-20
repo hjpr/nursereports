@@ -569,6 +569,11 @@ def button() -> rx.Component:
     return rx.card(
         rx.flex(
             rx.button(
+                rx.cond(
+                    ReportState.is_hydrated,
+                    rx.text("Submit Report"),
+                    rx.chakra.spinner()
+                ),
                 "Submit Report",
                 rx.icon("arrow-big-right"),
                 on_click=ReportState.handle_submit_staffing,

@@ -63,8 +63,9 @@ class SearchState(BaseState):
             else:
                 self.error_search = response['status']
         
-    def nav_to_report(self, report_id) -> Callable:
+    def nav_to_report(self, report_id) -> Iterable[Callable]:
         self.selected_city = ""
         self.selected_state = ""
         self.search_results = []
+        yield ReportState.reset_report
         return rx.redirect(f"/report/submit/{report_id}/overview")
