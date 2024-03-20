@@ -1,5 +1,4 @@
-
-from . import api_url, api_key
+from ..secrets import api_key, api_url
 from datetime import datetime, timezone
 from loguru import logger
 

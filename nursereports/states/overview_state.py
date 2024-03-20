@@ -1,15 +1,13 @@
 
-from ..states.page import PageState
-from ..states.report import ReportState
-from ..server.supabase.report import supabase_get_hospital_info
-from loguru import logger
+from ..states import *
+from ..server.supabase.report_requests import supabase_get_hospital_info
 from typing import Callable, Iterable
 
 import reflex as rx
 
-class SummaryState(PageState):
-
+class OverviewState(PageState):
     hosp_info: dict
+
     error_hosp_info: str
 
     def event_state_get_hospital_info(self) -> None:

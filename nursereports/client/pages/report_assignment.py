@@ -2,12 +2,12 @@
 from ..components.c2a import c2a
 from ..components.custom import spacer, login_protected
 from ..components.footer import footer
-from ..components.lists import unit_specialties
+from ..components.lists import leaving_reason, unit_specialties
 from ..components.navbar import navbar
 from ..components.report_progress import progress
 from reflex_motion import motion
-from ...states.base import BaseState
-from ...states.report import ReportState
+from ...states.base_state import BaseState
+from ...states.report_state import ReportState
 
 import reflex as rx
 
@@ -442,13 +442,7 @@ def burnout() -> rx.Component:
                         "What's your next move?"
                     ),
                     rx.select(
-                        [
-                            "Transitioning to another unit",
-                            "Transitioning to a different hospital",
-                            "Leaving bedside for different nursing role",
-                            "Pursuing higher education",
-                            "Leaving nursing completely"
-                        ],
+                        leaving_reason,
                         placeholder="- Select -",
                         value=ReportState.assign_select_leaving_reason,
                         on_change=ReportState.set_assign_select_leaving_reason,
@@ -483,69 +477,67 @@ def burnout() -> rx.Component:
 
 def comments() -> rx.Component:
     return rx.card(
+        rx.vstack(
             rx.vstack(
-                rx.vstack(
-                    rx.heading(
-                        "Comments"
-                    ),
-                    rx.divider(),
+                rx.heading(
+                    "Comments"
+                ),
+                rx.divider(),
+                width='100%'
+            ),
+            spacer(height='24px'),
+            rx.text(
+                """
+                (Optional) Any comments for your nursing peers 
+                about culture, management, or environment?
+                """,
+                text_align='center'
+            ),
+            rx.debounce_input(
+                rx.text_area(
+                    ReportState.assign_input_comments,
+                    placeholder="Do not enter personally identifiable information.",
+                    on_change=ReportState.set_assign_input_comments,
+                    on_blur=ReportState.set_assign_input_comments,
+                    height='10em',
+                    size='3',
                     width='100%'
                 ),
-                spacer(height='24px'),
-                rx.vstack(
-                rx.text(
-                    """
-                    (Optional) Any comments for your nursing peers 
-                    about culture, management, or environment?
-                    """,
-                    text_align='center'
-                ),
-                rx.debounce_input(
-                    rx.text_area(
-                        ReportState.assign_input_comments,
-                        placeholder="Do not enter personally identifiable information.",
-                        on_change=ReportState.set_assign_input_comments,
-                        on_blur=ReportState.set_assign_input_comments,
-                        height='10em',
-                        size='3',
-                        width='100%'
-                    ),
-                    debounce_timeout=1000
-                ),
+                debounce_timeout=1000
+            ),
+            rx.cond(
+                ReportState.assign_input_comments,
                 rx.cond(
-                    ReportState.assign_input_comments,
-                    rx.cond(
-                        ReportState.assign_input_comments_chars_over,
-                        rx.callout(
-                            "Please limit response to < 1000 characters!",
-                            width='100%',
-                            icon="alert_triangle",
-                            color_scheme="red",
-                            role="alert"
-                        ),
-                        rx.flex(
-                            rx.text(
-                                f"{ReportState.assign_input_comments_chars_left} chars left.",
-                            ),
-                            width='100%',
-                            align_items='center',
-                            justify_content='center'
-                        )
+                    ReportState.assign_input_comments_chars_over,
+                    rx.callout(
+                        "Please limit response to < 1000 characters!",
+                        width='100%',
+                        icon="alert_triangle",
+                        color_scheme="red",
+                        role="alert"
                     ),
                     rx.flex(
                         rx.text(
-                            "1000 character limit."
+                            f"{ReportState.assign_input_comments_chars_left} chars left.",
                         ),
                         width='100%',
                         align_items='center',
                         justify_content='center'
                     )
                 ),
-                width='100%'
+                rx.flex(
+                    rx.text(
+                        "1000 character limit."
+                    ),
+                    width='100%',
+                    align_items='center',
+                    justify_content='center'
+                )
             ),
             width='100%'
-        )
-    )  
+        ),
+        width='100%'
+    )
 
 def overall() -> rx.Component:
     return rx.card(

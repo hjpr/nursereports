@@ -3949,6 +3949,14 @@ years_experience = [
     "21", "22", "23", "24", "25", "More than 25 years"
     ]
 
+leaving_reason = [
+    "Transitioning to another unit",
+    "Transitioning to a different hospital",
+    "Leaving bedside for different nursing role",
+    "Pursuing higher education",
+    "Leaving nursing completely"
+]
+
 unit_specialties = [
     "Burn",
     "Cardiac",

@@ -1,7 +1,6 @@
 
 from ..components.custom import spacer
-from ...states.base import BaseState
-from ...states.navbar import NavbarState
+from ...states import *
 
 import reflex as rx
 

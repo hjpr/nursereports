@@ -1,19 +1,26 @@
 
 from ..client.components.lists import cities_by_state, state_abbr_dict
-from ..server.supabase.search import supabase_get_hospital_search_results
-from ..states.base import BaseState
+from ..server.supabase.search_requests import supabase_get_hospital_search_results
+from ..states import *
 
 from loguru import logger
-from typing import Callable
+from typing import Callable, Iterable
 
 import reflex as rx
 
 class SearchState(BaseState):
+    search_is_loading: bool
+
     selected_state: str
+
     selected_city: str
+
     last_searched_state: str
+
     last_searched_city: str
+
     search_results: list[dict]
+    
     error_search: str
         
     @rx.cached_var

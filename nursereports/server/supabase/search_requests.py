@@ -1,5 +1,5 @@
 
-from . import api_key, api_url
+from ..secrets import api_key, api_url
 from loguru import logger
 
 import httpx

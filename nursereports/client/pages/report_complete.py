@@ -3,7 +3,7 @@ from ..components.c2a import c2a
 from ..components.custom import spacer, login_protected
 from ..components.footer import footer
 from ..components.navbar import navbar
-from ...states.base import BaseState
+from ...states.base_state import BaseState
 
 import reflex as rx
 
@@ -31,7 +31,9 @@ def complete_page() -> rx.Component:
 def content() -> rx.Component:
     return rx.flex(
         header(),
+        spacer(height='24px'),
         share(),
+        spacer(height='24px'),
         leave(),
         gap='24px',
         padding_x='24px',
@@ -53,8 +55,9 @@ def header() -> rx.Component:
             ),
             rx.text(
                 """In just a short time you've made a big difference.
-                The only bigger difference you could make is encouraging
-                your friends and colleagues to share reports as well.
+                The only bigger difference you can make is to spread
+                the word. Share NurseReports.org to your friends and
+                colleagues below.
                 """,
                 text_align='center'
             ),
@@ -66,39 +69,78 @@ def header() -> rx.Component:
 def share() -> rx.Component:
     return rx.card(
         rx.flex(
-            rx.button(
-                "Share to Facebook",
-                rx.icon('facebook'),
-                size='3',
-                variant='ghost',
-                on_click=rx.redirect(
-                    'https://www.facebook.com/sharer/sharer.php?u=https://nursereports.org&amp;src=sdkpreparse',
-                    external=True
-                )
+            rx.flex(
+                rx.text(
+                    "Share to:",
+                    white_space='nowrap'
+                ),
+                rx.flex(
+                    rx.button(
+                        rx.icon('facebook', size=28),
+                        size='3',
+                        color='#1877F2',
+                        variant='ghost',
+                        on_click=rx.redirect(
+                            'https://www.facebook.com/sharer/sharer.php?u=https://nursereports.org&amp;src=sdkpreparse',
+                            external=True
+                        )
+                    ),
+                    rx.button(
+                        rx.icon('twitter', size=28),
+                        size='3',
+                        color='#1DA1F2',
+                        variant='ghost',
+                        on_click=rx.redirect(
+                            'https://twitter.com/intent/post?text=Nationwide hospital reporting built by nurses for nurses.&url=https%3A%2F%2Fnursereports.org',
+                            external=True
+                        )
+                    ),
+                    rx.button(
+                        rx.icon('linkedin', size=28),
+                        size='3',
+                        color='#0077B5',
+                        variant='ghost',
+                        on_click=rx.redirect(
+                            'https://www.linkedin.com/sharing/share-offsite/?url=https://nursereports.org',
+                            external=True
+                        )
+                    ),
+                    flex_direction='row',
+                    align_items='center',
+                    justify_content='space-around',
+                    width='100%'
+                ),
+                flex_direction='row',
+                align_items='center',
+                margin_top='12px'
             ),
-            rx.button(
-                "Share to Twitter/X",
-                rx.icon('twitter'),
-                size='3',
-                variant='ghost',
-                on_click=rx.redirect(
-                    'https://twitter.com/intent/post?text=Nationwide hospital reporting built by nurses for nurses.&url=https%3A%2F%2Fnursereports.org',
-                    external=True
-                )
-            ),
-            rx.button(
-                "Share to Linkedin",
-                rx.icon('linkedin'),
-                size='3',
-                variant='ghost',
-                on_click=rx.redirect(
-                    'https://www.linkedin.com/sharing/share-offsite/?url=https://nursereports.org',
-                    external=True
-                )
+            rx.divider(),
+            rx.flex(
+                rx.text(
+                    "Or copy link:",
+                    white_space="nowrap"
+                ),
+                rx.flex(
+                    rx.button(
+                        rx.icon('clipboard', size=28),
+                        size='3',
+                        color='teal',
+                        variant='ghost',
+                        on_click=rx.set_clipboard(
+                            'https://nursereports.org'
+                        )
+                    ),
+                    flex_direction='row',
+                    align_items='center',
+                    justify_content='space-around',
+                    width='100%'
+                ),
+                flex_direction='row',
+                align_items='center',
+                margin_bottom='12px'
             ),
             flex_direction='column',
-            gap='24px',
-            width='100%'
+            gap='24px'
         )
     )
 

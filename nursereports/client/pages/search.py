@@ -3,8 +3,7 @@ from ..components.c2a import c2a
 from ..components.custom import spacer, login_protected
 from ..components.footer import footer
 from ..components.navbar import navbar
-from ...states.base import BaseState
-from ...states.search import SearchState
+from ...states import *
 from typing import Dict
 
 import reflex as rx
@@ -78,10 +77,10 @@ def search_dropdowns() -> rx.Component:
                 "Search",
                 size='3',
                 on_click=[
-                    BaseState.set_is_loading(True),
+                    SearchState.set_search_is_loading(True),
                     SearchState.set_search_results([]),
                     SearchState.event_state_search,
-                    BaseState.set_is_loading(False)
+                    SearchState.set_search_is_loading(False)
                 ]
             ),
             flex_direction='row',
@@ -110,7 +109,7 @@ def search_results() -> rx.Component:
             ),
             rx.flex(
                 rx.cond(
-                    BaseState.is_loading,
+                    SearchState.search_is_loading,
                     rx.chakra.spinner(),
                     rx.icon('search', color='teal'),
                 ),
@@ -143,7 +142,7 @@ def render_results(result: Dict) -> rx.Component:
                     rx.button(
                         "Select",
                         size='3',
-                        on_click=SearchState.nav_to_report(result['hosp_id']),
+                        on_click=SearchState.nav_to_report(result['hosp_id'])
                     ),
                     height='100%',
                     width='30%',

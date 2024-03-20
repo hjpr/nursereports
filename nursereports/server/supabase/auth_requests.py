@@ -1,11 +1,10 @@
 
-from . import api_url, api_key
+from ..secrets import api_key, api_url
+
 from loguru import logger
-from typing import Callable, Iterable
 
 import httpx
 import json
-import reflex as rx
 import rich
 
 def supabase_login_with_email(

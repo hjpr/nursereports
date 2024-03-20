@@ -1,23 +1,18 @@
+from ..server.secrets import jwt_key
+from ..server.supabase import (
+    supabase_create_initial_user_info,
+    supabase_get_new_access_token,
+    supabase_get_user_info
+)
 
-from ..server.supabase.auth import supabase_get_new_access_token
-from ..server.supabase.users import (
-    supabase_get_user_info,
-    supabase_create_initial_user_info
-    )
-
-import inspect
-import jwt
-import os
-import reflex as rx
-import rich
-import time
-
-from dotenv import load_dotenv
 from loguru import logger
 from typing import Callable, Iterable
 
-load_dotenv()
-jwt_key = os.getenv("SUPABASE_JWT_KEY")
+import inspect
+import jwt
+import reflex as rx
+import rich
+import time
 
 class BaseState(rx.State):
 
@@ -148,8 +143,8 @@ class BaseState(rx.State):
         """
         if access_level == 'login' and not self.user_is_authenticated:
             logger.warning(inspect.cleandoc(
-                """Unknown user attempted to access resources requiring
-                login."""
+                f"""{self.router.session.client_ip} attempted to access
+                resources requiring login."""
             ))
             return {
                 "granted": False,
@@ -158,8 +153,8 @@ class BaseState(rx.State):
         if access_level == 'report' and not self.user_has_reported:
             if self.user_is_authenticated:
                 logger.warning(inspect.cleandoc(
-                    """Authenticated user attempted to access resources
-                    requiring report."""
+                    f"""{self.user_claims['payload']['sub']} attempted
+                    to access resources requiring report."""
                 ))
                 return {
                     "granted": False,
@@ -167,8 +162,8 @@ class BaseState(rx.State):
                 }
             else:
                 logger.warning(inspect.cleandoc(
-                    """Unknown user attempted to access resources
-                    requiring login."""
+                    f"""{self.router.session.client_ip} attempted to
+                    access resources requiring login."""
                 ))
                 return {
                     "granted": False,
@@ -295,7 +290,7 @@ class BaseState(rx.State):
             yield rx.redirect('/onboard')
 
     def redirect_if_access_denied(self, access_req) -> Iterable[Callable]:
-        from ..states.navbar import NavbarState
+        from .navbar_state import NavbarState
         access = self.user_access_granted(access_req)
         if not access['granted']:
             if access['reason'] == 'login':

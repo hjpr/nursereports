@@ -1,7 +1,7 @@
 
-from . import BaseState, NavbarState
+from . import BaseState
+from ..server.supabase import *
 from loguru import logger
-from ..server.supabase.users import supabase_update_user_info
 from typing import Callable, Iterable
 
 import reflex as rx
@@ -9,8 +9,11 @@ import reflex as rx
 class OnboardState(BaseState):
 
     license: str
+
     license_state: str
+
     has_review: str
+    
     onboard_error_message: str
 
     def set_license(self, license: str) -> None:

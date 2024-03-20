@@ -3,8 +3,8 @@ from ..components.c2a import c2a
 from ..components.custom import spacer, login_protected
 from ..components.footer import footer
 from ..components.navbar import navbar
-from ...states.base import BaseState
-from ...states.report import ReportState
+from ...states.base_state import BaseState
+from ...states.report_state import ReportState
 
 import reflex as rx
 

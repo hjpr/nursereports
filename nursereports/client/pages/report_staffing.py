@@ -5,8 +5,8 @@ from ..components.footer import footer
 from ..components.navbar import navbar
 from ..components.report_progress import progress
 from reflex_motion import motion
-from ...states.base import BaseState
-from ...states.report import ReportState
+from ...states.base_state import BaseState
+from ...states.report_state import ReportState
 
 import reflex as rx
 
@@ -63,10 +63,16 @@ def staffing() -> rx.Component:
         rx.flex(
             rx.vstack(
                 rx.text(
-                    """
-                    Do you have enough nurses each day to ensure
-                    reasonable ratios?
-                    """,
+                    "Do you have enough ",
+                    rx.text(
+                        "nurses ",
+                        display='inline',
+                        font_weight='bold'
+                    ),
+                    rx.text(
+                        "each day to ensure reasonable ratios?",
+                        display='inline'
+                    )
                 ),
                 rx.select(
                     ["Always", "Usually", "Sometimes", "Rarely", "Never", "N/A"],

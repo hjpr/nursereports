@@ -1,5 +1,7 @@
 
 from .client.pages import *
+from .tests.pages import *
+
 
 from .server.middleware.middleware import LoggingMiddleware
 

@@ -1,5 +1,5 @@
 
-from ..states.base import BaseState
+from .base_state import BaseState
 
 import reflex as rx
 

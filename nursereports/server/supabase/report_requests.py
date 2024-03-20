@@ -1,5 +1,5 @@
 
-from . import api_key, api_url
+from ..secrets import api_key, api_url
 from loguru import logger
 
 import httpx
@@ -56,20 +56,20 @@ def supabase_get_hospital_info(access_token, hosp_id) -> dict:
             "payload": None
         }
 
-def supabase_no_report_id_conflict(access_token: str, id: str) -> dict:
+def supabase_no_report_id_conflict(access_token: str, report_id: str) -> dict:
     """
     Ensures that uuid is unique for each report in /report.
 
     Args:
         access_token: jwt object of user
-        id: report uuid
+        report_id: report uuid
 
     Returns:
         dict:
             success: bool
             status: user readable error if any
     """
-    url = f"{api_url}/rest/v1/reports?id=eq.{id}&select=*"
+    url = f"{api_url}/rest/v1/reports?report_id=eq.{report_id}&select=*"
     headers = {
         "apikey": api_key,
         "Authorization": f"Bearer {access_token}",

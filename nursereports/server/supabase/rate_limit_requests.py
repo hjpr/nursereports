@@ -1,5 +1,5 @@
 
-from . import api_url, api_key
+from ..secrets import api_key, api_url
 from functools import wraps
 from loguru import logger
 

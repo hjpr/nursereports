@@ -1,36 +1,37 @@
 
-from ..states.navbar import NavbarState
-from ..server.supabase.report import (
-    supabase_no_report_id_conflict,
-    supabase_submit_full_report
-)
-from ..server.supabase.users import supabase_update_user_info
-from ..states.page import PageState
+from ..states import *
+from ..server.secrets import *
+from ..server.supabase import *
 from loguru import logger
 from typing import Callable, Iterable
 
 import httpx
 import inspect
 import json
-import os
 import uuid
 import re
 import reflex as rx
 import rich
-
-from dotenv import load_dotenv
-load_dotenv()
-
-api_url = os.getenv("SUPABASE_URL")
-api_key = os.getenv("SUPABASE_ANON_KEY")
-anyscale_url = os.getenv("ANYSCALE_URL")
-anyscale_api_key = os.getenv("ANYSCALE_API_KEY")
+import textwrap
 
 class ReportState(PageState):
     """
     State for the report, variables grouped into the three major
     groups of the report; compensation, staffing, and assignment.
     """
+
+    report_id: str
+
+    is_test: bool = False
+
+    def reset_report(self) -> None:
+        self.reset()
+
+    def generate_report_id(self) -> None:
+        self.report_id = str(uuid.uuid4())
+        logger.debug(
+            f"Generated a new report id - {self.report_id}"
+        )
 
     #################################################################
     #
@@ -639,15 +640,7 @@ class ReportState(PageState):
     
     @rx.var
     def staffing_has_error(self) -> bool:
-        return
-
-    #################################################################
-    #
-    # UNCATEGORIZED REPORT VARIABLES
-    #
-    #################################################################
-           
-    id: str = str(uuid.uuid4())
+        return True if self.staffing_error_message else False
     
     #################################################################
     #
@@ -713,25 +706,30 @@ class ReportState(PageState):
 
         5. Updates user info to reflect submission.
         """
+        report = self.prepare_report_dict()
+
         if not self.comp_can_progress:
             self.comp_error_message = \
                 "Some fields incomplete or invalid."
             return rx.redirect(
                 f"/report/submit/{self.hosp_id_param}/compensation"
             )
+        
         if not self.assign_can_progress:
             self.assign_error_message = \
                 "Some fields incomplete or invalid."
             return rx.redirect(
                 f"/report/submit/{self.hosp_id_param}/assignment"
             )
+        
         if not self.staffing_can_progress:
             self.staffing_can_progress = \
                 "Some fields incomplete or invalid."
             return rx.redirect(
                 f"/report/submit/{self.hosp_id_param}/staffing"
             )
-        if not self.ensure_no_duplicate():
+        
+        if not self.ensure_no_duplicate(report):
             if not response['success']:
                 if response['status'] == "Conflict":
                     yield NavbarState.set_alert_message(
@@ -742,23 +740,24 @@ class ReportState(PageState):
                 else:
                     self.staffing_error_message = response['status']
                 return
+            
         response = supabase_submit_full_report(
-            self.access_token, self.prepare_report_dict()
+            self.access_token, report
         )
         if response['success']:
             yield ReportState.update_user_info
-            yield ReportState.moderate_user_entries
+            yield ReportState.moderate_user_entries(report)
             yield rx.redirect(
                 f"/report/submit/{self.hosp_id_param}/complete"
             )
-            self.reset()
         else:
             self.staffing_error_message = \
                 "Server error - Failed to upload report to database."
 
     def prepare_report_dict(self) -> dict:
         report = {
-            "id": self.id,
+            "report_id": self.report_id,
+            "hospital_id": self.hosp_id_param,
             "user_id": self.user_claims['payload']['sub'],
             "license": self.user_info['license'],
             "license_state": self.user_info['license_state'],
@@ -821,17 +820,16 @@ class ReportState(PageState):
             "staffing_select_support_available": self.staffing_select_support_available,
             "staffing_input_comments": self.staffing_input_comments,
             "staffing_select_overall": self.staffing_select_overall,
+            "is_test": self.is_test
         }
         return report
     
-    def ensure_no_duplicate(self) -> dict:
+    def ensure_no_duplicate(self, report) -> dict:
+        logger.debug(f"Report ID - {report['report_id']}")
         response = supabase_no_report_id_conflict(
-            self.access_token, self.id
+            self.access_token, report['report_id']
             )
         return response
-
-    def reset_report(self) -> None:
-        self.reset()
 
     #################################################################
     #
@@ -849,32 +847,38 @@ class ReportState(PageState):
     #################################################################
 
     @rx.background
-    async def moderate_user_entries(self) -> None:
+    async def moderate_user_entries(self, report: dict) -> None:
         """
         Send all user entered fields to AI for moderation. AI will send
         response flagging entries
         """
         user_entry_dict = {}
-        if self.comp_input_comments:
+        if report['comp_input_comments']:
             user_entry_dict['comp_input_comments'] = self.comp_input_comments
-        if self.staffing_input_comments:
+        if report['staffing_input_comments']:
             user_entry_dict['staffing_input_comments'] = self.staffing_input_comments
-        if self.assign_input_unit_name:
+        if report['assign_input_unit_name']:
             user_entry_dict['assign_input_unit_name'] = self.assign_input_unit_name
-        if self.assign_input_area:
+        if report['assign_input_area']:
             user_entry_dict['assign_input_area'] = self.assign_input_area
-        if self.assign_input_comments:
+        if report['assign_input_comments']:
             user_entry_dict['assign_input_comments'] = self.assign_input_comments
 
         system_prompt = inspect.cleandoc(
             """You moderate user entries by nurses for a hospital
         review site. Output responses in JSON"""
         )
-        user_prompt = inspect.cleandoc(
-            f"""Flag user entries for racism, threats, links
-        to other sites, spam, or personally identifiable information.
-        User entries = {json.dumps(user_entry_dict)}"""
-        )
+        user_prompt = f"""Moderate user entries for racism, slurs,
+        threats, web links, spam, personally identifiable
+        information, or names of specific people. An example of a
+        JSON output could be...
+        'comp_input_comments_flag': 'Slur',
+        'assign_input_unit_name_flag': 'Spam'
+        if comp_input_comments contained a slur, and
+        assign_input_unit_name contained nonsensical words not
+        relevant to a hospital review.
+        
+        Entry name with user entries are as follows. {json.dumps(user_entry_dict)}"""
         url = f"{anyscale_url}/chat/completions"
         headers = {
             "Authorization": f"Bearer {anyscale_api_key}",
@@ -885,11 +889,11 @@ class ReportState(PageState):
             "messages": [
                 {
                     "role": "system",
-                    "content": system_prompt
+                    "content": textwrap.dedent(system_prompt)
                 },
                 {
                     "role": "user",
-                    "content": user_prompt
+                    "content": textwrap.dedent(user_prompt)
                 }
                  
             ],
@@ -917,26 +921,31 @@ class ReportState(PageState):
             "temperature": 0.5
 
         }
-
-        async with httpx.AsyncClient(timeout=20.0) as client:
-            response = await client.post(
-                url=url,
-                headers=headers,
-                data=json.dumps(data)
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.post(
+                    url=url,
+                    headers=headers,
+                    data=json.dumps(data)
+                )
+                if response.is_success:
+                    logger.debug(
+                        "Retrieved moderation suggestions from Anyscale."
+                    )
+                    content = json.loads(response.content)
+                    self.parse_moderation_suggestions(content, report)
+                    return None
+                else:
+                    logger.warning(
+                        "User entry moderation to Anyscale unsuccessful."
+                    )
+                    return None
+        except Exception as e:
+            logger.critical(
+                f"Exception while moderating report - {e}"
             )
-            if response.is_success:
-                logger.debug(
-                    "Retrieved moderation suggestions from Anyscale."
-                )
-                self.parse_moderation_suggestions(json.loads(response.content))
-                return None
-            else:
-                logger.warning(
-                    "User entry moderation to Anyscale unsuccessful."
-                )
-                return None
 
-    def parse_moderation_suggestions(self, content) -> None:
+    def parse_moderation_suggestions(self, content: list, report: dict) -> None:
         """
         flags['entries'] contains a list of dicts with keys
         'entry_name', 'flag', and 'flag_reason'. If the flag
@@ -958,11 +967,10 @@ class ReportState(PageState):
                 moderation_data[flag_name] = entry['flag_reason']
 
         if moderation_data:
-            logger.warning(inspect.cleandoc(
-                f"""Found some entries requiring moderation.
-                {moderation_data}"""
-            ))
-            url = f"{api_url}/rest/v1/reports?id=eq.{self.id}"
+            logger.warning(
+                f"""Found some entries requiring moderation - {moderation_data}"""
+            )
+            url = f"{api_url}/rest/v1/reports?report_id=eq.{report['report_id']}"
             data = json.dumps(moderation_data)
             headers = {
                 "apikey": api_key,
@@ -977,21 +985,20 @@ class ReportState(PageState):
             )
             if response.is_success:
                 logger.debug(
-                    f"Successfully flagged entries in {self.id}\
+                    f"Successfully flagged entries in {report['report_id']}\
                     for moderation in database."
                     )
                 return
             else:
                 logger.critical(
-                    f"Error calling API to moderate {self.id}."
+                    f"Error calling API to moderate {report['report_id']}."
                     )
                 rich.inspect(response)
                 return
         else:
-            logger.debug(inspect.cleandoc(
-                f"""User report {self.id} seems ok. No entries found
-                requiring moderation."""
-                ))
+            logger.debug(
+                f"""User report {report['report_id']} seems ok. No entries found requiring moderation."""
+                )
             return
         
     #################################################################

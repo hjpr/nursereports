@@ -1,6 +1,6 @@
 
-from .import api_url, api_key
-from .rate_limit import rate_limit_supabase
+from ..secrets import api_key, api_url
+from .rate_limit_requests import rate_limit_supabase
 from loguru import logger
 
 import httpx
