@@ -570,9 +570,9 @@ def button() -> rx.Component:
         rx.flex(
             rx.button(
                 rx.cond(
-                    ~ReportState.is_loading,
+                    ReportState.is_loading,
+                    rx.chakra.spinner(),
                     rx.text("Submit Report"),
-                    rx.chakra.spinner()
                 ),
                 rx.icon("arrow-big-right"),
                 on_click=ReportState.handle_submit_staffing,

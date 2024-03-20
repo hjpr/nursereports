@@ -29,8 +29,6 @@ class BaseState(rx.State):
 
     user_info: dict
 
-    is_loading: bool
-
     @rx.var
     def reason_for_logout(self) -> str:
         return self.router.page.params.get('logout_reason')
