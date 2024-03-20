@@ -23,8 +23,6 @@ class ReportState(PageState):
 
     is_test: bool = False
 
-    is_loading: bool
-
     def reset_report(self) -> None:
         self.reset()
 
