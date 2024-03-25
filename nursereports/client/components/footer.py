@@ -4,169 +4,109 @@ from .custom import spacer
 import reflex as rx
 
 def footer() -> rx.Component:
-    """
-    Main footer component.
-    """
     return rx.flex(
-        spacer(height='40px'),
-        # CENTERED FOOTER CONTAINER
+        spacer(height='120px'),
         rx.flex(
-            # LEFT FOOTER SECTION
             rx.flex(
-                # LEFT FOOTER HEADER W IMAGE  
                 rx.flex(
-                    rx.image(
-                        src='/vector/icon_web_footer.svg',
-                        height='32px',
-                        width='32px',
-                        margin_right='6px',
-                        align_self='center'
+                    rx.flex(
+                        rx.heading(
+                            "Nurse Reports",
+                            color='grey',
+                            padding='0 0 48px 0'
+                        ),
                     ),
-                    rx.heading(
-                        "Nurse Reports",
-                        align_self='flex-end',
+                    rx.flex(
+                        rx.icon(
+                            'instagram',
+                            color='grey',
+                            position='cursor'
+                        ),
+                        rx.divider(orientation='vertical'),
+                        rx.icon(
+                            'facebook',
+                            color='grey',
+                            cursor='pointer'
+                        ),
+                        rx.divider(orientation='vertical'),
+                        rx.icon(
+                            'linkedin',
+                            color='grey',
+                            cursor='pointer'
+                        ),
+                        flex_direction='row',
+                        gap='20px'
+                    ),
+                    flex_direction='column',
+                    width='100%',
+                    align_items='start',
+                    justify_content='space-between',
+                    padding=[
+                        '0 0 48px 0',
+                        '0 0 48px 0',
+                        '0 0 0 0',
+                        '0 0 0 0', 
+                        '0 0 0 0'
+                    ]
+                ),
+                rx.flex(
+                    rx.flex(
+                        rx.flex(
+                            rx.link('Pro', size='2'),
+                            rx.badge('Coming Soon'),
+                            gap='8px'
+                            ),
+                        rx.link('Students', size='2'),
+                        rx.link('Staff', size='2'),
+                        rx.link('Travelers', size='2'),
+                        flex_direction='column',
+                        gap='12px',
+                        width='100%'
+                    ),
+                    rx.flex(
+                        rx.link('About Us', size='2'),
+                        rx.link('Feedback', size='2'),
+                        rx.link('Contact', size='2'),
+                        rx.link('Roadmap', size='2'),
+                        flex_direction='column',
+                        gap='12px',
+                        width='100%',
+                        padding='0 0 0 48px'
                     ),
                     flex_direction='row',
+                    width='100%'
                 ),
-                spacer(height='8px'),
-                rx.text(
-                    "© 2023 Nursereports.org. All rights reserved.",
-                    font_size='0.8em',
-                ),
-                spacer(height='8px'),
-                rx.text(
-                    "Nursereports.org is a nurse developed site built on\
-                    principles of trust and community. Please check our\
-                    policies for details on how we handle your information\
-                    and how nurses are our primary beneficiaries.",
-                    font_size='0.6em',
-                    text_align='left',
-                ),
-                # LEFT FOOTER STYLING
-                display=['none', 'none', 'none', 'block', 'block'],
-                width='360px',
-                height='100%',
-                flex_direction='column',
-                justify_content='left',
-            ),
-
-            # RIGHT FOOTER SECTION
-            rx.flex(
-                # REPORTS
-                rx.flex(
-                    rx.text("REPORTS", font_size='0.9em', font_weight='700'),
-                    spacer(height='12px'),
-                    rx.link(
-                        "By Hospital",
-                        color='white',
-                        text_decoration_color='white',
-                        font_size='0.9em'
-                    ),
-                    rx.link(
-                        "By State",
-                        color='white',
-                        text_decoration_color='white',
-                        font_size='0.9em'
-                    ),
-                    text_align='left',
-                    flex_direction='column',
-                ),
-                # SUPPORT US
-                rx.flex(
-                    rx.text("SUPPORT US",font_size='0.9em', font_weight='700'),
-                    spacer(height='12px'),
-                    rx.link(
-                        "Membership",
-                        color='white',
-                        text_decoration_color='white',
-                        font_size='0.9em'
-                    ),
-                    rx.link(
-                        "Donate",
-                        color='white',
-                        text_decoration_color='white',
-                        font_size='0.9em'
-                    ),
-                    rx.link(
-                        "Store",
-                        color='white',
-                        text_decoration_color='white',
-                        font_size='0.9em'
-                    ),
-                    text_align='left',
-                    flex_direction='column',
-                ),
-                # INFO
-                rx.flex(
-                    rx.text("INFO", font_size='0.9em', font_weight='700'),
-                    spacer(height='12px'),
-                    rx.link(
-                        "About Us",
-                        color='white',
-                        text_decoration_color='white',
-                        font_size='0.9em'
-                    ),
-                    rx.link(
-                        "Contact",
-                        color='white',
-                        text_decoration_color='white',
-                        font_size='0.9em'
-                    ),
-                    rx.link(
-                        "Privacy Policy",
-                        color='white',
-                        text_decoration_color='white',
-                        font_size='0.9em'
-                    ),
-                    rx.link(
-                        "AI Policy",
-                        color='white',
-                        text_decoration_color='white',
-                        font_size='0.9em'
-                    ),
-                    text_align='left',
-                    flex_direction='column',
-                ),
-                # RIGHT FOOTER STYLING
-                width='360px',
-                flex_direction='row',
-                justify_content='space-between',
-            ),
-            # ON MOBILE - COPYRIGHT
-            rx.flex(
-                spacer(height='40px'),
-                rx.text(
-                    "© 2023 Nursereports.org. All rights reserved.",
-                    color='white',
-                    font_size='0.8em',
-                    text_align='center',
-                    ),
-                spacer(height='20px'),
-                rx.text(
-                    "Nursereports.org is a nurse developed site built on\
-                    principles of trust and community. Please check our\
-                    policies for details on how we handle your information\
-                    and how nurses are our primary beneficiaries.",
-                    color='white',
-                    font_size='0.6em',
-                    text_align='left',
-                ),
-                display=['block', 'block', 'block', 'none', 'none'],
+                flex_direction=['column', 'column', 'row', 'row', 'row'],
                 width='100%',
-                padding_x='40px',
             ),
-            # STYLING FOR CENTERED FOOTER CONTAINER
-            flex_direction=['column', 'column', 'column', 'row', 'row'],
-            align_items='center',
-            justify_content='space-around',
+            rx.divider(),
+            rx.flex(
+                rx.flex(
+                    rx.icon(
+                        'copyright',
+                        size=14,
+                        color='grey'
+                    ),
+                    rx.text(
+                        '2024 Nurse Reports',
+                        size='2',
+                        color='grey'
+                    ),
+                    flex_direction='row',
+                    gap='8px',
+                    align_items='center'
+                ),
+                width='100%',
+                justify_content='center'
+            ),
+            flex_direction='column',
             width='100%',
-            max_width='1200px',
+            max_width='768px',
+            gap='64px',
+            padding='0 36px 0 36px'
         ),
-        spacer(height='40px'),
-        # STYLING FOR FOOTER CONTAINER
-        bg='#12A594',
-        color='white',
-        box_shadow='inset 0px 4px 5px -5px rgba(0, 0, 0, 0.5)',
+        spacer(height='100px'),
+        bg='white',
         min_height='260px',
         flex_direction='column',
         flex_basis='auto',

@@ -5,99 +5,123 @@ from ...states import *
 import reflex as rx
 
 def navbar() -> rx.Component:
-    return rx.box(
+    return rx.flex(
         alert_modal(),
         feedback_modal(),
         login_modal(),
-        rx.center(
-            rx.image(
-                 src='/vector/icon_web_header.svg',
-                 height='32px',
-                 width='32px',
-                 margin_left='12px',
-                 margin_right='4px',
-                 cursor='pointer',
-                 on_click=rx.redirect("/")
-            ),
+        rx.flex(
             rx.heading(
                 "Nurse Reports",
-                size='6',
-                display=['none', 'none', 'inline', 'inline', 'inline'],
-                margin_left='8px',
-                margin_right='8px',
-                cursor='pointer',
                 on_click=rx.redirect('/'),
+                color_scheme='teal',
+                size='6',
+                cursor='pointer',
             ),
-            rx.badge(
-                "v0.2",
-                display='inline',
-                margin_right= '20px',
-                margin_left='4px',
-            ),
-            cond_options(),
-            rx.spacer(),
-            cond_account(),
-            height=['60px', '72px', '72px', '72px' '72px'],
-            padding_x='24px',
-            padding_y='12px',
+            links(),
+            hamburger(),
+            signin(),
+            flex_direction='row',
+            align_items='center',
+            justify_content='space-between',
             width='100%',
+            max_width='1000px',
+            padding='0px 36px 0px 36px'
         ),
-        backdropFilter='blur(8px)',
-        bg='rgba(255, 255, 255, 0.9)',
-        position='sticky',
-        top='0px',
-        box_shadow='0px 4px 5px -5px rgba(0, 0, 0, 0.5)',
-        flex_direction='down',
         width='100%',
+        align_items='center',
+        justify_content='center',
+        height=['80px', '80px', '96px', '96px' '96px'],
         z_index='5',
     )
 
-def cond_account() -> rx.Component:
-    return rx.cond(
-        BaseState.user_is_authenticated,
-        rx.menu.root(
-            rx.menu.trigger(
-                rx.icon(
-                    'menu',
-                    color='teal',
-                    cursor='pointer'
-                    )
-            ),
-            rx.menu.content(
-                rx.menu.item(
-                    "Dashboard",
-                    on_click=rx.redirect('/dashboard')
-                ),
-                rx.menu.separator(),
-                rx.menu.item("Account"),
-                rx.menu.item(
-                    "Logout",
-                    on_click=rx.redirect('/logout/user')
-                ),
-                size='2'
-            )
+def links() -> rx.Component:
+    return rx.flex(
+        rx.link("Students"),
+        rx.link("Staff"),
+        rx.link("Travelers"),
+        rx.link("About Us"),
+        rx.flex(
+            rx.link("Pro"),
+            rx.badge("Coming Soon"),
+            flex_direction='row',
+            gap='8px',
+            align_items='center',
+            justify_content='center'
         ),
-        rx.button(
-            "Sign In",
-            on_click=NavbarState.event_state_navbar_pressed_sign_in,
-        ),
+        flex_direction='row',
+        gap='24px',
+        display=['none', 'none', 'none', 'flex', 'flex'],
     )
 
-def cond_options() -> rx.Component:
-    return rx.cond(
-        BaseState.user_is_authenticated & BaseState.user_has_reported,
-        rx.hstack(
-            rx.link(
-                "Hospital Search",
-                display=['none', 'inline', 'inline', 'inline', 'inline'],
-                padding_x='12px',
+def signin() -> rx.Component:
+    return rx.box(
+        rx.link(
+            "Sign In",
+            on_click=NavbarState.event_state_navbar_pressed_sign_in
+        ),
+        display=['none', 'none', 'none', 'inline', 'inline'],
+        margin='0 0 0 60px'
+    )
+
+def hamburger() -> rx.Component:
+    return rx.box(
+        rx.drawer.root(
+            rx.drawer.trigger(
+                rx.icon('menu', cursor='pointer')
+                ),
+            rx.drawer.overlay(),
+            rx.drawer.portal(
+                rx.drawer.content(
+                    rx.flex(
+                        rx.flex(
+                            rx.heading("Nurse Reports"),
+                            rx.drawer.close(
+                                rx.icon('X', cursor='pointer')
+                                ),
+                            width='100%',
+                            padding='30px 36px 30px 36px',
+                            align_items='center',
+                            justify_content='space-between'
+                        ),
+                        rx.flex(
+                            rx.link(
+                                "Students",
+                                ),
+                            rx.divider(),
+                            rx.link("Staff"),
+                            rx.divider(),
+                            rx.link("Travelers"),
+                            rx.divider(),
+                            rx.link("About Us"),
+                            rx.divider(),
+                            rx.flex(
+                                rx.link("Pro"),
+                                rx.badge("Coming Soon"),
+                                gap='12px'
+                                ),
+                            rx.divider(),
+                            rx.link(
+                                "Sign In",
+                                on_click=NavbarState.event_state_navbar_pressed_sign_in
+                                ),
+                            flex_direction='column',
+                            width='100%',
+                            gap='24px',
+                            padding='30px 36px 30px 36px',
+                            align_items='start'
+                        ),
+                        width='100%',
+                        flex_direction='column',
+                    ),
+                    height='100%',
+                    width='100%',
+                    gap='36px',
+                    background_color='#FFF'
+                )
             ),
-            rx.link(
-                "State Overview",
-                display=['none', 'inline', 'inline', 'inline', 'inline'],
-                padding_x='12px'
-            )
-        )
+            direction='top'
+        ),
+        display=['block', 'block', 'block', 'none', 'none']
     )
 
 def alert_modal() -> rx.Component:

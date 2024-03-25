@@ -16,10 +16,10 @@ import reflex as rx
 def index_page() -> rx.Component:
     return rx.flex(
         rx.theme_panel(default_open=False),
-        c2a(),
         navbar(),
         content(),
         footer(),
+        background='linear-gradient(ghostwhite, honeydew)',
         flex_direction='column',
         align_items='center',
         min_height='100vh',
@@ -27,17 +27,15 @@ def index_page() -> rx.Component:
 
 def content() -> rx.Component:
     return rx.flex(
-        main_panel(),
-        first_panel(),
-        rx.divider(max_width='728px'),
-        second_panel(),
-        rx.divider(max_width='728px'),
-        third_panel(),
-        rx.divider(max_width='728px'),
-        fourth_panel(),
-        spacer(height='16px'),
+        header(),
+        spacer(height='36px'),
+        header_image(),
+        spacer(height='48px'),
+        sponsors(),
+        spacer(height='24px'),
+        info_header(),
+        info_cards(),
         width='100%',
-        spacing='8',
         align='center',
         flex_direction='column',
         flex_basis='auto',
@@ -45,137 +43,380 @@ def content() -> rx.Component:
         flex_shrink='0',
     )
 
-def main_panel() -> rx.Component:
+def header() -> rx.Component:
     return rx.center(
-        rx.card(
-            rx.vstack(
-                rx.heading(
-                    """Management has pizza covered, we'll give you
-                    everything else.""",
-                    font_size=["35px", "35px", "60px", "60px", "60px"],
-                    letter_spacing=["-0.01em", "-0.01em", "-0.025em", "-0.025em", "-0.025em"],
-                    line_height=["40px", "40px", "60px", "60px", "60px"],
-                    color_scheme="crimson"
-                ),
-                rx.heading(
-                    """From fair wages, to unit insights - submit,
-                    search and compare hospital reviews across the US. 
-                    All it costs is a report of your own.
-                    """,
-                    size='6',
-                    font_size=["20px", "20px", "24px", "24px", "24px"],
-                    letter_spacing=["-0.005em", "-0.005em", "-0.00625em", "-0.00625em", "-0.00625em"],
-                    line_height=["28px", "28px", "30px", "30px", "30px"],
-
-                ),
-                rx.divider(),
-                rx.button(
-                    "Sign up for access.",
-                    color_scheme='crimson',
-                    on_click=NavbarState.event_state_c2a_main
-                ),
-                gap=["1em","1em","2em", "2em", "2em"]
+        rx.flex(
+            spacer(height='56px'),
+            rx.text(
+                """Hospital reviews for nurses, by nurses.""",
+                font_size=['36px', '36px', '56px', '56px', '56px'],
+                font_weight='bold',
+                line_height=['1.1', '1.1', '1.2', '1.2', '1.2'],
+                color_scheme="teal",
+                text_align='center'
             ),
-            padding='24px',
-            max_width='768px',
-            box_shadow='0px 4px 5px -5px rgba(0, 0, 0, 0.5)'
+            rx.text(
+                """
+                Find all the information you'll ever need on hospitals
+                across the US. Share information on pay, benefits, unit
+                culture, and staffing ratios.
+                """,
+                text_align='center',
+                line_height=['1.5', '1.5', '2', '2', '2'],
+                color_scheme='gray',
+            ),
+            rx.flex(
+                rx.button(
+                    "Get Started",
+                    rx.icon('chevron-right'),
+                    on_click=NavbarState.event_state_c2a_main,
+                    width=['100%', '100%', 'auto', 'auto', 'auto'],
+                    radius='full',
+                    color_scheme='teal',
+                    size='4',
+                    border='4px solid gainsboro',
+                ),
+                rx.button(
+                    "Learn More",
+                    rx.icon('chevron-right'),
+                    radius='full',
+                    color_scheme='teal',
+                    variant='ghost',
+                    size='4'
+                ),
+                flex_direction=['column', 'column', 'row', 'row', 'row'],
+                width='100%',
+                gap=['20px', '20px', '36px', '36px', '36px'],
+                align_items='center',
+                justify_content='center',
+                margin='8px 0px 0px 0px',
+                padding='0 48px 0 48px'
+            ),
+            flex_direction='column',
+            gap='24px',
+            max_width=['480px', '480px','640px','640px', '640px'],
+            padding='0px 12px'
         ),
         padding='24px',
-        background='url(/vector/pizzabg.svg)',
-        background_size='cover',
         width='100%'
     )
 
-def first_panel() -> rx.Component:
-    return rx.center(
-        rx.vstack(
-            rx.heading(
-                """Discover information on pay, benefits, staffing,
-                and culture across hospitals nationwide.""",
-                size='8',
+def header_image() -> rx.Component:
+    return rx.flex(
+        rx.card(
+            rx.flex(
+                rx.text("PLACEHOLDER", font_size='10px'),
+                height='100%',
+                width='100%',
+                align_items='center',
+                justify_content='center'
+            ),
+            width='100%',
+            border='10px solid whitesmoke'
+        ),
+        width='100%',
+        max_width='1100px',
+        padding_x='24px',
+        aspect_ratio='16 / 9',
+    )
+
+def sponsors() -> rx.Component:
+    return rx.flex(
+        spacer(),
+        rx.text(
+            """
+            Are you looking to sponsor grassroots nursing
+            empowerment?
+            """,
+            text_align='center',
+            line_height=['1.5', '1.5', '2', '2', '2'],
+            color_scheme='gray',
+        ),
+        rx.button(
+            "Contact Us",
+            size='4',
+            radius='full',
+            variant='soft'
+        ),
+        spacer(),
+        flex_direction='column',
+        width='100%',
+        max_width='640px',
+        gap='48px',
+        align_items='center',
+        justify_content='center',
+        padding='0 48px 0 48px'
+    )
+
+def info_header() -> rx.Component:
+    return rx.flex(
+        rx.flex(
+            rx.icon('messages-square', size=36, color='grey'),
+            rx.text(
+                """
+                No more guessing about your current or future
+                assignments.
+                """,
+                font_size=['32px', '32px', '36px', '36px', '36px'],
+                font_weight='bold',
+                line_height=['1.1', '1.1', '1.2', '1.2', '1.2'],
+                color_scheme="teal",
                 text_align='center'
-            )
-        ),
-        width='100%',
-        max_width='768px',
-        padding_x='24px'
-    )
-
-def second_panel() -> rx.Component:
-    return rx.flex(
-        rx.vstack(
-            rx.heading(
-                "The most important 5 minutes of your career."
             ),
             rx.text(
-                """
-                Understanding the state of nursing both locally and
-                nationwide requires coordinated communication. Learn
-                vital details from a structured report about pay,
-                benefits, ratios, culture and much more.
-                """
+                "Read unfiltered and anonymous reviews from everywhere.",
+                text_align='center',
+                color='grey'
             ),
-            width='100%'  
-        ),
-        rx.box(
-            height='200px',
+            flex_direction='column',
             width='100%',
-            border='1px dashed black'
+            gap='24px',
+            align_items='center',
+            justify_content='center',
+            max_width='768px'
         ),
-        gap='12px',
-        flex_direction=['column', 'row', 'row', 'row', 'row'],
-        align_items='center',
-        justify_content='center',
+        bg='white',
         width='100%',
-        max_width='768px',
-        padding_x='24px'
+        justify_content='center',
+        padding='128px 48px 64px 48px'
     )
 
-def third_panel() -> rx.Component:
+def info_cards() -> rx.Component:
     return rx.flex(
-        rx.vstack(
-            rx.heading(
-                "Speak freely and anonymously."
-            ),
-            rx.text(
-                """
-                Submit reports without fear of blowback.
-                Your personal information won't be shared
-                with hospitals or any other third party.
-                """
-            ),
-            width='100%'  
-        ),
-        rx.box(
-            height='200px',
-            width='100%',
-            border='1px dashed black'
-        ),
-        gap='12px',
-        flex_direction=['column', 'row', 'row', 'row', 'row'],
-        align_items='center',
-        justify_content='center',
+        info_cards_top(),
+        info_cards_bottom(),
+        flex_direction='column',
         width='100%',
-        max_width='768px',
-        padding_x='24px'
+        gap='8px',
+        bg='white'
     )
 
-def fourth_panel() -> rx.Component:
-    return rx.center(
-        rx.hstack(
-            rx.box(
-                height='200px',
+def info_cards_top() -> rx.Component:
+    return rx.flex(
+        rx.flex(
+            rx.flex(
+                rx.flex(
+                    rx.flex(
+                        rx.flex(
+                            rx.card(
+                                rx.flex(
+                                    rx.text("PLACEHOLDER", font_size='10px'),
+                                    width='100%',
+                                    height='100%',
+                                    align_items='center',
+                                    justify_content='center'
+                                ),
+                                height='100%',
+                                width='100%',
+                                aspect_ratio='16 / 9'
+                            ),
+                            rx.text(
+                                "Pay and Benefits",
+                                text_align='center'
+                            ),
+                            rx.text(
+                                """
+                                Know what you'll make, and compare
+                                compensation between hospitals.
+                                """,
+                                font_size='13px',
+                                text_align='center',
+                                color='grey'
+                            ),
+                            flex_direction='column',
+                            width='100%',
+                            gap='8px',
+                            padding='8px'
+                        ),
+                        flex_direction='column',
+                        width='100%',
+                    ),
+                    bg='rgb(249 250 251)',
+                    width='100%',
+                    border_radius=[
+                        '12px',
+                        '48px 12px 12px 12px',
+                        '48px 12px 12px 12px',
+                        '48px 12px 12px 12px',
+                        '48px 12px 12px 12px',
+                    ],
+                    padding='24px'
+                ),
+                rx.flex(
+                    rx.flex(
+                        rx.flex(
+                            rx.card(
+                                rx.flex(
+                                    rx.text("PLACEHOLDER", font_size='10px'),
+                                    width='100%',
+                                    height='100%',
+                                    align_items='center',
+                                    justify_content='center'
+                                ),
+                                height='100%',
+                                width='100%',
+                                aspect_ratio='16 / 9'
+                            ),
+                            rx.text(
+                                "Culture",
+                                text_align='center'
+                            ),
+                            rx.text(
+                                """
+                                Gone are the days of having to dig
+                                up the inside scoop across social
+                                media.
+                                """,
+                                font_size='13px',
+                                text_align='center',
+                                color='grey'
+                            ),
+                            flex_direction='column',
+                            width='100%',
+                            gap='8px',
+                            padding='8px'
+                        ),
+                        flex_direction='column',
+                        width='100%',
+                    ),
+                    bg='rgb(249 250 251)',
+                    width='100%',
+                    border_radius=[
+                        '12px',
+                        '12px 48px 12px 12px',
+                        '12px 48px 12px 12px',
+                        '12px 48px 12px 12px',
+                        '12px 48px 12px 12px',
+                    ],
+                    padding='24px'
+                ),
+                flex_direction=['column', 'row', 'row', 'row', 'row'],
                 width='100%',
-                border='1px dashed black'
+                max_width='900px',
+                gap='8px',
+                padding_x=['24px', '24px', '0px', '0px', '0px']
             ),
-            rx.box(
-                height='200px',
-                width='100%',
-                border='1px dashed black'
-            ),
+            flex_direction='column',
             width='100%',
-            justify='center'
+            align_items='center',
         ),
+        flex_direction='column',
+        bg='white',
+        align_items='center',
+        width='100%'
+    )
+
+def info_cards_bottom() -> rx.Component:
+    return rx.flex(
+        rx.flex(
+            rx.flex(
+                rx.flex(
+                    rx.flex(
+                        rx.flex(
+                            rx.card(
+                                rx.flex(
+                                    rx.text("PLACEHOLDER", font_size='10px'),
+                                    width='100%',
+                                    height='100%',
+                                    align_items='center',
+                                    justify_content='center'
+                                ),
+                                height='100%',
+                                width='100%',
+                                aspect_ratio='16 / 9'
+                            ),
+                            rx.text(
+                                "Ratios",
+                                text_align='center'
+                            ),
+                            rx.text(
+                                """
+                                Find out about unit ratios, and get a
+                                sense for workloads in each area.
+                                """,
+                                font_size='13px',
+                                text_align='center',
+                                color='grey'
+                            ),
+                            flex_direction='column',
+                            width='100%',
+                            gap='8px',
+                            padding='8px'
+                        ),
+                        flex_direction='column',
+                        width='100%',
+                    ),
+                    bg='rgb(249 250 251)',
+                    width='100%',
+                    border_radius=[
+                        '12px',
+                        '12px 12px 12px 48px',
+                        '12px 12px 12px 48px',
+                        '12px 12px 12px 48px',
+                        '12px 12px 12px 48px',
+                    ],
+                    padding='24px'
+                ),
+                rx.flex(
+                    rx.flex(
+                        rx.flex(
+                            rx.card(
+                                rx.flex(
+                                    rx.text("PLACEHOLDER", font_size='10px'),
+                                    width='100%',
+                                    height='100%',
+                                    align_items='center',
+                                    justify_content='center'
+                                ),
+                                height='100%',
+                                width='100%',
+                                aspect_ratio='16 / 9'
+                            ),
+                            rx.text(
+                                "Rankings",
+                                text_align='center'
+                            ),
+                            rx.text(
+                                """
+                                Analyze pay and workplace ratings by
+                                hospital, or take a wider view and 
+                                explore rankings by state.
+                                """,
+                                font_size='13px',
+                                text_align='center',
+                                color='grey'
+                            ),
+                            flex_direction='column',
+                            width='100%',
+                            gap='8px',
+                            padding='8px'
+                        ),
+                        flex_direction='column',
+                        width='100%',
+                    ),
+                    bg='rgb(249 250 251)',
+                    width='100%',
+                    border_radius=[
+                        '12px',
+                        '12px 12px 48px 12px',
+                        '12px 12px 48px 12px',
+                        '12px 12px 48px 12px',
+                        '12px 12px 48px 12px',
+                    ],
+                    padding='24px'
+                ),
+                flex_direction=['column', 'row', 'row', 'row', 'row'],
+                width='100%',
+                max_width='900px',
+                gap='8px',
+                padding_x=['24px', '24px', '0px', '0px', '0px']
+            ),
+            flex_direction='column',
+            width='100%',
+            align_items='center',
+        ),
+        flex_direction='column',
+        bg='white',
+        align_items='center',
         width='100%',
-        max_width='768px'
     )
