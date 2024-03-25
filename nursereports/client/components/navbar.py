@@ -43,13 +43,25 @@ def links() -> rx.Component:
 
 def unauth_links() -> rx.Component:
     return rx.flex(
-        rx.link("Students"),
-        rx.link("Staff"),
-        rx.link("Travelers"),
-        rx.link("About Us"),
+        rx.link(
+            "Students",
+            on_click=rx.redirect('https://blog.nursereports.org/for-students')
+            ),
+        rx.link(
+            "Staff",
+            on_click=rx.redirect('https://blog.nursereports.org/for-staff')
+            ),
+        rx.link(
+            "Travelers",
+            on_click=rx.redirect('https://blog.nursereports.org/for-travelers')
+            ),
+        rx.link(
+            "About Us",
+            on_click=rx.redirect('https://blog.nursereports.org/about-us')
+            ),
         rx.flex(
             rx.link("Pro"),
-            rx.badge("Coming Soon"),
+            rx.icon("sparkle", color='teal', size=18),
             flex_direction='row',
             gap='8px',
             align_items='center',
@@ -68,7 +80,7 @@ def auth_links() -> rx.Component:
             ),
         rx.flex(
             rx.link("Pro"),
-            rx.badge("Coming Soon"),
+            rx.icon("sparkle"),
             flex_direction='row',
             gap='8px',
             align_items='center',
@@ -145,8 +157,9 @@ def unauth_hamburger() -> rx.Component:
                             rx.divider(),
                             rx.flex(
                                 rx.link("Pro"),
-                                rx.badge("Coming Soon"),
-                                gap='12px'
+                                rx.icon("sparkle", color='teal', size=18),
+                                gap='12px',
+                                align_items='center'
                             ),
                             rx.divider(),
                             rx.link(
@@ -379,52 +392,56 @@ def login_tab_login() -> rx.Component:
             text_align='center',
             width='100%'
         ),
-        rx.center(
-            rx.vstack(
+        rx.flex(
+            rx.flex(
                 rx.text(
                     "Email",
-                    size='2'
+                    size='2',
+                    padding='0 0 0 12px'
                 ),
                 rx.input(
                     placeholder='Enter email',
                     name='login_email',
+                    width='100%',
                     size='3',
+                    radius='full',
                     required=True,
-                )
-            )
-        ),
-        rx.center(
-            rx.vstack(
+                ),
+                flex_direction='column',
+                width='100%',
+            ),
+            rx.flex(
                 rx.text(
                     "Password",
-                    size='2'
+                    size='2',
+                    padding='0 0 0 12px'
                     ),
                 rx.input(
                     placeholder='Enter password',
                     name='login_password',
                     type='password',
+                    width='100%',
                     size='3',
+                    radius='full',
                     required=True
-                )
-            )
-        ),
-        rx.center(
+                ),
+                flex_direction='column',
+                width='100%',
+            ),
+            login_callout(),
             rx.button(
                 "Login",
                 width='100%',
-                type='submit'
+                type='submit',
+                size='3',
+                radius='full',
+                margin='20px 0 0 0'
             ),
-            margin_top="12px",
-            width='100%'
-        ),
-        rx.cond(
-            NavbarState.error_sign_in_message,
-            rx.callout(
-                NavbarState.error_sign_in_message,
-                icon="alert_triangle",
-                color_scheme="red",
-                role="alert"
-            )
+            flex_direction='column',
+            gap='24px',
+            width='100%',
+            justify_content='center',
+            padding='0 48px 0 48px'
         ),
         rx.hstack(
             rx.divider(),
@@ -436,7 +453,8 @@ def login_tab_login() -> rx.Component:
                 ),
             rx.divider(),
             align='center',
-            width='100%'
+            width='100%',
+            padding='12px 0 0 0'
         ),
         rx.hstack(
             rx.image(
@@ -459,12 +477,25 @@ def login_tab_login() -> rx.Component:
             ),
             width='100%',
             justify='center',
-            gap='48px'
+            gap='48px',
+            padding='12px 0 12px 0'
         ),
         spacer(),
         width='100%',
         gap='24px',
         flex_direction='column'
+    )
+
+def login_callout() -> rx.Component:
+    return rx.cond(
+        NavbarState.error_sign_in_message,
+        rx.callout(
+            NavbarState.error_sign_in_message,
+            icon="alert_triangle",
+            color_scheme="red",
+            role="alert",
+            margin='20px 0 0 0'
+        )
     )
 
 def login_tab_account() -> rx.Component:
@@ -476,84 +507,114 @@ def login_tab_account() -> rx.Component:
             text_align='center',
             width='100%'
         ),
-        rx.center(
-            rx.vstack(
+        rx.flex(
+            rx.flex(
                 rx.text(
                     "Email",
-                    size='2'
+                    size='2',
+                    padding='0 0 0 12px'
                 ),
                 rx.input(
                     placeholder='Enter email',
                     name='create_account_email',
+                    width='100%',
+                    radius='full',
                     size='3',
                     required=True,
-                )
-            )
-        ),
-        rx.center(
-            rx.vstack(
-                rx.vstack(
+                ),
+                flex_direction='column',
+                width='100%'
+            ),
+            rx.flex(
+                rx.flex(
                     rx.text(
                         "Password",
-                        size='2'
+                        size='2',
+                        padding='0 0 0 12px'
                     ),
                     rx.input(
                         placeholder="Enter password",
                         name='create_account_password',
                         type='password',
+                        width='100%',
                         size='3',
+                        radius='full',
                         required=True
-                    )
+                    ),
+                    flex_direction='column',
+                    width='100%'
                 ),
-                rx.vstack(
+                rx.flex(
                     rx.text(
                         "Confirm password",
-                        size='2'
+                        size='2',
+                        padding='0 0 0 12px'
                     ),
                     rx.input(
                         placeholder="Re-enter password",
                         name='create_account_password_confirm',
                         type='password',
+                        width='100%',
                         size='3',
+                        radius='full',
                         required=True
-                    )
-                )
-            )
-        ),
-        rx.center(
-            rx.button(
-                "Create account",
-                width='100%',
-                type='submit'
+                    ),
+                    flex_direction='column',
+                    width='100%'
+                ),
+                flex_direction='column',
+                gap='24px'
             ),
-            margin_top='12px',
-            width='100%'
+            create_account_callout(),
+            rx.center(
+                rx.button(
+                    "Create account",
+                    width='100%',
+                    type='submit',
+                    size='3',
+                    radius='full',
+                    margin='20px 0 0 0'
+                ),
+                width='100%'
+            ),
+            flex_direction='column',
+            width='100%',
+            gap='24px',
+            padding='0 48px 0 48px'
         ),
-        rx.cond(
-            NavbarState.error_create_account_message,
-            rx.callout(
-                NavbarState.error_create_account_message,
-                icon='alert_triangle',
-                color_scheme='red',
-                role='alert'
-            )
-        ),
+        spacer(),
         rx.center(
-            rx.hstack(
+            rx.flex(
                 rx.link(
                     "Privacy Policy",
                     size='2'
                 ),
-                rx.divider(width='12px'),
+                rx.divider(orientation='vertical'),
                 rx.link(
                     "AI Policy",
                     size='2'
                 ),
-                align='center'
+                flex_direction='row',
+                width='100%',
+                gap='24px',
+                justify_content='center'
             )
         ),
+        spacer(),
         spacer(),
         width='100%',
         gap='24px',
         flex_direction='column'
+    )
+
+def create_account_callout() -> rx.Component:
+    return rx.cond(
+        NavbarState.error_create_account_message,
+        rx.callout(
+            NavbarState.error_create_account_message,
+            icon='alert_triangle',
+            color_scheme='red',
+            role='alert',
+            margin='20px 0 0 0'
+        )
     )

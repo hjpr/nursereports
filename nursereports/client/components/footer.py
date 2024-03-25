@@ -20,7 +20,7 @@ def footer() -> rx.Component:
                         rx.icon(
                             'instagram',
                             color='grey',
-                            position='cursor'
+                            cursor='pointer'
                         ),
                         rx.divider(orientation='vertical'),
                         rx.icon(
@@ -53,8 +53,9 @@ def footer() -> rx.Component:
                     rx.flex(
                         rx.flex(
                             rx.link('Pro', size='2'),
-                            rx.badge('Coming Soon'),
-                            gap='8px'
+                            rx.icon('sparkle', color='teal', size=14),
+                            gap='8px',
+                            align_items='center'
                             ),
                         rx.link('Students', size='2'),
                         rx.link('Staff', size='2'),
