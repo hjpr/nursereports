@@ -18,10 +18,11 @@ def search_page() -> rx.Component:
     return rx.flex(
         c2a(),
         navbar(),
-        spacer(height='40px'),
+        spacer(height='56px'),
         content(),
         spacer(height='40px'),
         footer(),
+        background='linear-gradient(ghostwhite, honeydew)',
         flex_direction='column',
         align='center',
         min_height='100vh',
@@ -46,7 +47,8 @@ def content() -> rx.Component:
 def header() -> rx.Component:
     return rx.flex(
         rx.heading(
-            "Find your hospital"
+            "Find your hospital",
+            color='grey'
         ),
         width='100%',
         justify='center'
@@ -60,30 +62,33 @@ def search_dropdowns() -> rx.Component:
                 value=SearchState.selected_state,
                 placeholder="- Select state -",
                 size='3',
+                radius='full',
                 position='popper',
                 on_change=SearchState.event_state_state_selected,
-                width='40%'
+                width=['100%', '40%', '40%', '40%', '40%']
             ),
             rx.select(
                 SearchState.city_options,
                 placeholder="- Select city -",
                 value=SearchState.selected_city,
                 size='3',
+                radius='full',
                 position='popper',
                 on_change=SearchState.event_state_city_selected,
-                width='40%'
+                width=['100%', '40%', '40%', '40%', '40%']
             ),
             rx.button(
                 "Search",
-                size='3',
                 on_click=[
                     SearchState.set_search_is_loading(True),
                     SearchState.set_search_results([]),
                     SearchState.event_state_search,
                     SearchState.set_search_is_loading(False)
-                ]
+                ],
+                size='3',
+                radius='full'
             ),
-            flex_direction='row',
+            flex_direction=['column', 'row', 'row', 'row', 'row'],
             gap='8px',
             width='100%',
             justify_content='center'
@@ -124,34 +129,39 @@ def search_results() -> rx.Component:
     )
 
 def render_results(result: Dict) -> rx.Component:
-    return rx.card(
-        rx.flex(
-            rx.hstack(
-                rx.vstack(
-                    rx.heading(
-                        f"{result['hosp_name']}"
-                        ),
-                    rx.text(f"{result['hosp_addr']}, "\
-                            f"{result['hosp_state']} "\
-                            f"{result['hosp_zip']}"
-                            ),
-                    width='100%',
-                    align_items='left'
+    return rx.flex(
+        rx.hstack(
+            rx.flex(
+                rx.heading(
+                    f"{result['hosp_name']}",
+                    size='3'
                 ),
-                rx.flex(
-                    rx.button(
-                        "Select",
-                        size='3',
-                        on_click=SearchState.nav_to_report(result['hosp_id'])
-                    ),
-                    height='100%',
-                    width='30%',
-                    justify='end',
-                    align='center'
+                rx.text(f"{result['hosp_addr']}"),
+                rx.text(f"{result['hosp_city']}, \
+                    {result['hosp_state']}\
+                    {result['hosp_zip']}"
                 ),
+                flex_direction='column',
                 width='100%',
+                gap='4px'
             ),
-            flex_direction='row'
+            rx.flex(
+                rx.button(
+                    "Select",
+                    rx.icon('chevron-right'),
+                    size='3',
+                    radius='full',
+                    on_click=SearchState.nav_to_report(result['hosp_id'])
+                ),
+                height='100%',
+                width='30%',
+                justify='end',
+                align='center'
+            ),
+            width='100%',
         ),
+        flex_direction='row',
         width='100%',
+        justify_content='space-between',
+        padding='0 0 24px 0'
     )

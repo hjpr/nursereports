@@ -12,13 +12,12 @@ def c2a() -> rx.Component:
                     rx.button(
                         "In Beta. Click here to submit issue or feedback.",
                         cursor='pointer',
-                        color='white',
-                        color_scheme='crimson',
+                        color_scheme='teal',
                         on_click=NavbarState.set_show_feedback(True)
                     ),
                     width='100%'
                 ),
-                bg='#E93D82',
+                bg='#12A594',
                 height='40px',
                 padding_x='12px',
                 padding_y='4px'

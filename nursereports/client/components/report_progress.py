@@ -74,6 +74,6 @@ def progress() -> rx.Component:
         box_shadow='0px 0px 10px 10px white',
         padding_y='12px',
         position='sticky',
-        top=['60px', '72px', '72px', '72px', '72px'],
+        top='0px',
         width='100%'
     )

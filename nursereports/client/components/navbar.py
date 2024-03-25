@@ -19,7 +19,7 @@ def navbar() -> rx.Component:
             ),
             links(),
             hamburger(),
-            signin(),
+            sign_in_or_account(),
             flex_direction='row',
             align_items='center',
             justify_content='space-between',
@@ -35,6 +35,13 @@ def navbar() -> rx.Component:
     )
 
 def links() -> rx.Component:
+    return rx.cond(
+        BaseState.user_is_authenticated,
+        auth_links(),
+        unauth_links()
+    )
+
+def unauth_links() -> rx.Component:
     return rx.flex(
         rx.link("Students"),
         rx.link("Staff"),
@@ -53,6 +60,32 @@ def links() -> rx.Component:
         display=['none', 'none', 'none', 'flex', 'flex'],
     )
 
+def auth_links() -> rx.Component:
+    return rx.flex(
+        rx.link(
+            'Make a Report',
+            on_click=rx.redirect('/search/report')
+            ),
+        rx.flex(
+            rx.link("Pro"),
+            rx.badge("Coming Soon"),
+            flex_direction='row',
+            gap='8px',
+            align_items='center',
+            justify_content='center'
+        ),
+        flex_direction='row',
+        gap='24px',
+        display=['none', 'none', 'none', 'flex', 'flex'],
+    )
+
+def sign_in_or_account() -> rx.Component:
+    return rx.cond(
+        BaseState.user_is_authenticated,
+        account(),
+        signin()
+    )
+
 def signin() -> rx.Component:
     return rx.box(
         rx.link(
@@ -63,7 +96,23 @@ def signin() -> rx.Component:
         margin='0 0 0 60px'
     )
 
+def account() -> rx.Component:
+    return rx.box(
+        rx.link(
+            "Account",
+        ),
+        display=['none', 'none', 'none', 'inline', 'inline'],
+        margin='0 0 0 60px'
+    )
+
 def hamburger() -> rx.Component:
+    return rx.cond(
+        BaseState.user_is_authenticated,
+        auth_hamburger(),
+        unauth_hamburger(),
+    )
+
+def unauth_hamburger() -> rx.Component:
     return rx.box(
         rx.drawer.root(
             rx.drawer.trigger(
@@ -98,11 +147,69 @@ def hamburger() -> rx.Component:
                                 rx.link("Pro"),
                                 rx.badge("Coming Soon"),
                                 gap='12px'
-                                ),
+                            ),
                             rx.divider(),
                             rx.link(
                                 "Sign In",
                                 on_click=NavbarState.event_state_navbar_pressed_sign_in
+                            ),
+                            flex_direction='column',
+                            width='100%',
+                            gap='24px',
+                            padding='30px 36px 30px 36px',
+                            align_items='start'
+                        ),
+                        width='100%',
+                        flex_direction='column',
+                    ),
+                    height='100%',
+                    width='100%',
+                    gap='36px',
+                    background_color='#FFF'
+                )
+            ),
+            direction='top'
+        ),
+        display=['block', 'block', 'block', 'none', 'none']
+    )
+
+def auth_hamburger() -> rx.Component:
+    return rx.box(
+        rx.drawer.root(
+            rx.drawer.trigger(
+                rx.icon('menu', cursor='pointer')
+                ),
+            rx.drawer.overlay(),
+            rx.drawer.portal(
+                rx.drawer.content(
+                    rx.flex(
+                        rx.flex(
+                            rx.heading("Nurse Reports"),
+                            rx.drawer.close(
+                                rx.icon('X', cursor='pointer')
+                                ),
+                            width='100%',
+                            padding='30px 36px 30px 36px',
+                            align_items='center',
+                            justify_content='space-between'
+                        ),
+                        rx.flex(
+                            rx.link(
+                                "Make a Report",
+                                on_click=rx.redirect('/search/report')
+                                ),
+                            rx.divider(),
+                            rx.link("Account"),
+                            rx.divider(),
+                            rx.flex(
+                                rx.link("Pro"),
+                                rx.badge("Coming Soon"),
+                                gap='12px'
+                                ),
+                            rx.divider(),
+                            rx.link(
+                                "Logout",
+                                on_click=rx.redirect('/logout/user')
                                 ),
                             flex_direction='column',
                             width='100%',
@@ -137,6 +244,8 @@ def alert_modal() -> rx.Component:
                 rx.alert_dialog.action(
                     rx.button(
                         "OK",
+                        size='3',
+                        radius='full',
                         on_click=NavbarState.set_alert_message("")
                     )
                 ),
@@ -167,6 +276,8 @@ def feedback_modal() -> rx.Component:
                             "Cancel",
                             type='button',
                             variant='soft',
+                            size='3',
+                            radius='full',
                             on_click=NavbarState.set_show_feedback(False),
                         )
                     ),
@@ -174,6 +285,8 @@ def feedback_modal() -> rx.Component:
                         rx.button(
                             "Submit",
                             type='submit',
+                            size='3',
+                            radius='full'
                         )
                     ),
                     spacing='3',

@@ -20,11 +20,11 @@ def onboard_page() -> rx.Component:
     return rx.flex(
         c2a(),
         navbar(),
-        spacer(height='80px'),
         content(),
-        spacer(height='80px'),
+        spacer(height='56px'),
         footer(),
         width='100%',
+        background='linear-gradient(ghostwhite, honeydew)',
         flex_direction='column',
         align_items='center',
         justify_content='center',
@@ -33,12 +33,10 @@ def onboard_page() -> rx.Component:
 
 def content() -> rx.Component:
     return rx.flex(
-        header_image(),
         greeting(),
         questions(),
         button(),
-        callout_error(),
-        gap='24px',
+        gap='48px',
         flex_direction='column',
         padding_x='20px',
         width=['100%', '480px', '480px', '480px', '480px'],
@@ -48,48 +46,42 @@ def content() -> rx.Component:
         flex_shrink='0',
     )
 
-def header_image() -> rx.Component:
-    return rx.flex(
-        rx.text(
-            "placeholder"
-        ),
-        width='100%',
-        padding='100px 0px 100px 0px',
-        border='1px dashed black',
-        align_items='center',
-        justify_content='center'
-    )
-
 def greeting() -> rx.Component:
-    return rx.card(
-        rx.vstack(
-            rx.heading(
-                "Thanks for joining!",
-                width='100%'
-            ),
-            rx.divider(),
+    return rx.flex(
+        spacer(height='56px'),
+        rx.text(
+            """Welcome to the community!""",
+            font_size=['36px', '36px', '56px', '56px', '56px'],
+            font_weight='bold',
+            line_height=['1.1', '1.1', '1.2', '1.2', '1.2'],
+            color_scheme="teal",
+            text_align='center'
         ),
-        spacer(height='8px'),
-        rx.flex( 
-            rx.vstack(
+        rx.text(
+            """
+            Hey! I'm Jeremy. I'm an ICU nurse still working bedside
+            on the East Coast. I built this tool to help nurses
+            share hospital information across the US.
+            """,
+            text_align='center',
+            line_height=['1.5', '1.5', '2', '2', '2'],
+            color_scheme='gray',
+        ),
                 rx.text(
-                    """
-                    Hey, I'm Jeremy, a current bedside ICU nurse
-                    from the East Coast. I built this tool to help
-                    nurses share hospital information from across
-                    the US.
-                    """,
-                ),
-                rx.text(
-                    """
-                    This community will always be free to access,
-                    I simply ask that you share a report first.
-                    """
-                )
-            ),
-            flex_direction='column',
-            width='100%'
-        )
+            """
+            This community will always be free to access, I simply
+            ask that you share a report first if you are currently
+            working in a hospital.
+            """,
+            text_align='center',
+            line_height=['1.5', '1.5', '2', '2', '2'],
+            color_scheme='gray',
+        ),
+        flex_direction='column',
+        gap='24px',
+        width='100%',
+        max_width=['480px', '480px','640px','640px', '640px'],
+        padding='0px 12px'
     )
 
 def questions() -> rx.Component:
@@ -106,6 +98,7 @@ def questions() -> rx.Component:
                     on_change=OnboardState.set_license,
                     required=True,
                     size='3',
+                    radius='full',
                     width='100%'
                 ),
                 width='100%'
@@ -126,6 +119,7 @@ def questions() -> rx.Component:
                                 on_change=OnboardState.set_license_state,
                                 required=True,
                                 size='3',
+                                radius='full',
                                 width='100%'
                             ),
                             width='100%'
@@ -143,6 +137,7 @@ def questions() -> rx.Component:
                                 on_change=OnboardState.set_has_review,
                                 required=True,
                                 size='3',
+                                radius='full',
                                 width='100%'
                             ),
                             width='100%'
@@ -157,6 +152,7 @@ def questions() -> rx.Component:
                 ~OnboardState.can_give_review,
                 callout_review()
             ),
+            callout_error(),
             flex_direction='column',
             gap='24px',
             width='100%'
@@ -165,19 +161,17 @@ def questions() -> rx.Component:
     )
 
 def button() -> rx.Component:
-    return rx.card(
-        rx.flex(
-            rx.button(
-                "Let's go!",
-                rx.icon('arrow-big-right'),
-                variant='ghost',
-                size='3',
-                on_click=OnboardState.event_state_submit_onboard
-            ),
-            width='100%',
-            justify_content='center'
+    return rx.flex(
+        rx.button(
+            "Let's go!",
+            rx.icon('chevron-right'),
+            size='4',
+            radius='full',
+            border='4px solid gainsboro',
+            on_click=OnboardState.event_state_submit_onboard
         ),
-        width='100%'
+        width='100%',
+        justify_content='center'
     )
 
 def callout_review() -> rx.Component:
