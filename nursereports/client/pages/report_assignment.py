@@ -558,8 +558,8 @@ def overall() -> rx.Component:
                 motion(
                     rx.image(
                         src='/raster/icons/icon_rating_a.webp',
-                        height=['50px', '65px', '75px', '75px', '75px',],
-                        width=['50px', '65px', '75px', '75px', '75px',],
+                        height=['65px', '65px', '75px', '75px', '75px',],
+                        width=['65px', '65px', '75px', '75px', '75px',],
                         border_radius='5px',
                         on_click=ReportState.set_assign_select_overall("a")
                     ),
@@ -569,8 +569,8 @@ def overall() -> rx.Component:
                 motion(
                     rx.image(
                         src='/raster/icons/icon_rating_b.webp',
-                        height=['50px', '65px', '75px', '75px', '75px',],
-                        width=['50px', '65px', '75px', '75px', '75px',],
+                        height=['65px', '65px', '75px', '75px', '75px',],
+                        width=['65px', '65px', '75px', '75px', '75px',],
                         border_radius='5px',
                         on_click=ReportState.set_assign_select_overall("b")
                     ),
@@ -580,8 +580,8 @@ def overall() -> rx.Component:
                 motion(
                     rx.image(
                         src='/raster/icons/icon_rating_c.webp',
-                        height=['50px', '65px', '75px', '75px', '75px',],
-                        width=['50px', '65px', '75px', '75px', '75px',],
+                        height=['65px', '65px', '75px', '75px', '75px',],
+                        width=['65px', '65px', '75px', '75px', '75px',],
                         border_radius='5px',
                         on_click=ReportState.set_assign_select_overall("c")
                     ),
@@ -591,8 +591,8 @@ def overall() -> rx.Component:
                 motion(
                     rx.image(
                         src='/raster/icons/icon_rating_d.webp',
-                        height=['50px', '65px', '75px', '75px', '75px',],
-                        width=['50px', '65px', '75px', '75px', '75px',],
+                        height=['65px', '65px', '75px', '75px', '75px',],
+                        width=['65px', '65px', '75px', '75px', '75px',],
                         border_radius='5px',
                         on_click=ReportState.set_assign_select_overall("d")
                     ),
@@ -602,8 +602,8 @@ def overall() -> rx.Component:
                 motion(
                     rx.image(
                         src='/raster/icons/icon_rating_f.webp',
-                        height=['50px', '65px', '75px', '75px', '75px',],
-                        width=['50px', '65px', '75px', '75px', '75px',],
+                        height=['65px', '65px', '75px', '75px', '75px',],
+                        width=['65px', '65px', '75px', '75px', '75px',],
                         border_radius='5px',
                         on_click=ReportState.set_assign_select_overall("f")
                     ),

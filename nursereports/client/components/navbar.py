@@ -10,16 +10,27 @@ def navbar() -> rx.Component:
         feedback_modal(),
         login_modal(),
         rx.flex(
-            rx.heading(
-                "Nurse Reports",
-                on_click=rx.redirect('/'),
-                color_scheme='teal',
-                size='6',
-                cursor='pointer',
+            rx.flex(
+                rx.image(
+                    src='/vector/square-activity.svg',
+                    height='22px',
+                    width='22px',
+                    margin='4px 0 0 0'
+                ),
+                rx.heading(
+                    "Nurse Reports",
+                    on_click=rx.redirect('/'),
+                    color_scheme='teal',
+                    size='6',
+                    cursor='pointer',
+                ),
+                flex_direction='row',
+                gap='6px',
+                justify_content='center'
             ),
             links(),
             hamburger(),
-            sign_in_or_account(),
+            sign_in_or_dashboard(),
             flex_direction='row',
             align_items='center',
             justify_content='space-between',
@@ -80,7 +91,7 @@ def auth_links() -> rx.Component:
             ),
         rx.flex(
             rx.link("Pro"),
-            rx.icon("sparkle"),
+            rx.icon("sparkle", color='teal', size=18),
             flex_direction='row',
             gap='8px',
             align_items='center',
@@ -91,7 +102,7 @@ def auth_links() -> rx.Component:
         display=['none', 'none', 'none', 'flex', 'flex'],
     )
 
-def sign_in_or_account() -> rx.Component:
+def sign_in_or_dashboard() -> rx.Component:
     return rx.cond(
         BaseState.user_is_authenticated,
         account(),
@@ -110,8 +121,18 @@ def signin() -> rx.Component:
 
 def account() -> rx.Component:
     return rx.box(
-        rx.link(
-            "Account",
+        rx.cond(
+            BaseState.user_has_reported,
+            rx.link(
+                "Dashboard",
+                on_click=rx.redirect('/dashboard')
+            ),
+            rx.link(
+                "Dashboard",
+                on_click=NavbarState.set_alert_message(
+                    "Submit a report before accessing the dashboard."
+                )
+            )
         ),
         display=['none', 'none', 'none', 'inline', 'inline'],
         margin='0 0 0 60px'
@@ -147,13 +168,23 @@ def unauth_hamburger() -> rx.Component:
                         rx.flex(
                             rx.link(
                                 "Students",
-                                ),
+                                on_click=rx.redirect('https://blog.nursereports.org/for-students')
+                            ),
                             rx.divider(),
-                            rx.link("Staff"),
+                            rx.link(
+                                "Staff",
+                                on_click=rx.redirect('https://blog.nursereports.org/for-staff')
+                            ),
                             rx.divider(),
-                            rx.link("Travelers"),
+                            rx.link(
+                                "Travelers",
+                                on_click=rx.redirect('https://blog.nursereports.org/for-travelers')
+                            ),
                             rx.divider(),
-                            rx.link("About Us"),
+                            rx.link(
+                                "About Us",
+                                on_click=rx.redirect('https://blog.nursereports.org/about-us')
+                            ),
                             rx.divider(),
                             rx.flex(
                                 rx.link("Pro"),
@@ -216,9 +247,10 @@ def auth_hamburger() -> rx.Component:
                             rx.divider(),
                             rx.flex(
                                 rx.link("Pro"),
-                                rx.badge("Coming Soon"),
-                                gap='12px'
-                                ),
+                                rx.icon("sparkle", color='teal', size=18),
+                                gap='12px',
+                                align_items='center'
+                            ),
                             rx.divider(),
                             rx.link(
                                 "Logout",
@@ -333,7 +365,7 @@ def login_modal() -> rx.Component:
                         ),
                         size='1',
                         variant='ghost',
-                        on_click=NavbarState.set_show_login(False)
+                        on_click=NavbarState.event_state_toggle_login
                     ),
                     justify='end',
                     width='100%'

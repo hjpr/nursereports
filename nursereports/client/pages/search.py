@@ -89,7 +89,7 @@ def search_dropdowns() -> rx.Component:
                 radius='full'
             ),
             flex_direction=['column', 'row', 'row', 'row', 'row'],
-            gap='8px',
+            gap=['12px', '8px', '8px', '8px', '8px'],
             width='100%',
             justify_content='center'
         ),

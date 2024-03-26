@@ -10,11 +10,20 @@ def footer() -> rx.Component:
             rx.flex(
                 rx.flex(
                     rx.flex(
+                        rx.image(
+                            src='/vector/square-activity.svg',
+                            height='22px',
+                            width='22px',
+                            margin='4px 0 0 0'
+                        ),
                         rx.heading(
                             "Nurse Reports",
                             color='grey',
                             padding='0 0 48px 0'
                         ),
+                        flex_direction='row',
+                        gap='6px',
+                        justify_content='center'
                     ),
                     rx.flex(
                         rx.icon(
@@ -57,18 +66,44 @@ def footer() -> rx.Component:
                             gap='8px',
                             align_items='center'
                             ),
-                        rx.link('Students', size='2'),
-                        rx.link('Staff', size='2'),
-                        rx.link('Travelers', size='2'),
+                        rx.link(
+                            'Students', 
+                            on_click=rx.redirect('https://blog.nursereports.org/for-students'),
+                            size='2'
+                        ),
+                        rx.link(
+                            'Staff',
+                            on_click=rx.redirect('https://blog.nursereports.org/for-staff'),
+                            size='2'
+                        ),
+                        rx.link(
+                            'Travelers',
+                            on_click=rx.redirect('https://blog.nursereports.org/for-travelers'),
+                            size='2'
+                            ),
                         flex_direction='column',
                         gap='12px',
                         width='100%'
                     ),
                     rx.flex(
-                        rx.link('About Us', size='2'),
-                        rx.link('Feedback', size='2'),
-                        rx.link('Contact', size='2'),
-                        rx.link('Roadmap', size='2'),
+                        rx.link(
+                            'About Us',
+                            on_click=rx.redirect('https://blog.nursereports.org/about-us'),
+                            size='2'
+                        ),
+                        rx.link(
+                            'Feedback',
+                            size='2'
+                        ),
+                        rx.link(
+                            'Contact',
+                            size='2'
+                        ),
+                        rx.link(
+                            'Roadmap',
+                            on_click=rx.redirect('https://blog.nursereports.org/roadmap'),
+                            size='2'
+                        ),
                         flex_direction='column',
                         gap='12px',
                         width='100%',

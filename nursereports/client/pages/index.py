@@ -79,6 +79,8 @@ def header() -> rx.Component:
                 rx.button(
                     "Learn More",
                     rx.icon('chevron-right'),
+                    on_click=rx.redirect('https://blog.nursereports.org/about-us'),
+                    width=['100%', '100%', 'auto', 'auto', 'auto'],
                     radius='full',
                     color_scheme='teal',
                     variant='ghost',
