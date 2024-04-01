@@ -1,8 +1,9 @@
-
 from ..components.custom import spacer
-from ...states import *
+from ...states import BaseState
+from ...states import NavbarState
 
 import reflex as rx
+
 
 def navbar() -> rx.Component:
     return rx.flex(
@@ -12,131 +13,119 @@ def navbar() -> rx.Component:
         rx.flex(
             rx.flex(
                 rx.image(
-                    src='/vector/square-activity.svg',
-                    height='22px',
-                    width='22px',
-                    margin='4px 0 0 0'
+                    src="/vector/square-activity.svg",
+                    height="22px",
+                    width="22px",
+                    margin="4px 0 0 0",
                 ),
                 rx.heading(
                     "Nurse Reports",
-                    on_click=rx.redirect('/'),
-                    color_scheme='teal',
-                    size='6',
-                    cursor='pointer',
+                    on_click=rx.redirect("/"),
+                    color_scheme="teal",
+                    size="6",
+                    cursor="pointer",
                 ),
-                flex_direction='row',
-                gap='6px',
-                justify_content='center'
+                flex_direction="row",
+                gap="6px",
+                justify_content="center",
             ),
             links(),
             hamburger(),
             sign_in_or_dashboard(),
-            flex_direction='row',
-            align_items='center',
-            justify_content='space-between',
-            width='100%',
-            max_width='1000px',
-            padding='0px 36px 0px 36px'
+            flex_direction="row",
+            align_items="center",
+            justify_content="space-between",
+            width="100%",
+            max_width="1000px",
+            padding="0px 36px 0px 36px",
         ),
-        width='100%',
-        align_items='center',
-        justify_content='center',
-        height=['80px', '80px', '96px', '96px' '96px'],
-        z_index='5',
+        width="100%",
+        align_items="center",
+        justify_content="center",
+        height=["80px", "80px", "96px", "96px" "96px"],
+        z_index="5",
     )
 
+
 def links() -> rx.Component:
-    return rx.cond(
-        BaseState.user_is_authenticated,
-        auth_links(),
-        unauth_links()
-    )
+    return rx.cond(BaseState.user_is_authenticated, auth_links(), unauth_links())
+
 
 def unauth_links() -> rx.Component:
     return rx.flex(
         rx.link(
             "Students",
-            on_click=rx.redirect('https://blog.nursereports.org/for-students')
-            ),
+            on_click=rx.redirect("https://blog.nursereports.org/for-students"),
+        ),
         rx.link(
-            "Staff",
-            on_click=rx.redirect('https://blog.nursereports.org/for-staff')
-            ),
+            "Staff", on_click=rx.redirect("https://blog.nursereports.org/for-staff")
+        ),
         rx.link(
             "Travelers",
-            on_click=rx.redirect('https://blog.nursereports.org/for-travelers')
-            ),
-        rx.link(
-            "About Us",
-            on_click=rx.redirect('https://blog.nursereports.org/about-us')
-            ),
-        rx.flex(
-            rx.link("Pro"),
-            rx.icon("sparkle", color='teal', size=18),
-            flex_direction='row',
-            gap='8px',
-            align_items='center',
-            justify_content='center'
+            on_click=rx.redirect("https://blog.nursereports.org/for-travelers"),
         ),
-        flex_direction='row',
-        gap='24px',
-        display=['none', 'none', 'none', 'flex', 'flex'],
+        rx.link(
+            "About Us", on_click=rx.redirect("https://blog.nursereports.org/about-us")
+        ),
+        rx.flex(
+            rx.link("Donate"),
+            rx.icon("sparkle", color="teal", size=18),
+            flex_direction="row",
+            gap="8px",
+            align_items="center",
+            justify_content="center",
+        ),
+        flex_direction="row",
+        gap="24px",
+        display=["none", "none", "none", "flex", "flex"],
     )
+
 
 def auth_links() -> rx.Component:
     return rx.flex(
-        rx.link(
-            'Make a Report',
-            on_click=rx.redirect('/search/report')
-            ),
+        rx.link("Make a Report", on_click=rx.redirect("/search/report")),
         rx.flex(
-            rx.link("Pro"),
-            rx.icon("sparkle", color='teal', size=18),
-            flex_direction='row',
-            gap='8px',
-            align_items='center',
-            justify_content='center'
+            rx.link("Donate"),
+            rx.icon("sparkle", color="teal", size=18),
+            flex_direction="row",
+            gap="8px",
+            align_items="center",
+            justify_content="center",
         ),
-        flex_direction='row',
-        gap='24px',
-        display=['none', 'none', 'none', 'flex', 'flex'],
+        flex_direction="row",
+        gap="24px",
+        display=["none", "none", "none", "flex", "flex"],
     )
 
+
 def sign_in_or_dashboard() -> rx.Component:
-    return rx.cond(
-        BaseState.user_is_authenticated,
-        account(),
-        signin()
-    )
+    return rx.cond(BaseState.user_is_authenticated, account(), signin())
+
 
 def signin() -> rx.Component:
     return rx.box(
-        rx.link(
-            "Sign In",
-            on_click=NavbarState.event_state_navbar_pressed_sign_in
-        ),
-        display=['none', 'none', 'none', 'inline', 'inline'],
-        margin='0 0 0 60px'
+        rx.link("Sign In", on_click=NavbarState.event_state_navbar_pressed_sign_in),
+        display=["none", "none", "none", "inline", "inline"],
+        margin="0 0 0 60px",
     )
+
 
 def account() -> rx.Component:
     return rx.box(
         rx.cond(
             BaseState.user_has_reported,
-            rx.link(
-                "Dashboard",
-                on_click=rx.redirect('/dashboard')
-            ),
+            rx.link("Dashboard", on_click=rx.redirect("/dashboard")),
             rx.link(
                 "Dashboard",
                 on_click=NavbarState.set_alert_message(
                     "Submit a report before accessing the dashboard."
-                )
-            )
+                ),
+            ),
         ),
-        display=['none', 'none', 'none', 'inline', 'inline'],
-        margin='0 0 0 60px'
+        display=["none", "none", "none", "inline", "inline"],
+        margin="0 0 0 60px",
     )
+
 
 def hamburger() -> rx.Component:
     return rx.cond(
@@ -145,161 +134,157 @@ def hamburger() -> rx.Component:
         unauth_hamburger(),
     )
 
+
 def unauth_hamburger() -> rx.Component:
     return rx.box(
         rx.drawer.root(
-            rx.drawer.trigger(
-                rx.icon('menu', cursor='pointer')
-                ),
+            rx.drawer.trigger(rx.icon("menu", cursor="pointer")),
             rx.drawer.overlay(),
             rx.drawer.portal(
                 rx.drawer.content(
                     rx.flex(
                         rx.flex(
                             rx.heading("Nurse Reports"),
-                            rx.drawer.close(
-                                rx.icon('X', cursor='pointer')
-                                ),
-                            width='100%',
-                            padding='30px 36px 30px 36px',
-                            align_items='center',
-                            justify_content='space-between'
+                            rx.drawer.close(rx.icon("X", cursor="pointer")),
+                            width="100%",
+                            padding="30px 36px 30px 36px",
+                            align_items="center",
+                            justify_content="space-between",
                         ),
                         rx.flex(
                             rx.link(
                                 "Students",
-                                on_click=rx.redirect('https://blog.nursereports.org/for-students')
+                                on_click=rx.redirect(
+                                    "https://blog.nursereports.org/for-students"
+                                ),
                             ),
                             rx.divider(),
                             rx.link(
                                 "Staff",
-                                on_click=rx.redirect('https://blog.nursereports.org/for-staff')
+                                on_click=rx.redirect(
+                                    "https://blog.nursereports.org/for-staff"
+                                ),
                             ),
                             rx.divider(),
                             rx.link(
                                 "Travelers",
-                                on_click=rx.redirect('https://blog.nursereports.org/for-travelers')
+                                on_click=rx.redirect(
+                                    "https://blog.nursereports.org/for-travelers"
+                                ),
                             ),
                             rx.divider(),
                             rx.link(
                                 "About Us",
-                                on_click=rx.redirect('https://blog.nursereports.org/about-us')
+                                on_click=rx.redirect(
+                                    "https://blog.nursereports.org/about-us"
+                                ),
                             ),
                             rx.divider(),
                             rx.flex(
-                                rx.link("Pro"),
-                                rx.icon("sparkle", color='teal', size=18),
-                                gap='12px',
-                                align_items='center'
+                                rx.link("Donate"),
+                                rx.icon("sparkle", color="teal", size=18),
+                                gap="12px",
+                                align_items="center",
                             ),
                             rx.divider(),
                             rx.link(
                                 "Sign In",
-                                on_click=NavbarState.event_state_navbar_pressed_sign_in
+                                on_click=NavbarState.event_state_navbar_pressed_sign_in,
                             ),
-                            flex_direction='column',
-                            width='100%',
-                            gap='24px',
-                            padding='30px 36px 30px 36px',
-                            align_items='start'
+                            flex_direction="column",
+                            width="100%",
+                            gap="24px",
+                            padding="30px 36px 30px 36px",
+                            align_items="start",
                         ),
-                        width='100%',
-                        flex_direction='column',
+                        width="100%",
+                        flex_direction="column",
                     ),
-                    height='100%',
-                    width='100%',
-                    gap='36px',
-                    background_color='#FFF'
+                    height="100%",
+                    width="100%",
+                    gap="36px",
+                    background_color="#FFF",
                 )
             ),
-            direction='top'
+            direction="top",
         ),
-        display=['block', 'block', 'block', 'none', 'none']
+        display=["block", "block", "block", "none", "none"],
     )
+
 
 def auth_hamburger() -> rx.Component:
     return rx.box(
         rx.drawer.root(
-            rx.drawer.trigger(
-                rx.icon('menu', cursor='pointer')
-                ),
+            rx.drawer.trigger(rx.icon("menu", cursor="pointer")),
             rx.drawer.overlay(),
             rx.drawer.portal(
                 rx.drawer.content(
                     rx.flex(
                         rx.flex(
                             rx.heading("Nurse Reports"),
-                            rx.drawer.close(
-                                rx.icon('X', cursor='pointer')
-                                ),
-                            width='100%',
-                            padding='30px 36px 30px 36px',
-                            align_items='center',
-                            justify_content='space-between'
+                            rx.drawer.close(rx.icon("X", cursor="pointer")),
+                            width="100%",
+                            padding="30px 36px 30px 36px",
+                            align_items="center",
+                            justify_content="space-between",
                         ),
                         rx.flex(
                             rx.link(
-                                "Make a Report",
-                                on_click=rx.redirect('/search/report')
-                                ),
+                                "Make a Report", on_click=rx.redirect("/search/report")
+                            ),
                             rx.divider(),
                             rx.link("Account"),
                             rx.divider(),
                             rx.flex(
-                                rx.link("Pro"),
-                                rx.icon("sparkle", color='teal', size=18),
-                                gap='12px',
-                                align_items='center'
+                                rx.link("Donate"),
+                                rx.icon("sparkle", color="teal", size=18),
+                                gap="12px",
+                                align_items="center",
                             ),
                             rx.divider(),
-                            rx.link(
-                                "Logout",
-                                on_click=rx.redirect('/logout/user')
-                                ),
-                            flex_direction='column',
-                            width='100%',
-                            gap='24px',
-                            padding='30px 36px 30px 36px',
-                            align_items='start'
+                            rx.link("Logout", on_click=rx.redirect("/logout/user")),
+                            flex_direction="column",
+                            width="100%",
+                            gap="24px",
+                            padding="30px 36px 30px 36px",
+                            align_items="start",
                         ),
-                        width='100%',
-                        flex_direction='column',
+                        width="100%",
+                        flex_direction="column",
                     ),
-                    height='100%',
-                    width='100%',
-                    gap='36px',
-                    background_color='#FFF'
+                    height="100%",
+                    width="100%",
+                    gap="36px",
+                    background_color="#FFF",
                 )
             ),
-            direction='top'
+            direction="top",
         ),
-        display=['block', 'block', 'block', 'none', 'none']
+        display=["block", "block", "block", "none", "none"],
     )
+
 
 def alert_modal() -> rx.Component:
     return rx.alert_dialog.root(
         rx.alert_dialog.content(
-            rx.alert_dialog.title(
-                "Message"
-            ),
-            rx.alert_dialog.description(
-                NavbarState.alert_message
-            ),
+            rx.alert_dialog.title("Message"),
+            rx.alert_dialog.description(NavbarState.alert_message),
             rx.flex(
                 rx.alert_dialog.action(
                     rx.button(
                         "OK",
-                        size='3',
-                        radius='full',
-                        on_click=NavbarState.set_alert_message("")
+                        size="3",
+                        radius="full",
+                        on_click=NavbarState.set_alert_message(""),
                     )
                 ),
-                margin_top='16px',
-                justify='end'
-            )
+                margin_top="16px",
+                justify="end",
+            ),
         ),
-        open=NavbarState.show_alert_message
+        open=NavbarState.show_alert_message,
     )
+
 
 def feedback_modal() -> rx.Component:
     return rx.dialog.root(
@@ -308,36 +293,31 @@ def feedback_modal() -> rx.Component:
             rx.form(
                 rx.dialog.description(
                     rx.text_area(
-                        name='feedback',
+                        name="feedback",
                         placeholder="What can we improve?",
-                        height='150px',
-                        max_length=500
+                        height="150px",
+                        max_length=500,
                     )
                 ),
-                spacer(height='16px'),
+                spacer(height="16px"),
                 rx.flex(
                     rx.dialog.close(
                         rx.button(
                             "Cancel",
-                            type='button',
-                            variant='soft',
-                            size='3',
-                            radius='full',
+                            type="button",
+                            variant="soft",
+                            size="3",
+                            radius="full",
                             on_click=NavbarState.set_show_feedback(False),
                         )
                     ),
                     rx.dialog.close(
-                        rx.button(
-                            "Submit",
-                            type='submit',
-                            size='3',
-                            radius='full'
-                        )
+                        rx.button("Submit", type="submit", size="3", radius="full")
                     ),
-                    spacing='3',
-                    justify='end',
+                    spacing="3",
+                    justify="end",
                 ),
-                spacer(height='4px'),
+                spacer(height="4px"),
                 rx.cond(
                     NavbarState.error_feedback_message,
                     rx.callout(
@@ -345,14 +325,15 @@ def feedback_modal() -> rx.Component:
                         icon="alert_triangle",
                         color_scheme="red",
                         role="alert",
-                        margin_top='12px'
-                    )
+                        margin_top="12px",
+                    ),
                 ),
-                on_submit=NavbarState.event_state_submit_feedback
-            )
+                on_submit=NavbarState.event_state_submit_feedback,
+            ),
         ),
         open=NavbarState.show_feedback,
     )
+
 
 def login_modal() -> rx.Component:
     return rx.dialog.root(
@@ -360,15 +341,13 @@ def login_modal() -> rx.Component:
             rx.dialog.title(
                 rx.flex(
                     rx.button(
-                        rx.icon(
-                            tag='x'
-                        ),
-                        size='1',
-                        variant='ghost',
-                        on_click=NavbarState.event_state_toggle_login
+                        rx.icon(tag="x"),
+                        size="1",
+                        variant="ghost",
+                        on_click=NavbarState.event_state_toggle_login,
                     ),
-                    justify='end',
-                    width='100%'
+                    justify="end",
+                    width="100%",
                 )
             ),
             rx.form(
@@ -378,145 +357,126 @@ def login_modal() -> rx.Component:
                             rx.tabs.list(
                                 rx.tabs.trigger(
                                     "Login",
-                                    value='login',
-                                    on_click=NavbarState.set_login_tab(
-                                        "login"
-                                    )
+                                    value="login",
+                                    on_click=NavbarState.set_login_tab("login"),
                                 ),
                                 rx.tabs.trigger(
                                     "Create Account",
-                                    value='create_account',
+                                    value="create_account",
                                     on_click=NavbarState.set_login_tab(
                                         "create_account"
-                                    )
+                                    ),
                                 ),
-                                size='2',
+                                size="2",
                             ),
-                            width='100%'
+                            width="100%",
                         ),
                         rx.tabs.content(
                             login_tab_login(),
                             value="login",
                         ),
-                        rx.tabs.content(
-                            login_tab_account(),
-                            value='create_account'
-                        ),
+                        rx.tabs.content(login_tab_account(), value="create_account"),
                         value=NavbarState.login_tab,
-                        width='100%',
+                        width="100%",
                     ),
-                    justify='center',
+                    justify="center",
                 ),
-                on_submit=NavbarState.event_state_login_modal_submit
+                on_submit=NavbarState.event_state_login_modal_submit,
             ),
-            max_width='400px',
+            max_width="400px",
             on_escape_key_down=NavbarState.set_show_login(False),
         ),
         open=NavbarState.show_login,
     )
 
+
 def login_tab_login() -> rx.Component:
     return rx.flex(
         spacer(),
         rx.heading(
-            "Login to your account",
-            size='6',
-            text_align='center',
-            width='100%'
+            "Login to your account", size="6", text_align="center", width="100%"
         ),
         rx.flex(
             rx.flex(
-                rx.text(
-                    "Email",
-                    size='2',
-                    padding='0 0 0 12px'
-                ),
+                rx.text("Email", size="2", padding="0 0 0 12px"),
                 rx.input(
-                    placeholder='Enter email',
-                    name='login_email',
-                    width='100%',
-                    size='3',
-                    radius='full',
+                    placeholder="Enter email",
+                    name="login_email",
+                    width="100%",
+                    size="3",
+                    radius="full",
                     required=True,
                 ),
-                flex_direction='column',
-                width='100%',
+                flex_direction="column",
+                width="100%",
             ),
             rx.flex(
-                rx.text(
-                    "Password",
-                    size='2',
-                    padding='0 0 0 12px'
-                    ),
+                rx.text("Password", size="2", padding="0 0 0 12px"),
                 rx.input(
-                    placeholder='Enter password',
-                    name='login_password',
-                    type='password',
-                    width='100%',
-                    size='3',
-                    radius='full',
-                    required=True
+                    placeholder="Enter password",
+                    name="login_password",
+                    type="password",
+                    width="100%",
+                    size="3",
+                    radius="full",
+                    required=True,
                 ),
-                flex_direction='column',
-                width='100%',
+                flex_direction="column",
+                width="100%",
             ),
             login_callout(),
             rx.button(
                 "Login",
-                width='100%',
-                type='submit',
-                size='3',
-                radius='full',
-                margin='20px 0 0 0'
+                width="100%",
+                type="submit",
+                size="3",
+                radius="full",
+                margin="20px 0 0 0",
             ),
-            flex_direction='column',
-            gap='24px',
-            width='100%',
-            justify_content='center',
-            padding='0 48px 0 48px'
+            flex_direction="column",
+            gap="24px",
+            width="100%",
+            justify_content="center",
+            padding="0 48px 0 48px",
         ),
         rx.hstack(
             rx.divider(),
-            rx.text(
-                "OR",
-                size='2',
-                padding='6px',
-                white_space='nowrap'
-                ),
+            rx.text("OR", size="2", padding="6px", white_space="nowrap"),
             rx.divider(),
-            align='center',
-            width='100%',
-            padding='12px 0 0 0'
+            align="center",
+            width="100%",
+            padding="12px 0 0 0",
         ),
         rx.hstack(
             rx.image(
-                src='/sso/google_sso.png',
-                height='44px',
-                cursor='pointer',
-                on_click=NavbarState.event_state_login_with_sso('google')
+                src="/sso/google_sso.png",
+                height="44px",
+                cursor="pointer",
+                on_click=NavbarState.event_state_login_with_sso("google"),
             ),
             rx.image(
-                src='/sso/facebook_sso.png',
-                height='44px',
-                cursor='pointer',
-                on_click=NavbarState.event_state_login_with_sso('facebook')
+                src="/sso/facebook_sso.png",
+                height="44px",
+                cursor="pointer",
+                on_click=NavbarState.event_state_login_with_sso("facebook"),
             ),
             rx.image(
-                src='/sso/linkedin_sso.png',
-                height='44px',
-                cursor='pointer',
-                on_click=NavbarState.event_state_login_with_sso('linkedin_oidc')
+                src="/sso/linkedin_sso.png",
+                height="44px",
+                cursor="pointer",
+                on_click=NavbarState.event_state_login_with_sso("linkedin_oidc"),
             ),
-            width='100%',
-            justify='center',
-            gap='48px',
-            padding='12px 0 12px 0'
+            width="100%",
+            justify="center",
+            gap="48px",
+            padding="12px 0 12px 0",
         ),
         spacer(),
-        width='100%',
-        gap='24px',
-        flex_direction='column'
+        width="100%",
+        gap="24px",
+        flex_direction="column",
     )
+
 
 def login_callout() -> rx.Component:
     return rx.cond(
@@ -526,127 +486,106 @@ def login_callout() -> rx.Component:
             icon="alert_triangle",
             color_scheme="red",
             role="alert",
-            margin='20px 0 0 0'
-        )
+            margin="20px 0 0 0",
+        ),
     )
+
 
 def login_tab_account() -> rx.Component:
     return rx.flex(
         spacer(),
-        rx.heading(
-            "Create new account",
-            size='6',
-            text_align='center',
-            width='100%'
-        ),
+        rx.heading("Create new account", size="6", text_align="center", width="100%"),
         rx.flex(
             rx.flex(
-                rx.text(
-                    "Email",
-                    size='2',
-                    padding='0 0 0 12px'
-                ),
+                rx.text("Email", size="2", padding="0 0 0 12px"),
                 rx.input(
-                    placeholder='Enter email',
-                    name='create_account_email',
-                    width='100%',
-                    radius='full',
-                    size='3',
+                    placeholder="Enter email",
+                    name="create_account_email",
+                    width="100%",
+                    radius="full",
+                    size="3",
                     required=True,
                 ),
-                flex_direction='column',
-                width='100%'
+                flex_direction="column",
+                width="100%",
             ),
             rx.flex(
                 rx.flex(
-                    rx.text(
-                        "Password",
-                        size='2',
-                        padding='0 0 0 12px'
-                    ),
+                    rx.text("Password", size="2", padding="0 0 0 12px"),
                     rx.input(
                         placeholder="Enter password",
-                        name='create_account_password',
-                        type='password',
-                        width='100%',
-                        size='3',
-                        radius='full',
-                        required=True
+                        name="create_account_password",
+                        type="password",
+                        width="100%",
+                        size="3",
+                        radius="full",
+                        required=True,
                     ),
-                    flex_direction='column',
-                    width='100%'
+                    flex_direction="column",
+                    width="100%",
                 ),
                 rx.flex(
-                    rx.text(
-                        "Confirm password",
-                        size='2',
-                        padding='0 0 0 12px'
-                    ),
+                    rx.text("Confirm password", size="2", padding="0 0 0 12px"),
                     rx.input(
                         placeholder="Re-enter password",
-                        name='create_account_password_confirm',
-                        type='password',
-                        width='100%',
-                        size='3',
-                        radius='full',
-                        required=True
+                        name="create_account_password_confirm",
+                        type="password",
+                        width="100%",
+                        size="3",
+                        radius="full",
+                        required=True,
                     ),
-                    flex_direction='column',
-                    width='100%'
+                    flex_direction="column",
+                    width="100%",
                 ),
-                flex_direction='column',
-                gap='24px'
+                flex_direction="column",
+                gap="24px",
             ),
             create_account_callout(),
             rx.center(
                 rx.button(
                     "Create account",
-                    width='100%',
-                    type='submit',
-                    size='3',
-                    radius='full',
-                    margin='20px 0 0 0'
+                    width="100%",
+                    type="submit",
+                    size="3",
+                    radius="full",
+                    margin="20px 0 0 0",
                 ),
-                width='100%'
+                width="100%",
             ),
-            flex_direction='column',
-            width='100%',
-            gap='24px',
-            padding='0 48px 0 48px'
+            flex_direction="column",
+            width="100%",
+            gap="24px",
+            padding="0 48px 0 48px",
         ),
         spacer(),
         rx.center(
             rx.flex(
-                rx.link(
-                    "Privacy Policy",
-                    size='2'
-                ),
-                rx.divider(orientation='vertical'),
-                rx.link(
-                    "AI Policy",
-                    size='2'
-                ),
-                flex_direction='row',
-                width='100%',
-                gap='24px',
-                justify_content='center'
+                rx.link("Privacy Policy", size="2"),
+                rx.divider(orientation="vertical"),
+                rx.link("AI Policy", size="2"),
+                flex_direction="row",
+                width="100%",
+                gap="24px",
+                justify_content="center",
             )
         ),
         spacer(),
         spacer(),
-        width='100%',
-        gap='24px',
-        flex_direction='column'
+        width="100%",
+        gap="24px",
+        flex_direction="column",
     )
+
 
 def create_account_callout() -> rx.Component:
     return rx.cond(
         NavbarState.error_create_account_message,
         rx.callout(
             NavbarState.error_create_account_message,
-            icon='alert_triangle',
-            color_scheme='red',
-            role='alert',
-            margin='20px 0 0 0'
-        )
+            icon="alert_triangle",
+            color_scheme="red",
+            role="alert",
+            margin="20px 0 0 0",
+        ),
     )
