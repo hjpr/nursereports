@@ -55,17 +55,19 @@ def unauth_links() -> rx.Component:
     return rx.flex(
         rx.link(
             "Students",
-            on_click=rx.redirect("https://blog.nursereports.org/for-students"),
+            href="https://blog.nursereports.org/for-students"
         ),
         rx.link(
-            "Staff", on_click=rx.redirect("https://blog.nursereports.org/for-staff")
+            "Staff",
+            href="https://blog.nursereports.org/for-staff"
         ),
         rx.link(
             "Travelers",
-            on_click=rx.redirect("https://blog.nursereports.org/for-travelers"),
+            href="https://blog.nursereports.org/for-travelers"
         ),
         rx.link(
-            "About Us", on_click=rx.redirect("https://blog.nursereports.org/about-us")
+            "About Us",
+            href="https://blog.nursereports.org/about-us"
         ),
         rx.flex(
             rx.link("Donate"),
@@ -83,7 +85,9 @@ def unauth_links() -> rx.Component:
 
 def auth_links() -> rx.Component:
     return rx.flex(
-        rx.link("Make a Report", on_click=rx.redirect("/search/report")),
+        rx.link("Make a Report",
+            href="https://www.nursereports.org/search/report"
+        ),
         rx.flex(
             rx.link("Donate"),
             rx.icon("sparkle", color="teal", size=18),
@@ -114,7 +118,7 @@ def account() -> rx.Component:
     return rx.box(
         rx.cond(
             BaseState.user_has_reported,
-            rx.link("Dashboard", on_click=rx.redirect("/dashboard")),
+            rx.link("Dashboard", href="https://www.nursereports.org/dashboard"),
             rx.link(
                 "Dashboard",
                 on_click=NavbarState.set_alert_message(
@@ -154,30 +158,22 @@ def unauth_hamburger() -> rx.Component:
                         rx.flex(
                             rx.link(
                                 "Students",
-                                on_click=rx.redirect(
-                                    "https://blog.nursereports.org/for-students"
-                                ),
+                                href="https://blog.nursereports.org/for-students"
                             ),
                             rx.divider(),
                             rx.link(
                                 "Staff",
-                                on_click=rx.redirect(
-                                    "https://blog.nursereports.org/for-staff"
-                                ),
+                                href="https://blog.nursereports.org/for-staff"
                             ),
                             rx.divider(),
                             rx.link(
                                 "Travelers",
-                                on_click=rx.redirect(
-                                    "https://blog.nursereports.org/for-travelers"
-                                ),
+                                href="https://blog.nursereports.org/for-travelers"
                             ),
                             rx.divider(),
                             rx.link(
                                 "About Us",
-                                on_click=rx.redirect(
-                                    "https://blog.nursereports.org/about-us"
-                                ),
+                                href="https://blog.nursereports.org/about-us"
                             ),
                             rx.divider(),
                             rx.flex(
@@ -230,7 +226,8 @@ def auth_hamburger() -> rx.Component:
                         ),
                         rx.flex(
                             rx.link(
-                                "Make a Report", on_click=rx.redirect("/search/report")
+                                "Make a Report",
+                                href="https://www.nursereports.org/search/report"
                             ),
                             rx.divider(),
                             rx.link("Account"),
@@ -242,7 +239,9 @@ def auth_hamburger() -> rx.Component:
                                 align_items="center",
                             ),
                             rx.divider(),
-                            rx.link("Logout", on_click=rx.redirect("/logout/user")),
+                            rx.link("Logout",
+                                    href="https://www.nursereports.org/logout/user"
+                            ),
                             flex_direction="column",
                             width="100%",
                             gap="24px",
