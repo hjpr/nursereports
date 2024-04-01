@@ -1,35 +1,36 @@
-
 from ..components.c2a import c2a
 from ..components.custom import spacer, login_protected
 from ..components.footer import footer
 from ..components.navbar import navbar
-from ...states import *
+from ...states import BaseState, OverviewState, ReportState
 
 import reflex as rx
 
+
 @rx.page(
     route="/report/submit/[hosp_id]/overview",
-    title='Nurse Reports',
+    title="Nurse Reports",
     on_load=[
-        BaseState.event_state_standard_flow('login'),
+        BaseState.event_state_standard_flow("login"),
         OverviewState.event_state_get_hospital_info,
-        ReportState.generate_report_id
-        ]
+        ReportState.generate_report_id,
+    ],
 )
 @login_protected
 def overview_page() -> rx.Component:
     return rx.flex(
         c2a(),
         navbar(),
-        spacer(height='40px'),
+        spacer(height="40px"),
         content(),
-        spacer(height='80px'),
+        spacer(height="80px"),
         footer(),
-        width='100%',
-        flex_direction='column',
-        align_items='center',
-        min_height='100vh',
+        width="100%",
+        flex_direction="column",
+        align_items="center",
+        min_height="100vh",
     )
+
 
 def content() -> rx.Component:
     return rx.flex(
@@ -39,49 +40,45 @@ def content() -> rx.Component:
         section_motivation(),
         section_time(),
         buttons(),
-        gap='24px',
-        padding_x='20px',
-        width=['100%', '500px', '500px', '500px', '500px'],
-        flex_direction='column',
-        flex_basis='auto',
-        flex_grow='1',
-        flex_shrink='0',
+        gap="24px",
+        padding_x="20px",
+        width=["100%", "500px", "500px", "500px", "500px"],
+        flex_direction="column",
+        flex_basis="auto",
+        flex_grow="1",
+        flex_shrink="0",
     )
+
 
 def hospital_info() -> rx.Component:
     return rx.card(
         rx.cond(
             OverviewState.is_hydrated,
             rx.flex(
+                rx.heading("You are submitting a report for...", size="4"),
+                spacer(height="12px"),
                 rx.heading(
-                    "You are submitting a report for...",
-                    size='4'
-                ),
-                spacer(height='12px'),
-                rx.heading(
-                    f"{OverviewState.hosp_info['hosp_name']}",
-                    text_align='center'
+                    f"{OverviewState.hosp_info['hosp_name']}", text_align="center"
                 ),
                 rx.heading(
-                    f"{OverviewState.hosp_info['hosp_addr']}, "\
-                    f"{OverviewState.hosp_info['hosp_state']} "\
+                    f"{OverviewState.hosp_info['hosp_addr']}, "
+                    f"{OverviewState.hosp_info['hosp_state']} "
                     f"{OverviewState.hosp_info['hosp_zip']}",
-                    text_align='center'
+                    text_align="center",
                 ),
-                flex_direction='column',
-                gap='4px',
-                align_items='center',
-                justify_content='center',
-                width='100%'
+                flex_direction="column",
+                gap="4px",
+                align_items="center",
+                justify_content="center",
+                width="100%",
             ),
             rx.flex(
-                rx.chakra.spinner(),
-                align_items='center',
-                justify_content='center'
-            )
+                rx.chakra.spinner(), align_items="center", justify_content="center"
+            ),
         ),
-        variant='ghost'
+        variant="ghost",
     )
+
 
 def hospital_info_error() -> rx.Component:
     return rx.cond(
@@ -89,47 +86,43 @@ def hospital_info_error() -> rx.Component:
         rx.flex(
             rx.callout(
                 f"Unable to retrieve hospital info. {OverviewState.error_hosp_info}",
-                icon='alert_triangle',
-                color_scheme='red',
-                role='alert'
+                icon="alert_triangle",
+                color_scheme="red",
+                role="alert",
             ),
-        )
+        ),
     )
+
 
 def section_anonymous() -> rx.Component:
     return rx.card(
         rx.flex(
             rx.hstack(
-                rx.image(
-                    src='/raster/anonymous.png',
-                    height='100px',
-                    width='100px'
-                ),
+                rx.image(src="/raster/anonymous.png", height="100px", width="100px"),
                 rx.flex(
                     rx.text(
                         """
                         All reporting is anonymous. No personal details
                         are attached to your report.
                         """,
-                        padding_x='20px'
+                        padding_x="20px",
                     ),
-                    height='100%',
-                    width='100%',
-                    align_items='center',
-                    justify_content='center'
-                )
+                    height="100%",
+                    width="100%",
+                    align_items="center",
+                    justify_content="center",
+                ),
             )
         )
     )
+
 
 def section_motivation() -> rx.Component:
     return rx.card(
         rx.flex(
             rx.hstack(
                 rx.image(
-                    src='/raster/people-talking.png',
-                    height='100px',
-                    width='100px'
+                    src="/raster/people-talking.png", height="100px", width="100px"
                 ),
                 rx.flex(
                     rx.text(
@@ -138,42 +131,40 @@ def section_motivation() -> rx.Component:
                         I am not affiliated with hospitals or
                         corporations.
                         """,
-                        padding_x='20px'
+                        padding_x="20px",
                     ),
-                    height='100%',
-                    width='100%',
-                    align_items='center',
-                    justify_content='center'
-                )
+                    height="100%",
+                    width="100%",
+                    align_items="center",
+                    justify_content="center",
+                ),
             )
         )
     )
+
 
 def section_time() -> rx.Component:
     return rx.card(
         rx.flex(
             rx.hstack(
-                rx.image(
-                    src='/raster/time.png',
-                    height='100px',
-                    width='100px'
-                ),
+                rx.image(src="/raster/time.png", height="100px", width="100px"),
                 rx.flex(
                     rx.text(
                         """
                         Your time is valuable. This should only take
                         about 5 minutes. 
                         """,
-                        padding_x='20px'
-                        ),
-                    height='100%',
-                    width='100%',
-                    align_items='center',
-                    justify_content='center'
-                )
+                        padding_x="20px",
+                    ),
+                    height="100%",
+                    width="100%",
+                    align_items="center",
+                    justify_content="center",
+                ),
             )
         )
     )
+
 
 def buttons() -> rx.Component:
     return rx.card(
@@ -181,10 +172,10 @@ def buttons() -> rx.Component:
             rx.button(
                 "Got it. Let's go!",
                 rx.icon("arrow-big-right"),
-                size='3',
-                variant='ghost',
+                size="3",
+                variant="ghost",
                 on_click=OverviewState.event_state_goto_report,
             ),
-            justify_content='center'
+            justify_content="center",
         )
     )

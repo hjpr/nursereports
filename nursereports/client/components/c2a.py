@@ -1,7 +1,7 @@
-
-from ...states import *
+from ...states import BaseState, NavbarState
 
 import reflex as rx
+
 
 def c2a() -> rx.Component:
     return rx.cond(
@@ -11,17 +11,17 @@ def c2a() -> rx.Component:
                 rx.center(
                     rx.button(
                         "In Beta. Click here to submit issue or feedback.",
-                        cursor='pointer',
-                        color_scheme='teal',
-                        on_click=NavbarState.set_show_feedback(True)
+                        cursor="pointer",
+                        color_scheme="teal",
+                        on_click=NavbarState.set_show_feedback(True),
                     ),
-                    width='100%'
+                    width="100%",
                 ),
-                bg='#12A594',
-                height='40px',
-                padding_x='12px',
-                padding_y='4px'
+                bg="#12A594",
+                height="40px",
+                padding_x="12px",
+                padding_y="4px",
             ),
-            width='100%'
-        )
+            width="100%",
+        ),
     )

@@ -1,4 +1,3 @@
-
 from ..components.c2a import c2a
 from ..components.custom import spacer, login_protected
 from ..components.footer import footer
@@ -11,25 +10,27 @@ from ...states.report_state import ReportState
 
 import reflex as rx
 
+
 @rx.page(
-        route="/report/submit/[hosp_id]/assignment",
-        title="Nurse Reports",
-        on_load=BaseState.event_state_standard_flow('login')
+    route="/report/submit/[hosp_id]/assignment",
+    title="Nurse Reports",
+    on_load=BaseState.event_state_standard_flow("login"),
 )
 @login_protected
 def assignment_page() -> rx.Component:
     return rx.flex(
         c2a(),
         navbar(),
-        spacer(height='1em'),
+        spacer(height="1em"),
         content(),
-        spacer(height='1em'),
+        spacer(height="1em"),
         footer(),
-        width='100%',
-        flex_direction='column',
-        align_items='center',
-        min_height='100vh',
+        width="100%",
+        flex_direction="column",
+        align_items="center",
+        min_height="100vh",
     )
+
 
 def content() -> rx.Component:
     return rx.flex(
@@ -37,32 +38,27 @@ def content() -> rx.Component:
         unit(),
         specialty(),
         culture(),
-        burnout(),   
+        burnout(),
         overall(),
         comments(),
         callout(),
         button(),
-        spacer(height='48px'),
-        gap='24px',
-        padding_x='24px',
-        width=['100%', '480px', '480px', '480px', '480px'],
-        max_width='1200px',
-        flex_direction='column',
-        flex_basis='auto',
-        flex_grow='1',
-        flex_shrink='0',
+        spacer(height="48px"),
+        gap="24px",
+        padding_x="24px",
+        width=["100%", "480px", "480px", "480px", "480px"],
+        max_width="1200px",
+        flex_direction="column",
+        flex_basis="auto",
+        flex_grow="1",
+        flex_shrink="0",
     )
+
 
 def unit() -> rx.Component:
     return rx.card(
-        rx.vstack(
-            rx.heading(
-                "Info"
-            ),
-            rx.divider(),
-            width='100%'
-        ),
-        spacer(height='24px'),
+        rx.vstack(rx.heading("Info"), rx.divider(), width="100%"),
+        spacer(height="24px"),
         rx.flex(
             rx.vstack(
                 rx.text(
@@ -74,10 +70,10 @@ def unit() -> rx.Component:
                     value=ReportState.assign_select_specific_unit,
                     on_change=ReportState.set_assign_select_specific_unit,
                     required=True,
-                    size='3',
-                    width='100%'
+                    size="3",
+                    width="100%",
                 ),
-                width='100%'
+                width="100%",
             ),
             rx.cond(
                 ReportState.is_unit,
@@ -93,10 +89,10 @@ def unit() -> rx.Component:
                             value=ReportState.assign_select_unit,
                             on_change=ReportState.set_assign_select_unit,
                             required=True,
-                            size='3',
-                            width='100%'
+                            size="3",
+                            width="100%",
                         ),
-                        width='100%'
+                        width="100%",
                     ),
                     rx.cond(
                         ReportState.unit_not_present,
@@ -113,26 +109,26 @@ def unit() -> rx.Component:
                                         on_change=ReportState.set_assign_input_unit_name,
                                         required=True,
                                         max_length=40,
-                                        size='3'
+                                        size="3",
                                     ),
-                                    debounce_timeout=1000
+                                    debounce_timeout=1000,
                                 ),
                                 rx.cond(
                                     ReportState.name_too_long,
                                     rx.callout(
                                         "Unit name is too long!",
-                                        width='100%',
+                                        width="100%",
                                         icon="alert_triangle",
                                         color_scheme="red",
-                                        role="alert"
-                                    )
+                                        role="alert",
+                                    ),
                                 ),
-                                flex_direction='column',
-                                gap='8px',
-                                width='100%'
+                                flex_direction="column",
+                                gap="8px",
+                                width="100%",
                             ),
-                            width='100%'
-                        )
+                            width="100%",
+                        ),
                     ),
                     rx.vstack(
                         rx.text(
@@ -144,15 +140,15 @@ def unit() -> rx.Component:
                             value=ReportState.assign_select_acuity,
                             on_change=ReportState.set_assign_select_acuity,
                             required=True,
-                            size='3',
-                            width='100%'
+                            size="3",
+                            width="100%",
                         ),
-                        width='100%'
+                        width="100%",
                     ),
-                    flex_direction='column',
-                    gap='24px',
-                    width='100%'
-                )
+                    flex_direction="column",
+                    gap="24px",
+                    width="100%",
+                ),
             ),
             rx.cond(
                 ReportState.has_unit & ~ReportState.is_unit,
@@ -169,10 +165,10 @@ def unit() -> rx.Component:
                             value=ReportState.assign_select_area,
                             on_change=ReportState.set_assign_select_area,
                             required=True,
-                            size='3',
-                            width='100%'
+                            size="3",
+                            width="100%",
                         ),
-                        width='100%'
+                        width="100%",
                     ),
                     rx.cond(
                         ReportState.area_not_present,
@@ -188,49 +184,44 @@ def unit() -> rx.Component:
                                     value=ReportState.assign_input_area,
                                     on_change=ReportState.set_assign_input_area,
                                     required=True,
-                                    size='3',
-                                    max_length=60
+                                    size="3",
+                                    max_length=60,
                                 ),
-                                width='100%',
-                                debounce_timeout=1000
+                                width="100%",
+                                debounce_timeout=1000,
                             ),
                             rx.cond(
                                 ReportState.area_too_long,
                                 rx.callout(
                                     "Name of area/role too long!",
-                                    width='100%',
+                                    width="100%",
                                     icon="alert_triangle",
                                     color_scheme="red",
-                                    role="alert"
-                                )
+                                    role="alert",
+                                ),
                             ),
-                            flex_direction='column',
-                            gap='8px',
-                            width='100%'
-                        )
+                            flex_direction="column",
+                            gap="8px",
+                            width="100%",
+                        ),
                     ),
-                    flex_direction='column',
-                    gap='24px',
-                    width='100%'
-                )
+                    flex_direction="column",
+                    gap="24px",
+                    width="100%",
+                ),
             ),
-            flex_direction='column',
-            gap='24px',
-            width='100%'
+            flex_direction="column",
+            gap="24px",
+            width="100%",
         ),
-        width="100%"
+        width="100%",
     )
+
 
 def specialty() -> rx.Component:
     return rx.card(
-        rx.vstack(
-            rx.heading(
-                "Specialty"
-            ),
-            rx.divider(),
-            width='100%'
-        ),
-        spacer(height='24px'),
+        rx.vstack(rx.heading("Specialty"), rx.divider(), width="100%"),
+        spacer(height="24px"),
         rx.flex(
             rx.vstack(
                 rx.text(
@@ -242,68 +233,59 @@ def specialty() -> rx.Component:
                     placeholder="- Select -",
                     value=ReportState.assign_select_specialty_1,
                     on_change=ReportState.set_assign_select_specialty_1,
-                    size='3',
-                    width='100%'
+                    size="3",
+                    width="100%",
                 ),
-                width='100%'
+                width="100%",
             ),
             rx.cond(
                 ReportState.has_specialty_1,
                 rx.vstack(
-                    rx.text(
-                        "(Optional) Additional specialty."
-                    ),
+                    rx.text("(Optional) Additional specialty."),
                     rx.select(
                         unit_specialties,
                         placeholder="- Select -",
                         value=ReportState.assign_select_specialty_2,
                         on_change=ReportState.set_assign_select_specialty_2,
-                        size='3',
-                        width='100%'
+                        size="3",
+                        width="100%",
                     ),
-                    width='100%'
-                )
+                    width="100%",
+                ),
             ),
             rx.cond(
                 ReportState.has_specialty_2,
                 rx.vstack(
-                    rx.text(
-                        "(Optional) Additional specialty."
-                    ),
+                    rx.text("(Optional) Additional specialty."),
                     rx.select(
                         unit_specialties,
                         placeholder="- Select -",
                         value=ReportState.assign_select_specialty_3,
                         on_change=ReportState.set_assign_select_specialty_3,
-                        size='3',
-                        width='100%'
+                        size="3",
+                        width="100%",
                     ),
-                    width='100%' 
-                )
+                    width="100%",
+                ),
             ),
-            flex_direction='column',
-            gap='24px',
-            width='100%'
+            flex_direction="column",
+            gap="24px",
+            width="100%",
         ),
-        width='100%'
+        width="100%",
     )
+
 
 def culture() -> rx.Component:
     return rx.card(
-        rx.vstack(
-            rx.heading(
-                "Culture"
-            ),
-            rx.divider(),
-            width='100%'
-        ),
-        spacer(height='24px'),
+        rx.vstack(rx.heading("Culture"), rx.divider(), width="100%"),
+        spacer(height="24px"),
         rx.flex(
             rx.vstack(
                 rx.text(
                     "Are ",
-                    rx.text("nurses ", display='inline', font_weight='bold'),
-                    rx.text("in your area helpful and supportive?", display='inline'),
+                    rx.text("nurses ", display="inline", font_weight="bold"),
+                    rx.text("in your area helpful and supportive?", display="inline"),
                 ),
                 rx.select(
                     ["Always", "Usually", "Sometimes", "Rarely", "Never", "N/A"],
@@ -311,16 +293,16 @@ def culture() -> rx.Component:
                     value=ReportState.assign_select_teamwork_rn,
                     on_change=ReportState.set_assign_select_teamwork_rn,
                     required=True,
-                    size='3',
-                    width='100%'
+                    size="3",
+                    width="100%",
                 ),
-                width='100%'
+                width="100%",
             ),
             rx.vstack(
                 rx.text(
                     "Are ",
-                    rx.text("nurse aides ", display='inline', font_weight='bold'),
-                    rx.text("in your area helpful and supportive?", display='inline'),
+                    rx.text("nurse aides ", display="inline", font_weight="bold"),
+                    rx.text("in your area helpful and supportive?", display="inline"),
                 ),
                 rx.select(
                     ["Always", "Usually", "Sometimes", "Rarely", "Never", "N/A"],
@@ -328,10 +310,10 @@ def culture() -> rx.Component:
                     value=ReportState.assign_select_teamwork_na,
                     on_change=ReportState.set_assign_select_teamwork_na,
                     required=True,
-                    size='3',
-                    width='100%'
+                    size="3",
+                    width="100%",
                 ),
-                width='100%'
+                width="100%",
             ),
             rx.vstack(
                 rx.text(
@@ -343,10 +325,10 @@ def culture() -> rx.Component:
                     value=ReportState.assign_select_providers,
                     on_change=ReportState.set_assign_select_providers,
                     required=True,
-                    size='3',
-                    width='100%'
-                ),  
-                width='100%'
+                    size="3",
+                    width="100%",
+                ),
+                width="100%",
             ),
             rx.vstack(
                 rx.text(
@@ -361,10 +343,10 @@ def culture() -> rx.Component:
                     value=ReportState.assign_select_contributions,
                     on_change=ReportState.set_assign_select_contributions,
                     required=True,
-                    size='3',
-                    width='100%'
+                    size="3",
+                    width="100%",
                 ),
-                width='100%'
+                width="100%",
             ),
             rx.vstack(
                 rx.text(
@@ -379,10 +361,10 @@ def culture() -> rx.Component:
                     value=ReportState.assign_select_impact,
                     on_change=ReportState.set_assign_select_impact,
                     required=True,
-                    size='3',
-                    width='100%'
+                    size="3",
+                    width="100%",
                 ),
-                width='100%'
+                width="100%",
             ),
             rx.vstack(
                 rx.text(
@@ -397,61 +379,52 @@ def culture() -> rx.Component:
                     value=ReportState.assign_select_management,
                     on_change=ReportState.set_assign_select_management,
                     required=True,
-                    size='3',
-                    width='100%'
+                    size="3",
+                    width="100%",
                 ),
-                width='100%'
+                width="100%",
             ),
-            flex_direction='column',
-            gap='24px',
-            width='100%'
+            flex_direction="column",
+            gap="24px",
+            width="100%",
         ),
-        width='100%'
+        width="100%",
     )
+
 
 def burnout() -> rx.Component:
     return rx.card(
-        rx.vstack(
-            rx.heading(
-                "Recommendations"
-            ),
-            rx.divider(),
-            width='100%'
-        ),
-        spacer(height='24px'),
+        rx.vstack(rx.heading("Recommendations"), rx.divider(), width="100%"),
+        spacer(height="24px"),
         rx.flex(
             rx.vstack(
-                rx.text(
-                    "Do you plan on making career changes in the next year or so?"
-                ),
+                rx.text("Do you plan on making career changes in the next year or so?"),
                 rx.select(
                     ["Yes", "No"],
                     placeholder="- Select -",
                     value=ReportState.assign_select_leaving,
                     on_change=ReportState.set_assign_select_leaving,
                     required=True,
-                    size='3',
-                    width='100%'
+                    size="3",
+                    width="100%",
                 ),
-                width='100%'
+                width="100%",
             ),
             rx.cond(
                 ReportState.is_leaving,
                 rx.vstack(
-                    rx.text(
-                        "What's your next move?"
-                    ),
+                    rx.text("What's your next move?"),
                     rx.select(
                         leaving_reason,
                         placeholder="- Select -",
                         value=ReportState.assign_select_leaving_reason,
                         on_change=ReportState.set_assign_select_leaving_reason,
                         required=True,
-                        size='3',
-                        width='100%'
+                        size="3",
+                        width="100%",
                     ),
-                    width='100%'
-                )
+                    width="100%",
+                ),
             ),
             rx.vstack(
                 rx.text(
@@ -463,35 +436,30 @@ def burnout() -> rx.Component:
                     value=ReportState.assign_select_recommend,
                     on_change=ReportState.set_assign_select_recommend,
                     required=True,
-                    size='3',
-                    width='100%'
+                    size="3",
+                    width="100%",
                 ),
-                width='100%'
+                width="100%",
             ),
-            flex_direction='column',
-            gap='24px',
-            width='100%'
+            flex_direction="column",
+            gap="24px",
+            width="100%",
         ),
-        width='100%'
+        width="100%",
     )
+
 
 def comments() -> rx.Component:
     return rx.card(
         rx.vstack(
-            rx.vstack(
-                rx.heading(
-                    "Comments"
-                ),
-                rx.divider(),
-                width='100%'
-            ),
-            spacer(height='24px'),
+            rx.vstack(rx.heading("Comments"), rx.divider(), width="100%"),
+            spacer(height="24px"),
             rx.text(
                 """
                 (Optional) Any comments for your nursing peers 
                 about culture, management, or environment?
                 """,
-                text_align='center'
+                text_align="center",
             ),
             rx.debounce_input(
                 rx.text_area(
@@ -499,11 +467,11 @@ def comments() -> rx.Component:
                     placeholder="Do not enter personally identifiable information.",
                     on_change=ReportState.set_assign_input_comments,
                     on_blur=ReportState.set_assign_input_comments,
-                    height='10em',
-                    size='3',
-                    width='100%'
+                    height="10em",
+                    size="3",
+                    width="100%",
                 ),
-                debounce_timeout=1000
+                debounce_timeout=1000,
             ),
             rx.cond(
                 ReportState.assign_input_comments,
@@ -511,136 +479,189 @@ def comments() -> rx.Component:
                     ReportState.assign_input_comments_chars_over,
                     rx.callout(
                         "Please limit response to < 1000 characters!",
-                        width='100%',
+                        width="100%",
                         icon="alert_triangle",
                         color_scheme="red",
-                        role="alert"
+                        role="alert",
                     ),
                     rx.flex(
                         rx.text(
                             f"{ReportState.assign_input_comments_chars_left} chars left.",
                         ),
-                        width='100%',
-                        align_items='center',
-                        justify_content='center'
-                    )
+                        width="100%",
+                        align_items="center",
+                        justify_content="center",
+                    ),
                 ),
                 rx.flex(
-                    rx.text(
-                        "1000 character limit."
-                    ),
-                    width='100%',
-                    align_items='center',
-                    justify_content='center'
-                )
+                    rx.text("1000 character limit."),
+                    width="100%",
+                    align_items="center",
+                    justify_content="center",
+                ),
             ),
-            width='100%'
+            width="100%",
         ),
-        width='100%'
+        width="100%",
     )
+
 
 def overall() -> rx.Component:
     return rx.card(
-        rx.vstack(
-            rx.heading(
-                "Grade"
-            ),
-            rx.divider(),
-            width='100%'
-        ),
-        spacer(height='24px'),
+        rx.vstack(rx.heading("Grade"), rx.divider(), width="100%"),
+        spacer(height="24px"),
         rx.flex(
             rx.text(
-                "How would you grade your assignment overall?",
-                text_align='center'
+                "How would you grade your assignment overall?", text_align="center"
             ),
             rx.flex(
                 motion(
                     rx.image(
-                        src='/raster/icons/icon_rating_a.webp',
-                        height=['65px', '65px', '75px', '75px', '75px',],
-                        width=['65px', '65px', '75px', '75px', '75px',],
-                        border_radius='5px',
-                        on_click=ReportState.set_assign_select_overall("a")
+                        src="/raster/icons/icon_rating_a.webp",
+                        height=[
+                            "65px",
+                            "65px",
+                            "75px",
+                            "75px",
+                            "75px",
+                        ],
+                        width=[
+                            "65px",
+                            "65px",
+                            "75px",
+                            "75px",
+                            "75px",
+                        ],
+                        border_radius="5px",
+                        on_click=ReportState.set_assign_select_overall("a"),
                     ),
                     initial={"scale": 1},
-                    while_tap={"scale": 0.95}
+                    while_tap={"scale": 0.95},
                 ),
                 motion(
                     rx.image(
-                        src='/raster/icons/icon_rating_b.webp',
-                        height=['65px', '65px', '75px', '75px', '75px',],
-                        width=['65px', '65px', '75px', '75px', '75px',],
-                        border_radius='5px',
-                        on_click=ReportState.set_assign_select_overall("b")
+                        src="/raster/icons/icon_rating_b.webp",
+                        height=[
+                            "65px",
+                            "65px",
+                            "75px",
+                            "75px",
+                            "75px",
+                        ],
+                        width=[
+                            "65px",
+                            "65px",
+                            "75px",
+                            "75px",
+                            "75px",
+                        ],
+                        border_radius="5px",
+                        on_click=ReportState.set_assign_select_overall("b"),
                     ),
                     initial={"scale": 1},
-                    while_tap={"scale": 0.95}
+                    while_tap={"scale": 0.95},
                 ),
                 motion(
                     rx.image(
-                        src='/raster/icons/icon_rating_c.webp',
-                        height=['65px', '65px', '75px', '75px', '75px',],
-                        width=['65px', '65px', '75px', '75px', '75px',],
-                        border_radius='5px',
-                        on_click=ReportState.set_assign_select_overall("c")
+                        src="/raster/icons/icon_rating_c.webp",
+                        height=[
+                            "65px",
+                            "65px",
+                            "75px",
+                            "75px",
+                            "75px",
+                        ],
+                        width=[
+                            "65px",
+                            "65px",
+                            "75px",
+                            "75px",
+                            "75px",
+                        ],
+                        border_radius="5px",
+                        on_click=ReportState.set_assign_select_overall("c"),
                     ),
                     initial={"scale": 1},
-                    while_tap={"scale": 0.95}
+                    while_tap={"scale": 0.95},
                 ),
                 motion(
                     rx.image(
-                        src='/raster/icons/icon_rating_d.webp',
-                        height=['65px', '65px', '75px', '75px', '75px',],
-                        width=['65px', '65px', '75px', '75px', '75px',],
-                        border_radius='5px',
-                        on_click=ReportState.set_assign_select_overall("d")
+                        src="/raster/icons/icon_rating_d.webp",
+                        height=[
+                            "65px",
+                            "65px",
+                            "75px",
+                            "75px",
+                            "75px",
+                        ],
+                        width=[
+                            "65px",
+                            "65px",
+                            "75px",
+                            "75px",
+                            "75px",
+                        ],
+                        border_radius="5px",
+                        on_click=ReportState.set_assign_select_overall("d"),
                     ),
                     initial={"scale": 1},
-                    while_tap={"scale": 0.95}
+                    while_tap={"scale": 0.95},
                 ),
                 motion(
                     rx.image(
-                        src='/raster/icons/icon_rating_f.webp',
-                        height=['65px', '65px', '75px', '75px', '75px',],
-                        width=['65px', '65px', '75px', '75px', '75px',],
-                        border_radius='5px',
-                        on_click=ReportState.set_assign_select_overall("f")
+                        src="/raster/icons/icon_rating_f.webp",
+                        height=[
+                            "65px",
+                            "65px",
+                            "75px",
+                            "75px",
+                            "75px",
+                        ],
+                        width=[
+                            "65px",
+                            "65px",
+                            "75px",
+                            "75px",
+                            "75px",
+                        ],
+                        border_radius="5px",
+                        on_click=ReportState.set_assign_select_overall("f"),
                     ),
                     initial={"scale": 1},
-                    while_tap={"scale": 0.95}
+                    while_tap={"scale": 0.95},
                 ),
-                flex_direction='row',
-                justify_content='space-between',
-                width='100%'
+                flex_direction="row",
+                justify_content="space-between",
+                width="100%",
             ),
             rx.cond(
                 ~ReportState.assign_select_overall,
                 rx.callout(
                     "Please make a selection.",
-                    width='100%',
+                    width="100%",
                     icon="alert_triangle",
                     color_scheme="red",
-                    role="alert"
+                    role="alert",
                 ),
                 rx.center(
                     rx.heading(
                         f"You graded: {ReportState.assign_select_overall.upper()} - {ReportState.assign_select_overall_description}",
-                        color='white',
-                        text_align='center'
+                        color="white",
+                        text_align="center",
                     ),
                     background=ReportState.assign_select_overall_background,
-                    border_radius='5px',
-                    height='3em',
-                    width='100%'
-                )
+                    border_radius="5px",
+                    height="3em",
+                    width="100%",
+                ),
             ),
-            flex_direction='column',
-            gap='24px',
-            width='100%'
+            flex_direction="column",
+            gap="24px",
+            width="100%",
         ),
-        width='100%'
+        width="100%",
     )
+
 
 def button() -> rx.Component:
     return rx.card(
@@ -649,15 +670,16 @@ def button() -> rx.Component:
                 "Go to Staffing",
                 rx.icon("arrow-big-right"),
                 on_click=ReportState.handle_submit_assignment,
-                variant='ghost',
-                size='3'
+                variant="ghost",
+                size="3",
             ),
-            align_items='center',
-            justify_content='center',
-            width='100%',
+            align_items="center",
+            justify_content="center",
+            width="100%",
         ),
-        width='100%'
+        width="100%",
     )
+
 
 def callout() -> rx.Component:
     return rx.flex(
@@ -665,11 +687,11 @@ def callout() -> rx.Component:
             ReportState.assign_has_error,
             rx.callout(
                 ReportState.assign_error_message,
-                width='100%',
-                icon='alert_triangle',
-                color_scheme='red',
-                role='alert'
-            )
+                width="100%",
+                icon="alert_triangle",
+                color_scheme="red",
+                role="alert",
+            ),
         ),
-        width='100%'
+        width="100%",
     )

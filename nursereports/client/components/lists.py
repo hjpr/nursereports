@@ -49,7 +49,7 @@ state_abbr_dict = {
     "Washington (DC)": "DC",
     "West Virginia": "WV",
     "Wisconsin": "WI",
-    "Wyoming": "WY"
+    "Wyoming": "WY",
 }
 
 cities_by_state = {
@@ -74,7 +74,7 @@ cities_by_state = {
         "Ketchikan",
         "Barrow",
         "Homer",
-        "Sitka"
+        "Sitka",
     ],
     "AL": [
         "Dothan",
@@ -149,7 +149,7 @@ cities_by_state = {
         "Butler",
         "Oneonta",
         "Wedowee",
-        "Daphne"
+        "Daphne",
     ],
     "AR": [
         "Siloam Springs",
@@ -220,7 +220,7 @@ cities_by_state = {
         "Gravette",
         "Barling",
         "Maumelle",
-        "Texarkana"
+        "Texarkana",
     ],
     "AZ": [
         "Phoenix",
@@ -274,7 +274,7 @@ cities_by_state = {
         "Lakeside",
         "Tempe",
         "Avondale",
-        "Surprise"
+        "Surprise",
     ],
     "CA": [
         "Hayward",
@@ -506,8 +506,8 @@ cities_by_state = {
         "Palo Alto",
         "Rosemead",
         "Cerritos",
-        "Reseda"
-        ],
+        "Reseda",
+    ],
     "CO": [
         "Greeley",
         "Longmont",
@@ -575,7 +575,7 @@ cities_by_state = {
         "Pagosa Springs",
         "La Junta",
         "Cheyenne Wells",
-        "Canon City"
+        "Canon City",
     ],
     "CT": [
         "Hartford",
@@ -605,11 +605,9 @@ cities_by_state = {
         "Wallingford",
         "West Hartford",
         "Mansfield Center",
-        "New Canaan"
+        "New Canaan",
     ],
-    "DC": [
-        "Washington"
-    ],
+    "DC": ["Washington"],
     "DE": [
         "Newark",
         "Wilmington",
@@ -618,7 +616,7 @@ cities_by_state = {
         "Lewes",
         "Milford",
         "New Castle",
-        "Georgetown"
+        "Georgetown",
     ],
     "FL": [
         "Jacksonville",
@@ -749,7 +747,7 @@ cities_by_state = {
         "Madison",
         "Marathon",
         "Tavernier",
-        "Oakland Park"
+        "Oakland Park",
     ],
     "GA": [
         "Dalton",
@@ -868,7 +866,7 @@ cities_by_state = {
         "Elberton",
         "Smyrna",
         "Saint Simons Island",
-        "College Park"
+        "College Park",
     ],
     "HI": [
         "Honolulu",
@@ -889,7 +887,7 @@ cities_by_state = {
         "Kapaa",
         "Honokaa",
         "Kula",
-        "Ewa Beach"
+        "Ewa Beach",
     ],
     "ID": [
         "Twin Falls",
@@ -929,7 +927,7 @@ cities_by_state = {
         "Burley",
         "Moscow",
         "Sandpoint",
-        "Meridian"
+        "Meridian",
     ],
     "IL": [
         "Canton",
@@ -1067,7 +1065,7 @@ cities_by_state = {
         "Hines",
         "Champaign",
         "Streamwood",
-        "Des Plaines"
+        "Des Plaines",
     ],
     "IN": [
         "Franklin",
@@ -1163,7 +1161,7 @@ cities_by_state = {
         "West Lafayette",
         "Pierceton",
         "Merrillville",
-        "Greenwood"
+        "Greenwood",
     ],
     "IA": [
         "Marshalltown",
@@ -1272,7 +1270,7 @@ cities_by_state = {
         "Oskaloosa",
         "Iowa Falls",
         "Sheldon",
-        "Clive"
+        "Clive",
     ],
     "KS": [
         "Pittsburg",
@@ -1393,7 +1391,7 @@ cities_by_state = {
         "Winfield",
         "Emporia",
         "Burlington",
-        "Osawatomie"
+        "Osawatomie",
     ],
     "KY": [
         "Fort Thomas",
@@ -1480,7 +1478,7 @@ cities_by_state = {
         "Mc Dowell",
         "Flemingsburg",
         "Erlanger",
-        "Radcliff"
+        "Radcliff",
     ],
     "LA": [
         "Lafayette",
@@ -1572,7 +1570,7 @@ cities_by_state = {
         "Lacombe",
         "Gonzales",
         "Gretna",
-        "La Place"
+        "La Place",
     ],
     "ME": [
         "Bangor",
@@ -1605,7 +1603,7 @@ cities_by_state = {
         "Pittsfield",
         "Skowhegan",
         "Norway",
-        "Westbrook"
+        "Westbrook",
     ],
     "MD": [
         "Hagerstown",
@@ -1641,7 +1639,7 @@ cities_by_state = {
         "Germantown",
         "Cambridge",
         "Sykesville",
-        "Catonsville"
+        "Catonsville",
     ],
     "MA": [
         "Leominster",
@@ -1698,7 +1696,7 @@ cities_by_state = {
         "Haverhill",
         "Dartmouth",
         "Devens",
-        "Westborough"
+        "Westborough",
     ],
     "MI": [
         "Livonia",
@@ -1816,7 +1814,7 @@ cities_by_state = {
         "New Baltimore",
         "Auburn Hills",
         "Westland",
-        "Saline"
+        "Saline",
     ],
     "MN": [
         "Robbinsdale",
@@ -1939,7 +1937,7 @@ cities_by_state = {
         "Thief River Falls",
         "Anoka",
         "Annandale",
-        "Baxter"
+        "Baxter",
     ],
     "MS": [
         "Jackson",
@@ -2024,7 +2022,7 @@ cities_by_state = {
         "Kosciusko",
         "Ripley",
         "Rolling Fork",
-        "Purvis"
+        "Purvis",
     ],
     "MO": [
         "Joplin",
@@ -2115,7 +2113,7 @@ cities_by_state = {
         "Sullivan",
         "Carthage",
         "Maryland Heights",
-        "Windsor"
+        "Windsor",
     ],
     "MT": [
         "Helena",
@@ -2176,7 +2174,7 @@ cities_by_state = {
         "Roundup",
         "Miles City",
         "Big Sky",
-        "Warm Springs"
+        "Warm Springs",
     ],
     "NC": [
         "Siler City",
@@ -2275,7 +2273,7 @@ cities_by_state = {
         "Wilmington",
         "Camp Lejeune",
         "Thomasville",
-        "High Point"
+        "High Point",
     ],
     "NE": [
         "Lincoln",
@@ -2353,7 +2351,7 @@ cities_by_state = {
         "Mccook",
         "Beatrice",
         "Broken Bow",
-        "Boys Town"
+        "Boys Town",
     ],
     "NV": [
         "Reno",
@@ -2376,7 +2374,7 @@ cities_by_state = {
         "Pahrump",
         "Caliente",
         "Fallon",
-        "Yerington"
+        "Yerington",
     ],
     "NH": [
         "Concord",
@@ -2402,7 +2400,7 @@ cities_by_state = {
         "Berlin",
         "Plymouth",
         "Wolfeboro",
-        "Hampstead"
+        "Hampstead",
     ],
     "NJ": [
         "Hackensack",
@@ -2472,7 +2470,7 @@ cities_by_state = {
         "Cedar Grove",
         "Westampton",
         "Pemberton",
-        "Berkeley Heights"
+        "Berkeley Heights",
     ],
     "NM": [
         "Albuquerque",
@@ -2508,7 +2506,7 @@ cities_by_state = {
         "Deming",
         "Taos",
         "Silver City",
-        "Santa Teresa"
+        "Santa Teresa",
     ],
     "NY": [
         "Buffalo",
@@ -2633,7 +2631,7 @@ cities_by_state = {
         "Amityville",
         "New Hampton",
         "Dix Hills",
-        "West Seneca"
+        "West Seneca",
     ],
     "ND": [
         "Bismarck",
@@ -2677,7 +2675,7 @@ cities_by_state = {
         "Devils Lake",
         "Williston",
         "Jamestown",
-        "Dickinson"
+        "Dickinson",
     ],
     "OH": [
         "Cincinnati",
@@ -2809,7 +2807,7 @@ cities_by_state = {
         "Mason",
         "Middle Point",
         "Hudson",
-        "Georgetown"
+        "Georgetown",
     ],
     "OK": [
         "Tulsa",
@@ -2900,7 +2898,7 @@ cities_by_state = {
         "Guymon",
         "Alva",
         "Idabel",
-        "Fort Supply"
+        "Fort Supply",
     ],
     "OR": [
         "The Dalles",
@@ -2953,7 +2951,7 @@ cities_by_state = {
         "Gold Beach",
         "Lebanon",
         "Madras",
-        "Hermiston"
+        "Hermiston",
     ],
     "PA": [
         "Scranton",
@@ -3087,7 +3085,7 @@ cities_by_state = {
         "Kingston",
         "Centre Hall",
         "Fort Washington",
-        "Shippensburg"
+        "Shippensburg",
     ],
     "RI": [
         "Providence",
@@ -3097,7 +3095,7 @@ cities_by_state = {
         "Warwick",
         "Woonsocket",
         "Westerly",
-        "East Providence"
+        "East Providence",
     ],
     "SC": [
         "Rock Hill",
@@ -3146,7 +3144,7 @@ cities_by_state = {
         "Abbeville",
         "Kingstree",
         "Edgefield",
-        "Travelers Rest"
+        "Travelers Rest",
     ],
     "SD": [
         "Watertown",
@@ -3199,7 +3197,7 @@ cities_by_state = {
         "Vermillion",
         "Miller",
         "Gregory",
-        "Sisseton"
+        "Sisseton",
     ],
     "TN": [
         "Erwin",
@@ -3281,7 +3279,7 @@ cities_by_state = {
         "Camden",
         "Bolivar",
         "Erin",
-        "Rocky Top"
+        "Rocky Top",
     ],
     "TX": [
         "El Paso",
@@ -3545,7 +3543,7 @@ cities_by_state = {
         "Lumberton",
         "Bastrop",
         "Spring",
-        "Midlothian"
+        "Midlothian",
     ],
     "UT": [
         "Provo",
@@ -3587,7 +3585,7 @@ cities_by_state = {
         "Blanding",
         "Panguitch",
         "Beaver",
-        "Midvale"
+        "Midvale",
     ],
     "VT": [
         "Barre",
@@ -3604,7 +3602,7 @@ cities_by_state = {
         "Morrisville",
         "Springfield",
         "Middlebury",
-        "Berlin"
+        "Berlin",
     ],
     "VA": [
         "Lebanon",
@@ -3676,7 +3674,7 @@ cities_by_state = {
         "Kilmarnock",
         "Pennington Gap",
         "New Kent",
-        "Staunton"
+        "Staunton",
     ],
     "WA": [
         "Walla Walla",
@@ -3757,7 +3755,7 @@ cities_by_state = {
         "Medical Lake",
         "Tukwila",
         "Marysville",
-        "Lacey"
+        "Lacey",
     ],
     "WV": [
         "Morgantown",
@@ -3801,7 +3799,7 @@ cities_by_state = {
         "Ripley",
         "Buckhannon",
         "Summersville",
-        "Clarksburg"
+        "Clarksburg",
     ],
     "WI": [
         "Stevens Point",
@@ -3913,7 +3911,7 @@ cities_by_state = {
         "Sturgeon Bay",
         "Ashland",
         "Wauwatosa",
-        "Winnebago"
+        "Winnebago",
     ],
     "WY": [
         "Gillette",
@@ -3940,21 +3938,45 @@ cities_by_state = {
         "Afton",
         "Lusk",
         "Kemmerer",
-        "Rawlins"
-    ]
+        "Rawlins",
+    ],
 }
 years_experience = [
-    "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
-    "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
-    "21", "22", "23", "24", "25", "More than 25 years"
-    ]
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "10",
+    "11",
+    "12",
+    "13",
+    "14",
+    "15",
+    "16",
+    "17",
+    "18",
+    "19",
+    "20",
+    "21",
+    "22",
+    "23",
+    "24",
+    "25",
+    "More than 25 years",
+]
 
 leaving_reason = [
     "Transitioning to another unit",
     "Transitioning to a different hospital",
     "Leaving bedside for different nursing role",
     "Pursuing higher education",
-    "Leaving nursing completely"
+    "Leaving nursing completely",
 ]
 
 unit_specialties = [
@@ -3991,5 +4013,5 @@ unit_specialties = [
     "Toxicology",
     "Trauma",
     "Urology",
-    "Wound, Ostomy, and Continence"
+    "Wound, Ostomy, and Continence",
 ]
