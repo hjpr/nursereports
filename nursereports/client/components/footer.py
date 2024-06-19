@@ -1,4 +1,5 @@
 from .custom import spacer
+from ...states import BaseState, NavbarState
 
 import reflex as rx
 
@@ -45,28 +46,30 @@ def footer() -> rx.Component:
                 rx.flex(
                     rx.flex(
                         rx.link(
-                            "Students",
-                            on_click=rx.redirect(
-                                "https://blog.nursereports.org/for-students"
-                            ),
-                            size="2",
-                        ),
-                        rx.link(
                             "Staff",
-                            on_click=rx.redirect(
-                                "https://blog.nursereports.org/for-staff"
-                            ),
+                            href="https://blog.nursereports.org/for-staff",
                             size="2",
+                            cursor="pointer",
                         ),
                         rx.link(
                             "Travelers",
-                            on_click=rx.redirect(
-                                "https://blog.nursereports.org/for-travelers"
-                            ),
+                            href="https://blog.nursereports.org/for-travelers",
                             size="2",
+                            cursor="pointer",
+                        ),
+                        rx.link(
+                            "Students",
+                            href="https://blog.nursereports.org/for-students",
+                            size="2",
+                            cursor="pointer",
                         ),
                         rx.flex(
-                            rx.link("Donate", size="2"),
+                            rx.link(
+                                "Donate",
+                                href="https://nursereports.org/donate",
+                                size="2",
+                                cursor="pointer"
+                                ),
                             rx.icon("sparkle", color="teal", size=14),
                             gap="8px",
                             align_items="center",
@@ -78,19 +81,22 @@ def footer() -> rx.Component:
                     rx.flex(
                         rx.link(
                             "About Us",
-                            on_click=rx.redirect(
-                                "https://blog.nursereports.org/about-us"
-                            ),
+                            href="https://blog.nursereports.org/about-us",
                             size="2",
+                            cursor="pointer"
                         ),
-                        rx.link("Feedback", size="2"),
-                        rx.link("Contact", size="2"),
+                        feedback(),
+                        rx.link(
+                            "Contact",
+                            href="https://nursereports.org/contact",
+                            size="2",
+                            cursor="pointer"
+                            ),
                         rx.link(
                             "Roadmap",
-                            on_click=rx.redirect(
-                                "https://blog.nursereports.org/roadmap"
-                            ),
+                            href="https://blog.nursereports.org/roadmap",
                             size="2",
+                            cursor="pointer"
                         ),
                         flex_direction="column",
                         gap="12px",
@@ -131,4 +137,15 @@ def footer() -> rx.Component:
         width="100%",
         justify_content="center",
         align_items="center",
+    )
+
+def feedback() -> rx.Component:
+    return rx.cond(
+        BaseState.user_is_authenticated,
+        rx.link(
+            "Feedback",
+            size="2",
+            cursor="pointer",
+            on_click=NavbarState.set_show_feedback(True)
+            ),
     )

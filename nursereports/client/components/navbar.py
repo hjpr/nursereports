@@ -54,28 +54,32 @@ def links() -> rx.Component:
 def unauth_links() -> rx.Component:
     return rx.flex(
         rx.link(
-            "Students",
-            href="https://blog.nursereports.org/for-students"
-        ),
-        rx.link(
             "Staff",
-            href="https://blog.nursereports.org/for-staff"
+            href="https://blog.nursereports.org/for-staff",
+            cursor='pointer'
         ),
         rx.link(
             "Travelers",
-            href="https://blog.nursereports.org/for-travelers"
+            href="https://blog.nursereports.org/for-travelers",
+            cursor='pointer'
         ),
         rx.link(
-            "About Us",
-            href="https://blog.nursereports.org/about-us"
+            "Students",
+            href="https://blog.nursereports.org/for-students",
+            cursor='pointer'
         ),
         rx.flex(
-            rx.link("Donate"),
-            rx.icon("sparkle", color="teal", size=18),
+            rx.link(
+                "Donate",
+                href="https://nursereports.org/donate",
+                cursor="pointer"
+                ),
+            rx.icon("sparkles", color="teal", size=18),
             flex_direction="row",
             gap="8px",
             align_items="center",
             justify_content="center",
+            cursor='pointer'
         ),
         flex_direction="row",
         gap="24px",
@@ -85,12 +89,18 @@ def unauth_links() -> rx.Component:
 
 def auth_links() -> rx.Component:
     return rx.flex(
-        rx.link("Make a Report",
-            href="https://www.nursereports.org/search/report"
+        rx.link(
+            "Find Hospital",
+            href="https://nursereports.org/search/report",
+            cursor="pointer"
         ),
         rx.flex(
-            rx.link("Donate"),
-            rx.icon("sparkle", color="teal", size=18),
+            rx.link(
+                "Donate",
+                href="https://nursereports.org/donate",
+                cursor="pointer"
+                ),
+            rx.icon("sparkles", color="teal", size=18),
             flex_direction="row",
             gap="8px",
             align_items="center",
@@ -103,12 +113,20 @@ def auth_links() -> rx.Component:
 
 
 def sign_in_or_dashboard() -> rx.Component:
-    return rx.cond(BaseState.user_is_authenticated, account(), signin())
+    return rx.cond(
+        BaseState.user_is_authenticated,
+        account(),
+        signin()
+        )
 
 
 def signin() -> rx.Component:
     return rx.box(
-        rx.link("Sign In", on_click=NavbarState.event_state_navbar_pressed_sign_in),
+        rx.link(
+            "Sign In",
+            on_click=NavbarState.event_state_navbar_pressed_sign_in,
+            cursor="pointer"
+            ),
         display=["none", "none", "none", "inline", "inline"],
         margin="0 0 0 60px",
     )
@@ -118,9 +136,14 @@ def account() -> rx.Component:
     return rx.box(
         rx.cond(
             BaseState.user_has_reported,
-            rx.link("Dashboard", href="https://www.nursereports.org/dashboard"),
             rx.link(
                 "Dashboard",
+                href="https://www.nursereports.org/dashboard",
+                cursor="pointer"
+                ),
+            rx.link(
+                "Dashboard",
+                cursor="pointer",
                 on_click=NavbarState.set_alert_message(
                     "Submit a report before accessing the dashboard."
                 ),
@@ -157,28 +180,30 @@ def unauth_hamburger() -> rx.Component:
                         ),
                         rx.flex(
                             rx.link(
-                                "Students",
-                                href="https://blog.nursereports.org/for-students"
-                            ),
-                            rx.divider(),
-                            rx.link(
                                 "Staff",
-                                href="https://blog.nursereports.org/for-staff"
-                            ),
+                                href="https://blog.nursereports.org/for-staff",
+                                cursor="pointer"
+                                ),
                             rx.divider(),
                             rx.link(
                                 "Travelers",
-                                href="https://blog.nursereports.org/for-travelers"
-                            ),
+                                href="https://blog.nursereports.org/for-travelers",
+                                cursor="pointer"
+                                ),
                             rx.divider(),
                             rx.link(
-                                "About Us",
-                                href="https://blog.nursereports.org/about-us"
-                            ),
+                                "Students",
+                                href="https://blog.nursereports.org/for-students",
+                                cursor="pointer"
+                                ),
                             rx.divider(),
                             rx.flex(
-                                rx.link("Donate"),
-                                rx.icon("sparkle", color="teal", size=18),
+                                rx.link(
+                                    "Donate",
+                                    href="https://nursereports.org/donate",
+                                    cursor="pointer"
+                                    ),
+                                rx.icon("sparkles", color="teal", size=18),
                                 gap="12px",
                                 align_items="center",
                             ),

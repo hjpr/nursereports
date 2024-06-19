@@ -17,13 +17,47 @@ def dashboard_page() -> rx.Component:
     return rx.flex(
         c2a(),
         navbar(),
-        rx.flex(
-            flex_direction="column",
-            flex_basis="auto",
-            flex_grow="1",
-            flex_shrink="0",
-        ),
+        content(),
         footer(),
         flex_direction="column",
         min_height="100vh",
     )
+
+
+def content() -> rx.Component:
+    return rx.flex(
+        saved_hospitals(),
+        trending_hospitals(),
+        average_pay(),
+        your_reviews(),
+        flex_direction="column",
+        flex_basis="auto",
+        flex_grow="1",
+        flex_shrink="0",
+    )
+
+
+def saved_hospitals() -> rx.Component:
+    return rx.cond(
+        BaseState.user_has_saved_hospitals, has_saved_hospitals(), no_saved_hospitals()
+    )
+
+
+def no_saved_hospitals() -> rx.Component:
+    return rx.flex()
+
+
+def has_saved_hospitals() -> rx.Component:
+    return rx.flex()
+
+
+def trending_hospitals() -> rx.Component:
+    return rx.flex()
+
+
+def average_pay() -> rx.Component:
+    return rx.flex()
+
+
+def your_reviews() -> rx.Component:
+    return rx.flex()

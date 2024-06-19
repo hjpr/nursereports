@@ -1,9 +1,8 @@
 
 from ..client.components.lists import cities_by_state, state_abbr_dict
 from ..server.supabase.search_requests import supabase_get_hospital_search_results
-from ..states import *
+from ..states import BaseState, ReportState
 
-from loguru import logger
 from typing import Callable, Iterable
 
 import reflex as rx
