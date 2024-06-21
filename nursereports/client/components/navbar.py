@@ -251,21 +251,26 @@ def auth_hamburger() -> rx.Component:
                         ),
                         rx.flex(
                             rx.link(
-                                "Make a Report",
-                                href="https://www.nursereports.org/search/report"
+                                "Find hospitals",
+                                href=f"{BaseState.host_address}/search/report",
+                                cursor="pointer"
                             ),
                             rx.divider(),
-                            rx.link("Account"),
+                            rx.link(
+                                "Dashboard",
+                                href=f"{BaseState.host_address}/dashboard"
+
+                                ),
                             rx.divider(),
                             rx.flex(
                                 rx.link("Donate"),
-                                rx.icon("sparkle", color="teal", size=18),
+                                rx.icon("hand-coins", color="teal", size=18),
                                 gap="12px",
                                 align_items="center",
                             ),
                             rx.divider(),
                             rx.link("Logout",
-                                    href="https://www.nursereports.org/logout/user"
+                                    href=f"{BaseState.host_address}/logout/user"
                             ),
                             flex_direction="column",
                             width="100%",

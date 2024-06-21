@@ -30,6 +30,10 @@ class BaseState(rx.State):
     user_info: dict
 
     @rx.var
+    def host_address(self) -> str:
+        return self.router.page.host
+
+    @rx.var
     def reason_for_logout(self) -> str:
         return self.router.page.params.get("logout_reason")
 
