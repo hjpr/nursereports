@@ -85,6 +85,7 @@ def search_dropdowns() -> rx.Component:
                 ],
                 size="3",
                 radius="full",
+                loading=SearchState.search_is_loading
             ),
             flex_direction=["column", "row", "row", "row", "row"],
             gap=["12px", "8px", "8px", "8px", "8px"],
