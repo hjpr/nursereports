@@ -56,11 +56,7 @@ def content() -> rx.Component:
 
 def dashboard_header() -> rx.Component:
     return rx.flex(
-        rx.heading(
-            "Dashboard",
-            size="8",
-            color_scheme="teal"
-        ),
+        rx.heading("Dashboard", size="8", color_scheme="teal"),
         width="100%",
         justify="center",
     )
@@ -68,12 +64,7 @@ def dashboard_header() -> rx.Component:
 
 def hospitals_header() -> rx.Component:
     return rx.flex(
-        rx.heading(
-            "My Hospitals",
-            size="6",
-            align="left",
-            color_scheme="teal"
-        ),
+        rx.heading("My Hospitals", size="6", align="left", color_scheme="teal"),
         width="100%",
     )
 
@@ -81,7 +72,9 @@ def hospitals_header() -> rx.Component:
 def hospitals() -> rx.Component:
     return rx.flex(
         rx.cond(
-            BaseState.user_has_saved_hospitals, has_saved_hospitals(), no_saved_hospitals()
+            BaseState.user_has_saved_hospitals,
+            has_saved_hospitals(),
+            no_saved_hospitals(),
         ),
         trending_hospitals(),
         width="100%",
@@ -93,11 +86,11 @@ def hospitals() -> rx.Component:
 def has_saved_hospitals() -> rx.Component:
     return rx.card(
         rx.flex(
-            rx.text("Saved hospitals...", font_size='10px'),
+            rx.text("Saved hospitals...", font_size="10px"),
             height="100%",
             width="100%",
             align_items="center",
-            justify_content="center"
+            justify_content="center",
         ),
         height="300px",
         width="100%",
@@ -107,11 +100,11 @@ def has_saved_hospitals() -> rx.Component:
 def no_saved_hospitals() -> rx.Component:
     return rx.card(
         rx.flex(
-            rx.text("No saved hospitals...", font_size='10px'),
+            rx.text("No saved hospitals...", font_size="10px"),
             height="100%",
             width="100%",
             align_items="center",
-            justify_content="center"
+            justify_content="center",
         ),
         height="300px",
         width="100%",
@@ -121,18 +114,18 @@ def no_saved_hospitals() -> rx.Component:
             "0px 24px 0px 0px",
             "0px 24px 0px 0px",
             "0px 24px 0px 0px",
-            ]
+        ],
     )
 
 
 def trending_hospitals() -> rx.Component:
     return rx.card(
         rx.flex(
-            rx.text("Trending hospitals...", font_size='10px'),
+            rx.text("Trending hospitals...", font_size="10px"),
             height="100%",
             width="100%",
             align_items="center",
-            justify_content="center"
+            justify_content="center",
         ),
         height="300px",
         width="100%",
@@ -141,24 +134,19 @@ def trending_hospitals() -> rx.Component:
 
 def average_pay_header() -> rx.Component:
     return rx.flex(
-        rx.heading(
-            "My Pay Demographics",
-            size="6",
-            align="left",
-            color_scheme="teal"
-        ),
+        rx.heading("My Pay Demographics", size="6", align="left", color_scheme="teal"),
         width="100%",
-    ) 
+    )
 
 
 def average_pay() -> rx.Component:
     return rx.card(
         rx.flex(
-            rx.text("Average pay in your area...", font_size='10px'),
+            rx.text("Average pay in your area...", font_size="10px"),
             height="100%",
             width="100%",
             align_items="center",
-            justify_content="center"
+            justify_content="center",
         ),
         height="300px",
         width="100%",
@@ -168,12 +156,7 @@ def average_pay() -> rx.Component:
 
 def your_reviews_header() -> rx.Component:
     return rx.flex(
-        rx.heading(
-            "My Reviews",
-            size="6",
-            align="left",
-            color_scheme="teal"
-        ),
+        rx.heading("My Reviews", size="6", align="left", color_scheme="teal"),
         width="100%",
     )
 
@@ -181,11 +164,11 @@ def your_reviews_header() -> rx.Component:
 def your_reviews() -> rx.Component:
     return rx.card(
         rx.flex(
-            rx.text("Your reviews...", font_size='10px'),
+            rx.text("Your reviews...", font_size="10px"),
             height="100%",
             width="100%",
             align_items="center",
-            justify_content="center"
+            justify_content="center",
         ),
         height="300px",
         width="100%",
