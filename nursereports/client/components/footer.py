@@ -70,7 +70,7 @@ def footer() -> rx.Component:
                                 size="2",
                                 cursor="pointer"
                                 ),
-                            rx.icon("sparkle", color="teal", size=14),
+                            rx.icon("hand-coins", color="teal", size=14),
                             gap="8px",
                             align_items="center",
                         ),
