@@ -1,7 +1,10 @@
-
-from ..states import *
-from ..server.secrets import *
-from ..server.supabase import *
+from ..states import PageState
+from ..server.secrets import anyscale_api_key, anyscale_url, api_url, api_key
+from ..server.supabase import (
+    supabase_submit_full_report,
+    supabase_update_user_info,
+    supabase_no_report_id_conflict,
+)
 from loguru import logger
 from typing import Callable, Iterable
 
@@ -14,11 +17,13 @@ import reflex as rx
 import rich
 import textwrap
 
+
 class ReportState(PageState):
     """
     State for the report, variables grouped into the three major
     groups of the report; compensation, staffing, and assignment.
     """
+
     report_id: str
 
     is_test: bool = False
@@ -30,9 +35,7 @@ class ReportState(PageState):
 
     def generate_report_id(self) -> None:
         self.report_id = str(uuid.uuid4())
-        logger.debug(
-            f"Generated a new report id - {self.report_id}"
-        )
+        logger.debug(f"Generated a new report id - {self.report_id}")
 
     #################################################################
     #
@@ -131,33 +134,34 @@ class ReportState(PageState):
     @rx.var
     def is_pay_invalid(self) -> bool:
         if self.comp_input_pay_amount or self.comp_input_pay_amount == 0:
-            if (self.comp_input_pay_amount < 20 or
-                self.comp_input_pay_amount > 200) and self.is_hourly:
+            if (
+                self.comp_input_pay_amount < 20 or self.comp_input_pay_amount > 200
+            ) and self.is_hourly:
                 return True
-            if (self.comp_input_pay_amount < 500 or
-                self.comp_input_pay_amount > 12000) and not self.is_hourly:
+            if (
+                self.comp_input_pay_amount < 500 or self.comp_input_pay_amount > 12000
+            ) and not self.is_hourly:
                 return True
         else:
             return False
-        
+
     @rx.var
     def is_experience_invalid(self) -> bool:
-        if self.comp_select_hospital_experience and\
-            self.comp_select_total_experience:
-            if self.comp_select_hospital_experience == 'More than 25 years':
+        if self.comp_select_hospital_experience and self.comp_select_total_experience:
+            if self.comp_select_hospital_experience == "More than 25 years":
                 hospital_experience = 26
-            elif self.comp_select_hospital_experience == 'Less than a year':
+            elif self.comp_select_hospital_experience == "Less than a year":
                 hospital_experience = 0
             else:
                 hospital_experience = int(self.comp_select_hospital_experience)
 
-            if self.comp_select_total_experience == 'More than 25 years':
+            if self.comp_select_total_experience == "More than 25 years":
                 total_experience = 26
-            elif self.comp_select_total_experience == 'Less than a year':
+            elif self.comp_select_total_experience == "Less than a year":
                 total_experience = 0
             else:
                 total_experience = int(self.comp_select_total_experience)
-            
+
             if (total_experience - hospital_experience) < 0:
                 return True
             else:
@@ -176,16 +180,16 @@ class ReportState(PageState):
     @rx.var
     def is_weekly(self) -> bool:
         return True if self.comp_select_pay_type == "Weekly" else False
-    
+
     @rx.var
     def compensation_is_inadequate(self) -> bool:
         return True if self.comp_select_comp_adequate == "No" else False
-        
+
     @rx.var
     def comp_comments_chars_left(self) -> int:
         if self.comp_input_comments:
             return 1000 - len(self.comp_input_comments)
-        
+
     @rx.var
     def comp_comments_chars_over(self) -> bool:
         if self.comp_comments_chars_left:
@@ -193,7 +197,7 @@ class ReportState(PageState):
                 return True
             else:
                 return False
-    
+
     @rx.var
     def comp_overall_description(self) -> str:
         if self.comp_select_overall == "a":
@@ -206,7 +210,7 @@ class ReportState(PageState):
             return "Bad"
         if self.comp_select_overall == "f":
             return "Terrible"
-        
+
     @rx.var
     def comp_overall_background(self) -> str:
         if self.comp_select_overall == "a":
@@ -219,7 +223,7 @@ class ReportState(PageState):
             return "rgb(197, 116, 57)"
         if self.comp_select_overall == "f":
             return "rgb(185, 65, 55)"
-        
+
     @rx.var
     def comp_progress(self) -> int:
         progress = 0
@@ -227,8 +231,7 @@ class ReportState(PageState):
             progress = progress + 5
         if self.comp_select_pay_type:
             progress = progress + 5
-        if self.comp_input_pay_amount and not\
-            self.is_pay_invalid:
+        if self.comp_input_pay_amount and not self.is_pay_invalid:
             progress = progress + 10
         if self.comp_select_diff_response:
             progress = progress + 10
@@ -240,20 +243,22 @@ class ReportState(PageState):
             progress = progress + 10
         if self.comp_select_weekly_shifts:
             progress = progress + 10
-        if self.comp_select_hospital_experience and\
-            self.comp_select_total_experience\
-            and not self.is_experience_invalid:
+        if (
+            self.comp_select_hospital_experience
+            and self.comp_select_total_experience
+            and not self.is_experience_invalid
+        ):
             progress = progress + 20
         if self.comp_select_comp_adequate:
             progress = progress + 10
         if self.comp_select_overall:
             progress = progress + 10
         return progress
-    
+
     @rx.var
     def comp_can_progress(self) -> bool:
         return True if self.comp_progress == 100 else False
-    
+
     @rx.var
     def comp_has_error(self) -> bool:
         return True if self.comp_error_message else False
@@ -332,7 +337,7 @@ class ReportState(PageState):
                 return False
         else:
             return False
-        
+
     @rx.var
     def area_too_long(self) -> bool:
         if self.assign_input_area:
@@ -348,13 +353,13 @@ class ReportState(PageState):
         units = []
         units.append("I don't see my unit")
         return units
-    
+
     @rx.cached_var
     def hospital_areas(self) -> list[str]:
         areas = []
         areas.append("I don't see my area or role")
         return areas
-    
+
     @rx.var
     def has_unit(self) -> bool:
         return True if self.assign_select_specific_unit else False
@@ -362,29 +367,29 @@ class ReportState(PageState):
     @rx.var
     def is_unit(self) -> bool:
         return True if self.assign_select_specific_unit == "Yes" else False
-    
+
     @rx.var
     def unit_not_present(self) -> bool:
-        return True if self.assign_select_unit == "I don't see my unit"\
-            else False
-    
+        return True if self.assign_select_unit == "I don't see my unit" else False
+
     @rx.var
     def area_not_present(self) -> bool:
-        return True if self.assign_select_area == "I don't see my area or role"\
-            else False
-            
-    @ rx.var
+        return (
+            True if self.assign_select_area == "I don't see my area or role" else False
+        )
+
+    @rx.var
     def has_specialty_1(self) -> bool:
         return True if self.assign_select_specialty_1 else False
 
     @rx.var
     def has_specialty_2(self) -> bool:
         return True if self.assign_select_specialty_2 else False
-    
+
     @rx.var
     def is_leaving(self) -> bool:
         return True if self.assign_select_leaving == "Yes" else False
-    
+
     @rx.var
     def assign_input_comments_chars_over(self) -> bool:
         if self.assign_input_comments_chars_left:
@@ -392,12 +397,12 @@ class ReportState(PageState):
                 return True
             else:
                 return False
-        
+
     @rx.var
     def assign_input_comments_chars_left(self) -> int:
         if self.assign_input_comments:
             return 1000 - len(self.assign_input_comments)
-        
+
     @rx.var
     def assign_select_overall_description(self) -> str:
         if self.assign_select_overall == "a":
@@ -475,18 +480,18 @@ class ReportState(PageState):
             progress = progress + 10
 
         return progress
-    
+
     @rx.var
     def assign_can_progress(self) -> bool:
         if self.assign_progress == 100:
             return True
         else:
             return False
-        
+
     @rx.var
     def assign_has_error(self) -> bool:
         return True if self.assign_error_message else False
-    
+
     #################################################################
     #
     # STAFFING VARIABLES
@@ -544,30 +549,34 @@ class ReportState(PageState):
 
     @rx.var
     def has_ratios(self) -> bool:
-        if self.assign_select_acuity == "Intensive" or\
-            self.assign_select_acuity == "Intermediate" or\
-            self.assign_select_acuity == "Floor":
+        if (
+            self.assign_select_acuity == "Intensive"
+            or self.assign_select_acuity == "Intermediate"
+            or self.assign_select_acuity == "Floor"
+        ):
             return True
         else:
             return False
-        
+
     @rx.var
     def ratio_is_valid(self) -> bool:
         return True if 0 < self.staffing_input_ratio < 30 else False
-        
+
     @rx.var
     def has_charge(self) -> bool:
         return True if self.staffing_select_charge_response == "Yes" else False
-    
+
     @rx.var
     def ratios_unsafe(self) -> bool:
-        if self.staffing_select_ratio_unsafe == "Always" or\
-        self.staffing_select_ratio_unsafe == "Usually" or\
-        self.staffing_select_ratio_unsafe == "Sometimes":
+        if (
+            self.staffing_select_ratio_unsafe == "Always"
+            or self.staffing_select_ratio_unsafe == "Usually"
+            or self.staffing_select_ratio_unsafe == "Sometimes"
+        ):
             return True
         else:
             return False
-        
+
     @rx.var
     def staffing_input_comments_chars_over(self) -> bool:
         if self.staffing_input_comments_chars_left:
@@ -575,12 +584,12 @@ class ReportState(PageState):
                 return True
             else:
                 return False
-        
+
     @rx.var
     def staffing_input_comments_chars_left(self) -> int:
         if self.staffing_input_comments:
             return 1000 - len(self.staffing_input_comments)
-        
+
     @rx.var
     def staffing_select_overall_description(self) -> str:
         if self.staffing_select_overall == "a":
@@ -638,61 +647,50 @@ class ReportState(PageState):
     @rx.var
     def staffing_can_progress(self) -> bool:
         return True if self.staffing_progress == 100 else False
-    
+
     @rx.var
     def staffing_has_error(self) -> bool:
         return True if self.staffing_error_message else False
-    
+
     #################################################################
     #
     # REPORT SUBMISSION \ HANDLERS
     #
     #################################################################
-        
+
     def handle_submit_compensation(self) -> Callable:
         if not self.comp_can_progress:
-            self.comp_error_message = \
-                "Some fields incomplete or invalid."
+            self.comp_error_message = "Some fields incomplete or invalid."
             return
         if len(self.comp_input_comments) > 1000:
-            self.comp_error_message = \
-                "Comments contain too many characters."
+            self.comp_error_message = "Comments contain too many characters."
             return
         self.comp_error_message = ""
-        return rx.redirect(
-            f"/report/submit/{self.hosp_id_param}/assignment"
-        )
+        return rx.redirect(f"/report/submit/{self.hosp_id_param}/assignment")
 
     def handle_submit_assignment(self) -> Callable:
         if not self.assign_can_progress:
-            self.assign_error_message = \
-                "Some fields incomplete or invalid."
+            self.assign_error_message = "Some fields incomplete or invalid."
             return
         if len(self.assign_input_comments) > 1000:
-            self.assign_error_message = \
-                "Comments contain too many characters."
+            self.assign_error_message = "Comments contain too many characters."
             return
         self.assign_error_message = ""
-        return rx.redirect(
-            f"/report/submit/{self.hosp_id_param}/staffing"
-            )
+        return rx.redirect(f"/report/submit/{self.hosp_id_param}/staffing")
 
     def handle_submit_staffing(self) -> Callable:
         if not self.staffing_can_progress:
-            self.staffing_error_message = \
-                "Some fields incomplete or invalid."
+            self.staffing_error_message = "Some fields incomplete or invalid."
             return
         if self.has_ratios and not self.ratio_is_valid:
-            self.staffing_error_message = \
-                "Some fields incomplete or invalid."
+            self.staffing_error_message = "Some fields incomplete or invalid."
             return
         if len(self.staffing_input_comments) > 1000:
-            self.staffing_error_message = \
-                "Comments contain too many characters."
+            self.staffing_error_message = "Comments contain too many characters."
             return
         self.staffing_error_message = ""
         return ReportState.submit_report
-    
+
     def submit_report(self) -> Iterable[Callable]:
         """
         Final checkpoint for submitting report.
@@ -709,59 +707,47 @@ class ReportState(PageState):
 
         5. Updates user info to reflect submission.
         """
-        self.is_loading=True
+        self.is_loading = True
         self.generate_report_id()
         report = self.prepare_report_dict()
 
         if not self.comp_can_progress:
-            self.comp_error_message = \
-                "Some fields incomplete or invalid."
-            return rx.redirect(
-                f"/report/submit/{self.hosp_id_param}/compensation"
-            )
-        
+            self.comp_error_message = "Some fields incomplete or invalid."
+            return rx.redirect(f"/report/submit/{self.hosp_id_param}/compensation")
+
         if not self.assign_can_progress:
-            self.assign_error_message = \
-                "Some fields incomplete or invalid."
-            return rx.redirect(
-                f"/report/submit/{self.hosp_id_param}/assignment"
-            )
-        
+            self.assign_error_message = "Some fields incomplete or invalid."
+            return rx.redirect(f"/report/submit/{self.hosp_id_param}/assignment")
+
         if not self.staffing_can_progress:
-            self.staffing_can_progress = \
-                "Some fields incomplete or invalid."
-            return rx.redirect(
-                f"/report/submit/{self.hosp_id_param}/staffing"
-            )
-        
+            self.staffing_can_progress = "Some fields incomplete or invalid."
+            return rx.redirect(f"/report/submit/{self.hosp_id_param}/staffing")
+
         response = self.ensure_no_duplicate(report)
-        if not response['success']:
-            self.staffing_error_message = response['status']
+        if not response["success"]:
+            self.staffing_error_message = response["status"]
             return
-            
-        response = supabase_submit_full_report(
-            self.access_token, report
-        )
-        if response['success']:
+
+        response = supabase_submit_full_report(self.access_token, report)
+        if response["success"]:
             yield ReportState.update_user_info
             yield ReportState.moderate_user_entries(report)
-            yield rx.redirect(
-                f"/report/submit/{self.hosp_id_param}/complete"
-            )
+            yield rx.redirect(f"/report/submit/{self.hosp_id_param}/complete")
             self.is_loading = False
         else:
             self.is_loading = False
-            self.staffing_error_message = \
+            self.staffing_error_message = (
                 "Server error - Failed to upload report to database."
+            )
 
     def prepare_report_dict(self) -> dict:
         report = {
             "report_id": self.report_id,
             "hospital_id": self.hosp_id_param,
-            "user_id": self.user_claims['payload']['sub'],
-            "license": self.user_info['license'],
-            "license_state": self.user_info['license_state'],
-            "trust": self.user_info['trust'],
+            "user_id": self.user_claims["payload"]["sub"],
+            "license": self.user_info["license"],
+            "license_state": self.user_info["license_state"],
+            "trust": self.user_info["trust"],
             "comp_select_emp_type": self.comp_select_emp_type,
             "comp_select_pay_type": self.comp_select_pay_type,
             "comp_input_pay_amount": self.comp_input_pay_amount,
@@ -820,15 +806,15 @@ class ReportState(PageState):
             "staffing_select_support_available": self.staffing_select_support_available,
             "staffing_input_comments": self.staffing_input_comments,
             "staffing_select_overall": self.staffing_select_overall,
-            "is_test": self.is_test
+            "is_test": self.is_test,
         }
         return report
-    
+
     def ensure_no_duplicate(self, report) -> dict:
         logger.debug(f"Report ID - {report['report_id']}")
         response = supabase_no_report_id_conflict(
-            self.access_token, report['report_id']
-            )
+            self.access_token, report["report_id"]
+        )
         return response
 
     #################################################################
@@ -853,16 +839,16 @@ class ReportState(PageState):
         response flagging entries
         """
         user_entry_dict = {}
-        if report['comp_input_comments']:
-            user_entry_dict['comp_input_comments'] = self.comp_input_comments
-        if report['staffing_input_comments']:
-            user_entry_dict['staffing_input_comments'] = self.staffing_input_comments
-        if report['assign_input_unit_name']:
-            user_entry_dict['assign_input_unit_name'] = self.assign_input_unit_name
-        if report['assign_input_area']:
-            user_entry_dict['assign_input_area'] = self.assign_input_area
-        if report['assign_input_comments']:
-            user_entry_dict['assign_input_comments'] = self.assign_input_comments
+        if report["comp_input_comments"]:
+            user_entry_dict["comp_input_comments"] = self.comp_input_comments
+        if report["staffing_input_comments"]:
+            user_entry_dict["staffing_input_comments"] = self.staffing_input_comments
+        if report["assign_input_unit_name"]:
+            user_entry_dict["assign_input_unit_name"] = self.assign_input_unit_name
+        if report["assign_input_area"]:
+            user_entry_dict["assign_input_area"] = self.assign_input_area
+        if report["assign_input_comments"]:
+            user_entry_dict["assign_input_comments"] = self.assign_input_comments
 
         system_prompt = inspect.cleandoc(
             """You moderate user entries by nurses for a hospital
@@ -882,20 +868,13 @@ class ReportState(PageState):
         url = f"{anyscale_url}/chat/completions"
         headers = {
             "Authorization": f"Bearer {anyscale_api_key}",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
         }
         data = {
             "model": "mistralai/Mixtral-8x7B-Instruct-v0.1",
             "messages": [
-                {
-                    "role": "system",
-                    "content": textwrap.dedent(system_prompt)
-                },
-                {
-                    "role": "user",
-                    "content": textwrap.dedent(user_prompt)
-                }
-                 
+                {"role": "system", "content": textwrap.dedent(system_prompt)},
+                {"role": "user", "content": textwrap.dedent(user_prompt)},
             ],
             "response_format": {
                 "type": "json_object",
@@ -911,39 +890,30 @@ class ReportState(PageState):
                                     "flag": {"type": "boolean"},
                                     "flag_reason": {"type": "string"},
                                 },
-                                "required": ["entry_name", "flag", "flag_reason"]
-                            }
+                                "required": ["entry_name", "flag", "flag_reason"],
+                            },
                         }
                     },
-                    "required": ["entries"]
-                }
+                    "required": ["entries"],
+                },
             },
-            "temperature": 0.5
-
+            "temperature": 0.5,
         }
         try:
             async with httpx.AsyncClient(timeout=30.0) as client:
                 response = await client.post(
-                    url=url,
-                    headers=headers,
-                    data=json.dumps(data)
+                    url=url, headers=headers, data=json.dumps(data)
                 )
                 if response.is_success:
-                    logger.debug(
-                        "Retrieved moderation suggestions from Anyscale."
-                    )
+                    logger.debug("Retrieved moderation suggestions from Anyscale.")
                     content = json.loads(response.content)
                     self.parse_moderation_suggestions(content, report)
                     return None
                 else:
-                    logger.warning(
-                        "User entry moderation to Anyscale unsuccessful."
-                    )
+                    logger.warning("User entry moderation to Anyscale unsuccessful.")
                     return None
         except Exception as e:
-            logger.critical(
-                f"Exception while moderating report - {e}"
-            )
+            logger.critical(f"Exception while moderating report - {e}")
 
     def parse_moderation_suggestions(self, content: list, report: dict) -> None:
         """
@@ -955,16 +925,16 @@ class ReportState(PageState):
         capability to manually review that before releasing.
         """
         moderation_data = {}
-        flags = json.loads(content['choices'][0]['message']['content'])
-        for entry in flags['entries']:
+        flags = json.loads(content["choices"][0]["message"]["content"])
+        for entry in flags["entries"]:
             """
             Add entry. For example if assign_input_comments has
             issue, add assign_input_comments_flag with the reason
             so we can manually check it later.
             """
-            if entry['flag'] is True:
+            if entry["flag"] is True:
                 flag_name = f"{entry['entry_name']}_flag".replace(" ", "_")
-                moderation_data[flag_name] = entry['flag_reason']
+                moderation_data[flag_name] = entry["flag_reason"]
 
         if moderation_data:
             logger.warning(
@@ -978,50 +948,42 @@ class ReportState(PageState):
                 "Content-Type": "application/json",
                 "Prefer": "return=minimal",
             }
-            response = httpx.patch(
-                url=url,
-                headers=headers,
-                data=data
-            )
+            response = httpx.patch(url=url, headers=headers, data=data)
             if response.is_success:
                 logger.debug(
                     f"Successfully flagged entries in {report['report_id']}\
                     for moderation in database."
-                    )
+                )
                 return
             else:
-                logger.critical(
-                    f"Error calling API to moderate {report['report_id']}."
-                    )
+                logger.critical(f"Error calling API to moderate {report['report_id']}.")
                 rich.inspect(response)
                 return
         else:
             logger.debug(
                 f"""User report {report['report_id']} seems ok. No entries found requiring moderation."""
-                )
+            )
             return
-        
+
     #################################################################
     #
     #   USER UPDATE SHIT
     #
     #################################################################
-        
+
     def update_user_info(self) -> None:
-        if self.user_info['needs_onboard']:
+        if self.user_info["needs_onboard"]:
             first_time = True
-            self.user_info['needs_onboard'] = False
+            self.user_info["needs_onboard"] = False
         data = {
-            "needs_onboard": self.user_info['needs_onboard'],
-            "reports": self.user_info['reports'] + 1
+            "needs_onboard": self.user_info["needs_onboard"],
+            "reports": self.user_info["reports"] + 1,
         }
         response = supabase_update_user_info(
-            self.access_token,
-            self.user_claims['payload']['sub'],
-            data=data
+            self.access_token, self.user_claims["payload"]["sub"], data=data
         )
-        if response['success']:
-            self.user_info['reports'] += 1
+        if response["success"]:
+            self.user_info["reports"] += 1
             logger.debug(
                 f"""Successfully gave {self.user_claims['payload']['sub']}
                 credit for report."""
@@ -1029,7 +991,7 @@ class ReportState(PageState):
         else:
             if first_time:
                 logger.critical(
-                f"""Failed to give {self.user_claims['payload']['sub']}
+                    f"""Failed to give {self.user_claims['payload']['sub']}
                 credit for report. As it was their first report, this WILL
                 block them from accessing report database"""
                 )
@@ -1040,4 +1002,3 @@ class ReportState(PageState):
                     first report and will just need credit for this one at
                     some point."""
                 )
-    
