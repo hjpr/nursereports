@@ -74,7 +74,7 @@ def unauth_links() -> rx.Component:
                 href=f"{BaseState.host_address}/donate",
                 cursor="pointer"
                 ),
-            rx.icon("sparkles", color="teal", size=18),
+            rx.icon("hand-coins", color="teal", size=18),
             flex_direction="row",
             gap="8px",
             align_items="center",
@@ -409,7 +409,7 @@ def feedback_modal() -> rx.Component:
                     NavbarState.error_feedback_message,
                     rx.callout(
                         NavbarState.error_feedback_message,
-                        icon="alert_triangle",
+                        icon="triangle_alert",
                         color_scheme="red",
                         role="alert",
                         margin_top="12px",
@@ -570,7 +570,7 @@ def login_callout() -> rx.Component:
         NavbarState.error_sign_in_message,
         rx.callout(
             NavbarState.error_sign_in_message,
-            icon="alert_triangle",
+            icon="triangle_alert",
             color_scheme="red",
             role="alert",
             margin="20px 0 0 0",
@@ -670,7 +670,7 @@ def create_account_callout() -> rx.Component:
         NavbarState.error_create_account_message,
         rx.callout(
             NavbarState.error_create_account_message,
-            icon="alert_triangle",
+            icon="triangle_alert",
             color_scheme="red",
             role="alert",
             margin="20px 0 0 0",

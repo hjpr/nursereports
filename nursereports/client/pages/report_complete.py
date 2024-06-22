@@ -112,26 +112,6 @@ def share() -> rx.Component:
                 align_items="center",
                 margin_top="12px",
             ),
-            rx.divider(),
-            rx.flex(
-                rx.text("Or copy link:", white_space="nowrap"),
-                rx.flex(
-                    rx.button(
-                        rx.icon("clipboard", size=28),
-                        size="3",
-                        color="teal",
-                        variant="ghost",
-                        on_click=rx.set_clipboard("https://nursereports.org"),
-                    ),
-                    flex_direction="row",
-                    align_items="center",
-                    justify_content="space-around",
-                    width="100%",
-                ),
-                flex_direction="row",
-                align_items="center",
-                margin_bottom="12px",
-            ),
             flex_direction="column",
             gap="24px",
         )

@@ -164,7 +164,7 @@ def ratios() -> rx.Component:
                         rx.callout(
                             "A valid number must be entered.",
                             width="100%",
-                            icon="alert_triangle",
+                            icon="triangle_alert",
                             color_scheme="red",
                             role="alert",
                         ),
@@ -384,7 +384,7 @@ def comments() -> rx.Component:
                         rx.callout(
                             "Please limit response to < 1000 characters!",
                             width="100%",
-                            icon="alert_triangle",
+                            icon="triangle_alert",
                             color_scheme="red",
                             role="alert",
                         ),
@@ -549,7 +549,7 @@ def overall() -> rx.Component:
                 rx.callout(
                     "Please make a selection.",
                     width="100%",
-                    icon="alert_triangle",
+                    icon="triangle_alert",
                     color_scheme="red",
                     role="alert",
                 ),
@@ -603,7 +603,7 @@ def callout() -> rx.Component:
             rx.callout(
                 ReportState.staffing_error_message,
                 width="100%",
-                icon="alert_triangle",
+                icon="triangle_alert",
                 color_scheme="red",
                 role="alert",
             ),

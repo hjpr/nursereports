@@ -108,7 +108,7 @@ def pay() -> rx.Component:
                             rx.callout(
                                 "A valid weekly rate must be entered.",
                                 width="100%",
-                                icon="alert-triangle",
+                                icon="triangle_alert",
                                 color_scheme="red",
                                 role="alert",
                             ),
@@ -133,7 +133,7 @@ def pay() -> rx.Component:
                             rx.callout(
                                 "A valid hourly rate must be entered.",
                                 width="100%",
-                                icon="alert-triangle",
+                                icon="triangle_alert",
                                 color_scheme="red",
                                 role="alert",
                             ),
@@ -316,7 +316,7 @@ def demographics() -> rx.Component:
                 rx.callout(
                     "Can't have less total years than years at current hospital.",
                     width="100%",
-                    icon="alert_triangle",
+                    icon="triangle_alert",
                     color_scheme="red",
                     role="alert",
                 ),
@@ -549,7 +549,7 @@ def comments() -> rx.Component:
                         rx.callout(
                             "Please limit response to < 1000 characters!",
                             width="100%",
-                            icon="alert_triangle",
+                            icon="triangle_alert",
                             color_scheme="red",
                             role="alert",
                         ),
@@ -712,7 +712,7 @@ def overall() -> rx.Component:
                 rx.callout(
                     "Please make a selection.",
                     width="100%",
-                    icon="alert_triangle",
+                    icon="triangle_alert",
                     color_scheme="red",
                     role="alert",
                 ),
@@ -761,7 +761,7 @@ def callout() -> rx.Component:
             rx.callout(
                 ReportState.comp_error_message,
                 width="100%",
-                icon="alert_triangle",
+                icon="triangle_alert",
                 color_scheme="red",
                 role="alert",
             ),

@@ -86,7 +86,7 @@ def hospital_info_error() -> rx.Component:
         rx.flex(
             rx.callout(
                 f"Unable to retrieve hospital info. {OverviewState.error_hosp_info}",
-                icon="alert_triangle",
+                icon="triangle_alert",
                 color_scheme="red",
                 role="alert",
             ),

@@ -118,7 +118,7 @@ def unit() -> rx.Component:
                                     rx.callout(
                                         "Unit name is too long!",
                                         width="100%",
-                                        icon="alert_triangle",
+                                        icon="triangle_alert",
                                         color_scheme="red",
                                         role="alert",
                                     ),
@@ -195,7 +195,7 @@ def unit() -> rx.Component:
                                 rx.callout(
                                     "Name of area/role too long!",
                                     width="100%",
-                                    icon="alert_triangle",
+                                    icon="triangle_alert",
                                     color_scheme="red",
                                     role="alert",
                                 ),
@@ -480,7 +480,7 @@ def comments() -> rx.Component:
                     rx.callout(
                         "Please limit response to < 1000 characters!",
                         width="100%",
-                        icon="alert_triangle",
+                        icon="triangle_alert",
                         color_scheme="red",
                         role="alert",
                     ),
@@ -639,7 +639,7 @@ def overall() -> rx.Component:
                 rx.callout(
                     "Please make a selection.",
                     width="100%",
-                    icon="alert_triangle",
+                    icon="triangle_alert",
                     color_scheme="red",
                     role="alert",
                 ),
@@ -688,7 +688,7 @@ def callout() -> rx.Component:
             rx.callout(
                 ReportState.assign_error_message,
                 width="100%",
-                icon="alert_triangle",
+                icon="triangle_alert",
                 color_scheme="red",
                 role="alert",
             ),
