@@ -28,9 +28,9 @@ def dashboard_page() -> rx.Component:
 
 def content() -> rx.Component:
     return rx.flex(
-        spacer(height="48px"),
-        dashboard_header(),
         spacer(height="36px"),
+        dashboard_header(),
+        spacer(height="72px"),
         hospitals_header(),
         spacer(height="12px"),
         hospitals(),
@@ -56,7 +56,7 @@ def content() -> rx.Component:
 
 def dashboard_header() -> rx.Component:
     return rx.flex(
-        rx.heading("Dashboard", size="8", color_scheme="teal"),
+        rx.heading("My Dashboard", size="8", color_scheme="teal"),
         width="100%",
         justify="center",
     )
@@ -94,6 +94,13 @@ def has_saved_hospitals() -> rx.Component:
         ),
         height="300px",
         width="100%",
+        margin=[
+            "0px 0px 24px 0px",
+            "0px 0px 24px 0px",
+            "0px 24px 0px 0px",
+            "0px 24px 0px 0px",
+            "0px 24px 0px 0px",
+        ],
     )
 
 
@@ -129,6 +136,13 @@ def trending_hospitals() -> rx.Component:
         ),
         height="300px",
         width="100%",
+        margin=[
+            "24px 0px 0px 0px",
+            "24px 0px 0px 0px",
+            "0px 0px 0px 24px",
+            "0px 0px 0px 24px",
+            "0px 0px 0px 24px",
+        ],
     )
 
 
