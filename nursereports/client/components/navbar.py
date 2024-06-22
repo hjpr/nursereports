@@ -30,8 +30,8 @@ def navbar() -> rx.Component:
                 justify_content="center",
             ),
             links(),
-            hamburger(),
-            sign_in_or_dashboard(),
+            hamburger_mobile(),
+            sign_in_or_menu(),
             flex_direction="row",
             align_items="center",
             justify_content="space-between",
@@ -71,7 +71,7 @@ def unauth_links() -> rx.Component:
         rx.flex(
             rx.link(
                 "Donate",
-                href="https://nursereports.org/donate",
+                href=f"{BaseState.host_address}/donate",
                 cursor="pointer"
                 ),
             rx.icon("sparkles", color="teal", size=18),
@@ -88,34 +88,13 @@ def unauth_links() -> rx.Component:
 
 
 def auth_links() -> rx.Component:
-    return rx.flex(
-        rx.link(
-            "Find Hospital",
-            href="https://nursereports.org/search/report",
-            cursor="pointer"
-        ),
-        rx.flex(
-            rx.link(
-                "Donate",
-                href="https://nursereports.org/donate",
-                cursor="pointer"
-                ),
-            rx.icon("sparkles", color="teal", size=18),
-            flex_direction="row",
-            gap="8px",
-            align_items="center",
-            justify_content="center",
-        ),
-        flex_direction="row",
-        gap="24px",
-        display=["none", "none", "none", "flex", "flex"],
-    )
+    return rx.flex()
 
 
-def sign_in_or_dashboard() -> rx.Component:
+def sign_in_or_menu() -> rx.Component:
     return rx.cond(
         BaseState.user_is_authenticated,
-        account(),
+        menu(),
         signin()
         )
 
@@ -132,40 +111,179 @@ def signin() -> rx.Component:
     )
 
 
-def account() -> rx.Component:
+def menu() -> rx.Component:
     return rx.box(
         rx.cond(
             BaseState.user_has_reported,
-            rx.link(
-                "Dashboard",
-                href="https://www.nursereports.org/dashboard",
-                cursor="pointer"
-                ),
-            rx.link(
-                "Dashboard",
-                cursor="pointer",
-                on_click=NavbarState.set_alert_message(
-                    "Submit a report before accessing the dashboard."
-                ),
+            rx.flex(
+                rx.box(
+                    rx.menu.root(
+                        rx.menu.trigger(
+                            rx.icon("menu", color="teal")
+                        ),
+                        rx.menu.content(
+                            rx.menu.item(
+                                "Search by Hospital",
+                                on_click=rx.redirect(f"{BaseState.host_address}/search/hospital")
+                                ),
+                            rx.menu.item(
+                                "Search by State",
+                                on_click=rx.redirect(f"{BaseState.host_address}/search/state")
+                                ),
+                            rx.menu.separator(),
+                            rx.menu.item(
+                                "Dashboard",
+                                on_click=rx.redirect(f"{BaseState.host_address}/dashboard")
+                                ),
+                            rx.menu.separator(),
+                            rx.menu.item(
+                                "Donate",
+                                on_click=rx.redirect(f"{BaseState.host_address}/donate")
+                                ),
+                            rx.menu.separator(),
+                            rx.menu.item(
+                                "Logout",
+                                on_click=rx.redirect(f"{BaseState.host_address}/logout/user")
+                                )
+                        )
+                    ),
+                    cursor="pointer"
+                )
             ),
+            rx.box(
+                rx.icon(
+                    "menu",
+                    color="teal",
+                    on_click=NavbarState.set_alert_message(
+                        "Submit a report before accessing the dashboard."
+                    )
+                ),
+                cursor="pointer"
+            )
         ),
         display=["none", "none", "none", "inline", "inline"],
         margin="0 0 0 60px",
     )
 
 
-def hamburger() -> rx.Component:
+def hamburger_mobile() -> rx.Component:
     return rx.cond(
         BaseState.user_is_authenticated,
-        auth_hamburger(),
-        unauth_hamburger(),
+        rx.cond(
+            BaseState.user_has_reported,
+            auth_report_hamburger_mobile(),
+            auth_no_report_hamburger_mobile()
+        ),
+        unauth_hamburger_mobile(),
     )
 
 
-def unauth_hamburger() -> rx.Component:
+def auth_report_hamburger_mobile() -> rx.Component:
     return rx.box(
         rx.drawer.root(
-            rx.drawer.trigger(rx.icon("menu", cursor="pointer")),
+            rx.drawer.trigger(rx.icon("menu", color="teal", cursor="pointer")),
+            rx.drawer.overlay(),
+            rx.drawer.portal(
+                rx.drawer.content(
+                    rx.flex(
+                        rx.flex(
+                            rx.heading("Nurse Reports"),
+                            rx.drawer.close(rx.icon("X", cursor="pointer")),
+                            width="100%",
+                            padding="30px 36px 30px 36px",
+                            align_items="center",
+                            justify_content="space-between",
+                        ),
+                        rx.flex(
+                            rx.link(
+                                "Search by Hospital",
+                                href=f"{BaseState.host_address}/search/hospital",
+                                cursor="pointer"
+                            ),
+                            rx.divider(),
+                            rx.link(
+                                "Search by State",
+                                href=f"{BaseState.host_address}/search/state",
+                                cursor="pointer"
+                            ),
+                            rx.divider(),
+                            rx.link(
+                                "Dashboard",
+                                href=f"{BaseState.host_address}/dashboard",
+                                cursor="pointer"
+                                ),
+                            rx.divider(),
+                            rx.flex(
+                                rx.link(
+                                    "Donate",
+                                    href=f"{BaseState.host_address}/donate",
+                                    cursor="pointer"
+                                    ),
+                                rx.icon("hand-coins", color="teal", size=18),
+                                gap="12px",
+                                align_items="center",
+                            ),
+                            rx.divider(),
+                            rx.link("Logout",
+                                    href=f"{BaseState.host_address}/logout/user"
+                            ),
+                            flex_direction="column",
+                            width="100%",
+                            gap="24px",
+                            padding="30px 36px 30px 36px",
+                            align_items="start",
+                        ),
+                        width="100%",
+                        flex_direction="column",
+                    ),
+                    height="100%",
+                    width="100%",
+                    gap="36px",
+                    background_color="#FFF",
+                )
+            ),
+            direction="top",
+        ),
+        display=["block", "block", "block", "none", "none"],
+    )
+
+
+def auth_no_report_hamburger_mobile() -> rx.Component:
+    return rx.box(
+        rx.drawer.root(
+            rx.drawer.trigger(rx.icon("menu", color="teal", cursor="pointer")),
+            rx.drawer.overlay(),
+            rx.drawer.portal(
+                rx.drawer.content(
+                    rx.flex(
+                        rx.flex(
+                            rx.heading("Nurse Reports"),
+                            rx.drawer.close(rx.icon("X", cursor="pointer")),
+                            width="100%",
+                            padding="30px 36px 30px 36px",
+                            align_items="center",
+                            justify_content="space-between",
+                        ),
+                        rx.flex(
+                            rx.link(
+                                "Log out",
+                                href=f"{BaseState.host_address}/logout/user",
+                                cursor="pointer"
+                            ),
+                        )
+                    )
+                )
+            ),
+            direction="top"
+        ),
+        display=["block", "block", "block", "none", "none"],
+    )
+
+
+def unauth_hamburger_mobile() -> rx.Component:
+    return rx.box(
+        rx.drawer.root(
+            rx.drawer.trigger(rx.icon("menu", color="teal", cursor="pointer")),
             rx.drawer.overlay(),
             rx.drawer.portal(
                 rx.drawer.content(
@@ -183,7 +301,7 @@ def unauth_hamburger() -> rx.Component:
                                 "Staff",
                                 href="https://blog.nursereports.org/for-staff",
                                 cursor="pointer"
-                                ),
+                            ),
                             rx.divider(),
                             rx.link(
                                 "Travelers",
@@ -211,66 +329,6 @@ def unauth_hamburger() -> rx.Component:
                             rx.link(
                                 "Sign In",
                                 on_click=NavbarState.event_state_navbar_pressed_sign_in,
-                            ),
-                            flex_direction="column",
-                            width="100%",
-                            gap="24px",
-                            padding="30px 36px 30px 36px",
-                            align_items="start",
-                        ),
-                        width="100%",
-                        flex_direction="column",
-                    ),
-                    height="100%",
-                    width="100%",
-                    gap="36px",
-                    background_color="#FFF",
-                )
-            ),
-            direction="top",
-        ),
-        display=["block", "block", "block", "none", "none"],
-    )
-
-
-def auth_hamburger() -> rx.Component:
-    return rx.box(
-        rx.drawer.root(
-            rx.drawer.trigger(rx.icon("menu", cursor="pointer")),
-            rx.drawer.overlay(),
-            rx.drawer.portal(
-                rx.drawer.content(
-                    rx.flex(
-                        rx.flex(
-                            rx.heading("Nurse Reports"),
-                            rx.drawer.close(rx.icon("X", cursor="pointer")),
-                            width="100%",
-                            padding="30px 36px 30px 36px",
-                            align_items="center",
-                            justify_content="space-between",
-                        ),
-                        rx.flex(
-                            rx.link(
-                                "Find hospitals",
-                                href=f"{BaseState.host_address}/search/report",
-                                cursor="pointer"
-                            ),
-                            rx.divider(),
-                            rx.link(
-                                "Dashboard",
-                                href=f"{BaseState.host_address}/dashboard"
-
-                                ),
-                            rx.divider(),
-                            rx.flex(
-                                rx.link("Donate"),
-                                rx.icon("hand-coins", color="teal", size=18),
-                                gap="12px",
-                                align_items="center",
-                            ),
-                            rx.divider(),
-                            rx.link("Logout",
-                                    href=f"{BaseState.host_address}/logout/user"
                             ),
                             flex_direction="column",
                             width="100%",

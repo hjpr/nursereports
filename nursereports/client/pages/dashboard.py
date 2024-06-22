@@ -29,15 +29,23 @@ def dashboard_page() -> rx.Component:
 def content() -> rx.Component:
     return rx.flex(
         spacer(height="48px"),
-        saved_hospitals(),
-        spacer(height="48px"),
-        trending_hospitals(),
-        spacer(height="48px"),
+        dashboard_header(),
+        spacer(height="36px"),
+        hospitals_header(),
+        spacer(height="12px"),
+        hospitals(),
+        spacer(height="36px"),
+        average_pay_header(),
+        spacer(height="12px"),
         average_pay(),
-        spacer(height="48px"),
+        spacer(height="36px"),
+        your_reviews_header(),
+        spacer(height="12px"),
         your_reviews(),
-        spacer(height="48px"),
+        spacer(height="36px"),
         width="100%",
+        max_width="1100px",
+        padding="24px",
         align="center",
         flex_direction="column",
         flex_basis="auto",
@@ -46,25 +54,39 @@ def content() -> rx.Component:
     )
 
 
-def saved_hospitals() -> rx.Component:
-    return rx.cond(
-        BaseState.user_has_saved_hospitals, has_saved_hospitals(), no_saved_hospitals()
+def dashboard_header() -> rx.Component:
+    return rx.flex(
+        rx.heading(
+            "Dashboard",
+            size="8",
+            color_scheme="teal"
+        ),
+        width="100%",
+        justify="center",
     )
 
 
-def no_saved_hospitals() -> rx.Component:
-    return rx.card(
-        rx.flex(
-            rx.text("No saved hospitals...", font_size='10px'),
-            height="100%",
-            width="100%",
-            align_items="center",
-            justify_content="center"
+def hospitals_header() -> rx.Component:
+    return rx.flex(
+        rx.heading(
+            "My Hospitals",
+            size="6",
+            align="left",
+            color_scheme="teal"
         ),
-        height="300px",
         width="100%",
-        max_width="1100px",
-        padding_x="24px",
+    )
+
+
+def hospitals() -> rx.Component:
+    return rx.flex(
+        rx.cond(
+            BaseState.user_has_saved_hospitals, has_saved_hospitals(), no_saved_hospitals()
+        ),
+        trending_hospitals(),
+        width="100%",
+        align="center",
+        flex_direction=["column", "column", "row", "row", "row"],
     )
 
 
@@ -79,8 +101,27 @@ def has_saved_hospitals() -> rx.Component:
         ),
         height="300px",
         width="100%",
-        max_width="1100px",
-        padding_x="24px",
+    )
+
+
+def no_saved_hospitals() -> rx.Component:
+    return rx.card(
+        rx.flex(
+            rx.text("No saved hospitals...", font_size='10px'),
+            height="100%",
+            width="100%",
+            align_items="center",
+            justify_content="center"
+        ),
+        height="300px",
+        width="100%",
+        margin=[
+            "0px 0px 24px 0px",
+            "0px 0px 24px 0px",
+            "0px 24px 0px 0px",
+            "0px 24px 0px 0px",
+            "0px 24px 0px 0px",
+            ]
     )
 
 
@@ -95,9 +136,19 @@ def trending_hospitals() -> rx.Component:
         ),
         height="300px",
         width="100%",
-        max_width="1100px",
-        padding_x="24px",
     )
+
+
+def average_pay_header() -> rx.Component:
+    return rx.flex(
+        rx.heading(
+            "My Pay Demographics",
+            size="6",
+            align="left",
+            color_scheme="teal"
+        ),
+        width="100%",
+    ) 
 
 
 def average_pay() -> rx.Component:
@@ -112,7 +163,18 @@ def average_pay() -> rx.Component:
         height="300px",
         width="100%",
         max_width="1100px",
-        padding_x="24px",
+    )
+
+
+def your_reviews_header() -> rx.Component:
+    return rx.flex(
+        rx.heading(
+            "My Reviews",
+            size="6",
+            align="left",
+            color_scheme="teal"
+        ),
+        width="100%",
     )
 
 
@@ -128,5 +190,4 @@ def your_reviews() -> rx.Component:
         height="300px",
         width="100%",
         max_width="1100px",
-        padding_x="24px",
     )
