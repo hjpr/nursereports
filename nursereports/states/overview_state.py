@@ -1,5 +1,5 @@
 
-from ..states import *
+from ..states import PageState, ReportState
 from ..server.supabase.report_requests import supabase_get_hospital_info
 from typing import Callable, Iterable
 
