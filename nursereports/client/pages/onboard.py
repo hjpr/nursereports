@@ -195,7 +195,7 @@ def callout_error() -> rx.Component:
             rx.callout(
                 OnboardState.onboard_error_message,
                 width="100%",
-                icon="alert_triangle",
+                icon="triangle_alert",
                 color_scheme="red",
                 role="alert",
             ),
