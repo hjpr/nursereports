@@ -1,4 +1,10 @@
 from ..secrets import api_key, api_url
+from ...server.exceptions import (
+    DuplicateUserError,
+    NoDataError,
+    RequestError
+)
+
 from datetime import datetime, timezone
 from loguru import logger
 
@@ -7,7 +13,7 @@ import json
 import rich
 
 
-def supabase_get_user_info(access_token: str) -> dict:
+def supabase_get_user_info(access_token: str) -> dict | None:
     """Use access token to retrieve a user info from the
     public users table.
 
@@ -16,23 +22,23 @@ def supabase_get_user_info(access_token: str) -> dict:
 
     Returns:
         dict:
-            success: bool
-            status: str - user-readable reason for failure
-            payload: dict - user info
+            created_at: timestamptz - user creation date, default is nowutc()
+            license: str - user's license type, default is NULL
+            license_state: str - user's license type, default is NULL
+            membership: str - default value is 'Free'
+            modified_at: timestamptz - user modified last date, default is nowutc()
+            my_jobs: list[dict] - default value is NULL
+            my_reports: list[dict] - default value is NULL
+            needs_onboard: bool - default value is True
+            reports: int - default value is 0
+            saved_hospitals: dict - default value is NULL
+            trust: int - default value is 0
+            user_id: uuid - jwt provided uuid
 
-    Payload contains:
-        dict:
-            user_id: str - users id as uuid
-            license: str - user license type
-            license_state: str - user license state
-            membership: str - membership level
-            saved_hospitals: dict - list of saved hospitals by id
-            my_jobs: dict - list of saved jobs by id
-            needs_onboard: bool - has user completed a report
-            trust: int - trust level
-            reports: int - how many successful reports submitted
-            created_at: timestamptz - unix timestamp when user profile created
-            modified_at: timestamptz - unix timestamp when user last changed info
+    Exceptions:
+        DuplicateUserError: retrieved too many user records.
+        RequestError: request to retrieve user failed.
+
     """
     url = f"{api_url}/rest/v1/users?select=*"
     headers = {
@@ -43,23 +49,21 @@ def supabase_get_user_info(access_token: str) -> dict:
     response = httpx.get(url=url, headers=headers)
     if response.is_success:
         content = json.loads(response.content)
-        if content:
+        if len(content) == 1:
             logger.debug("Retrieved user data from public/users.")
-            logger.debug(content[0])
-            return {"success": True, "status": None, "payload": content[0]}
+            return content[0]
+        if len(content) > 1:
+            logger.critical("Retrieved multiple user entries from a single user id!")
+            raise DuplicateUserError("Retrieved multiple user entries for a single user id.")
         else:
             logger.warning("No user data present in public/users.")
-            return {"success": False, "status": "No user info present", "payload": None}
+            return None
     else:
         logger.critical("Failed to retrieve data from public/users.")
-        return {
-            "success": False,
-            "status": f"{response.status_code} - {response.reason_phrase}",
-            "payload": None,
-        }
+        raise RequestError(f"{response.status_code} - {response.reason_phrase}")
 
 
-def supabase_create_initial_user_info(access_token: str, user_id: str) -> dict:
+def supabase_create_initial_user_info(access_token: str, user_id: str) -> None:
     """
     Creates initial user info in public users table with access_token
     and uuid.
@@ -68,23 +72,20 @@ def supabase_create_initial_user_info(access_token: str, user_id: str) -> dict:
         access_token: jwt object of user
         uuid: uuid of user
 
-    Returns:
-        success: bool - if API call successful.
-        status: str - status codes if any.
-
     Default values set during initial user creation via default
     supabase settings:
-        user_id: uuid - jwt provided uuid
-        license: str - user's license type, default is null
-        license_state: str - user's license type, default is null
         created_at: timestamptz - user creation date, default is timenow
-        modified_at: timestamptz - user modified last date, default is timenow
+        license: str - user's license type, default is NULL
+        license_state: str - user's license type, default is NULL
         membership: str - default value is 'Free'
+        modified_at: timestamptz - user modified last date, default is NULL
+        my_jobs: list[dict] - default value is NULL
+        my_reports: list[dict] - default value is NULL
         needs_onboard: bool - default value is True
-        saved_hospitals: dict - default value is {}
-        my_jobs: dict - default value is {}
-        trust: int - default value is 0
         reports: int - default value is 0
+        saved_hospitals: dict - default value is NULL
+        trust: int - default value is 0
+        user_id: uuid - jwt provided uuid
     """
     url = f"{api_url}/rest/v1/users"
     headers = {
@@ -96,14 +97,37 @@ def supabase_create_initial_user_info(access_token: str, user_id: str) -> dict:
     response = httpx.post(url=url, headers=headers, data=json.dumps(data))
     if response.is_success:
         logger.debug("New user successfully created in public/users.")
-        return {"success": True, "status": None}
     else:
         logger.critical("Failed to create initial user info in public/users!")
-        return {
-            "success": False,
-            "status": f"{response.status_code} - \
-                {response.reason_phrase}",
-        }
+        raise RequestError(f"{response.status_code} - {response.reason_phrase}")
+    
+
+def supabase_get_user_modified_at_timestamp(access_token: str) -> dict | None:
+    """
+    Checks if database has updates to user data that are not reflected in the state.
+
+    Args:
+        access_token: str - user JWT object
+
+    Returns:
+        dict:
+            success: bool - if API call successful.
+            status: str - user readable errors if any.
+            payload: str - timestamp that info was last modified at
+    """
+    url = f"{api_url}/rest/v1/users?select=modified_at"
+    headers = {
+        "apikey": api_key,
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json",
+    }
+    response = httpx.get(url=url, headers=headers)
+    if response.is_success:
+        content = json.loads(response.content)
+        logger.debug("Pulled last modified timestamp data from user data.")
+        return content[0]
+    else:
+        raise RequestError("Unable to pull timestamp info to compare stored vs state.")
 
 
 def supabase_update_user_info(
@@ -142,9 +166,52 @@ def supabase_update_user_info(
         rich.inspect(response)
         return {
             "success": False,
-            "status": f"{response.status_code} - \
-                {response.reason_phrase}",
+            "status": f"{response.status_code} - {response.reason_phrase}",
         }
+    
+
+def supabase_get_user_reports(access_token, user_id) -> list[dict] | None:
+    """
+    Retrieves the user reports formatted for the dashboard page for
+    display, editing, and removal.
+
+    Args:
+        access_token: jwt object of user
+        user_id: claims id of user
+
+    Returns:
+        dict:
+            success: bool - if API call successful
+            status: str - user readable errors if any
+            payload: list of dicts containing select info from all reports found
+                list[dict]:
+                    assign_select_unit: str - user selected unit
+                    assign_input_unit_name: str - if unit not present, user entered unit
+                    assign_select_area: str - user selected area
+                    assign_input_area: str - if area not present, user entered area
+                    created_at: str - time report was created
+                    hospital_id: str - medicare id
+                    modified_at: str - time report was modified
+                    report_id: str - uuid of report
+    """
+    url = f"{api_url}/rest/v1/reports?user_id=eq.{user_id}&select=report_id,hospital_id,assign_select_unit,assign_input_unit_name,assign_select_area,assign_input_area,created_at,modified_at"
+    headers = {
+        "apikey": api_key,
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json",
+    }
+    response = httpx.get(url=url, headers=headers)
+    if response.is_success:
+        content = json.loads(response.content)
+        logger.debug(f"Pulled {len(response.content)} user report(s) successfully.")
+        return content
+    else:
+        logger.critical("Failed to retrieve reports from user database!")
+        raise RequestError("Unable to retrieve user reports from database.")
+
+
+def supabase_get_saved_hospitals(access_token, user_id) -> list[dict]:
+    return []
 
 
 def get_current_utc_timestamp_as_str() -> str:

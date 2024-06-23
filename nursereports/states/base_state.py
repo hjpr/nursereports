@@ -1,17 +1,30 @@
+from ..server.exceptions import (
+    DuplicateUserError,
+    ExpiredError,
+    LoginError,
+    NoDataError,
+    ReadError,
+    ReportError,
+    RequestError,
+    StateError,
+    TokenError,
+    WriteError,
+)
 from ..server.secrets import jwt_key
 from ..server.supabase import (
     supabase_create_initial_user_info,
     supabase_get_new_access_token,
+    supabase_get_saved_hospitals,
     supabase_get_user_info,
+    supabase_get_user_modified_at_timestamp,
+    supabase_get_user_reports,
 )
 
 from loguru import logger
 from typing import Callable, Iterable
 
-import inspect
 import jwt
 import reflex as rx
-import rich
 import time
 
 
@@ -27,7 +40,9 @@ class BaseState(rx.State):
         secure=True,
     )
 
-    user_info: dict
+    user_info: dict = {}
+    saved_hospitals: list[dict] = []
+    user_reports: list[dict] = []
 
     @rx.var
     def host_address(self) -> str:
@@ -39,7 +54,7 @@ class BaseState(rx.State):
 
     @rx.cached_var
     def user_claims(self) -> dict:
-        """Pull claims from JWT if valid and not expired.
+        """Pull claims from JWT if valid, authenticated, and not expired.
 
         Returns:
             dict:
@@ -104,190 +119,221 @@ class BaseState(rx.State):
             else:
                 return False
 
+    def event_state_standard_flow(self, access_level: str) -> Iterable[Callable]:
+        """
+        Simple standard login flow. Runs on_load prior to every page.
+
+        This process ensures that:
+            1: User claims are valid.
+            2: User info is present and dashboard info is populated.
+            3: User is where they are allowed to be.
+
+        Args:
+            access_level: 'none', 'login', or 'report'
+        """
+        try:
+            if self.user_claims["valid"] and self.user_info:
+                self.authenticated_flow(access_level)
+            if self.user_claims["valid"] and not self.user_info:
+                self.authenticated_missing_info_flow(access_level)
+            if not self.user_claims["valid"]:
+                self.unauthenticated_flow(access_level)
+        except ExpiredError:
+            yield rx.redirect("/logout/expired")
+        except LoginError:
+            yield from self.redirect_user_to_login()
+        except ReportError:
+            yield from self.redirect_user_to_onboard()
+        except (
+            DuplicateUserError,
+            RequestError,
+            StateError,
+            TokenError,
+            WriteError,
+        ) as e:
+            error_message = str(e)
+            yield rx.toast.error(error_message, timeout=5000)
+            yield rx.redirect("/logout/error")
+
+    def event_state_refresh_user_info(self) -> Iterable[Callable]:
+        """
+        Use to load or refresh current user info. Runs on_load when opening the dashboard,
+        ensuring that all the user values are up to date with the backend.
+        """
+        try:
+            if self.check_user_data_has_updated:
+                self.set_all_user_data()
+        except (
+            DuplicateUserError,
+            ReadError,
+            RequestError,
+            StateError,
+            WriteError,
+        ) as e:
+            error_message = str(e)
+            yield rx.toast.error(error_message, timeout=5000)
+            yield rx.redirect("/logout/error")
+
+    def authenticated_flow(self, access_level: str) -> None:
+        """
+        User is authenticated and user info is present. Just make sure that
+        user is accessing the appropriate resources for their access_level.
+        """
+        self.check_claims_for_expiring_soon()
+        self.check_access(access_level)
+
+    def authenticated_missing_info_flow(self, access_level: str) -> None:
+        """
+        User is authenticated but user info not present. After retrieving user
+        data, make sure user is accessing appropriate resources for their
+        access_level.
+        """
+        self.check_claims_for_expiring_soon()
+        self.set_all_user_data()
+        self.check_access(access_level)
+
+    def unauthenticated_flow(self, access_level: str) -> None:
+        """
+        User is not authenticated, and is either just browsing the index page, or
+        may be attempting to login using an SSO redirect. If coming from SSO then
+        process the JWT, set the user data, and make sure user is accessing
+        appropriate resouces for their access_level.
+        """
+        if self.user_claims["reason"] == "empty":
+            self.handle_sso_redirect()
+        if self.user_claims["valid"]:
+            self.authenticated_missing_info_flow
+
     def check_claims_for_expiring_soon(self) -> None:
-        if self.access_token:
-            if self.user_claims["valid"]:
-                current_time = int(time.time())
-                expires_at = self.user_claims["payload"]["exp"]
-                time_left_sec = expires_at - current_time
-                if 5 <= time_left_sec <= 1800:
-                    self.refresh_access_token()
+        """
+        Refreshes access token. If access token expires, then site will
+        log user out for inactivity.
+        """
+        current_time = int(time.time())
+        expires_at = self.user_claims["payload"]["exp"]
+        time_left_sec = expires_at - current_time
+        if 5 <= time_left_sec <= 1800:
+            self.refresh_access_token()
 
     def refresh_access_token(self) -> None:
-        response = supabase_get_new_access_token(self.access_token, self.refresh_token)
+        access_token = self.access_token
+        refresh_token = self.refresh_token
+        response = supabase_get_new_access_token(access_token, refresh_token)
         if response["success"]:
             self.access_token = response["payload"]["access_token"]
             self.refresh_token = response["payload"]["refresh_token"]
 
-    def user_access_granted(self, access_level) -> dict:
-        """Returns dict containing access bool, and reason if denied.
-
-        Args:
-            access_level: 'login' or 'report' depending on what user
-                needs in order to access.
-
-        Returns:
-            dict:
-                granted: bool
-                reason: 'login' or 'report' depending on what the user was
-                    missing.
-        """
+    def check_access(self, access_level: str) -> None:
         if access_level == "login" and not self.user_is_authenticated:
-            logger.warning(
-                inspect.cleandoc(
-                    f"""{self.router.session.client_ip} attempted to access
-                resources requiring login."""
-                )
-            )
-            return {"granted": False, "reason": "login"}
+            raise LoginError("Login before accessing this page.")
         if access_level == "report" and not self.user_has_reported:
             if self.user_is_authenticated:
-                logger.warning(
-                    inspect.cleandoc(
-                        f"""{self.user_claims['payload']['sub']} attempted
-                    to access resources requiring report."""
-                    )
-                )
-                return {"granted": False, "reason": "report"}
+                raise ReportError("Submit a report before accessing this page.")
             else:
-                logger.warning(
-                    inspect.cleandoc(
-                        f"""{self.router.session.client_ip} attempted to
-                    access resources requiring login."""
-                    )
-                )
-                return {"granted": False, "reason": "login"}
-        return {"granted": True, "reason": None}
+                raise LoginError("Login before accessing this page.")
 
-    def event_state_standard_flow(self, access_req: str) -> Iterable[Callable]:
-        """
-        Simple standard login flow.
-            If claims are valid and user info present:
-                User is logged in, so check if they have
-                reported or not and refresh token as needed.
-            If claims are valid but no user info:
-                Set user info from public entry in /users,
-                create an entry if entry doesn't exist,
-                or kick out to error if not possible.
-                possible.
-            If claims aren't valid:
-                Check claims reason and redirect accordingly.
-
-        This process ensures that:
-            1: User claims are valid
-            2: User info is present
-            3: User is where they are allowed to be
-
-        Args:
-            access_req: 'none', 'login', or 'report'
-
-        Context:
-            Yields to on_load event handler
-        """
-        if self.user_claims["valid"] and self.user_info:
-            self.check_claims_for_expiring_soon()
-            yield from self.redirect_if_access_denied(access_req)
-        elif self.user_claims["valid"] and not self.user_info:
-            response = self.set_user_data()
-            if response["success"]:
-                self.check_claims_for_expiring_soon()
-                yield from self.redirect_if_access_denied(access_req)
-            else:
-                yield rx.redirect("/logout/error")
-        else:
-            if self.user_claims["reason"] == "empty":
-                yield from self.check_if_sso_redirect()
-                yield from self.redirect_if_access_denied(access_req)
-            if self.user_claims["reason"] == "expired":
-                yield rx.redirect("/logout/expired")
-            if self.user_claims["reason"] == "invalid":
-                yield rx.redirect("/logout/error")
-
-    def check_if_sso_redirect(self) -> Iterable[Callable]:
+    def handle_sso_redirect(self) -> None:
         raw_path = self.router.page.raw_path
         if ("access_token" in raw_path) and ("refresh_token" in raw_path):
-            self.set_tokens_from_sso_redirect(raw_path)
-            response = self.set_user_data()
-            if response["success"]:
-                yield from self.redirect_for_report_status()
-            else:
-                yield rx.redirect("/logout/error")
+            try:
+                fragment = raw_path.split("#")[1]
+                self.access_token = fragment.split("&")[0].split("=")[1]
+                self.refresh_token = fragment.split("&")[4].split("=")[1]
+            except Exception:
+                raise TokenError("Encountered an error processing JWT via SSO.")
 
-    def set_tokens_from_sso_redirect(self, raw_path) -> None:
-        logger.debug("Coming from SSO redirect. Parsing URL for tokens.")
-        fragment = raw_path.split("#")[1]
-        self.access_token = fragment.split("&")[0].split("=")[1]
-        self.refresh_token = fragment.split("&")[4].split("=")[1]
-
-    def set_user_data(self) -> dict:
+    def check_user_data_has_updated(self) -> bool:
         """
-        Attempts to pull user data from supabase. If first time and
-        user has no info, will create entry in public/users with default
-        values.
-
-        Returns:
-            dict:
-                success: bool
-                status: user readable reason for failure
-
-        Context:
-            If we have to create a user entry, we don't need to retrieve it
-            afterwards because we know the defaults that supabase writes.
+        Compare timestamp in database vs state. This check saves database pulls when
+        user infomation hasn't changed and user lands on dashboard page.
         """
-        response = supabase_get_user_info(self.access_token)
-        if response["success"]:
+        access_token = self.access_token
+        database_timestamp = supabase_get_user_modified_at_timestamp(access_token)
+        state_timestamp = self.user_info["modified_at"]
+        logger.debug(
+            f"Comparing db to state timestamps - {database_timestamp} {state_timestamp}"
+        )
+        return False if database_timestamp == state_timestamp else True
+
+    def set_all_user_data(self) -> None:
+        """
+        Calls three different functions to set user info, saved hospitals, and
+        reviews. DONT USE THIS BY ITSELF. Needs to be set in a stack
+        that catches exceptions from its referenced functions.
+        """
+        if self.user_claims["valid"]:
+            access_token = self.access_token
+            user_id = self.user_claims["payload"]["sub"]
+            self.set_user_info(access_token, user_id)
+            self.set_saved_hospitals(access_token, user_id)
+            self.set_user_reports(access_token, user_id)
+
+    def set_user_info(self, access_token: str, user_id: str) -> None:
+        """
+        Retrieves user info and saves to state. If no user info present
+        creates entry in database.
+        """
+        user_info = supabase_get_user_info(access_token)
+        if user_info:
             logger.debug("Setting user data from payload.")
-            self.user_info = response["payload"]
-            return response
-        elif not response["success"] and response["status"] == "No user info present":
-            response = supabase_create_initial_user_info(
-                self.access_token, self.user_claims["payload"]["sub"]
-            )
-            if response["success"]:
-                logger.debug("Setting user info to default values.")
-                self.user_info = {
-                    "uuid": self.user_claims["payload"]["sub"],
-                    "license": "",
-                    "license_state": "",
-                    "membership": "Free",
-                    "needs_onboard": True,
-                    "saved_hospitals": {},
-                    "my_jobs": {},
-                    "trust": 0,
-                }
-                return response
-            else:
-                logger.critical("Unable to set up first time user!")
-                rich.inspect(response)
-                return response
+            self.user_info = user_info
         else:
-            return response
+            self.create_new_user()
 
-    def redirect_for_report_status(self) -> Iterable[Callable]:
+    def create_new_user(self, access_token: str, user_id: str) -> None:
+        """
+        Creates a new user in database and saves that user info to state.
+        """
+        supabase_create_initial_user_info(access_token, user_id)
+        user_info = supabase_get_user_info(access_token)
+        logger.debug("Setting user data from payload.")
+        self.user_info = user_info
+
+    def set_saved_hospitals(self, access_token, user_id) -> None:
+        """
+        Retrieves user's saved hospitals from database and saves them to state.
+        """
+        saved_hospitals = supabase_get_saved_hospitals(access_token, user_id)
+        if saved_hospitals:
+            logger.debug("Setting saved hospitals into state.")
+            self.saved_hospitals = saved_hospitals
+        else:
+            logger.debug("User doesn't have any saved hospitals to retrieve.")
+
+    def set_user_reports(self, access_token, user_id) -> None:
+        """
+        Retrieves user reports from database and saves them to state.
+        """
+        user_reports = supabase_get_user_reports(access_token, user_id)
+        if user_reports:
+            logger.debug("Setting user reports into state.")
+            self.user_reports = user_reports
+        else:
+            logger.warning("Retrieved empty list when requesting user reports.")
+
+    def redirect_user_to_login(self) -> Iterable[Callable]:
+        from .navbar_state import NavbarState
+
+        yield rx.redirect("/")
+        yield NavbarState.set_login_tab("login")
+        yield NavbarState.set_show_login(True)
+        yield NavbarState.set_error_sign_in_message(
+            "You must be logged in to access that content."
+        )
+
+    def redirect_user_to_onboard(self) -> Iterable[Callable]:
+        from .navbar_state import NavbarState
+
+        yield rx.redirect("/onboard")
+        yield NavbarState.set_alert_message(
+            "Please submit a report before accessing that content."
+        )
+
+    def redirect_user_to_onboard_or_dashboard(self) -> Iterable[Callable]:
         if self.user_has_reported:
             yield rx.redirect("/dashboard")
         else:
             yield rx.redirect("/onboard")
-
-    def redirect_if_access_denied(self, access_req) -> Iterable[Callable]:
-        from .navbar_state import NavbarState
-
-        access = self.user_access_granted(access_req)
-        if not access["granted"]:
-            if access["reason"] == "login":
-                yield rx.redirect("/")
-                yield NavbarState.set_login_tab("login")
-                yield NavbarState.set_show_login(True)
-                yield NavbarState.set_error_sign_in_message(
-                    "You must be logged in to access that content."
-                )
-            elif access["reason"] == "report":
-                yield rx.redirect("/onboard")
-                yield NavbarState.set_alert_message(
-                    "Please submit a report before accessing that content."
-                )
-            else:
-                yield rx.redirect("/")
 
     def event_state_logout(self) -> Iterable[Callable]:
         from . import NavbarState
@@ -296,17 +342,15 @@ class BaseState(rx.State):
             self.reset()
             yield NavbarState.set_alert_message("Successfully logged out.")
         if self.reason_for_logout == "error":
-            logger.critical("Logged user out forcefully - probably server error.")
             self.reset()
             yield NavbarState.set_alert_message(
-                inspect.cleandoc("""Encountered error requiring reset.
-                If this message persists, the backend is likely down
-                and we are in the process of recovering.
-                """)
+                """Encountered an error. If this message
+                persists, please contact support@nursereports.org."""
             )
         if self.reason_for_logout == "expired":
             self.reset()
-            yield NavbarState.set_alert_message("""For your security, you've been
-                logged out for inactivity.
-                """)
+            yield NavbarState.set_alert_message(
+                """For your security, you've been
+                logged out for inactivity."""
+            )
         yield rx.redirect("/")

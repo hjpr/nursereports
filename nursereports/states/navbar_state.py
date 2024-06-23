@@ -1,5 +1,13 @@
-from ..server.secrets import *
-from ..server.supabase import *
+from ..server.exceptions import (
+    LoginError,
+    RequestError
+)
+from ..server.secrets import api_url
+from ..server.supabase import (
+    supabase_create_account_with_email,
+    supabase_login_with_email,
+    supabase_submit_feedback
+)
 from .base_state import BaseState
 
 from typing import Callable, Iterable
@@ -54,53 +62,56 @@ class NavbarState(BaseState):
         self.login_tab = 'create_account'
         self.show_login = True
 
-    def event_state_login_modal_submit(self, form_data: dict) -> Callable | None:
+    def event_state_login_modal_submit(self, form_data: dict) -> Iterable[Callable]:
+        """
+        Handles the on_submit event from the login_modal. Gets form_data from the event and
+        can either login using email or create an account with an email.
+        """
         if form_data.get("login_email"):
-            redirect = self.event_state_login_with_email(form_data)
-            return redirect
+            yield [
+                self.event_state_login_with_email(form_data),
+                self.event_state_refresh_user_info(),
+                self.redirect_user_to_onboard_or_dashboard()
+            ]
         if form_data.get("create_account_email"):
-            self.event_state_email_create_account(form_data)
+            yield [
+                self.event_state_email_create_account(form_data)
+            ]
 
     def event_state_login_with_email(self, form_data: dict) -> Iterable[Callable] | None:
+        """
+        Logs into supabase using email and password in order and saves the access_token
+        and refresh_token to the state.
+        """
         email = form_data.get("login_email")
         password = form_data.get("login_password")
-        response = supabase_login_with_email(email, password)
-        if response['success']:
-            self.access_token = response['payload']['access_token']
-            self.refresh_token = response['payload']['refresh_token']
-            response = self.set_user_data()
-            if response['success']:
-                self.show_login = False
-                if self.user_info['needs_onboard']:
-                    yield rx.redirect('/onboard')
-                else:
-                    yield rx.redirect('/dashboard')
-            else:
-                self.access_token = ""
-                self.refresh_token = ""
-                self.error_sign_in_message = response['status']
-        else:
-            self.error_sign_in_message = response['status']
+        try:
+            tokens = supabase_login_with_email(email, password)
+            self.access_token = tokens['access_token']
+            self.refresh_token = tokens['refresh_token']
+        except RequestError as e:
+            error_message = str(e)
+            self.error_sign_in_message = error_message
 
     def event_state_email_create_account(self, form_data: dict) -> None:
         email = form_data.get("create_account_email")
         password = form_data.get("create_account_password")
         password_confirm = form_data.get("create_account_password_confirm")
-        if password != password_confirm:
-            self.error_create_account_message = "Passwords do not match."
-        else:
-            response = supabase_create_account_with_email(
-                email,
-                password
-            )
-            if response['success']:
-                self.show_login = False
-                self.error_create_account_message = ""
-                self.alert_message = """Email sent with verification
-                    link. Allow a few minutes if email doesn't appear
-                    right away."""
-            else:
-                self.error_create_account_message = response['status']
+        try:
+            if password != password_confirm:
+                raise LoginError("Passwords do not match")
+            supabase_create_account_with_email(email, password)
+            self.show_login = False
+            self.error_create_account_message = ""
+            self.alert_message = """Email sent with verification
+                link. Allow a few minutes if email doesn't appear
+                right away."""
+        except LoginError as e:
+            error_message = str(e)
+            self.error_create_account_message = error_message
+        except RequestError as e:
+            error_message = str(e)
+            self.error_create_account_message = error_message
 
     def event_state_login_with_sso(self, provider: str) -> Callable:
         self.show_login = False

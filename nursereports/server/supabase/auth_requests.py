@@ -1,5 +1,7 @@
-
 from ..secrets import api_key, api_url
+from ...server.exceptions import (
+    RequestError
+)
 
 from loguru import logger
 
@@ -12,16 +14,16 @@ def supabase_login_with_email(
         password: str
         ) -> dict:
     """
-    Login using email and password. Returns dict of values.
+    Login using email and password. Returns dict of tokens.
 
     Args:
         email: <-
         password: <-
 
     Returns:
-        success: If API call successful.
-        status: Status codes if any.refle
-        payload: Important data to return.
+        dict:
+            access_token: str - user JWT object.
+            refresh_token: str - token used to refresh JWT.
     """
     url = f'{api_url}/auth/v1/token'
     params = {
@@ -44,9 +46,6 @@ def supabase_login_with_email(
     if response.is_success:
         logger.debug("Successfully signed in using email.")
         return {
-            "success": True,
-            "status": None,
-            "payload": {
                 "access_token": response.cookies.get(
                     'sb-access-token'
                     ),
@@ -54,30 +53,24 @@ def supabase_login_with_email(
                     'sb-refresh-token'
                     )
                 }
-            }
     else:
         logger.critical("Failed to login using email.")
-        error = json.loads(response.text)
-        return {
-            "success": False,
-            "status": f"{error['error_description']}",
-            "payload": None
-            }
+        error_message = json.loads(response.text)
+        raise RequestError(error_message)
     
 def supabase_create_account_with_email(
         email: str,
         password: str,
-        ) -> dict:
+        ) -> None:
     """
-    Create account using email and password. Returns dict of values.
+    Create account using email and password.
 
     Args:
         email: <-
         password: <-
 
     Returns:
-        success: If API call successful.
-        status: Status codes if any.
+        None
     """
     url = f'{api_url}/auth/v1/signup'
     headers = {
@@ -95,19 +88,10 @@ def supabase_create_account_with_email(
         )
     if response.is_success:
         logger.debug("Successfully created account with email.")
-        return {
-            "success": True,
-            "status": None,
-            }
     else:
         logger.critical("Unable to create account using email.")
-        rich.inspect(response)
-        error = json.loads(response.text)
-        return {
-            "success": False,
-            "status": f"{error['msg']}"
-        }
-    
+        error_message = json.loads(response.text)['msg']
+        raise RequestError(error_message)
 
 
 def supabase_get_new_access_token(

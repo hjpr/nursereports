@@ -28,21 +28,13 @@ def dashboard_page() -> rx.Component:
 
 def content() -> rx.Component:
     return rx.flex(
-        spacer(height="36px"),
         dashboard_header(),
-        spacer(height="72px"),
-        hospitals_header(),
-        spacer(height="12px"),
-        hospitals(),
-        spacer(height="24px"),
-        average_pay_header(),
-        spacer(height="12px"),
-        average_pay(),
-        spacer(height="24px"),
-        your_reviews_header(),
-        spacer(height="12px"),
-        your_reviews(),
-        spacer(height="24px"),
+        my_hospitals_header(),
+        my_hospitals(),
+        my_pay_header(),
+        my_pay(),
+        my_reviews_header(),
+        my_reviews(),
         width="100%",
         max_width="1100px",
         padding="24px",
@@ -59,17 +51,19 @@ def dashboard_header() -> rx.Component:
         rx.heading("My Dashboard", size="8", color_scheme="teal"),
         width="100%",
         justify="center",
+        margin="36px 0px 72px 0px"
     )
 
 
-def hospitals_header() -> rx.Component:
+def my_hospitals_header() -> rx.Component:
     return rx.flex(
         rx.heading("My Hospitals", size="6", align="left", color_scheme="teal"),
         width="100%",
+        margin="0px 0px 12px 0px"
     )
 
 
-def hospitals() -> rx.Component:
+def my_hospitals() -> rx.Component:
     return rx.flex(
         rx.cond(
             BaseState.user_has_saved_hospitals,
@@ -80,6 +74,7 @@ def hospitals() -> rx.Component:
         width="100%",
         align="center",
         flex_direction=["column", "column", "row", "row", "row"],
+        margin="0px 0px 24px 0px"
     )
 
 
@@ -146,14 +141,15 @@ def trending_hospitals() -> rx.Component:
     )
 
 
-def average_pay_header() -> rx.Component:
+def my_pay_header() -> rx.Component:
     return rx.flex(
         rx.heading("My Pay Demographics", size="6", align="left", color_scheme="teal"),
         width="100%",
+        margin="0px 0px 12px 0px"
     )
 
 
-def average_pay() -> rx.Component:
+def my_pay() -> rx.Component:
     return rx.card(
         rx.flex(
             rx.text("Average pay in your area...", font_size="10px"),
@@ -165,17 +161,19 @@ def average_pay() -> rx.Component:
         height="300px",
         width="100%",
         max_width="1100px",
+        margin="0px 0px 24px 0px"
     )
 
 
-def your_reviews_header() -> rx.Component:
+def my_reviews_header() -> rx.Component:
     return rx.flex(
         rx.heading("My Reviews", size="6", align="left", color_scheme="teal"),
         width="100%",
+        margin="0px 0px 12px 0px"
     )
 
 
-def your_reviews() -> rx.Component:
+def my_reviews() -> rx.Component:
     return rx.card(
         rx.flex(
             rx.text("Your reviews...", font_size="10px"),
@@ -187,4 +185,5 @@ def your_reviews() -> rx.Component:
         height="300px",
         width="100%",
         max_width="1100px",
+        margin="0px 0px 24px 0px"
     )
