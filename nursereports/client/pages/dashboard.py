@@ -1,5 +1,5 @@
 from ..components.c2a import c2a
-from ..components.custom import report_protected, spacer
+from ..components.custom import report_protected
 from ..components.footer import footer
 from ..components.navbar import navbar
 from ...states.base_state import BaseState
@@ -10,7 +10,10 @@ import reflex as rx
 @rx.page(
     route="/dashboard",
     title="Nurse Reports",
-    on_load=BaseState.event_state_standard_flow("report"),
+    on_load=[
+        BaseState.event_state_standard_flow("report"),
+        BaseState.event_state_refresh_user_info
+    ]
 )
 @report_protected
 def dashboard_page() -> rx.Component:
@@ -51,7 +54,7 @@ def dashboard_header() -> rx.Component:
         rx.heading("My Dashboard", size="8", color_scheme="teal"),
         width="100%",
         justify="center",
-        margin="36px 0px 72px 0px"
+        margin="36px 0px 72px 0px",
     )
 
 
@@ -59,64 +62,55 @@ def my_hospitals_header() -> rx.Component:
     return rx.flex(
         rx.heading("My Hospitals", size="6", align="left", color_scheme="teal"),
         width="100%",
-        margin="0px 0px 12px 0px"
+        margin="0px 0px 12px 0px",
     )
 
 
 def my_hospitals() -> rx.Component:
-    return rx.flex(
+    return rx.card(
         rx.cond(
             BaseState.user_has_saved_hospitals,
-            has_saved_hospitals(),
-            no_saved_hospitals(),
+            rx.flex(
+                rx.foreach(BaseState.saved_hospitals, render_hospitals),
+                height="100%",
+                width="100%",
+                align_items="center",
+                justify_content="center",
+            ),
+            rx.flex(
+                rx.text("You haven't saved any hospitals..."),
+                rx.button(
+                    "Test Add Hospital",
+                    on_click=BaseState.update_user_data(
+                        {"saved_hospitals": [12345,67890]}
+                        )
+                    ),
+                height="100%",
+                width="100%",
+                align_items="center",
+                justify_content="center",
+                flex_direction="column",
+                spacing="3",
+                padding="24px 24px 24px 24px"
+            ),
         ),
-        trending_hospitals(),
+        height="100%",
         width="100%",
-        align="center",
-        flex_direction=["column", "column", "row", "row", "row"],
-        margin="0px 0px 24px 0px"
+        margin=["0px 0px 12px 0px"],
     )
 
 
-def has_saved_hospitals() -> rx.Component:
-    return rx.card(
-        rx.flex(
-            rx.text("Saved hospitals...", font_size="10px"),
-            height="100%",
+def render_hospitals(hospital: dict) -> rx.Component:
+    return rx.flex(
+        rx.hstack(
+            rx.heading(f"{hospital['hosp_name']}", size="3"),
+            rx.text(f"{hospital["hosp_state"]}"),
             width="100%",
-            align_items="center",
-            justify_content="center",
         ),
-        height="300px",
+        flex_direction="row",
         width="100%",
-        margin=[
-            "0px 0px 12px 0px",
-            "0px 0px 12px 0px",
-            "0px 12px 0px 0px",
-            "0px 12px 0px 0px",
-            "0px 12px 0px 0px",
-        ],
-    )
-
-
-def no_saved_hospitals() -> rx.Component:
-    return rx.card(
-        rx.flex(
-            rx.text("No saved hospitals...", font_size="10px"),
-            height="100%",
-            width="100%",
-            align_items="center",
-            justify_content="center",
-        ),
-        height="300px",
-        width="100%",
-        margin=[
-            "0px 0px 12px 0px",
-            "0px 0px 12px 0px",
-            "0px 12px 0px 0px",
-            "0px 12px 0px 0px",
-            "0px 12px 0px 0px",
-        ],
+        justify_content="space-between",
+        padding="0 0 24px 0",
     )
 
 
@@ -145,7 +139,7 @@ def my_pay_header() -> rx.Component:
     return rx.flex(
         rx.heading("My Pay Demographics", size="6", align="left", color_scheme="teal"),
         width="100%",
-        margin="0px 0px 12px 0px"
+        margin="0px 0px 12px 0px",
     )
 
 
@@ -161,7 +155,7 @@ def my_pay() -> rx.Component:
         height="300px",
         width="100%",
         max_width="1100px",
-        margin="0px 0px 24px 0px"
+        margin="0px 0px 24px 0px",
     )
 
 
@@ -169,7 +163,7 @@ def my_reviews_header() -> rx.Component:
     return rx.flex(
         rx.heading("My Reviews", size="6", align="left", color_scheme="teal"),
         width="100%",
-        margin="0px 0px 12px 0px"
+        margin="0px 0px 12px 0px",
     )
 
 
@@ -185,5 +179,5 @@ def my_reviews() -> rx.Component:
         height="300px",
         width="100%",
         max_width="1100px",
-        margin="0px 0px 24px 0px"
+        margin="0px 0px 24px 0px",
     )

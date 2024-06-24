@@ -23,6 +23,7 @@ def supabase_get_user_info(access_token: str) -> dict | None:
     Returns:
         dict:
             created_at: timestamptz - user creation date, default is nowutc()
+            hash: str - hash to compare state -> database
             license: str - user's license type, default is NULL
             license_state: str - user's license type, default is NULL
             membership: str - default value is 'Free'
@@ -75,11 +76,11 @@ def supabase_create_initial_user_info(access_token: str, user_id: str) -> None:
 
     Default values set during initial user creation via default
     supabase settings:
-        created_at: timestamptz - user creation date, default is timenow
+        created_at: timestamptz - user creation date, default is nowutc()
         license: str - user's license type, default is NULL
         license_state: str - user's license type, default is NULL
         membership: str - default value is 'Free'
-        modified_at: timestamptz - user modified last date, default is NULL
+        modified_at: timestamptz - user modified last date, default is nowutc()
         my_jobs: list[dict] - default value is NULL
         my_reports: list[dict] - default value is NULL
         needs_onboard: bool - default value is True
@@ -135,7 +136,7 @@ def supabase_get_user_modified_at_timestamp(access_token: str) -> dict | None:
         return content[0]
     else:
         raise RequestError(
-            "Request failed pulling timestamp info to compare stored vs state."
+            "Request failed pulling timestamp info to compare stored to state."
         )
 
 
@@ -154,9 +155,10 @@ def supabase_update_user_info(
         data: columns to update
 
     Returns:
-        dict:
-            success: bool - if API call successful
-            status: str - user readable errors if any
+        dict: updated data to save to state
+
+    Exceptions:
+        RequestError: Request failed to update info in /users.
     """
     data["modified_at"] = get_current_utc_timestamp_as_str()
     url = f"{api_url}/rest/v1/users?user_id=eq.{user_id}"
@@ -169,14 +171,11 @@ def supabase_update_user_info(
     response = httpx.patch(url=url, headers=headers, data=json.dumps(data))
     if response.is_success:
         logger.debug("Updated user info in public/users.")
-        return {"success": True, "status": None}
+        return data
     else:
-        logger.critical("Failed to update user info in public/users!")
         rich.inspect(response)
-        return {
-            "success": False,
-            "status": f"{response.status_code} - {response.reason_phrase}",
-        }
+        logger.critical("Failed to update user info in /users!")
+        raise RequestError("Failed to update user information.")
 
 
 def supabase_get_user_reports(access_token, user_id) -> list[dict] | None:
