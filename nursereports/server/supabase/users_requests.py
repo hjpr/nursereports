@@ -1,8 +1,5 @@
 from ..secrets import api_key, api_url
-from ...server.exceptions import (
-    DuplicateUserError,
-    RequestError
-)
+from ...server.exceptions import DuplicateUserError, RequestError
 
 from datetime import datetime, timezone
 from loguru import logger
@@ -53,7 +50,9 @@ def supabase_get_user_info(access_token: str) -> dict | None:
             return content[0]
         if len(content) > 1:
             logger.critical("Retrieved multiple user entries from a single user id!")
-            raise DuplicateUserError("Retrieved multiple user entries for a single user id.")
+            raise DuplicateUserError(
+                "Retrieved multiple user entries for a single user id."
+            )
         else:
             return None
     else:
@@ -101,7 +100,7 @@ def supabase_create_initial_user_info(access_token: str, user_id: str) -> None:
     else:
         logger.critical("Failed to create initial user info in public/users!")
         raise RequestError(f"{response.status_code} - {response.reason_phrase}")
-    
+
 
 def supabase_get_user_modified_at_timestamp(access_token: str) -> dict | None:
     """
@@ -131,7 +130,9 @@ def supabase_get_user_modified_at_timestamp(access_token: str) -> dict | None:
         logger.debug("Pulled last modified timestamp data from user data.")
         return content[0]
     else:
-        raise RequestError("Request failed pulling timestamp info to compare stored vs state.")
+        raise RequestError(
+            "Request failed pulling timestamp info to compare stored vs state."
+        )
 
 
 def supabase_update_user_info(
@@ -172,7 +173,7 @@ def supabase_update_user_info(
             "success": False,
             "status": f"{response.status_code} - {response.reason_phrase}",
         }
-    
+
 
 def supabase_get_user_reports(access_token, user_id) -> list[dict] | None:
     """
@@ -250,6 +251,7 @@ def supabase_get_saved_hospitals(access_token: str, user_id: str) -> list | None
             return None
     else:
         raise RequestError("Request failed retrieving saved hospitals.")
+
 
 def get_current_utc_timestamp_as_str() -> str:
     now = datetime.now(timezone.utc)

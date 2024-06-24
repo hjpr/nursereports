@@ -282,7 +282,9 @@ class BaseState(rx.State):
             logger.debug("Setting user data from payload.")
             self.user_info = user_info
         else:
-            raise ReadError("Created user data, but unable to pull that data afterwards.")
+            raise ReadError(
+                "Created user data, but unable to pull that data afterwards."
+            )
 
     def set_saved_hospitals(self, access_token, user_id) -> None:
         """
