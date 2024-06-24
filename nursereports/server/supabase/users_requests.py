@@ -210,14 +210,14 @@ def supabase_get_user_reports(access_token, user_id) -> list[dict] | None:
     response = httpx.get(url=url, headers=headers)
     if response.is_success:
         content = json.loads(response.content)
-        logger.debug(f"Pulled {len(response.content)} user report(s) successfully.")
+        logger.debug(f"Pulled {len(content)} user report(s) successfully.")
         return content
     else:
         logger.critical("Failed to retrieve reports from user database!")
         raise RequestError("Unable to retrieve user reports from database.")
 
 
-def supabase_get_saved_hospitals(access_token: str, user_id: str) -> list[dict] | None:
+def supabase_get_saved_hospitals(access_token: str, user_id: str) -> list | None:
     """
     Retrieves any hospitals that user has saved for use in the dashboard.
 
@@ -232,7 +232,7 @@ def supabase_get_saved_hospitals(access_token: str, user_id: str) -> list[dict] 
         RequestError: request to database failed
 
     """
-    url = f"{api_url}/rest/v1/users?select=saved_hospitals"
+    url = f"{api_url}/rest/v1/users?user_id=eq.{user_id}&select=saved_hospitals"
     headers = {
         "apikey": api_key,
         "Authorization": f"Bearer {access_token}",
@@ -241,8 +241,13 @@ def supabase_get_saved_hospitals(access_token: str, user_id: str) -> list[dict] 
     response = httpx.get(url=url, headers=headers)
     if response.is_success:
         content = json.loads(response.content)
-        logger.debug(f"Pulled {len(content)} hospital(s)")
-        return content
+        saved_hospitals = content[0]["saved_hospitals"]
+        if saved_hospitals:
+            logger.debug(f"Retrieved {len(saved_hospitals)} saved hospital(s).")
+            return saved_hospitals
+        else:
+            logger.debug("User doesn't have any saved hospitals to retrieve.")
+            return None
     else:
         raise RequestError("Request failed retrieving saved hospitals.")
 

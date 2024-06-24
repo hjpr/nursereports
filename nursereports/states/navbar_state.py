@@ -100,6 +100,8 @@ class NavbarState(BaseState):
         tokens = supabase_login_with_email(email, password)
         self.access_token = tokens["access_token"]
         self.refresh_token = tokens["refresh_token"]
+        self.show_login = False
+        self.error_sign_in_message = ""
 
     def event_state_email_create_account(self, form_data: dict) -> None:
         email = form_data.get("create_account_email")

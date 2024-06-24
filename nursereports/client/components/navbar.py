@@ -115,47 +115,49 @@ def menu() -> rx.Component:
     return rx.box(
         rx.cond(
             BaseState.user_has_reported,
-            rx.flex(
-                rx.box(
-                    rx.menu.root(
-                        rx.menu.trigger(
-                            rx.icon("menu", color="teal")
-                        ),
-                        rx.menu.content(
-                            rx.menu.item(
-                                "Search by Hospital",
-                                on_click=rx.redirect(f"{BaseState.host_address}/search/hospital")
-                                ),
-                            rx.menu.item(
-                                "Search by State",
-                                on_click=rx.redirect(f"{BaseState.host_address}/search/state")
-                                ),
-                            rx.menu.separator(),
-                            rx.menu.item(
-                                "Dashboard",
-                                on_click=rx.redirect(f"{BaseState.host_address}/dashboard")
-                                ),
-                            rx.menu.separator(),
-                            rx.menu.item(
-                                "Donate",
-                                on_click=rx.redirect(f"{BaseState.host_address}/donate")
-                                ),
-                            rx.menu.separator(),
-                            rx.menu.item(
-                                "Logout",
-                                on_click=rx.redirect(f"{BaseState.host_address}/logout/user")
-                                )
-                        )
+            rx.box(
+                rx.menu.root(
+                    rx.menu.trigger(
+                        rx.icon("menu", color="teal")
                     ),
-                    cursor="pointer"
-                )
+                    rx.menu.content(
+                        rx.menu.item(
+                            "Search by Hospital",
+                            on_click=rx.redirect(f"{BaseState.host_address}/search/hospital")
+                            ),
+                        rx.menu.item(
+                            "Search by State",
+                            on_click=rx.redirect(f"{BaseState.host_address}/search/state")
+                            ),
+                        rx.menu.separator(),
+                        rx.menu.item(
+                            "Dashboard",
+                            on_click=rx.redirect(f"{BaseState.host_address}/dashboard")
+                            ),
+                        rx.menu.separator(),
+                        rx.menu.item(
+                            "Donate",
+                            on_click=rx.redirect(f"{BaseState.host_address}/donate")
+                            ),
+                        rx.menu.separator(),
+                        rx.menu.item(
+                            "Logout",
+                            on_click=rx.redirect(f"{BaseState.host_address}/logout/user")
+                            )
+                    )
+                ),
+                cursor="pointer"
             ),
             rx.box(
-                rx.icon(
-                    "menu",
-                    color="teal",
-                    on_click=NavbarState.set_alert_message(
-                        "Submit a report before accessing the dashboard."
+                rx.menu.root(
+                    rx.menu.trigger(
+                        rx.icon("menu", color="teal")
+                    ),
+                    rx.menu.content(
+                        rx.menu.item(
+                            "Logout",
+                            on_click=rx.redirect(f"{BaseState.host_address}/logout/user")
+                            )
                     )
                 ),
                 cursor="pointer"

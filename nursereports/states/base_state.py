@@ -270,7 +270,7 @@ class BaseState(rx.State):
             logger.debug("Setting user data from payload.")
             self.user_info = user_info
         else:
-            self.create_new_user()
+            self.create_new_user(access_token, user_id)
 
     def create_new_user(self, access_token: str, user_id: str) -> None:
         """
