@@ -1,13 +1,14 @@
 from ..secrets import api_key, api_url
 from ...server.exceptions import (
-    RequestError
+    CreateUserError,
+    LoginAttemptError,
+    TokenError
 )
 
 from loguru import logger
 
 import httpx
 import json
-import rich
 
 def supabase_login_with_email(
         email: str,
@@ -56,7 +57,7 @@ def supabase_login_with_email(
     else:
         logger.critical("Failed to login using email.")
         error_message = json.loads(response.text)
-        raise RequestError(error_message)
+        raise LoginAttemptError(error_message)
     
 def supabase_create_account_with_email(
         email: str,
@@ -91,7 +92,7 @@ def supabase_create_account_with_email(
     else:
         logger.critical("Unable to create account using email.")
         error_message = json.loads(response.text)['msg']
-        raise RequestError(error_message)
+        raise CreateUserError(error_message)
 
 
 def supabase_get_new_access_token(
@@ -131,19 +132,9 @@ def supabase_get_new_access_token(
     if response.is_success:
         logger.debug("Refreshed access token.")
         return {
-            "success": True,
-            "status": None,
-            "payload": {
                 "access_token": response.json().get('access_token'),
                 "refresh_token": response.json().get('refresh_token')
             }
-        }
     else:
         logger.warning("Unable to refresh access token.")
-        rich.inspect(response)
-        return {
-            "success": False,
-            "status": f"{response.status_code} - \
-                        {response.reason_phrase}",
-            "payload": None
-        }
+        raise TokenError("Unable to refresh access token.")

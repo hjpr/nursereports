@@ -1,7 +1,6 @@
 from ..secrets import api_key, api_url
 from ...server.exceptions import (
     DuplicateUserError,
-    NoDataError,
     RequestError
 )
 
@@ -56,7 +55,6 @@ def supabase_get_user_info(access_token: str) -> dict | None:
             logger.critical("Retrieved multiple user entries from a single user id!")
             raise DuplicateUserError("Retrieved multiple user entries for a single user id.")
         else:
-            logger.warning("No user data present in public/users.")
             return None
     else:
         logger.critical("Failed to retrieve data from public/users.")
@@ -86,6 +84,9 @@ def supabase_create_initial_user_info(access_token: str, user_id: str) -> None:
         saved_hospitals: dict - default value is NULL
         trust: int - default value is 0
         user_id: uuid - jwt provided uuid
+
+    Exceptions:
+        RequestError: request to create user failed.
     """
     url = f"{api_url}/rest/v1/users"
     headers = {
@@ -114,6 +115,9 @@ def supabase_get_user_modified_at_timestamp(access_token: str) -> dict | None:
             success: bool - if API call successful.
             status: str - user readable errors if any.
             payload: str - timestamp that info was last modified at
+
+    Exceptions:
+        RequestError: request to pull timestamp from database failed.
     """
     url = f"{api_url}/rest/v1/users?select=modified_at"
     headers = {
@@ -127,7 +131,7 @@ def supabase_get_user_modified_at_timestamp(access_token: str) -> dict | None:
         logger.debug("Pulled last modified timestamp data from user data.")
         return content[0]
     else:
-        raise RequestError("Unable to pull timestamp info to compare stored vs state.")
+        raise RequestError("Request failed pulling timestamp info to compare stored vs state.")
 
 
 def supabase_update_user_info(
@@ -184,7 +188,7 @@ def supabase_get_user_reports(access_token, user_id) -> list[dict] | None:
             success: bool - if API call successful
             status: str - user readable errors if any
             payload: list of dicts containing select info from all reports found
-                list[dict]:
+                list[dict]: - list of reports as dicts
                     assign_select_unit: str - user selected unit
                     assign_input_unit_name: str - if unit not present, user entered unit
                     assign_select_area: str - user selected area
@@ -193,6 +197,9 @@ def supabase_get_user_reports(access_token, user_id) -> list[dict] | None:
                     hospital_id: str - medicare id
                     modified_at: str - time report was modified
                     report_id: str - uuid of report
+
+    Exceptions
+        RequestError: request to database failed
     """
     url = f"{api_url}/rest/v1/reports?user_id=eq.{user_id}&select=report_id,hospital_id,assign_select_unit,assign_input_unit_name,assign_select_area,assign_input_area,created_at,modified_at"
     headers = {
@@ -210,9 +217,34 @@ def supabase_get_user_reports(access_token, user_id) -> list[dict] | None:
         raise RequestError("Unable to retrieve user reports from database.")
 
 
-def supabase_get_saved_hospitals(access_token, user_id) -> list[dict]:
-    return []
+def supabase_get_saved_hospitals(access_token: str, user_id: str) -> list[dict] | None:
+    """
+    Retrieves any hospitals that user has saved for use in the dashboard.
 
+    Args:
+        access_token: str - user JWT object.
+        user_id: str - uuid of user
+
+    Returns:
+        list[str]: list of hospitals as str (medicare ID #'s)
+
+    Exceptions:
+        RequestError: request to database failed
+
+    """
+    url = f"{api_url}/rest/v1/users?select=saved_hospitals"
+    headers = {
+        "apikey": api_key,
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json",
+    }
+    response = httpx.get(url=url, headers=headers)
+    if response.is_success:
+        content = json.loads(response.content)
+        logger.debug(f"Pulled {len(content)} hospital(s)")
+        return content
+    else:
+        raise RequestError("Request failed retrieving saved hospitals.")
 
 def get_current_utc_timestamp_as_str() -> str:
     now = datetime.now(timezone.utc)

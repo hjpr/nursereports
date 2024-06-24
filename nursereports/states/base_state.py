@@ -2,13 +2,10 @@ from ..server.exceptions import (
     DuplicateUserError,
     ExpiredError,
     LoginError,
-    NoDataError,
     ReadError,
     ReportError,
     RequestError,
-    StateError,
     TokenError,
-    WriteError,
 )
 from ..server.secrets import jwt_key
 from ..server.supabase import (
@@ -147,9 +144,7 @@ class BaseState(rx.State):
         except (
             DuplicateUserError,
             RequestError,
-            StateError,
             TokenError,
-            WriteError,
         ) as e:
             error_message = str(e)
             yield rx.toast.error(error_message, timeout=5000)
@@ -167,8 +162,6 @@ class BaseState(rx.State):
             DuplicateUserError,
             ReadError,
             RequestError,
-            StateError,
-            WriteError,
         ) as e:
             error_message = str(e)
             yield rx.toast.error(error_message, timeout=5000)
@@ -218,10 +211,9 @@ class BaseState(rx.State):
     def refresh_access_token(self) -> None:
         access_token = self.access_token
         refresh_token = self.refresh_token
-        response = supabase_get_new_access_token(access_token, refresh_token)
-        if response["success"]:
-            self.access_token = response["payload"]["access_token"]
-            self.refresh_token = response["payload"]["refresh_token"]
+        tokens = supabase_get_new_access_token(access_token, refresh_token)
+        self.access_token = tokens["access_token"]
+        self.refresh_token = tokens["refresh_token"]
 
     def check_access(self, access_level: str) -> None:
         if access_level == "login" and not self.user_is_authenticated:
@@ -286,8 +278,11 @@ class BaseState(rx.State):
         """
         supabase_create_initial_user_info(access_token, user_id)
         user_info = supabase_get_user_info(access_token)
-        logger.debug("Setting user data from payload.")
-        self.user_info = user_info
+        if user_info:
+            logger.debug("Setting user data from payload.")
+            self.user_info = user_info
+        else:
+            raise ReadError("Created user data, but unable to pull that data afterwards.")
 
     def set_saved_hospitals(self, access_token, user_id) -> None:
         """
