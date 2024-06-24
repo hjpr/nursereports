@@ -1,5 +1,9 @@
 from ..secrets import api_key, api_url
-from ...server.exceptions import DuplicateUserError, RequestError
+from ...server.exceptions import (
+    DuplicateUserError,
+    ReadError,
+    RequestError,
+)
 
 from datetime import datetime, timezone
 from loguru import logger
@@ -202,7 +206,8 @@ def supabase_get_user_reports(access_token, user_id) -> list[dict] | None:
     Exceptions
         RequestError: request to database failed
     """
-    url = f"{api_url}/rest/v1/reports?user_id=eq.{user_id}&select=report_id,hospital_id,assign_select_unit,assign_input_unit_name,assign_select_area,assign_input_area,created_at,modified_at"
+    columns = "report_id,hospital_id,assign_select_unit,assign_input_unit_name,assign_select_area,assign_input_area,created_at,modified_at"
+    url = f"{api_url}/rest/v1/reports?user_id=eq.{user_id}&select={columns}"
     headers = {
         "apikey": api_key,
         "Authorization": f"Bearer {access_token}",
@@ -230,7 +235,7 @@ def supabase_get_saved_hospitals(access_token: str, user_id: str) -> list | None
         list[str]: list of hospitals as str (medicare ID #'s)
 
     Exceptions:
-        RequestError: request to database failed
+        RequestError: request to database failed.
 
     """
     url = f"{api_url}/rest/v1/users?user_id=eq.{user_id}&select=saved_hospitals"
@@ -248,9 +253,50 @@ def supabase_get_saved_hospitals(access_token: str, user_id: str) -> list | None
             return saved_hospitals
         else:
             logger.debug("User doesn't have any saved hospitals to retrieve.")
-            return None
     else:
         raise RequestError("Request failed retrieving saved hospitals.")
+
+
+def supabase_populate_saved_hospital_details(
+    access_token: str, hosp_id: list
+) -> list[dict] | None:
+    """
+    Pulls hospital information for use in the "My Hospitals" dashboard section.
+
+    Args:
+        access_token: str - user JWT object
+        hospital_id
+
+    Returns:
+        list[dict]: list of hospital dicts populated with information
+            dict:
+                hosp_name: str - hospital's full name.
+                hosp_state: str - hospital's state as abbr.
+
+    Exceptions:
+        ReadError: expected information but response was empty.
+        RequestError: request to database failed.
+    """
+    columns = "hosp_name,hosp_state"
+    url = f"{api_url}/rest/v1/hospitals?hosp_id=eq.{hosp_id}&select={columns}"
+    headers = {
+        "apikey": api_key,
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json",
+    }
+    response = httpx.get(url=url, headers=headers)
+    if response.is_success:
+        content = json.loads(response.content)
+        if content:
+            logger.debug(f"Pulled information on {hosp_id} from database.")
+            rich.inspect(content)
+            return content
+        else:
+            raise ReadError(
+                "Expected to retrieve saved hospital details but response was empty."
+            )
+    else:
+        raise RequestError("Request failed retrieving saved hospital details.")
 
 
 def get_current_utc_timestamp_as_str() -> str:

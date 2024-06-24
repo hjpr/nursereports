@@ -22,7 +22,7 @@ class LoginAttemptError(AuthorizationError):
     """
 
 
-class ReportError(AuthorizationError):
+class NoReportError(AuthorizationError):
     """
     User hasn't submitted a report and context requires that a report be completed.
     """

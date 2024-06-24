@@ -2,8 +2,8 @@ from ..server.exceptions import (
     DuplicateUserError,
     ExpiredError,
     LoginError,
+    NoReportError,
     ReadError,
-    ReportError,
     RequestError,
     TokenError,
 )
@@ -11,10 +11,10 @@ from ..server.secrets import jwt_key
 from ..server.supabase import (
     supabase_create_initial_user_info,
     supabase_get_new_access_token,
-    supabase_get_saved_hospitals,
     supabase_get_user_info,
     supabase_get_user_modified_at_timestamp,
     supabase_get_user_reports,
+    supabase_populate_saved_hospital_details
 )
 
 from loguru import logger
@@ -122,7 +122,7 @@ class BaseState(rx.State):
 
         This process ensures that:
             1: User claims are valid.
-            2: User info is present and dashboard info is populated.
+            2: User info is present.
             3: User is where they are allowed to be.
 
         Args:
@@ -139,10 +139,11 @@ class BaseState(rx.State):
             yield rx.redirect("/logout/expired")
         except LoginError:
             yield from self.redirect_user_to_login()
-        except ReportError:
+        except NoReportError:
             yield from self.redirect_user_to_onboard()
         except (
             DuplicateUserError,
+            ReadError,
             RequestError,
             TokenError,
         ) as e:
@@ -189,8 +190,7 @@ class BaseState(rx.State):
         """
         User is not authenticated, and is either just browsing the index page, or
         may be attempting to login using an SSO redirect. If coming from SSO then
-        process the JWT, set the user data, and make sure user is accessing
-        appropriate resouces for their access_level.
+        process the JWT and set the user data.
         """
         if self.user_claims["reason"] == "empty":
             self.handle_sso_redirect()
@@ -220,7 +220,7 @@ class BaseState(rx.State):
             raise LoginError("Login before accessing this page.")
         if access_level == "report" and not self.user_has_reported:
             if self.user_is_authenticated:
-                raise ReportError("Submit a report before accessing this page.")
+                raise NoReportError("Submit a report before accessing this page.")
             else:
                 raise LoginError("Login before accessing this page.")
 
@@ -288,12 +288,15 @@ class BaseState(rx.State):
 
     def set_saved_hospitals(self, access_token, user_id) -> None:
         """
-        Retrieves user's saved hospitals from database and saves them to state.
+        Retrieves saved hospital details from database and saves them to state.
         """
-        saved_hospitals = supabase_get_saved_hospitals(access_token, user_id)
-        if saved_hospitals:
-            logger.debug("Setting saved hospitals into state.")
-            self.saved_hospitals = saved_hospitals
+        hosp_list = self.user_info["saved_hospitals"]
+        if hosp_list:
+            logger.debug(f"User has {len(hosp_list)} saved hospital(s). Retrieving details...")
+            saved_hospitals = supabase_populate_saved_hospital_details(
+                access_token, hosp_list
+            )
+            logger.debug(f"Retrieved details on {len(saved_hospitals)} hospital(s).")
         else:
             logger.debug("User doesn't have any saved hospitals to retrieve.")
 
