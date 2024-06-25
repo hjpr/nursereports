@@ -52,7 +52,13 @@ class DuplicateUserError(DatabaseError): ...
 # This one should throw an error to db
 
 
-class StateError(Exception): ...
+class FormError(Exception): ...
+
+class InvalidError(FormError):
+    """
+    User is attempting to enter a value that is invalid, or
+    a field was left empty.
+    """
 
 
 class TokenError(Exception): ...

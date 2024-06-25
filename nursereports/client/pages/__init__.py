@@ -9,4 +9,4 @@ from .report_complete import complete_page
 from .report_outline import outline_page
 from .report_overview import overview_page
 from .report_staffing import staffing_page
-from .search import search_page
+from .search_report import search_page

@@ -10,7 +10,7 @@ import reflex as rx
 
 @rx.page(
     title="Search",
-    route="/search/[context]",
+    route="/search/hospital",
     on_load=BaseState.event_state_standard_flow("login"),
 )
 @login_protected
@@ -48,7 +48,7 @@ def content() -> rx.Component:
 
 def header() -> rx.Component:
     return rx.flex(
-        rx.heading("Find your hospital", color="grey"), width="100%", justify="center"
+        rx.heading("Find a hospital", color="grey"), width="100%", justify="center"
     )
 
 

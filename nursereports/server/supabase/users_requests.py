@@ -147,7 +147,7 @@ def supabase_update_user_info(
 ) -> dict:
     """
     Updates public users table with users access_token and dict of
-    info to change.
+    info to change. Returns updated values so user can save to state.
 
     Args:
         access_token: jwt object of user
