@@ -20,8 +20,9 @@ class OnboardState(BaseState):
         if license == "Nursing Student":
             self.license_state = "Student"
             self.has_review = "No"
-        self.has_review = ""
-        self.license_state = ""
+        else:
+            self.has_review = ""
+            self.license_state = ""
         self.license = license
 
     @rx.cached_var
@@ -46,10 +47,12 @@ class OnboardState(BaseState):
         try:
             if not self.license or not self.license_state or not self.has_review:
                 raise InvalidError("Please complete all fields before continuing.")
-            self.update_new_user_info()
+            self.update_onboard_user_info()
             if self.user_info["needs_onboard"]:
+                logger.debug("User will need to complete a report for site access.")
                 yield rx.redirect("/search/report")
             else:
+                logger.debug("User doesn't have a report to capture.")
                 yield rx.redirect("/dashboard")
         except InvalidError as e:
             error_message = str(e)
@@ -57,7 +60,7 @@ class OnboardState(BaseState):
         except RequestError:
             yield rx.redirect("/logout/error")
 
-    def update_new_user_info(self) -> None:
+    def update_onboard_user_info(self) -> None:
         data = {
             "license": self.license,
             "license_state": self.license_state,

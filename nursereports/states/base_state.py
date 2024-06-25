@@ -312,7 +312,7 @@ class BaseState(rx.State):
         else:
             logger.warning("Retrieved empty list when requesting user reports.")
 
-    def update_user_data(self, user_data: Dict[str, Any]) -> Iterable[Callable]:
+    def update_user_info(self, user_data: Dict[str, Any]) -> Iterable[Callable]:
         """
         Writes data to user table.
 
