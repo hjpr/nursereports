@@ -12,8 +12,8 @@ import reflex as rx
     title="Nurse Reports",
     on_load=[
         BaseState.event_state_standard_flow("report"),
-        BaseState.event_state_refresh_user_info
-    ]
+        BaseState.event_state_refresh_user_info,
+    ],
 )
 @report_protected
 def dashboard_page() -> rx.Component:
@@ -81,17 +81,17 @@ def my_hospitals() -> rx.Component:
                 rx.text("You haven't saved any hospitals..."),
                 rx.button(
                     "Test Add Hospital",
-                    on_click=BaseState.update_user_data(
-                        {"saved_hospitals": [12345,67890]}
-                        )
+                    on_click=BaseState.update_user_info(
+                        {"saved_hospitals": [12345, 67890]}
                     ),
+                ),
                 height="100%",
                 width="100%",
                 align_items="center",
                 justify_content="center",
                 flex_direction="column",
                 spacing="3",
-                padding="24px 24px 24px 24px"
+                padding="24px 24px 24px 24px",
             ),
         ),
         height="100%",
@@ -102,10 +102,19 @@ def my_hospitals() -> rx.Component:
 
 def render_hospitals(hospital: dict) -> rx.Component:
     return rx.flex(
-        rx.hstack(
-            rx.heading(f"{hospital['hosp_name']}", size="3"),
-            rx.text(f"{hospital["hosp_state"]}"),
-            width="100%",
+        # rx.vstack(
+        #     rx.heading(f"{hospital['hosp_name']}", size="3"),
+        #     rx.text(f"{hospital["hosp_state"]}"),
+        #     width="100%",
+        # ),
+        rx.spacer(),
+        rx.vstack(
+            rx.button("Go to Hospital Page"),
+            rx.flex(
+                rx.button(rx.icon("send")),
+                rx.button(rx.icon("flag")),
+                rx.button(rx.icon("trash")),
+            ),
         ),
         flex_direction="row",
         width="100%",

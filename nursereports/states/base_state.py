@@ -249,8 +249,7 @@ class BaseState(rx.State):
     def set_all_user_data(self) -> None:
         """
         Calls three different functions to set user info, saved hospitals, and
-        reviews. DONT USE THIS BY ITSELF. Needs to be set in a stack
-        that catches exceptions from its referenced functions.
+        reviews.
         """
         if self.user_claims["valid"]:
             self.set_user_info()

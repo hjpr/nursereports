@@ -218,8 +218,8 @@ def supabase_get_user_reports(access_token, user_id) -> list[dict] | None:
         logger.debug(f"Pulled {len(content)} user report(s) successfully.")
         return content
     else:
-        logger.critical("Failed to retrieve reports from user database!")
-        raise RequestError("Unable to retrieve user reports from database.")
+        logger.critical("Request failed retrieving user reports from database!")
+        raise RequestError("Request failed retrieving user reports from database.")
 
 
 def supabase_get_saved_hospitals(access_token: str, user_id: str) -> list | None:
@@ -253,6 +253,7 @@ def supabase_get_saved_hospitals(access_token: str, user_id: str) -> list | None
         else:
             logger.debug("User doesn't have any saved hospitals to retrieve.")
     else:
+        logger.critical("Request failed retrieving saved hospitals.")
         raise RequestError("Request failed retrieving saved hospitals.")
 
 
@@ -291,10 +292,12 @@ def supabase_populate_saved_hospital_details(
             rich.inspect(content)
             return content
         else:
+            logger.critical("Expected to retrieve saved hospitals details but response was empty.")
             raise ReadError(
                 "Expected to retrieve saved hospital details but response was empty."
             )
     else:
+        logger.critical("Request failed retrieving saved hospitals details.")
         raise RequestError("Request failed retrieving saved hospital details.")
 
 

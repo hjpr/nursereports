@@ -70,13 +70,9 @@ class NavbarState(BaseState):
         """
         try:
             if form_data.get("login_email"):
-                yield [
-                    NavbarState.event_state_login_with_email(form_data),
-                    NavbarState.set_all_user_data(),
-                    NavbarState.redirect_user_to_onboard_or_dashboard(),
-                ]
+                self.login_with_email(form_data)
             if form_data.get("create_account_email"):
-                yield [NavbarState.event_state_email_create_account(form_data)]
+                self.email_create_account(form_data)
         except CreateUserError as e:
             error_message = str(e)
             self.error_create_account_message = error_message
@@ -88,7 +84,7 @@ class NavbarState(BaseState):
             yield rx.toast.error(error_message, timeout=5000)
             yield rx.redirect("/logout/error")
 
-    def event_state_login_with_email(
+    def login_with_email(
         self, form_data: dict
     ) -> Iterable[Callable] | None:
         """
@@ -102,8 +98,10 @@ class NavbarState(BaseState):
         self.refresh_token = tokens["refresh_token"]
         self.show_login = False
         self.error_sign_in_message = ""
+        self.set_all_user_data()
+        self.redirect_user_to_onboard_or_dashboard()
 
-    def event_state_email_create_account(self, form_data: dict) -> None:
+    def email_create_account(self, form_data: dict) -> None:
         email = form_data.get("create_account_email")
         password = form_data.get("create_account_password")
         password_confirm = form_data.get("create_account_password_confirm")

@@ -1,6 +1,7 @@
 *.db
 *.egg-info/
 *.py[cod]
+.DS_Store
 .env
 .web
 __pycache__/
