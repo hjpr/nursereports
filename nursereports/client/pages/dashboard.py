@@ -69,11 +69,13 @@ def my_hospitals_header() -> rx.Component:
 def my_hospitals() -> rx.Component:
     return rx.card(
         rx.cond(
-            BaseState.user_has_saved_hospitals,
+            BaseState.saved_hospitals,
             rx.flex(
                 rx.foreach(BaseState.saved_hospitals, render_hospitals),
                 height="100%",
                 width="100%",
+                flex_direction='column',
+                spacing="3",
                 align_items="center",
                 justify_content="center",
             ),
@@ -101,25 +103,40 @@ def my_hospitals() -> rx.Component:
 
 
 def render_hospitals(hospital: dict) -> rx.Component:
-    return rx.flex(
-        # rx.vstack(
-        #     rx.heading(f"{hospital['hosp_name']}", size="3"),
-        #     rx.text(f"{hospital["hosp_state"]}"),
-        #     width="100%",
-        # ),
-        rx.spacer(),
-        rx.vstack(
-            rx.button("Go to Hospital Page"),
-            rx.flex(
-                rx.button(rx.icon("send")),
-                rx.button(rx.icon("flag")),
-                rx.button(rx.icon("trash")),
+    return rx.card(
+        rx.flex(
+            rx.vstack(
+                rx.heading(f"{hospital['hosp_name']}", size="3"),
+                rx.text(f"{hospital["hosp_state"]}"),
+                width="100%",
             ),
+            rx.spacer(),
+            rx.vstack(
+                rx.button(
+                    "Hospital Page",
+                    rx.icon("arrow-right"),
+                    size="3",
+                    width="100%",
+                    white_space="nowrap"
+
+                    ),
+                rx.flex(
+                    rx.button(
+                        rx.icon("trash-2"),
+                        variant="outline",
+                        size="3",
+                        on_click=BaseState.event_state_remove_set_hospital(hospital["hosp_id"])
+                        ),
+                    spacing="3",
+                    justify="end",
+                    width="100%"
+                ),
+            ),
+            flex_direction="row",
+            width="100%",
+            justify_content="space-between",
         ),
-        flex_direction="row",
-        width="100%",
-        justify_content="space-between",
-        padding="0 0 24px 0",
+        width="100%"
     )
 
 

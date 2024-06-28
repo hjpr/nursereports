@@ -4,7 +4,7 @@ from ..server.exceptions import (
     LoginError,
     NoReportError,
     ReadError,
-    RequestError,
+    RequestFailed,
     TokenError,
 )
 from ..server.secrets import jwt_key
@@ -15,7 +15,7 @@ from ..server.supabase import (
     supabase_get_user_modified_at_timestamp,
     supabase_get_user_reports,
     supabase_populate_saved_hospital_details,
-    supabase_update_user_info
+    supabase_update_user_info,
 )
 
 from loguru import logger
@@ -23,6 +23,7 @@ from typing import Any, Dict, Callable, Iterable
 
 import jwt
 import reflex as rx
+import rich
 import time
 
 
@@ -109,14 +110,6 @@ class BaseState(rx.State):
         else:
             return False
 
-    @rx.cached_var
-    def user_has_saved_hospitals(self) -> bool:
-        if self.access_token and self.user_info:
-            if self.user_info["saved_hospitals"]:
-                return True
-            else:
-                return False
-
     def event_state_standard_flow(self, access_level: str) -> Iterable[Callable]:
         """
         Simple standard login flow. Runs on_load prior to every page.
@@ -145,7 +138,7 @@ class BaseState(rx.State):
         except (
             DuplicateUserError,
             ReadError,
-            RequestError,
+            RequestFailed,
             TokenError,
         ):
             yield rx.redirect("/logout/error")
@@ -156,20 +149,20 @@ class BaseState(rx.State):
         ensuring that all the user values are up to date with the backend.
         """
         try:
-            if self.check_user_data_has_updated:
+            if self.check_user_data_has_updated():
                 self.set_all_user_data()
             else:
-                logger.debug("User information and database are")
+                logger.debug("User information and database are in sync.")
         except (
             DuplicateUserError,
             ReadError,
-            RequestError,
+            RequestFailed,
         ):
             yield rx.redirect("/logout/error")
 
     def authenticated_flow(self, access_level: str) -> None:
         """
-        User is authenticated and user info is present. Just make sure that
+        User is authenticated and user info is  present. Just make sure that
         user is accessing the appropriate resources for their access_level.
         """
         self.check_claims_for_expiring_soon()
@@ -197,10 +190,6 @@ class BaseState(rx.State):
             self.authenticated_missing_info_flow
 
     def check_claims_for_expiring_soon(self) -> None:
-        """
-        Refreshes access token. If access token expires, then site will
-        log user out for inactivity.
-        """
         current_time = int(time.time())
         expires_at = self.user_claims["payload"]["exp"]
         time_left_sec = expires_at - current_time
@@ -239,7 +228,9 @@ class BaseState(rx.State):
         user infomation hasn't changed and user lands on dashboard page.
         """
         access_token = self.access_token
-        database_timestamp = supabase_get_user_modified_at_timestamp(access_token)
+        database_timestamp = supabase_get_user_modified_at_timestamp(access_token)[
+            "modified_at"
+        ]
         state_timestamp = self.user_info["modified_at"]
         logger.debug(
             f"Comparing db to state timestamps - {database_timestamp} {state_timestamp}"
@@ -247,20 +238,12 @@ class BaseState(rx.State):
         return False if database_timestamp == state_timestamp else True
 
     def set_all_user_data(self) -> None:
-        """
-        Calls three different functions to set user info, saved hospitals, and
-        reviews.
-        """
         if self.user_claims["valid"]:
             self.set_user_info()
             self.set_saved_hospitals()
             self.set_user_reports()
 
     def set_user_info(self) -> None:
-        """
-        Retrieves user info and saves to state. If no user info present
-        creates entry in database.
-        """
         user_info = supabase_get_user_info(self.access_token)
         if user_info:
             logger.debug("Setting user data from payload.")
@@ -269,44 +252,41 @@ class BaseState(rx.State):
             self.create_new_user()
 
     def create_new_user(self) -> None:
-        """
-        Creates a new user in database and saves that user info to state.
-        """
         supabase_create_initial_user_info(
             self.access_token, self.user_claims["payload"]["sub"]
-            )
+        )
         user_info = supabase_get_user_info(self.access_token)
         if user_info:
-            logger.debug("Setting user data from payload.")
             self.user_info = user_info
         else:
-            raise ReadError(
-                "User created, but failed to pull data."
-            )
+            raise ReadError("User created, but failed to pull data after operation.")
 
     def set_saved_hospitals(self) -> None:
-        """
-        Retrieves saved hospital details from database and saves them to state.
-        """
         hosp_list = self.user_info["saved_hospitals"]
         if hosp_list:
-            logger.debug(f"User has {len(hosp_list)} saved hospital(s). Retrieving details...")
             saved_hospitals = supabase_populate_saved_hospital_details(
                 self.access_token, hosp_list
             )
-            logger.debug(f"Retrieved details on {len(saved_hospitals)} hospital(s).")
+            self.saved_hospitals = saved_hospitals
         else:
-            logger.debug("User doesn't have any saved hospitals to retrieve.")
+            logger.warning("User doesn't have any saved hospitals to retrieve.")
+
+    def event_state_remove_set_hospital(self, hosp_id: str) -> Iterable[Callable]:
+        new_user_info = [
+            h for h in self.user_info["saved_hospitals"] if h != hosp_id
+        ]
+        user_info = {"saved_hospitals": new_user_info}
+        yield BaseState.update_user_info(user_info)
+        new_saved_hospitals = [
+            h for h in self.saved_hospitals if h.get("hosp_id") != hosp_id
+        ]
+        self.saved_hospitals = new_saved_hospitals
 
     def set_user_reports(self) -> None:
-        """
-        Retrieves user reports from database and saves them to state.
-        """
         user_reports = supabase_get_user_reports(
             self.access_token, self.user_claims["payload"]["sub"]
-            )
+        )
         if user_reports:
-            logger.debug("Setting user reports into state.")
             self.user_reports = user_reports
         else:
             logger.warning("Retrieved empty list when requesting user reports.")
@@ -319,14 +299,15 @@ class BaseState(rx.State):
             user_data: dict - data to be written
 
         Exceptions:
-            RequestError - request failed to write to database.
+            RequestFailed - request failed to write to database.
         """
         try:
+            logger.debug(f"Attempting to update user data with {user_data}")
             updated_data = supabase_update_user_info(
                 self.access_token, self.user_claims["payload"]["sub"], user_data
-                )
+            )
             self.user_info.update(updated_data)
-        except RequestError as e:
+        except RequestFailed as e:
             error_message = str(e)
             yield rx.toast.error(error_message, timeout=5000)
 

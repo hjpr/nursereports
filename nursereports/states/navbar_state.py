@@ -1,9 +1,9 @@
 from ..server.exceptions import (
-    CreateUserError,
+    CreateUserFailed,
     DuplicateUserError,
-    LoginAttemptError,
+    LoginCredentialsInvalid,
     ReadError,
-    RequestError,
+    RequestFailed,
 )
 from ..server.secrets import api_url
 from ..server.supabase import (
@@ -36,16 +36,18 @@ class NavbarState(BaseState):
         self.show_feedback = feedback
 
     def event_state_navbar_pressed_sign_in(self) -> None:
+        """User clicks 'Sign In' to trigger the login modal."""
         self.login_tab = "login"
         self.show_login = True
 
     def event_state_toggle_login(self) -> None:
+        """Event which toggles login modal visibility."""
         self.show_login = not self.show_login
         self.error_sign_in_message = None
         self.error_create_account_message = None
 
     def event_state_submit_feedback(self, form_data: dict) -> None:
-        """Event to trigger submission of feedback."""
+        """Event to trigger feedback submission modal."""
         if form_data["feedback"]:
             data = {
                 "user_feedback": f"{form_data['feedback']}",
@@ -60,37 +62,30 @@ class NavbarState(BaseState):
                 self.error_feedback_message = response["status"]
 
     def event_state_c2a_main(self) -> None:
+        """Opens login modal when user clicks call to action button in index."""
         self.login_tab = "create_account"
         self.show_login = True
 
-    def event_state_login_modal_submit(self, form_data: dict) -> Iterable[Callable]:
-        """
-        Handles the on_submit event from the login_modal. Gets form_data from the event and
-        can either login using email or create an account with an email.
-        """
+    def event_state_login_modal_submit(self, form_data: dict) -> Iterable[Callable] | None:
+        """Handles the on_submit event from the login_modal."""
         try:
             if form_data.get("login_email"):
                 self.login_with_email(form_data)
+                yield NavbarState.redirect_user_to_onboard_or_dashboard
             if form_data.get("create_account_email"):
                 self.email_create_account(form_data)
-        except CreateUserError as e:
+        except CreateUserFailed as e:
             error_message = str(e)
             self.error_create_account_message = error_message
-        except LoginAttemptError as e:
+        except LoginCredentialsInvalid as e:
             error_message = str(e)
             self.error_sign_in_message = error_message
-        except (DuplicateUserError, ReadError, RequestError) as e:
+        except (DuplicateUserError, ReadError, RequestFailed) as e:
             error_message = str(e)
             yield rx.toast.error(error_message, timeout=5000)
             yield rx.redirect("/logout/error")
 
-    def login_with_email(
-        self, form_data: dict
-    ) -> Iterable[Callable] | None:
-        """
-        Logs into supabase using email and password in order and saves the access_token
-        and refresh_token to the state.
-        """
+    def login_with_email(self, form_data: dict) -> None:
         email = form_data.get("login_email")
         password = form_data.get("login_password")
         tokens = supabase_login_with_email(email, password)
@@ -99,14 +94,13 @@ class NavbarState(BaseState):
         self.show_login = False
         self.error_sign_in_message = ""
         self.set_all_user_data()
-        self.redirect_user_to_onboard_or_dashboard()
 
     def email_create_account(self, form_data: dict) -> None:
         email = form_data.get("create_account_email")
         password = form_data.get("create_account_password")
         password_confirm = form_data.get("create_account_password_confirm")
         if password != password_confirm:
-            raise LoginAttemptError("Passwords do not match")
+            raise LoginCredentialsInvalid("Passwords do not match.")
         supabase_create_account_with_email(email, password)
         self.show_login = False
         self.error_create_account_message = ""

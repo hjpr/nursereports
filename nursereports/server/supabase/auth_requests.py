@@ -1,5 +1,5 @@
 from ..secrets import api_key, api_url
-from ...server.exceptions import CreateUserError, LoginAttemptError, TokenError
+from ...server.exceptions import CreateUserFailed, LoginCredentialsInvalid, TokenError
 
 from loguru import logger
 
@@ -47,7 +47,7 @@ def supabase_login_with_email(email: str, password: str) -> dict:
     else:
         logger.critical("Failed to login using email.")
         error_message = json.loads(response.text)
-        raise LoginAttemptError(error_message)
+        raise LoginCredentialsInvalid(error_message)
 
 
 def supabase_create_account_with_email(
@@ -80,7 +80,7 @@ def supabase_create_account_with_email(
     else:
         logger.critical("Unable to create account using email.")
         error_message = json.loads(response.text)["msg"]
-        raise CreateUserError(error_message)
+        raise CreateUserFailed(error_message)
 
 
 def supabase_get_new_access_token(

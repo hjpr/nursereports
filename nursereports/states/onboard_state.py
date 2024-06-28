@@ -1,5 +1,5 @@
 from . import BaseState
-from ..server.exceptions import InvalidError, RequestError
+from ..server.exceptions import InvalidError, RequestFailed
 from ..server.supabase import supabase_update_user_info
 from loguru import logger
 from typing import Callable, Iterable
@@ -57,7 +57,7 @@ class OnboardState(BaseState):
         except InvalidError as e:
             error_message = str(e)
             self.onboard_error_message = error_message
-        except RequestError:
+        except RequestFailed:
             yield rx.redirect("/logout/error")
 
     def update_onboard_user_info(self) -> None:

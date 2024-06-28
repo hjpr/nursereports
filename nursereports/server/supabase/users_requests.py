@@ -2,8 +2,9 @@ from ..secrets import api_key, api_url
 from ...server.exceptions import (
     DuplicateUserError,
     ReadError,
-    RequestError,
+    RequestFailed,
 )
+from typing import Any
 
 from datetime import datetime, timezone
 from loguru import logger
@@ -38,7 +39,7 @@ def supabase_get_user_info(access_token: str) -> dict | None:
 
     Exceptions:
         DuplicateUserError: retrieved too many user records.
-        RequestError: request to retrieve user failed.
+        RequestFailed: request to retrieve user failed.
 
     """
     url = f"{api_url}/rest/v1/users?select=*"
@@ -62,7 +63,7 @@ def supabase_get_user_info(access_token: str) -> dict | None:
             return None
     else:
         logger.critical("Failed to retrieve data from public/users.")
-        raise RequestError(f"{response.status_code} - {response.reason_phrase}")
+        raise RequestFailed(f"{response.status_code} - {response.reason_phrase}")
 
 
 def supabase_create_initial_user_info(access_token: str, user_id: str) -> None:
@@ -90,7 +91,7 @@ def supabase_create_initial_user_info(access_token: str, user_id: str) -> None:
         user_id: uuid - jwt provided uuid
 
     Exceptions:
-        RequestError: request to create user failed.
+        RequestFailed: request to create user failed.
     """
     url = f"{api_url}/rest/v1/users"
     headers = {
@@ -104,7 +105,7 @@ def supabase_create_initial_user_info(access_token: str, user_id: str) -> None:
         logger.debug("New user successfully created in public/users.")
     else:
         logger.critical("Failed to create initial user info in public/users!")
-        raise RequestError(f"{response.status_code} - {response.reason_phrase}")
+        raise RequestFailed(f"{response.status_code} - {response.reason_phrase}")
 
 
 def supabase_get_user_modified_at_timestamp(access_token: str) -> dict | None:
@@ -121,7 +122,7 @@ def supabase_get_user_modified_at_timestamp(access_token: str) -> dict | None:
             payload: str - timestamp that info was last modified at
 
     Exceptions:
-        RequestError: request to pull timestamp from database failed.
+        RequestFailed: request to pull timestamp from database failed.
     """
     url = f"{api_url}/rest/v1/users?select=modified_at"
     headers = {
@@ -135,7 +136,7 @@ def supabase_get_user_modified_at_timestamp(access_token: str) -> dict | None:
         logger.debug("Pulled last modified timestamp data from user data.")
         return content[0]
     else:
-        raise RequestError(
+        raise RequestFailed(
             "Request failed pulling timestamp info to compare stored to state."
         )
 
@@ -143,7 +144,7 @@ def supabase_get_user_modified_at_timestamp(access_token: str) -> dict | None:
 def supabase_update_user_info(
     access_token: str,
     user_id: str,
-    data: list,
+    data: Any,
 ) -> dict:
     """
     Updates public users table with users access_token and dict of
@@ -158,7 +159,7 @@ def supabase_update_user_info(
         dict: updated data to save to state
 
     Exceptions:
-        RequestError: Request failed to update info in /users.
+        RequestFailed: Request failed to update info in /users.
     """
     data["modified_at"] = get_current_utc_timestamp_as_str()
     url = f"{api_url}/rest/v1/users?user_id=eq.{user_id}"
@@ -173,9 +174,7 @@ def supabase_update_user_info(
         logger.debug("Updated user info in public/users.")
         return data
     else:
-        rich.inspect(response)
-        logger.critical("Failed to update user info in /users!")
-        raise RequestError("Failed to update user information.")
+        raise RequestFailed("Failed to update user information.")
 
 
 def supabase_get_user_reports(access_token, user_id) -> list[dict] | None:
@@ -203,7 +202,7 @@ def supabase_get_user_reports(access_token, user_id) -> list[dict] | None:
                     report_id: str - uuid of report
 
     Exceptions
-        RequestError: request to database failed
+        RequestFailed: request to database failed
     """
     columns = "report_id,hospital_id,assign_select_unit,assign_input_unit_name,assign_select_area,assign_input_area,created_at,modified_at"
     url = f"{api_url}/rest/v1/reports?user_id=eq.{user_id}&select={columns}"
@@ -218,8 +217,7 @@ def supabase_get_user_reports(access_token, user_id) -> list[dict] | None:
         logger.debug(f"Pulled {len(content)} user report(s) successfully.")
         return content
     else:
-        logger.critical("Request failed retrieving user reports from database!")
-        raise RequestError("Request failed retrieving user reports from database.")
+        raise RequestFailed("Unable to retrieve user reports from database.")
 
 
 def supabase_get_saved_hospitals(access_token: str, user_id: str) -> list | None:
@@ -234,7 +232,7 @@ def supabase_get_saved_hospitals(access_token: str, user_id: str) -> list | None
         list[str]: list of hospitals as str (medicare ID #'s)
 
     Exceptions:
-        RequestError: request to database failed.
+        RequestFailed: request to database failed.
 
     """
     url = f"{api_url}/rest/v1/users?user_id=eq.{user_id}&select=saved_hospitals"
@@ -248,13 +246,13 @@ def supabase_get_saved_hospitals(access_token: str, user_id: str) -> list | None
         content = json.loads(response.content)
         saved_hospitals = content[0]["saved_hospitals"]
         if saved_hospitals:
-            logger.debug(f"Retrieved {len(saved_hospitals)} saved hospital(s).")
+            rich.inspect(saved_hospitals)
+            logger.debug("Retrieved information from user's saved hospitals list.")
             return saved_hospitals
         else:
             logger.debug("User doesn't have any saved hospitals to retrieve.")
     else:
-        logger.critical("Request failed retrieving saved hospitals.")
-        raise RequestError("Request failed retrieving saved hospitals.")
+        raise RequestFailed("Request failed retrieving saved hospitals.")
 
 
 def supabase_populate_saved_hospital_details(
@@ -270,15 +268,17 @@ def supabase_populate_saved_hospital_details(
     Returns:
         list[dict]: list of hospital dicts populated with information
             dict:
+                hosp_id: str - hospitals Medicare ID
                 hosp_name: str - hospital's full name.
                 hosp_state: str - hospital's state as abbr.
 
     Exceptions:
         ReadError: expected information but response was empty.
-        RequestError: request to database failed.
+        RequestFailed: request to database failed.
     """
-    columns = "hosp_name,hosp_state"
-    url = f"{api_url}/rest/v1/hospitals?hosp_id=eq.{hosp_id}&select={columns}"
+    columns = "hosp_name,hosp_state,hosp_id"
+    hosp_id_str = ','.join(map(str, hosp_id))
+    url = f"{api_url}/rest/v1/hospitals?hosp_id=in.({hosp_id_str})&select={columns}"
     headers = {
         "apikey": api_key,
         "Authorization": f"Bearer {access_token}",
@@ -288,17 +288,14 @@ def supabase_populate_saved_hospital_details(
     if response.is_success:
         content = json.loads(response.content)
         if content:
-            logger.debug(f"Pulled information on {hosp_id} from database.")
-            rich.inspect(content)
+            logger.debug("Retrieved full hospital details on user's saved hospitals.")
             return content
         else:
-            logger.critical("Expected to retrieve saved hospitals details but response was empty.")
             raise ReadError(
                 "Expected to retrieve saved hospital details but response was empty."
             )
     else:
-        logger.critical("Request failed retrieving saved hospitals details.")
-        raise RequestError("Request failed retrieving saved hospital details.")
+        raise RequestFailed("Request failed retrieving saved hospital details.")
 
 
 def get_current_utc_timestamp_as_str() -> str:
