@@ -1,5 +1,5 @@
 from ..secrets import api_key, api_url
-from ...server.exceptions import CreateUserFailed, LoginCredentialsInvalid, TokenError
+from ...server.exceptions import CreateUserFailed, LoginCredentialsInvalid, TokenRefreshFailed
 
 from loguru import logger
 
@@ -47,7 +47,7 @@ def supabase_login_with_email(email: str, password: str) -> dict:
     else:
         logger.critical("Failed to login using email.")
         error_message = json.loads(response.text)
-        raise LoginCredentialsInvalid(error_message)
+        raise LoginCredentialsInvalid(error_message["error_description"])
 
 
 def supabase_create_account_with_email(
@@ -98,6 +98,9 @@ def supabase_get_new_access_token(
         success: If API call successful.
         status: Status codes if any.
         payload: Important data to return.
+
+    Exceptions:
+        TokenRefreshFailed
     """
     url = f"{api_url}/auth/v1/token"
     params = {"grant_type": "refresh_token"}
@@ -111,11 +114,10 @@ def supabase_get_new_access_token(
         url=url, params=params, headers=headers, data=json.dumps(data)
     )
     if response.is_success:
-        logger.debug("Refreshed access token.")
         return {
             "access_token": response.json().get("access_token"),
             "refresh_token": response.json().get("refresh_token"),
         }
     else:
         logger.warning("Unable to refresh access token.")
-        raise TokenError("Unable to refresh access token.")
+        raise TokenRefreshFailed("Unable to refresh access token.")

@@ -3,16 +3,18 @@ from ...client.components import c2a
 from ...client.components.custom import spacer, login_protected
 from ...client.components.footer import footer
 from ...client.components.navbar import navbar
-from ...states.base_state import BaseState
-from ...states.report_state import ReportState
-from ..states.test_state import ReportTestState
+from ...states import BaseState
+from ..states.test_state import ReportTestState, TestState
 
 import reflex as rx
 
 @rx.page(
     route="/report/submit/[hosp_id]/test",
     title='Nurse Reports',
-    on_load=BaseState.event_state_standard_flow('login')
+    on_load=[
+        BaseState.event_state_standard_flow('login'),
+        TestState.event_state_warn_tests_active
+    ]
 )
 @login_protected
 def test_page() -> rx.Component:

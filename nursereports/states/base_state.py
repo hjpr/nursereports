@@ -1,11 +1,10 @@
 from ..server.exceptions import (
     DuplicateUserError,
-    ExpiredError,
-    LoginError,
-    NoReportError,
+    PageRequiresLogin,
     ReadError,
     RequestFailed,
-    TokenError,
+    TokenRefreshFailed,
+    UserMissingReport,
 )
 from ..server.secrets import jwt_key
 from ..server.supabase import (
@@ -21,6 +20,7 @@ from ..server.supabase import (
 from loguru import logger
 from typing import Any, Dict, Callable, Iterable
 
+import json
 import jwt
 import reflex as rx
 import rich
@@ -122,26 +122,12 @@ class BaseState(rx.State):
         Args:
             access_level: 'none', 'login', or 'report'
         """
-        try:
-            if self.user_claims["valid"] and self.user_info:
-                self.authenticated_flow(access_level)
-            if self.user_claims["valid"] and not self.user_info:
-                self.authenticated_missing_info_flow(access_level)
-            if not self.user_claims["valid"]:
-                self.unauthenticated_flow(access_level)
-        except ExpiredError:
-            yield rx.redirect("/logout/expired")
-        except LoginError:
-            yield from self.redirect_user_to_login()
-        except NoReportError:
-            yield from self.redirect_user_to_onboard()
-        except (
-            DuplicateUserError,
-            ReadError,
-            RequestFailed,
-            TokenError,
-        ):
-            yield rx.redirect("/logout/error")
+        if self.user_claims["valid"] and self.user_info:
+            return BaseState.authenticated_flow(access_level)
+        if self.user_claims["valid"] and not self.user_info:
+            return BaseState.authenticated_missing_info_flow(access_level)
+        if not self.user_claims["valid"]:
+            return BaseState.unauthenticated_flow(access_level)
 
     def event_state_refresh_user_info(self) -> Iterable[Callable]:
         """
@@ -160,34 +146,61 @@ class BaseState(rx.State):
         ):
             yield rx.redirect("/logout/error")
 
-    def authenticated_flow(self, access_level: str) -> None:
+    def authenticated_flow(self, access_level: str) -> Iterable[Callable] | None:
         """
         User is authenticated and user info is  present. Just make sure that
         user is accessing the appropriate resources for their access_level.
         """
-        self.check_claims_for_expiring_soon()
-        self.check_access(access_level)
+        try:
+            self.check_claims_for_expiring_soon()
+            self.check_access(access_level)
+        except TokenRefreshFailed as e:
+            yield rx.toast.error(str(e))
+        except PageRequiresLogin as e:
+            yield rx.toast.error(str(e))
+            yield rx.redirect("/")
+        except UserMissingReport as e:
+            yield rx.toast.error(str(e))
+            yield rx.redirect("/onboard")
 
-    def authenticated_missing_info_flow(self, access_level: str) -> None:
+    def authenticated_missing_info_flow(
+        self, access_level: str
+    ) -> Iterable[Callable] | None:
         """
         User is authenticated but user info not present. After retrieving user
         data, make sure user is accessing appropriate resources for their
         access_level.
         """
-        self.check_claims_for_expiring_soon()
-        self.set_all_user_data()
-        self.check_access(access_level)
+        try:
+            self.check_claims_for_expiring_soon()
+            self.set_all_user_data()
+            self.check_access(access_level)
+            yield BaseState.redirect_user_to_onboard_or_dashboard
+        except DuplicateUserError:
+            yield rx.redirect("/logout/error")
+        except PageRequiresLogin as e:
+            yield rx.toast.error(str(e))
+            yield rx.redirect("/")
+        except ReadError as e:
+            yield rx.toast.error(str(e))
+        except RequestFailed:
+            yield rx.toast.error("Unable to connect to backend.")
+        except TokenRefreshFailed as e:
+            yield rx.toast.error(str(e))
+        except UserMissingReport as e:
+            yield rx.toast.error(str(e))
+            yield rx.redirect("/onboard")
 
-    def unauthenticated_flow(self, access_level: str) -> None:
+    def unauthenticated_flow(self, access_level: str) -> Iterable[Callable]:
         """
         User is not authenticated, and is either just browsing the index page, or
         may be attempting to login using an SSO redirect. If coming from SSO then
         process the JWT and set the user data.
         """
         if self.user_claims["reason"] == "empty":
-            self.handle_sso_redirect()
+            yield BaseState.handle_sso_redirect
         if self.user_claims["valid"]:
-            self.authenticated_missing_info_flow
+            yield BaseState.authenticated_missing_info_flow
 
     def check_claims_for_expiring_soon(self) -> None:
         current_time = int(time.time())
@@ -205,22 +218,22 @@ class BaseState(rx.State):
 
     def check_access(self, access_level: str) -> None:
         if access_level == "login" and not self.user_is_authenticated:
-            raise LoginError("Login before accessing this page.")
+            raise PageRequiresLogin("Login before accessing this page.")
         if access_level == "report" and not self.user_has_reported:
             if self.user_is_authenticated:
-                raise NoReportError("Submit a report before accessing this page.")
+                raise UserMissingReport("Submit a report before accessing this page.")
             else:
-                raise LoginError("Login before accessing this page.")
+                raise PageRequiresLogin("Login before accessing this page.")
 
-    def handle_sso_redirect(self) -> None:
-        raw_path = self.router.page.raw_path
-        if ("access_token" in raw_path) and ("refresh_token" in raw_path):
-            try:
+    def handle_sso_redirect(self) -> Iterable[Callable]:
+        try:
+            raw_path = self.router.page.raw_path
+            if ("access_token" in raw_path) and ("refresh_token" in raw_path):
                 fragment = raw_path.split("#")[1]
                 self.access_token = fragment.split("&")[0].split("=")[1]
                 self.refresh_token = fragment.split("&")[4].split("=")[1]
-            except Exception:
-                raise TokenError("Encountered an error processing JWT via SSO.")
+        except Exception:
+            yield rx.toast.error("Invalid URL format for login.")
 
     def check_user_data_has_updated(self) -> bool:
         """
@@ -271,6 +284,20 @@ class BaseState(rx.State):
         else:
             logger.warning("User doesn't have any saved hospitals to retrieve.")
 
+    def event_state_add_hospital(self, hosp_id: str) -> Iterable[Callable]:
+        try:
+            if len(self.user_info["saved_hospitals"]) >= 30:
+                yield rx.toast.error("Maximum number of saved hospitals reached. (30)")
+            elif hosp_id not in self.user_info["saved_hospitals"]:
+                new_user_info = self.user_info["saved_hospitals"] + [hosp_id]
+                user_info = {"saved_hospitals": new_user_info}
+                yield BaseState.update_user_info(user_info)
+                yield rx.toast.success("Hospital saved to 'My Hospitals'.")
+            else:
+                yield rx.toast.warning("Hospital is already added to your list.")
+        except RequestFailed as e:
+            yield rx.toast.error(str(e), timeout=5000)
+
     def event_state_remove_set_hospital(self, hosp_id: str) -> Iterable[Callable]:
         new_user_info = [
             h for h in self.user_info["saved_hospitals"] if h != hosp_id
@@ -291,25 +318,23 @@ class BaseState(rx.State):
         else:
             logger.warning("Retrieved empty list when requesting user reports.")
 
-    def update_user_info(self, user_data: Dict[str, Any]) -> Iterable[Callable]:
+    def update_user_info(self, user_data: Dict[Any, Any]) -> Iterable[Callable]:
         """
-        Writes data to user table.
+        Wraps the supabase request to update user data so that if successful, whatever
+        data gets written to supabase, also gets written back to user_info to maintain
+        consistency from state <-> database.
 
         Args:
             user_data: dict - data to be written
-
-        Exceptions:
-            RequestFailed - request failed to write to database.
         """
         try:
-            logger.debug(f"Attempting to update user data with {user_data}")
             updated_data = supabase_update_user_info(
                 self.access_token, self.user_claims["payload"]["sub"], user_data
             )
             self.user_info.update(updated_data)
         except RequestFailed as e:
-            error_message = str(e)
-            yield rx.toast.error(error_message, timeout=5000)
+            yield rx.toast.error(str(e))
+
 
     def redirect_user_to_login(self) -> Iterable[Callable]:
         from .navbar_state import NavbarState

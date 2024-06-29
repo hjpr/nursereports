@@ -1,11 +1,21 @@
 
-from ...client.components.lists import leaving_reason, unit_specialties, years_experience
-from ...states.report_state import ReportState
+from ...client.components.lists import leaving_reason, unit_specialties
 
+from ...states import BaseState, ReportState
+
+from loguru import logger
 from typing import Callable, Iterable
 
 import random
+import reflex as rx
 import uuid
+
+class TestState(BaseState):
+
+    def event_state_warn_tests_active(self) -> Iterable[Callable]:
+        logger.critical("!!!TEST PAGE IS ACTIVE!!!")
+        yield rx.toast.error("TEST PAGE IS ACTIVE", timeout=10000)
+
 
 class ReportTestState(ReportState):
 

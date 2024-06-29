@@ -17,15 +17,15 @@ class CreateUserFailed(AuthorizationError):
     """Unable to create user entry in database."""
 
 
-class LoginError(AuthorizationError):
-    """User is attempting to access information that requires user to be logged in."""
-
-
 class LoginCredentialsInvalid(AuthorizationError):
     """User did not provide proper credentials to login with."""
 
 
-class NoReportError(AuthorizationError):
+class PageRequiresLogin(AuthorizationError):
+    """User is attempting to access information that requires user to be logged in."""
+
+
+class UserMissingReport(AuthorizationError):
     """User hasn't submitted a report and context requires that a report be completed."""
 
 
@@ -77,4 +77,5 @@ class TokenError(Exception):
         logger.critical(f"{func} - {error_message}")
 
 
-class ExpiredError(TokenError): ...
+class TokenRefreshFailed(TokenError):
+    """User request to refresh access token failed."""

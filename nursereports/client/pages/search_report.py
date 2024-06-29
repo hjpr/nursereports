@@ -10,7 +10,7 @@ import reflex as rx
 
 @rx.page(
     title="Search",
-    route="/search/report",
+    route="/search/hospital",
     on_load=BaseState.event_state_standard_flow("login"),
 )
 @login_protected
@@ -127,35 +127,86 @@ def search_results() -> rx.Component:
 
 
 def render_results(result: Dict) -> rx.Component:
-    return rx.flex(
-        rx.hstack(
-            rx.flex(
-                rx.heading(f"{result['hosp_name']}", size="3"),
-                rx.text(f"{result['hosp_addr']}"),
-                rx.text(f"{result['hosp_city']}, \
-                    {result['hosp_state']}\
-                    {result['hosp_zip']}"),
-                flex_direction="column",
-                width="100%",
-                gap="4px",
-            ),
-            rx.flex(
-                rx.button(
-                    "Select",
-                    rx.icon("chevron-right"),
-                    size="3",
-                    radius="full",
-                    on_click=SearchState.nav_to_report(result["hosp_id"]),
+    return rx.card(
+        rx.flex(
+            rx.hstack(
+                rx.flex(
+                    rx.heading(f"{result['hosp_name']}", size="3"),
+                    rx.text(f"{result['hosp_addr']}"),
+                    rx.text(f"{result['hosp_city']}, \
+                        {result['hosp_state']}\
+                        {result['hosp_zip']}"),
+                    flex_direction="column",
+                    width="100%",
+                    gap="4px",
                 ),
-                height="100%",
-                width="30%",
-                justify="end",
-                align="center",
+                rx.cond(
+                    BaseState.user_has_reported,
+                    hospital_buttons(result),
+                    hospital_buttons_new_user(result)
+                ),
+                width="100%",
             ),
+            flex_direction="row",
             width="100%",
+            justify_content="space-between",
         ),
-        flex_direction="row",
-        width="100%",
-        justify_content="space-between",
-        padding="0 0 24px 0",
+        width="100%"
+    )
+
+
+def hospital_buttons_new_user(result: Dict) -> rx.Component:
+    return rx.flex(
+        rx.button(
+            "Select",
+            rx.icon("chevron-right"),
+            size="3",
+            radius="full",
+            on_click=SearchState.nav_to_report(result["hosp_id"]),
+        ),
+        height="100%",
+        width="30%",
+        justify="end",
+        align="center",
+    )
+
+
+def hospital_buttons(result: Dict) -> rx.Component:
+    return rx.flex(
+        rx.button(
+            "Select",
+            rx.icon("chevron-right"),
+            size="3",
+            radius="full",
+            on_click=None,
+        ),
+        rx.flex(
+            rx.tooltip(
+                rx.button(
+                    rx.icon("list-plus", size=20),
+                    on_click=BaseState.event_state_add_hospital(result["hosp_id"])
+                ),
+                content="Add to My Hospitals list."
+            ),
+            rx.tooltip(
+                rx.button(
+                    rx.icon("message-square-text", size=20)
+                ),
+                content="Submit a Report."
+            ),
+            rx.tooltip(
+                rx.button(
+                    rx.icon("flag", size=20),
+                    color_scheme="tomato"
+                ),
+                content="Report an unsafe and/or unethical situation."
+            ),
+            flex_direction="row",
+            spacing="3",
+            width="100%"
+        ),
+        height="100%",
+        width="30%",
+        flex_direction="column",
+        spacing="3"
     )
