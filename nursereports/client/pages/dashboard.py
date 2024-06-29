@@ -5,7 +5,7 @@ from ..components import (
     navbar,
     report_protected
 )
-from ...states.base_state import BaseState
+from ...states import BaseState
 
 import reflex as rx
 
@@ -15,7 +15,7 @@ import reflex as rx
     title="Nurse Reports",
     on_load=[
         BaseState.event_state_standard_flow("report"),
-        BaseState.event_state_refresh_user_info,
+        BaseState.event_state_refresh_user_info
     ],
 )
 @report_protected

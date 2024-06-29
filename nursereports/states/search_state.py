@@ -62,21 +62,17 @@ class SearchState(BaseState):
             else:
                 self.error_search = response['status']
 
-    def redirect_to_hospital_overview(self, hosp_id) -> Iterable[Callable]:
+    def clear_search_results(self) -> None:
         self.selected_city = ""
         self.selected_state = ""
         self.search_results = []
+
+    def redirect_to_hospital_overview(self, hosp_id) -> Iterable[Callable]:
         return rx.redirect(f"/hospital/{hosp_id}")
 
     def redirect_to_red_flag_report(self, hosp_id) -> Iterable[Callable]:
-        self.selected_city = ""
-        self.selected_state = ""
-        self.search_results = []
         return rx.redirect(f"/report/full/{hosp_id}/overview")
         
     def redirect_to_full_report(self, hosp_id) -> Iterable[Callable]:
-        self.selected_city = ""
-        self.selected_state = ""
-        self.search_results = []
         yield ReportState.reset_report
         yield rx.redirect(f"/report/full/{hosp_id}/overview")

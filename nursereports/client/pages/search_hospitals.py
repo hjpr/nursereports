@@ -15,7 +15,10 @@ import reflex as rx
 @rx.page(
     title="Search",
     route="/search/hospital",
-    on_load=BaseState.event_state_standard_flow("login"),
+    on_load=[
+        BaseState.event_state_standard_flow("login"),
+        SearchState.clear_search_results
+    ]
 )
 @login_protected
 def search_page() -> rx.Component:
