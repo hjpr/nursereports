@@ -1,7 +1,10 @@
-from ..components.c2a import c2a
-from ..components.custom import report_protected
-from ..components.footer import footer
-from ..components.navbar import navbar
+from ..components import (
+    c2a,
+    footer,
+    hospital_item_dashboard,
+    navbar,
+    report_protected
+)
 from ...states.base_state import BaseState
 
 import reflex as rx
@@ -71,7 +74,7 @@ def my_hospitals() -> rx.Component:
         rx.cond(
             BaseState.saved_hospitals,
             rx.flex(
-                rx.foreach(BaseState.saved_hospitals, render_hospitals),
+                rx.foreach(BaseState.saved_hospitals, hospital_item_dashboard),
                 height="100%",
                 width="100%",
                 flex_direction='column',
@@ -99,44 +102,6 @@ def my_hospitals() -> rx.Component:
         height="100%",
         width="100%",
         margin=["0px 0px 12px 0px"],
-    )
-
-
-def render_hospitals(hospital: dict) -> rx.Component:
-    return rx.card(
-        rx.flex(
-            rx.vstack(
-                rx.heading(f"{hospital['hosp_name']}", size="3"),
-                rx.text(f"{hospital["hosp_state"]}"),
-                width="100%",
-            ),
-            rx.spacer(),
-            rx.vstack(
-                rx.button(
-                    "Hospital Page",
-                    rx.icon("arrow-right"),
-                    size="3",
-                    width="100%",
-                    white_space="nowrap"
-
-                    ),
-                rx.flex(
-                    rx.button(
-                        rx.icon("trash-2"),
-                        variant="outline",
-                        size="3",
-                        on_click=BaseState.event_state_remove_set_hospital(hospital["hosp_id"])
-                        ),
-                    spacing="3",
-                    justify="end",
-                    width="100%"
-                ),
-            ),
-            flex_direction="row",
-            width="100%",
-            justify_content="space-between",
-        ),
-        width="100%"
     )
 
 

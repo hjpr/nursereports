@@ -666,7 +666,7 @@ class ReportState(PageState):
             self.comp_error_message = "Comments contain too many characters."
             return
         self.comp_error_message = ""
-        return rx.redirect(f"/report/submit/{self.hosp_id_param}/assignment")
+        return rx.redirect(f"/report/full/{self.hosp_id_param}/assignment")
 
     def handle_submit_assignment(self) -> Callable:
         if not self.assign_can_progress:
@@ -676,7 +676,7 @@ class ReportState(PageState):
             self.assign_error_message = "Comments contain too many characters."
             return
         self.assign_error_message = ""
-        return rx.redirect(f"/report/submit/{self.hosp_id_param}/staffing")
+        return rx.redirect(f"/report/full/{self.hosp_id_param}/staffing")
 
     def handle_submit_staffing(self) -> Callable:
         if not self.staffing_can_progress:
@@ -732,7 +732,7 @@ class ReportState(PageState):
         if response["success"]:
             yield ReportState.update_user_info
             yield ReportState.moderate_user_entries(report)
-            yield rx.redirect(f"/report/submit/{self.hosp_id_param}/complete")
+            yield rx.redirect(f"/report/full/{self.hosp_id_param}/complete")
             self.is_loading = False
         else:
             self.is_loading = False
@@ -824,7 +824,7 @@ class ReportState(PageState):
     #################################################################
 
     def report_nav(self, target_url: str) -> Callable:
-        return rx.redirect(f"/report/submit/{self.hosp_id_param}/{target_url}")
+        return rx.redirect(f"/report/full/{self.hosp_id_param}/{target_url}")
 
     #################################################################
     #

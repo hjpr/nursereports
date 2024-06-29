@@ -187,19 +187,15 @@ def supabase_get_user_reports(access_token, user_id) -> list[dict] | None:
         user_id: claims id of user
 
     Returns:
-        dict:
-            success: bool - if API call successful
-            status: str - user readable errors if any
-            payload: list of dicts containing select info from all reports found
-                list[dict]: - list of reports as dicts
-                    assign_select_unit: str - user selected unit
-                    assign_input_unit_name: str - if unit not present, user entered unit
-                    assign_select_area: str - user selected area
-                    assign_input_area: str - if area not present, user entered area
-                    created_at: str - time report was created
-                    hospital_id: str - medicare id
-                    modified_at: str - time report was modified
-                    report_id: str - uuid of report
+        list[dict]: - list of reports as dicts
+            assign_select_unit: str - user selected unit
+            assign_input_unit_name: str - if unit not present, user entered unit
+            assign_select_area: str - user selected area
+            assign_input_area: str - if area not present, user entered area
+            created_at: str - time report was created
+            hospital_id: str - medicare id
+            modified_at: str - time report was modified
+            report_id: str - uuid of report
 
     Exceptions
         RequestFailed: request to database failed
@@ -269,14 +265,15 @@ def supabase_populate_saved_hospital_details(
         list[dict]: list of hospital dicts populated with information
             dict:
                 hosp_id: str - hospitals Medicare ID
-                hosp_name: str - hospital's full name.
-                hosp_state: str - hospital's state as abbr.
+                hosp_name: str - hospital's full name
+                hosp_state: str - hospital's state as abbr
+                hosp_city: str - hospital's city
 
     Exceptions:
         ReadError: expected information but response was empty.
         RequestFailed: request to database failed.
     """
-    columns = "hosp_name,hosp_state,hosp_id"
+    columns = "hosp_name,hosp_state,hosp_city,hosp_id"
     hosp_id_str = ','.join(map(str, hosp_id))
     url = f"{api_url}/rest/v1/hospitals?hosp_id=in.({hosp_id_str})&select={columns}"
     headers = {

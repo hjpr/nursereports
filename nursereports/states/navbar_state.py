@@ -93,7 +93,7 @@ class NavbarState(BaseState):
         self.refresh_token = tokens["refresh_token"]
         self.show_login = False
         self.error_sign_in_message = ""
-        self.set_all_user_data()
+        self.set_all_user_data_to_state()
 
     def email_create_account(self, form_data: dict) -> None:
         email = form_data.get("create_account_email")
