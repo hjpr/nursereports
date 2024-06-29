@@ -73,30 +73,28 @@ def my_hospitals() -> rx.Component:
     return rx.card(
         rx.cond(
             BaseState.saved_hospitals,
-            rx.flex(
-                rx.foreach(BaseState.saved_hospitals, hospital_item_dashboard),
-                height="100%",
-                width="100%",
-                flex_direction='column',
-                spacing="3",
-                align_items="center",
-                justify_content="center",
+            rx.scroll_area(
+                rx.flex(
+                    rx.foreach(BaseState.saved_hospitals, hospital_item_dashboard),
+                    max_height="500px",
+                    width="100%",
+                    direction='column',
+                    spacing="3"
+                )
             ),
             rx.flex(
-                rx.text("You haven't saved any hospitals..."),
                 rx.button(
-                    "Test Add Hospital",
-                    on_click=BaseState.update_user_info(
-                        {"saved_hospitals": [12345, 67890]}
-                    ),
+                    rx.icon("search"),
+                    "Find hospitals to add...",
+                    variant="ghost",
+                    size="3",
+                    cursor="pointer",
+                    on_click=rx.redirect("/search/hospital")
                 ),
-                height="100%",
+                min_height="120px",
                 width="100%",
                 align_items="center",
                 justify_content="center",
-                flex_direction="column",
-                spacing="3",
-                padding="24px 24px 24px 24px",
             ),
         ),
         height="100%",

@@ -49,6 +49,7 @@ def hospital_item_search(hospital: Dict) -> rx.Component:
             flex_direction="row",
             width="100%"
         ),
+        min_height="120px",
         width="100%",
         border="1px solid",
         border_color="var(--chakra-colors-chakra-border-color)",
@@ -101,6 +102,7 @@ def hospital_item_dashboard(hospital: Dict) -> rx.Component:
             flex_direction="row",
             width="100%"
         ),
+        min_height="120px",
         width="100%",
         border="1px solid",
         border_color="var(--chakra-colors-chakra-border-color)",
