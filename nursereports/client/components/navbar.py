@@ -42,7 +42,7 @@ def navbar() -> rx.Component:
         width="100%",
         align_items="center",
         justify_content="center",
-        height=["48px", "48px", "64px", "64px" "64px"],
+        height="64px",
         border_bottom="1px solid #E2E8F0",
         bg="var(--color-panel-translucent)",
         backdrop_filter="blur(10px)",

@@ -9,6 +9,7 @@ from ..server.exceptions import (
 from ..server.secrets import jwt_key
 from ..server.supabase import (
     supabase_create_initial_user_info,
+    supabase_delete_user_report,
     supabase_get_new_access_token,
     supabase_get_user_info,
     supabase_get_user_modified_at_timestamp,
@@ -292,6 +293,12 @@ class BaseState(rx.State):
         user_info = supabase_get_user_info(self.access_token)
         self.user_info = user_info
 
+    def update_user_info(self, user_data: Dict[Any, Any]) -> Iterable[Callable]:
+        updated_data = supabase_update_user_info(
+            self.access_token, self.user_claims["payload"]["sub"], user_data
+        )
+        self.user_info.update(updated_data)
+
     def event_state_add_hospital(self, hosp_id: str) -> Iterable[Callable]:
         try:
             if len(self.user_info["saved_hospitals"]) >= 30:
@@ -305,6 +312,8 @@ class BaseState(rx.State):
                 yield rx.toast.warning("Hospital is already added to your list.")
         except RequestFailed as e:
             yield rx.toast.error(str(e), timeout=5000)
+        except Exception as e:
+            logger.critical(str(e))
 
     def event_state_remove_hospital(self, hosp_id: str) -> Iterable[Callable]:
         try:
@@ -319,12 +328,20 @@ class BaseState(rx.State):
             self.saved_hospitals = new_saved_hospitals
         except RequestFailed as e:
             yield rx.toast.error(str(e))
+        except Exception as e:
+            logger.critical(str(e))
 
-    def update_user_info(self, user_data: Dict[Any, Any]) -> Iterable[Callable]:
-        updated_data = supabase_update_user_info(
-            self.access_token, self.user_claims["payload"]["sub"], user_data
-        )
-        self.user_info.update(updated_data)
+    def event_state_remove_report(self, report_id: str) -> Iterable[Callable]:
+        try:
+            logger.critical(f"Attempting to remove {report_id}")
+            # updated_user_reports= [h for h in self.user_reports if report_id != h["report_id"]]
+            # supabase_delete_user_report(self.access_token, report_id)
+            # self.user_reports = updated_user_reports
+            yield rx.toast.success("Removed report from our database.")
+        except RequestFailed as e:
+            yield rx.toast.error(str(e))
+        except Exception as e:
+            logger.critical(str(e))
 
     def redirect_user_to_login(self) -> Iterable[Callable]:
         from .navbar_state import NavbarState

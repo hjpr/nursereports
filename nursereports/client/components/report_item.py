@@ -1,3 +1,6 @@
+
+from ...states import DashboardState
+
 import reflex as rx
 
 
@@ -93,14 +96,24 @@ def report_item_dashboard(report: dict[str, str]) -> rx.Component:
 
 
 def report_item_dashboard_ellipsis(report: dict[str, str]) -> rx.Component:
-    return rx.flex(
-        rx.button(
-            rx.icon("ellipsis-vertical"),
-            height="36px",
-            width="36px",
-            variant="ghost",
-            cursor="pointer",
-            on_click=None,
+    return rx.menu.root(
+        rx.menu.trigger(
+            rx.button(
+                rx.icon("ellipsis-vertical"),
+                height="36px",
+                width="36px",
+                variant="ghost",
+                cursor="pointer"
+            )
+        ),
+        rx.menu.content(
+            rx.menu.item(
+                "Delete Report",
+                on_click=[
+                    DashboardState.set_report_to_remove(report["report_id"]),
+                    DashboardState.set_remove_report_confirmation_open(True)
+                ]
+            )
         )
     )
 

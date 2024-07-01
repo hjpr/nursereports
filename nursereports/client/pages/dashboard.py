@@ -11,6 +11,7 @@ from ..components.modals import (
     info_modal,
     my_pay_modal_content,
     my_reports_modal_content,
+    remove_report_modal,
     saved_hospitals_modal_content,
 )
 from ...states import BaseState, DashboardState
@@ -51,6 +52,7 @@ def content() -> rx.Component:
         my_pay_info_modal(),
         my_reports(),
         my_reports_info_modal(),
+        my_reports_remove_modal(),
         width="100%",
         max_width="1100px",
         padding="24px",
@@ -74,7 +76,6 @@ def saved_hospitals() -> rx.Component:
                     rx.spacer(),
                     rx.icon(
                         "info",
-                        color="lightgrey",
                         cursor="pointer",
                         on_click=DashboardState.set_saved_hospitals_info_open(True),
                     ),
@@ -140,7 +141,6 @@ def my_pay() -> rx.Component:
                 rx.spacer(),
                 rx.icon(
                     "info",
-                    color="lightgrey",
                     cursor="pointer",
                     on_click=DashboardState.set_my_pay_info_open(True)
                     ),
@@ -183,7 +183,6 @@ def my_reports() -> rx.Component:
                 rx.spacer(),
                 rx.icon(
                     "info",
-                    color="lightgrey",
                     cursor="pointer",
                     on_click=DashboardState.set_my_reports_info_open(True)
                     ),
@@ -215,4 +214,11 @@ def my_reports_info_modal() -> rx.Component:
     return rx.dialog.root(
         info_modal("My Reports", my_reports_modal_content()),
         open=DashboardState.my_reports_info_open,
+    )
+
+
+def my_reports_remove_modal() -> rx.Component:
+    return rx.dialog.root(
+        remove_report_modal(),
+        open=DashboardState.remove_report_confirmation_open
     )

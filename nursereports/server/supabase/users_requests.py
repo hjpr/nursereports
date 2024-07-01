@@ -211,7 +211,31 @@ def supabase_get_user_reports(access_token: str, user_id: str) -> list[dict] | N
         logger.debug(f"Pulled {len(content)} user report(s) successfully.")
         return content
     else:
-        raise RequestFailed("Unable to retrieve user reports from database.")
+        raise RequestFailed("Failed request to retrieve user reports from database.")
+    
+
+def supabase_delete_user_report(access_token: str, report_id: str) -> None:
+    """
+    Removes a report for a particular report_id that user wishes to remove.
+
+    Args:
+        access_token: str - user JWT object.
+        report_id: str - uuid of report.
+
+    Exceptions:
+        RequestFailed: request to database failed.
+    """
+    url = f"{api_url}/rest/v1/reports?report_id=eq.{report_id}"
+    headers = {
+        "apikey": api_key,
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json",
+    }
+    response = httpx.delete(url=url, headers=headers)
+    if response.is_success:
+        logger.warning(f"Removed report {report_id}")
+    else:
+        raise RequestFailed("Failed request to report removal from database.")
 
 
 def supabase_get_saved_hospitals(access_token: str, user_id: str) -> list | None:
@@ -220,7 +244,7 @@ def supabase_get_saved_hospitals(access_token: str, user_id: str) -> list | None
 
     Args:
         access_token: str - user JWT object.
-        user_id: str - uuid of user
+        user_id: str - uuid of user.
 
     Returns:
         list[str]: list of hospitals as str (medicare ID #'s)

@@ -13,6 +13,7 @@ from .report_requests import (
 from .search_requests import supabase_get_hospital_search_results
 from .users_requests import (
     supabase_create_initial_user_info,
+    supabase_delete_user_report,
     supabase_get_saved_hospitals,
     supabase_get_user_info,
     supabase_get_user_modified_at_timestamp,
