@@ -1,4 +1,5 @@
 from .base_state import BaseState
+from .dashboard_state import DashboardState
 from .navbar_state import NavbarState
 from .page_state import PageState
 from .report_state import ReportState

@@ -17,12 +17,12 @@ from ..server.supabase import (
     supabase_update_user_info,
 )
 
+from datetime import datetime
 from loguru import logger
 from typing import Any, AnyStr, Dict, Callable, Iterable, List
 
 import jwt
 import reflex as rx
-import rich
 import time
 
 
@@ -273,11 +273,17 @@ class BaseState(rx.State):
                 self.access_token, self.user_claims["payload"]["sub"]
             )
             if user_reports:
-                rich.inspect(user_reports)
+                for hospital in user_reports:
+                    hospital["created_at"] = datetime.fromisoformat(
+                        hospital["created_at"]
+                    ).strftime("%Y - %B")
+                    if hospital["modified_at"]:
+                        hospital["modified_at"] = datetime.fromisoformat(
+                            hospital["modified_at"]
+                        ).strftime("%Y - %B")
                 self.user_reports = user_reports
             else:
                 self.user_reports = []
-
 
     def create_new_user(self) -> None:
         supabase_create_initial_user_info(
@@ -302,7 +308,9 @@ class BaseState(rx.State):
 
     def event_state_remove_hospital(self, hosp_id: str) -> Iterable[Callable]:
         try:
-            new_user_info = [h for h in self.user_info["saved_hospitals"] if h != hosp_id]
+            new_user_info = [
+                h for h in self.user_info["saved_hospitals"] if h != hosp_id
+            ]
             user_info = {"saved_hospitals": new_user_info}
             self.update_user_info(user_info)
             new_saved_hospitals = [

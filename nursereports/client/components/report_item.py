@@ -1,5 +1,5 @@
-
 import reflex as rx
+
 
 def report_item_dashboard(report: dict[str, str]) -> rx.Component:
     return rx.flex(
@@ -14,50 +14,51 @@ def report_item_dashboard(report: dict[str, str]) -> rx.Component:
                                 f"{report["assign_input_unit_name"]}",
                                 font_weight="bold",
                                 font_size=["16px", "16px", "18px", "18px", "18px"],
-                                line_height="1em"
-                                ),
+                                line_height="1em",
+                            ),
                             rx.text(
                                 f"{report["assign_select_unit"]}",
                                 font_weight="bold",
                                 font_size=["16px", "16px", "18px", "18px", "18px"],
-                                line_height="1em"
-                                )
+                                line_height="1em",
+                            ),
                         ),
                         rx.cond(
-                            report["assign_select_area"] == "I don't see my area or role",
+                            report["assign_select_area"]
+                            == "I don't see my area or role",
                             rx.text(
                                 f"{report["assign_input_area"]}",
                                 font_weight="bold",
                                 font_size=["16px", "16px", "18px", "18px", "18px"],
-                                line_height="1em"
+                                line_height="1em",
                             ),
                             rx.text(
                                 f"{report["assign_select_area"]}",
                                 font_weight="bold",
                                 font_size=["16px", "16px", "18px", "18px", "18px"],
-                                line_height="1em"
-                            )
-                        )
+                                line_height="1em",
+                            ),
+                        ),
                     ),
                     rx.cond(
                         report["modified_at"],
                         rx.text(
-                            f"Edited - {report["modified_at"]}",
+                            f"Edited {report["modified_at"]}",
                             font_size="14px",
                             font_style="italic",
                         ),
                         rx.text(
-                            f"Submitted - {report["created_at"]}",
+                            f"Submitted {report["created_at"]}",
                             font_size="14px",
                             font_style="italic",
-                        )
+                        ),
                     ),
                     width="100%",
                     flex_direction="column",
-                    gap=["4px", "4px", "12px", "12px", "12px"]
+                    gap=["4px", "4px", "12px", "12px", "12px"],
                 ),
                 align="center",
-                margin="24px"
+                margin="24px",
             ),
             rx.spacer(),
             rx.flex(
@@ -67,7 +68,7 @@ def report_item_dashboard(report: dict[str, str]) -> rx.Component:
                 height="100%",
                 min_height="100px",
                 width="100px",
-                min_width="100px"
+                min_width="100px",
             ),
             rx.flex(
                 report_item_dashboard_edit(report),
@@ -77,10 +78,10 @@ def report_item_dashboard(report: dict[str, str]) -> rx.Component:
                 min_height="100px",
                 width="100px",
                 min_width="100px",
-                border_left="1px solid var(--chakra-colors-chakra-border-color)"
+                border_left="1px solid var(--chakra-colors-chakra-border-color)",
             ),
             flex_direction="row",
-            width="100%"
+            width="100%",
         ),
         min_height="100px",
         width="100%",
@@ -99,7 +100,7 @@ def report_item_dashboard_ellipsis(report: dict[str, str]) -> rx.Component:
             width="36px",
             variant="ghost",
             cursor="pointer",
-            on_click=None
+            on_click=None,
         )
     )
 
@@ -112,6 +113,6 @@ def report_item_dashboard_edit(report: dict[str, str]) -> rx.Component:
             width="36px",
             variant="ghost",
             cursor="pointer",
-            on_click=None
+            on_click=None,
         )
     )
