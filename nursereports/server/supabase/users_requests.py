@@ -30,7 +30,6 @@ def supabase_get_user_info(access_token: str) -> dict | None:
             membership: str - default value is 'Free'
             modified_at: timestamptz - user modified last date, default is nowutc()
             my_jobs: list[dict] - default value is NULL
-            my_reports: list[dict] - default value is NULL
             needs_onboard: bool - default value is True
             reports: int - default value is 0
             saved_hospitals: dict - default value is NULL
@@ -83,7 +82,6 @@ def supabase_create_initial_user_info(access_token: str, user_id: str) -> None:
         membership: str - default value is 'Free'
         modified_at: timestamptz - user modified last date, default is nowutc()
         my_jobs: list[dict] - default value is NULL
-        my_reports: list[dict] - default value is NULL
         needs_onboard: bool - default value is True
         reports: int - default value is 0
         saved_hospitals: dict - default value is NULL
@@ -177,7 +175,7 @@ def supabase_update_user_info(
         raise RequestFailed("Failed to update user information.")
 
 
-def supabase_get_user_reports(access_token, user_id) -> list[dict] | None:
+def supabase_get_user_reports(access_token: str, user_id: str) -> list[dict] | None:
     """
     Retrieves the user reports formatted for the dashboard page for
     display, editing, and removal.

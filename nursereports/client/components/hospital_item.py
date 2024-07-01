@@ -1,10 +1,10 @@
-from typing import Dict
+
 from ...states import BaseState, SearchState
 
 import reflex as rx
 
 
-def hospital_item_search(hospital: Dict) -> rx.Component:
+def hospital_item_search(hospital: dict[str, str]) -> rx.Component:
     return rx.flex(
         rx.flex(
             rx.flex(
@@ -49,15 +49,16 @@ def hospital_item_search(hospital: Dict) -> rx.Component:
             flex_direction="row",
             width="100%"
         ),
-        min_height="120px",
+        min_height="100px",
         width="100%",
+        bg="white",
         border="1px solid",
         border_color="var(--chakra-colors-chakra-border-color)",
         border_radius="var(--radius-4)",
     )
 
 
-def hospital_item_dashboard(hospital: Dict) -> rx.Component:
+def hospital_item_dashboard(hospital: dict[str, str]) -> rx.Component:
     return rx.flex(
         rx.flex(
             rx.flex(
@@ -65,19 +66,19 @@ def hospital_item_dashboard(hospital: Dict) -> rx.Component:
                     rx.text(
                         f"{hospital['hosp_name']}",
                         font_weight="bold",
-                        font_size=["18px", "18px", "22px", "22px", "22px"],
+                        font_size=["16px", "16px", "18px", "18px", "18px"],
                         line_height="1em"
                         ),
                     rx.text(
                         f"{hospital["hosp_city"]}, {hospital["hosp_state"]}",
-                        font_size=["14px", "14px", "16px", "16px", "16px"],
+                        font_size="14px",
                         font_style="italic",
                         ),
                     flex_direction="column",
                     gap=["4px", "4px", "12px", "12px", "12px"]
                 ),
                 align="center",
-                margin=["12px", "12px", "24px", "24px", "24px"]
+                margin="24px"
             ),
             rx.spacer(),
             rx.flex(
@@ -102,21 +103,21 @@ def hospital_item_dashboard(hospital: Dict) -> rx.Component:
             flex_direction="row",
             width="100%"
         ),
-        min_height="120px",
+        min_height="100px",
         width="100%",
+        bg="white",
         border="1px solid",
         border_color="var(--chakra-colors-chakra-border-color)",
         border_radius="var(--radius-4)",
     )
 
 
-def hospital_item_search_arrow(hospital: Dict) -> rx.Component:
+def hospital_item_search_arrow(hospital: dict[str, str]) -> rx.Component:
     return rx.cond(
         BaseState.user_has_reported,
         rx.box(
             rx.button(
                 rx.icon("arrow-right"),
-                size="3",
                 variant="ghost",
                 cursor="pointer",
                 on_click=SearchState.redirect_to_hospital_overview(hospital["hosp_id"]),
@@ -125,7 +126,7 @@ def hospital_item_search_arrow(hospital: Dict) -> rx.Component:
         rx.box(
             rx.button(
                 rx.icon("arrow-right"),
-                size="3",
+                size="2",
                 variant="ghost",
                 cursor="pointer",
                 on_click=SearchState.redirect_to_full_report(hospital["hosp_id"]),
@@ -134,7 +135,7 @@ def hospital_item_search_arrow(hospital: Dict) -> rx.Component:
     )
 
 
-def hospital_item_search_dropdown(hospital: Dict) -> rx.Component:
+def hospital_item_search_dropdown(hospital: dict[str, str]) -> rx.Component:
     return rx.cond(
         BaseState.user_has_reported,
         rx.box(
@@ -154,7 +155,7 @@ def hospital_item_search_dropdown(hospital: Dict) -> rx.Component:
                     rx.menu.separator(),
                     rx.menu.item(
                         "Submit Full Report",
-                        on_click=SearchState.redirect_to_hospital_overview(hospital["hosp_id"])
+                        on_click=SearchState.redirect_to_full_report(hospital["hosp_id"])
                     ),
                     rx.menu.item(
                         "Submit Red Flag Report",
@@ -166,11 +167,12 @@ def hospital_item_search_dropdown(hospital: Dict) -> rx.Component:
     )
 
 
-def hospital_item_dashboard_arrow(hospital: Dict) -> rx.Component:
+def hospital_item_dashboard_arrow(hospital: dict[str, str]) -> rx.Component:
     return rx.box(
         rx.button(
             rx.icon("arrow-right"),
-            size="3",
+            height="36px",
+            width="36px",
             variant="ghost",
             cursor="pointer",
             on_click=SearchState.redirect_to_hospital_overview(hospital)
@@ -178,11 +180,17 @@ def hospital_item_dashboard_arrow(hospital: Dict) -> rx.Component:
     )
 
 
-def hospital_item_dashboard_trash(hospital: Dict) -> rx.Component:
+def hospital_item_dashboard_trash(hospital: dict[str, str]) -> rx.Component:
     return rx.box(
         rx.popover.root(
             rx.popover.trigger(
-                rx.button(rx.icon("trash-2"), size="3", variant="ghost", cursor="pointer")
+                rx.button(
+                    rx.icon("trash-2"),
+                    height="36px",
+                    width="36px",
+                    variant="ghost",
+                    cursor="pointer"
+                )
             ),
             rx.popover.content(
                 rx.flex(

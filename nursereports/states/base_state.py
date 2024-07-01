@@ -22,6 +22,7 @@ from typing import Any, AnyStr, Dict, Callable, Iterable, List
 
 import jwt
 import reflex as rx
+import rich
 import time
 
 
@@ -85,6 +86,8 @@ class BaseState(rx.State):
                 return {"valid": False, "payload": None, "reason": "expired"}
             except jwt.InvalidSignatureError:
                 return {"valid": False, "payload": None, "reason": "invalid"}
+            except Exception as e:
+                return {"valid": False, "payload": None, "reason": f"{str(e)}"}
         else:
             return {"valid": False, "payload": None, "reason": "empty"}
 
@@ -259,15 +262,18 @@ class BaseState(rx.State):
                 saved_hospitals = supabase_populate_saved_hospital_details(
                     self.access_token, self.user_info["saved_hospitals"]
                 )
+                for hospital in saved_hospitals:
+                    hospital["hosp_city"] = hospital["hosp_city"].title()
                 self.saved_hospitals = saved_hospitals
             else:
                 self.saved_hospitals = []
 
             # Set user reports to state.
-            if self.user_info["my_reports"]:
-                user_reports = supabase_get_user_reports(
-                    self.access_token, self.user_claims["payload"]["sub"]
-                )
+            user_reports = supabase_get_user_reports(
+                self.access_token, self.user_claims["payload"]["sub"]
+            )
+            if user_reports:
+                rich.inspect(user_reports)
                 self.user_reports = user_reports
             else:
                 self.user_reports = []
@@ -278,10 +284,7 @@ class BaseState(rx.State):
             self.access_token, self.user_claims["payload"]["sub"]
         )
         user_info = supabase_get_user_info(self.access_token)
-        if user_info:
-            self.user_info = user_info
-        else:
-            raise ReadError("User created, but failed to pull data after operation.")
+        self.user_info = user_info
 
     def event_state_add_hospital(self, hosp_id: str) -> Iterable[Callable]:
         try:

@@ -12,7 +12,7 @@ import reflex as rx
 
 
 @rx.page(
-    route="/report/full/[hosp_id]/assignment",
+    route="/report/full-report/[hosp_id]/assignment",
     title="Nurse Reports",
     on_load=BaseState.event_state_standard_flow("login"),
 )

@@ -1,4 +1,5 @@
 from ..states import PageState
+from ..server.exceptions import RequestFailed
 from ..server.secrets import anyscale_api_key, anyscale_url, api_url, api_key
 from ..server.supabase import (
     supabase_submit_full_report,
@@ -666,7 +667,7 @@ class ReportState(PageState):
             self.comp_error_message = "Comments contain too many characters."
             return
         self.comp_error_message = ""
-        return rx.redirect(f"/report/full/{self.hosp_id_param}/assignment")
+        return rx.redirect(f"/report/full-report/{self.hosp_id_param}/assignment")
 
     def handle_submit_assignment(self) -> Callable:
         if not self.assign_can_progress:
@@ -676,7 +677,7 @@ class ReportState(PageState):
             self.assign_error_message = "Comments contain too many characters."
             return
         self.assign_error_message = ""
-        return rx.redirect(f"/report/full/{self.hosp_id_param}/staffing")
+        return rx.redirect(f"/report/full-report/{self.hosp_id_param}/staffing")
 
     def handle_submit_staffing(self) -> Callable:
         if not self.staffing_can_progress:
@@ -707,38 +708,43 @@ class ReportState(PageState):
 
         5. Updates user info to reflect submission.
         """
-        self.is_loading = True
-        self.generate_report_id()
-        report = self.prepare_report_dict()
+        try:
+            self.is_loading = True
+            self.generate_report_id()
+            report = self.prepare_report_dict()
 
-        if not self.comp_can_progress:
-            self.comp_error_message = "Some fields incomplete or invalid."
-            return rx.redirect(f"/report/submit/{self.hosp_id_param}/compensation")
+            if not self.comp_can_progress:
+                self.comp_error_message = "Some fields incomplete or invalid."
+                return rx.redirect(
+                    f"/report/full-report/{self.hosp_id_param}/compensation"
+                )
 
-        if not self.assign_can_progress:
-            self.assign_error_message = "Some fields incomplete or invalid."
-            return rx.redirect(f"/report/submit/{self.hosp_id_param}/assignment")
+            if not self.assign_can_progress:
+                self.assign_error_message = "Some fields incomplete or invalid."
+                return rx.redirect(
+                    f"/report/full-report/{self.hosp_id_param}/assignment"
+                )
 
-        if not self.staffing_can_progress:
-            self.staffing_can_progress = "Some fields incomplete or invalid."
-            return rx.redirect(f"/report/submit/{self.hosp_id_param}/staffing")
+            if not self.staffing_can_progress:
+                self.staffing_can_progress = "Some fields incomplete or invalid."
+                return rx.redirect(f"/report/full-report/{self.hosp_id_param}/staffing")
 
-        response = self.ensure_no_duplicate(report)
-        if not response["success"]:
-            self.staffing_error_message = response["status"]
-            return
+            response = self.ensure_no_duplicate(report)
+            if not response["success"]:
+                self.staffing_error_message = response["status"]
+                return
 
-        response = supabase_submit_full_report(self.access_token, report)
-        if response["success"]:
-            yield ReportState.update_user_info
-            yield ReportState.moderate_user_entries(report)
-            yield rx.redirect(f"/report/full/{self.hosp_id_param}/complete")
+            supabase_submit_full_report(self.access_token, report)
+            self.update_user_info()
+            yield ReportState.moderate_user_entries(report) # Requires yielding to handler for async
+            yield rx.redirect(f"/report/full-report/{self.hosp_id_param}/complete")
             self.is_loading = False
-        else:
+        except RequestFailed as e:
             self.is_loading = False
-            self.staffing_error_message = (
-                "Server error - Failed to upload report to database."
-            )
+            yield rx.toast.error(str(e))
+        except Exception as e:
+            logger.critical(str(e))
+            yield rx.toast.error("Backend error - Check logs for details.")
 
     def prepare_report_dict(self) -> dict:
         report = {
@@ -824,7 +830,7 @@ class ReportState(PageState):
     #################################################################
 
     def report_nav(self, target_url: str) -> Callable:
-        return rx.redirect(f"/report/full/{self.hosp_id_param}/{target_url}")
+        return rx.redirect(f"/report/full-report/{self.hosp_id_param}/{target_url}")
 
     #################################################################
     #
@@ -965,40 +971,11 @@ class ReportState(PageState):
             )
             return
 
-    #################################################################
-    #
-    #   USER UPDATE SHIT
-    #
-    #################################################################
-
     def update_user_info(self) -> None:
-        if self.user_info["needs_onboard"]:
-            first_time = True
-            self.user_info["needs_onboard"] = False
         data = {
-            "needs_onboard": self.user_info["needs_onboard"],
+            "needs_onboard": False,
             "reports": self.user_info["reports"] + 1,
         }
-        response = supabase_update_user_info(
+        supabase_update_user_info(
             self.access_token, self.user_claims["payload"]["sub"], data=data
         )
-        if response["success"]:
-            self.user_info["reports"] += 1
-            logger.debug(
-                f"""Successfully gave {self.user_claims['payload']['sub']}
-                credit for report."""
-            )
-        else:
-            if first_time:
-                logger.critical(
-                    f"""Failed to give {self.user_claims['payload']['sub']}
-                credit for report. As it was their first report, this WILL
-                block them from accessing report database"""
-                )
-            else:
-                logger.warning(
-                    f"""Failed to give {self.user_claims['payload']['sub']}
-                    credit for report. User has already submitted their 
-                    first report and will just need credit for this one at
-                    some point."""
-                )
