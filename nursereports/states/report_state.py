@@ -5,6 +5,8 @@ from ..server.supabase import (
     supabase_submit_full_report,
     supabase_update_user_info,
     supabase_no_report_id_conflict,
+    supabase_get_full_report_info,
+    supabase_get_hospital_info,
 )
 from loguru import logger
 from typing import Callable, Iterable
@@ -26,17 +28,64 @@ class ReportState(PageState):
     """
 
     report_id: str
-
+    hospital_id: str
+    hospital_info: dict[str, str | int]
     is_test: bool = False
-
     is_loading: bool = False
+
+    def generate_report_id(self) -> None:
+        self.report_id = str(uuid.uuid4())
 
     def reset_report(self) -> None:
         self.reset()
 
-    def generate_report_id(self) -> None:
-        self.report_id = str(uuid.uuid4())
-        logger.debug(f"Generated a new report id - {self.report_id}")
+    def event_state_report_flow(self) -> Iterable[Callable]:
+        """
+        Ensures that a user is navigating to report via proper event
+        rather than manually typing information into URL.
+        """
+        if not self.hospital_id or not self.report_id:
+            yield rx.redirect("/dashboard")
+            yield rx.toast.error(
+                """Unable to access URL manually. Please use the search hospitals
+                function instead."""
+            )
+
+    def event_state_edit_user_report(self, report_id: str) -> Iterable[Callable]:
+        """
+        Get a single report with all columns for use in editing a user's report.
+        Saves retrieved report information to state.
+
+        Args:
+            report_id: str - uuid of user's report
+        """
+        try:
+            report = supabase_get_full_report_info(self.access_token, report_id)
+            self.report_id = report["report_id"]
+            self.hospital_id = report["hospital_id"]
+            self.save_report_dict_to_state(report)
+            self.hospital_info = supabase_get_hospital_info(
+                self.access_token, self.hospital_id
+            )
+            yield rx.redirect("/report/edit/compensation")
+        except RequestFailed as e:
+            yield rx.toast.error(str(e))
+        except Exception as e:
+            logger.critical(str(e))
+            yield rx.toast.error("Error while retrieving report.")
+
+    def event_state_get_hospital_info(self) -> Iterable[Callable]:
+        try:
+            self.hospital_info = supabase_get_hospital_info(
+                self.access_token, self.hospital_id
+            )
+        except RequestFailed as e:
+            yield rx.toast.error(str(e))
+            yield rx.redirect("/dashboard")
+        except Exception as e:
+            logger.critical(str(e))
+            yield rx.redirect("/dashboard")
+            yield rx.toast.error("Error while pulling hospital details.")
 
     #################################################################
     #
@@ -45,49 +94,27 @@ class ReportState(PageState):
     #################################################################
 
     comp_select_emp_type: str
-
     comp_select_pay_type: str
-
     comp_input_pay_amount: int
-
     comp_select_diff_response: str
-
     comp_input_diff_nights: int
-
     comp_input_diff_weekends: int
-
     comp_select_incentive_response: str
-
     comp_input_incentive_amount: int
-
     comp_select_certifications: str
-
     comp_select_shift: str
-
     comp_select_weekly_shifts: str
-
     comp_select_hospital_experience: str
-
     comp_select_total_experience: str
-
     comp_check_benefit_pto: bool = False
-
     comp_check_benefit_parental: bool = False
-
     comp_check_benefit_insurance: bool = False
-
     comp_check_benefit_retirement: bool = False
-
     comp_check_benefit_pro_dev: bool = False
-
     comp_check_benefit_tuition: bool = False
-
     comp_select_comp_adequate: str
-
     comp_input_comments: str
-
     comp_select_overall: str
-
     comp_error_message: str
 
     def set_comp_input_pay_amount(self, pay: str) -> None:
@@ -271,45 +298,25 @@ class ReportState(PageState):
     #################################################################
 
     assign_select_specific_unit: str
-
     assign_select_unit: str
-
     assign_input_unit_name: str
-
     assign_select_acuity: str
-
     assign_select_area: str
-
     assign_input_area: str
-
     assign_select_specialty_1: str
-
     assign_select_specialty_2: str
-
     assign_select_specialty_3: str
-
     assign_select_teamwork_rn: str
-
     assign_select_teamwork_na: str
-
     assign_select_providers: str
-
     assign_select_contributions: str
-
     assign_select_impact: str
-
     assign_select_management: str
-
     assign_select_leaving: str
-
     assign_select_leaving_reason: str
-
     assign_select_recommend: str
-
     assign_input_comments: str
-
     assign_select_overall: str
-
     assign_error_message: str
 
     def set_assign_select_specific_unit(self, unit: str) -> None:
@@ -500,37 +507,21 @@ class ReportState(PageState):
     #################################################################
 
     staffing_input_ratio: int
-
     staffing_select_ratio_unsafe: str
-
     staffing_select_workload: str
-
     staffing_select_charge_response: str
-
     staffing_select_charge_assignment: str
-
     staffing_select_nursing_shortages: str
-
     staffing_select_aide_shortages: str
-
     staffing_check_transport: bool
-
     staffing_check_lab: bool
-
     staffing_check_cvad: bool
-
     staffing_check_wocn: bool
-
     staffing_check_chaplain: bool
-
     staffing_check_educator: bool
-
     staffing_select_support_available: str
-
     staffing_input_comments: str
-
     staffing_select_overall: str
-
     staffing_error_message: str
 
     def set_staffing_input_ratio(self, ratio: str) -> None:
@@ -667,7 +658,7 @@ class ReportState(PageState):
             self.comp_error_message = "Comments contain too many characters."
             return
         self.comp_error_message = ""
-        return rx.redirect(f"/report/full-report/{self.hosp_id_param}/assignment")
+        return rx.redirect("/report/full-report/assignment")
 
     def handle_submit_assignment(self) -> Callable:
         if not self.assign_can_progress:
@@ -677,7 +668,7 @@ class ReportState(PageState):
             self.assign_error_message = "Comments contain too many characters."
             return
         self.assign_error_message = ""
-        return rx.redirect(f"/report/full-report/{self.hosp_id_param}/staffing")
+        return rx.redirect("/report/full-report/staffing")
 
     def handle_submit_staffing(self) -> Callable:
         if not self.staffing_can_progress:
@@ -698,14 +689,10 @@ class ReportState(PageState):
 
         1. Check that all sections are completed to 100%, if not then
         redirect to those sections and add warning message.
-
         2. Ensure that no duplicated report ID's exist. If so,
         user is trying to resubmit the report they have open.
-
         3. Submits report to /report
-
         4. Submits user entries to AI moderation.
-
         5. Updates user info to reflect submission.
         """
         try:
@@ -715,19 +702,15 @@ class ReportState(PageState):
 
             if not self.comp_can_progress:
                 self.comp_error_message = "Some fields incomplete or invalid."
-                return rx.redirect(
-                    f"/report/full-report/{self.hosp_id_param}/compensation"
-                )
+                return rx.redirect("/report/full-report/compensation")
 
             if not self.assign_can_progress:
                 self.assign_error_message = "Some fields incomplete or invalid."
-                return rx.redirect(
-                    f"/report/full-report/{self.hosp_id_param}/assignment"
-                )
+                return rx.redirect("/report/full-report/assignment")
 
             if not self.staffing_can_progress:
                 self.staffing_can_progress = "Some fields incomplete or invalid."
-                return rx.redirect(f"/report/full-report/{self.hosp_id_param}/staffing")
+                return rx.redirect("/report/full-report/staffing")
 
             response = self.ensure_no_duplicate(report)
             if not response["success"]:
@@ -736,8 +719,10 @@ class ReportState(PageState):
 
             supabase_submit_full_report(self.access_token, report)
             self.update_user_info()
-            yield ReportState.moderate_user_entries(report) # Requires yielding to handler for async
-            yield rx.redirect(f"/report/full-report/{self.hosp_id_param}/complete")
+            yield ReportState.moderate_user_entries(
+                report
+            )  # Requires yielding to handler for async
+            yield rx.redirect("/report/full-report/complete")
             self.is_loading = False
         except RequestFailed as e:
             self.is_loading = False
@@ -749,7 +734,7 @@ class ReportState(PageState):
     def prepare_report_dict(self) -> dict:
         report = {
             "report_id": self.report_id,
-            "hospital_id": self.hosp_id_param,
+            "hospital_id": self.hospital_id,
             "user_id": self.user_claims["payload"]["sub"],
             "license": self.user_info["license"],
             "license_state": self.user_info["license_state"],
@@ -816,21 +801,22 @@ class ReportState(PageState):
         }
         return report
 
+    def save_report_dict_to_state(self, report: dict) -> None:
+        # Don't set these values to state
+        report.pop("hospital_id", None)
+        report.pop("user_id", None)
+        report.pop("license", None)
+        report.pop("license_state", None)
+        report.pop("trust")
+        for key, value in report.items():
+            setattr(self, f"{key}", value)
+
     def ensure_no_duplicate(self, report) -> dict:
         logger.debug(f"Report ID - {report['report_id']}")
         response = supabase_no_report_id_conflict(
             self.access_token, report["report_id"]
         )
         return response
-
-    #################################################################
-    #
-    # NAVIGATION EVENTS & PAGE PARAMETERS
-    #
-    #################################################################
-
-    def report_nav(self, target_url: str) -> Callable:
-        return rx.redirect(f"/report/full-report/{self.hosp_id_param}/{target_url}")
 
     #################################################################
     #

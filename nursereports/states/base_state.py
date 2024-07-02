@@ -46,6 +46,14 @@ class BaseState(rx.State):
     @rx.var
     def host_address(self) -> str:
         return self.router.page.host
+    
+    @rx.var
+    def hosp_id_param(self) -> str:
+        return self.router.page.params.get('hosp_id')
+    
+    @rx.var
+    def report_id_param(self) -> str:
+        return self.router.page.params.get('report_id')
 
     @rx.var
     def reason_for_logout(self) -> str:
@@ -95,20 +103,14 @@ class BaseState(rx.State):
     @rx.cached_var
     def user_is_authenticated(self) -> bool:
         if self.access_token:
-            if self.user_claims["valid"]:
-                return True
-            else:
-                return False
+            return True if self.user_claims["valid"] else False
         else:
             return False
 
     @rx.cached_var
     def user_has_reported(self) -> bool:
         if self.access_token and self.user_info:
-            if self.user_info["needs_onboard"]:
-                return False
-            else:
-                return True
+            return False if self.user_info["needs_onboard"] else True
         else:
             return False
 
@@ -123,6 +125,9 @@ class BaseState(rx.State):
 
         Args:
             access_level: 'none', 'login', or 'report'
+
+        Returns:
+            Sends proper flow direction to event handler.
         """
         if self.user_claims["valid"] and self.user_info:
             return BaseState.authenticated_flow(access_level)

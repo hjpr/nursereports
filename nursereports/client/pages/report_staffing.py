@@ -4,16 +4,18 @@ from ..components.footer import footer
 from ..components.navbar import navbar
 from ..components.report_progress import progress
 from reflex_motion import motion
-from ...states.base_state import BaseState
-from ...states.report_state import ReportState
+from ...states import BaseState, ReportState
 
 import reflex as rx
 
 
 @rx.page(
-    route="/report/full-report/[hosp_id]/staffing",
+    route="/report/full-report/staffing",
     title="Nurse Reports",
-    on_load=BaseState.event_state_standard_flow("login"),
+    on_load=[
+        BaseState.event_state_standard_flow("login"),
+        ReportState.event_state_report_flow
+    ]
 )
 @login_protected
 def staffing_page() -> rx.Component:

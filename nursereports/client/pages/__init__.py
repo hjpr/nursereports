@@ -1,5 +1,8 @@
 
 from .dashboard import dashboard_page
+from .edit_report_assignment import edit_assignment_page
+from .edit_report_compensation import edit_compensation_page
+from .edit_report_staffing import edit_staffing_page
 from .hospital_overview import hospital_overview
 from .index import index_page
 from .logout import logout_page

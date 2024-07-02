@@ -62,23 +62,23 @@ def hospital_item_dashboard(hospital: dict[str, str]) -> rx.Component:
     return rx.flex(
         rx.flex(
             rx.flex(
-                rx.flex(
-                    rx.text(
-                        f"{hospital['hosp_name']}",
-                        font_weight="bold",
-                        font_size=["16px", "16px", "18px", "18px", "18px"],
-                        line_height="1em"
-                        ),
-                    rx.text(
-                        f"{hospital["hosp_city"]}, {hospital["hosp_state"]}",
-                        font_size="14px",
-                        font_style="italic",
-                        ),
-                    flex_direction="column",
-                    gap=["4px", "4px", "12px", "12px", "12px"]
+                rx.text(
+                    f"{hospital['hosp_name']}",
+                    font_weight="bold",
+                    font_size=["16px", "16px", "18px", "18px", "18px"],
+                    line_height="1em"
                 ),
-                align="center",
-                margin="24px"
+                rx.text(
+                    f"{hospital["hosp_city"]}, {hospital["hosp_state"]}",
+                    font_size="14px",
+                    font_style="italic",
+                ),
+                height="100%",
+                width="100%",
+                flex_direction="column",
+                justify="center",
+                gap=["4px", "4px", "12px", "12px", "12px"],
+                padding="12px"
             ),
             rx.spacer(),
             rx.flex(
@@ -87,8 +87,7 @@ def hospital_item_dashboard(hospital: dict[str, str]) -> rx.Component:
                 justify="center",
                 height="100%",
                 min_height="100px",
-                width="100px",
-                min_width="100px"
+                min_width=["50px", "50px", "100px", "100px", "100px"],
             ),
             rx.flex(
                 hospital_item_dashboard_arrow(hospital),
@@ -96,12 +95,11 @@ def hospital_item_dashboard(hospital: dict[str, str]) -> rx.Component:
                 justify="center",
                 height="100%",
                 min_height="100px",
-                width="100px",
-                min_width="100px",
+                min_width=["50px", "50px", "100px", "100px", "100px"],
                 border_left="1px solid var(--chakra-colors-chakra-border-color)"
             ),
             flex_direction="row",
-            width="100%"
+            width="100%",
         ),
         min_height="100px",
         width="100%",
@@ -168,55 +166,47 @@ def hospital_item_search_dropdown(hospital: dict[str, str]) -> rx.Component:
 
 
 def hospital_item_dashboard_arrow(hospital: dict[str, str]) -> rx.Component:
-    return rx.box(
-        rx.button(
-            rx.icon("arrow-right"),
-            height="36px",
-            width="36px",
-            variant="ghost",
-            cursor="pointer",
-            on_click=SearchState.redirect_to_hospital_overview(hospital)
-        )
+    return rx.button(
+        rx.icon("arrow-right"),
+        variant="ghost",
+        cursor="pointer",
+        on_click=SearchState.redirect_to_hospital_overview(hospital)
     )
 
 
 def hospital_item_dashboard_trash(hospital: dict[str, str]) -> rx.Component:
-    return rx.box(
-        rx.popover.root(
-            rx.popover.trigger(
-                rx.button(
-                    rx.icon("trash-2"),
-                    height="36px",
-                    width="36px",
-                    variant="ghost",
-                    cursor="pointer"
-                )
-            ),
-            rx.popover.content(
-                rx.flex(
-                    rx.text("Are you sure?"),
-                    rx.popover.close(
-                        rx.vstack(
-                            rx.button(
-                                "Delete",
-                                width="100%",
-                                size="3",
-                                color_scheme="ruby",
-                                on_click=BaseState.event_state_remove_hospital(hospital["hosp_id"])
-                            ),
-                            rx.button(
-                                "Cancel",
-                                width="100%",
-                                size="3",
-                                variant="ghost"
-                            )
+    return rx.popover.root(
+        rx.popover.trigger(
+            rx.button(
+                rx.icon("trash-2"),
+                variant="ghost",
+                cursor="pointer"
+            )
+        ),
+        rx.popover.content(
+            rx.flex(
+                rx.text("Are you sure?"),
+                rx.popover.close(
+                    rx.vstack(
+                        rx.button(
+                            "Delete",
+                            width="100%",
+                            size="3",
+                            color_scheme="ruby",
+                            on_click=BaseState.event_state_remove_hospital(hospital["hosp_id"])
+                        ),
+                        rx.button(
+                            "Cancel",
+                            width="100%",
+                            size="3",
+                            variant="ghost"
                         )
-                    ),
-                    flex_direction="column",
-                    align="center",
-                    justify="center",
-                    spacing="3"
-                )
+                    )
+                ),
+                flex_direction="column",
+                align="center",
+                justify="center",
+                spacing="3"
             )
         )
     )

@@ -2,18 +2,17 @@ from ..components.c2a import c2a
 from ..components.custom import spacer, login_protected
 from ..components.footer import footer
 from ..components.navbar import navbar
-from ...states import BaseState, OverviewState, ReportState
+from ...states import BaseState, ReportState
 
 import reflex as rx
 
 
 @rx.page(
-    route="/report/full-report/[hosp_id]/overview",
+    route="/report/full-report/overview",
     title="Nurse Reports",
     on_load=[
         BaseState.event_state_standard_flow("login"),
-        OverviewState.event_state_get_hospital_info,
-        ReportState.generate_report_id,
+        ReportState.event_state_report_flow,
     ],
 )
 @login_protected
@@ -35,7 +34,7 @@ def overview_page() -> rx.Component:
 def content() -> rx.Component:
     return rx.flex(
         hospital_info(),
-        hospital_info_error(),
+        spacer(height="18px"),
         section_anonymous(),
         section_motivation(),
         section_time(),
@@ -53,17 +52,17 @@ def content() -> rx.Component:
 def hospital_info() -> rx.Component:
     return rx.card(
         rx.cond(
-            OverviewState.is_hydrated,
+            rx.State.is_hydrated,
             rx.flex(
                 rx.heading("You are submitting a report for...", size="4"),
-                spacer(height="12px"),
+                spacer(height="36px"),
                 rx.heading(
-                    f"{OverviewState.hosp_info['hosp_name']}", text_align="center"
+                    f"{ReportState.hospital_info['hosp_name']}", text_align="center"
                 ),
                 rx.heading(
-                    f"{OverviewState.hosp_info['hosp_addr']}, "
-                    f"{OverviewState.hosp_info['hosp_state']} "
-                    f"{OverviewState.hosp_info['hosp_zip']}",
+                    f"{ReportState.hospital_info['hosp_addr']}, "
+                    f"{ReportState.hospital_info['hosp_state']} "
+                    f"{ReportState.hospital_info['hosp_zip']}",
                     text_align="center",
                 ),
                 flex_direction="column",
@@ -77,20 +76,7 @@ def hospital_info() -> rx.Component:
             ),
         ),
         variant="ghost",
-    )
-
-
-def hospital_info_error() -> rx.Component:
-    return rx.cond(
-        OverviewState.error_hosp_info,
-        rx.flex(
-            rx.callout(
-                f"Unable to retrieve hospital info. {OverviewState.error_hosp_info}",
-                icon="triangle_alert",
-                color_scheme="red",
-                role="alert",
-            ),
-        ),
+        padding="12px 0 0 0"
     )
 
 
@@ -112,8 +98,11 @@ def section_anonymous() -> rx.Component:
                     align_items="center",
                     justify_content="center",
                 ),
-            )
-        )
+                width="100%"
+            ),
+            width="100%"
+        ),
+        width="100%"
     )
 
 
@@ -174,7 +163,7 @@ def buttons() -> rx.Component:
                 rx.icon("arrow-big-right"),
                 size="3",
                 variant="ghost",
-                on_click=OverviewState.event_state_goto_report,
+                on_click=rx.redirect("/report/full-report/outline"),
             ),
             justify_content="center",
         )

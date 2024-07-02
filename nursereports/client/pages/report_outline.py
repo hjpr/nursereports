@@ -9,9 +9,12 @@ import reflex as rx
 
 
 @rx.page(
-    route="/report/full-report/[hosp_id]/outline",
+    route="/report/full-report/outline",
     title="Nurse Reports",
-    on_load=BaseState.event_state_standard_flow("login"),
+    on_load=[
+        BaseState.event_state_standard_flow("login"),
+        ReportState.event_state_report_flow
+    ]
 )
 @login_protected
 def outline_page() -> rx.Component:
@@ -125,7 +128,7 @@ def buttons() -> rx.Component:
                 rx.icon("arrow-big-right"),
                 size="3",
                 variant="ghost",
-                on_click=ReportState.report_nav("compensation"),
+                on_click=rx.redirect("/report/full-report/compensation"),
             ),
             gap="20px",
             width="100%",

@@ -1,26 +1,20 @@
-from ..components.c2a import c2a
-from ..components.custom import spacer, login_protected
-from ..components.footer import footer
-from ..components.lists import years_experience
-from ..components.navbar import navbar
-from ..components.report_progress import progress
+from ..components import c2a, footer, login_protected, navbar, spacer, years_experience
 from reflex_motion import motion
-from ...states.base_state import BaseState
-from ...states.report_state import ReportState
+from ...states import BaseState, ReportState
 
 import reflex as rx
 
 
 @rx.page(
-    route="/report/full-report/compensation",
+    route="/report/edit/compensation/",
     title="Nurse Reports",
     on_load=[
         BaseState.event_state_standard_flow("login"),
         ReportState.event_state_report_flow
-    ]
+        ],
 )
 @login_protected
-def compensation_page() -> rx.Component:
+def edit_compensation_page() -> rx.Component:
     return rx.flex(
         c2a(),
         navbar(),
@@ -37,7 +31,8 @@ def compensation_page() -> rx.Component:
 
 def content() -> rx.Component:
     return rx.flex(
-        progress(),
+        editing(),
+        rx.separator(),
         pay(),
         demographics(),
         benefits(),
@@ -48,13 +43,38 @@ def content() -> rx.Component:
         button(),
         spacer(height="48px"),
         gap="24px",
-        padding_x="24px",
-        width=["100%", "480px", "480px", "480px", "480px"],
-        max_width="1200px",
+        padding="48px",
+        width=["100%", "100%", "600px", "600px", "600px"],
         flex_direction="column",
         flex_basis="auto",
         flex_grow="1",
-        flex_shrink="0",
+        flex_shrink="0"
+    )
+
+
+def editing() -> rx.Component:
+    return rx.card(
+        rx.vstack(
+            rx.icon("pencil"),
+            rx.separator(),
+            rx.cond(
+                ReportState.assign_select_specific_unit == "Yes",
+                rx.cond(
+                    ReportState.assign_select_unit == "I don't see my unit",
+                    rx.heading(f"{ReportState.assign_input_unit_name}", size="8"),
+                    rx.heading(f"{ReportState.assign_select_unit}", size="8")
+                ),
+                rx.cond(
+                    ReportState.assign_select_area == "I don't see my area or role",
+                    rx.heading(f"{ReportState.assign_input_area}", size="8"),
+                    rx.heading(f"{ReportState.assign_select_area}", size="8")
+                )
+            ),
+            rx.heading(f"{ReportState.hospital_info["hosp_name"]}"),
+            width="100%"
+        ),
+        width="100%",
+        padding="24px"
     )
 
 
@@ -246,6 +266,7 @@ def pay() -> rx.Component:
             width="100%",
         ),
         width="100%",
+        padding="24px"
     )
 
 
@@ -329,6 +350,7 @@ def demographics() -> rx.Component:
             width="100%",
         ),
         width="100%",
+        padding="24px"
     )
 
 
@@ -482,6 +504,7 @@ def benefits() -> rx.Component:
             width="100%",
         ),
         width="100%",
+        padding="24px"
     )
 
 
@@ -515,6 +538,7 @@ def compensation() -> rx.Component:
             width="100%",
         ),
         width="100%",
+        padding="24px"
     )
 
 
@@ -576,6 +600,7 @@ def comments() -> rx.Component:
             width="100%",
         ),
         width="100%",
+        padding="24px"
     )
 
 
@@ -736,6 +761,7 @@ def overall() -> rx.Component:
             width="100%",
         ),
         width="100%",
+        padding="24px"
     )
 
 
@@ -745,7 +771,7 @@ def button() -> rx.Component:
             rx.button(
                 "Go to Assignment",
                 rx.icon("arrow-big-right"),
-                on_click=ReportState.handle_submit_compensation,
+                on_click=rx.redirect("/report/edit/assignment"),
                 variant="ghost",
                 size="3",
             ),

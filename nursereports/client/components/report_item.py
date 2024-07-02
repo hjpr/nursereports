@@ -1,5 +1,5 @@
 
-from ...states import DashboardState
+from ...states import DashboardState, ReportState
 
 import reflex as rx
 
@@ -126,6 +126,6 @@ def report_item_dashboard_edit(report: dict[str, str]) -> rx.Component:
             width="36px",
             variant="ghost",
             cursor="pointer",
-            on_click=None,
+            on_click=ReportState.event_state_edit_user_report(report["report_id"])
         )
     )

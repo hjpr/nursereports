@@ -17,19 +17,18 @@ def supabase_get_hospital_info(access_token: str, hosp_id: str) -> dict[str, any
 
     Returns:
         dict:
-            success: bool
-            status: user-readable error if any
-            payload:
-                dict:
-                    hosp_id: CMS id
-                    hosp_name: <-
-                    hosp_addr: <-
-                    hosp_city: <-
-                    hosp_state: state abbreviation
-                    hosp_zip: <-
-                    hosp_county: <-
+            hosp_id: CMS id
+            hosp_name: <-
+            hosp_addr: <-
+            hosp_city: <-
+            hosp_state: state abbreviation
+            hosp_zip: <-
+            hosp_county: <-
+
+    Exceptions:
+        RequestFailed: request to pull info failed.
     """
-    url = f"{api_url}/rest/v1/hospitals" f"?hosp_id=eq.{hosp_id}" "&select=*"
+    url = f"{api_url}/rest/v1/hospitals?hosp_id=eq.{hosp_id}&select=*"
     headers = {
         "apikey": api_key,
         "Authorization": f"Bearer {access_token}",
@@ -37,21 +36,11 @@ def supabase_get_hospital_info(access_token: str, hosp_id: str) -> dict[str, any
     }
     response = httpx.get(url=url, headers=headers)
     if response.is_success:
-        logger.debug(f"Got {hosp_id} from /hospitals")
-        return {
-            "success": True,
-            "status": None,
-            "payload": json.loads(response.content)[0],
-        }
+        content= json.loads(response.content)
+        return content[0]
     else:
         logger.critical(f"Failed to retrieve {hosp_id} from /hospitals")
-        rich.inspect(response)
-        return {
-            "success": False,
-            "status": f"{response.status_code} - {response.reason_phrase}",
-            "payload": None,
-        }
-
+        raise RequestFailed("Request failed retrieving hospital ")
 
 def supabase_no_report_id_conflict(access_token: str, report_id: str) -> dict:
     """

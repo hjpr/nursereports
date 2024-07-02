@@ -17,6 +17,7 @@ from .users_requests import (
     supabase_get_saved_hospitals,
     supabase_get_user_info,
     supabase_get_user_modified_at_timestamp,
+     supabase_get_full_report_info,
     supabase_get_user_reports,
     supabase_populate_saved_hospital_details,
     supabase_update_user_info

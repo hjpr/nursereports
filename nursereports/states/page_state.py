@@ -4,26 +4,10 @@ from .base_state import BaseState
 import reflex as rx
 
 class PageState(BaseState):
-
-    #################################################################
-    #
-    # PAGE PARAMETERS
-    #
-    #################################################################
     
     @rx.var
     def search_param(self) -> str:
         return self.router.page.params.get('context')
-
-    @rx.var
-    def hosp_id_param(self) -> str:
-        return self.router.page.params.get('hosp_id')
-    
-    #################################################################
-    #
-    # PROGRESS COMPONENT VARS
-    #
-    #################################################################
 
     @rx.var
     def comp_is_active(self) -> bool:

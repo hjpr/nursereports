@@ -2,15 +2,18 @@ from ..components.c2a import c2a
 from ..components.custom import spacer, login_protected
 from ..components.footer import footer
 from ..components.navbar import navbar
-from ...states.base_state import BaseState
+from ...states import BaseState, ReportState
 
 import reflex as rx
 
 
 @rx.page(
-    route="/report/full-report/[hosp_id]/complete",
+    route="/report/full-report/complete",
     title="Nurse Reports",
-    on_load=BaseState.event_state_standard_flow("login"),
+    on_load=[
+        BaseState.event_state_standard_flow("login"),
+        ReportState.event_state_report_flow
+    ]
 )
 @login_protected
 def complete_page() -> rx.Component:

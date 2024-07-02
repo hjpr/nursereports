@@ -213,6 +213,34 @@ def supabase_get_user_reports(access_token: str, user_id: str) -> list[dict] | N
     else:
         raise RequestFailed("Failed request to retrieve user reports from database.")
     
+def supabase_get_full_report_info(access_token: str, report_id: str) -> dict | None:
+    """
+    Retrieves the user reports formatted for the dashboard page for
+    display, editing, and removal.
+
+    Args:
+        access_token: jwt object of user
+        user_id: claims id of user
+
+    Returns:
+
+    Exceptions
+        RequestFailed: request to database failed
+    """
+    url = f"{api_url}/rest/v1/reports?report_id=eq.{report_id}&select=*"
+    headers = {
+        "apikey": api_key,
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json",
+    }
+    response = httpx.get(url=url, headers=headers)
+    if response.is_success:
+        content = json.loads(response.content)
+        logger.debug(f"Pulled {len(content)} user report(s) successfully.")
+        return content[0]
+    else:
+        raise RequestFailed("Failed request to retrieve user reports from database.")
+    
 
 def supabase_delete_user_report(access_token: str, report_id: str) -> None:
     """
@@ -271,7 +299,7 @@ def supabase_get_saved_hospitals(access_token: str, user_id: str) -> list | None
             logger.debug("User doesn't have any saved hospitals to retrieve.")
     else:
         raise RequestFailed("Request failed retrieving saved hospitals.")
-
+    
 
 def supabase_populate_saved_hospital_details(
     access_token: str, hosp_id: list

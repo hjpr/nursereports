@@ -76,6 +76,11 @@ class SearchState(BaseState):
     def redirect_to_red_flag_report(self, hosp_id: str) -> Iterable[Callable]:
         return rx.redirect(f"/report/red-flag-report/{hosp_id}/overview")
         
-    def redirect_to_full_report(self, hosp_id: str) -> Iterable[Callable]:
+    def redirect_to_full_report(self, hospital_id: str) -> Iterable[Callable]:
+        """Do all the things here required for user to access the full report page. User will be
+        denied access if variables aren't set correctly."""
         yield ReportState.reset_report
-        yield rx.redirect(f"/report/full-report/{hosp_id}/overview")
+        yield ReportState.set_hospital_id(hospital_id)
+        yield ReportState.generate_report_id
+        yield ReportState.event_state_get_hospital_info
+        yield rx.redirect("/report/full-report/overview")

@@ -12,9 +12,12 @@ import reflex as rx
 
 
 @rx.page(
-    route="/report/full-report/[hosp_id]/assignment",
+    route="/report/full-report/assignment",
     title="Nurse Reports",
-    on_load=BaseState.event_state_standard_flow("login"),
+    on_load=[
+        BaseState.event_state_standard_flow("login"),
+        ReportState.event_state_report_flow
+    ]
 )
 @login_protected
 def assignment_page() -> rx.Component:
