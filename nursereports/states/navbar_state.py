@@ -19,13 +19,13 @@ import reflex as rx
 
 
 class NavbarState(BaseState):
-    show_feedback: bool = False
-    show_login: bool = False
-    login_tab: str = "login"
     alert_message: str
     error_sign_in_message: str
     error_create_account_message: str
     error_feedback_message: str
+    login_tab: str = "login"
+    show_feedback: bool = False
+    show_login: bool = False
 
     @rx.var
     def show_alert_message(self) -> bool:

@@ -9,7 +9,7 @@ from ..server.exceptions import (
 from ..server.secrets import jwt_key
 from ..server.supabase import (
     supabase_create_initial_user_info,
-    supabase_delete_user_report,
+    supabase_delete_user_report, # Uncomment below when ready to use function.
     supabase_get_new_access_token,
     supabase_get_user_info,
     supabase_get_user_modified_at_timestamp,
@@ -20,7 +20,7 @@ from ..server.supabase import (
 
 from datetime import datetime
 from loguru import logger
-from typing import Any, AnyStr, Dict, Callable, Iterable, List
+from typing import Callable, Iterable
 
 import jwt
 import reflex as rx
@@ -39,21 +39,13 @@ class BaseState(rx.State):
         secure=True,
     )
 
-    user_info: Dict[AnyStr, Any] = {}
-    saved_hospitals: List[Dict[AnyStr, AnyStr]] = []
-    user_reports: List[Dict[AnyStr, Any]] = []
+    user_info: dict[str, any] = {}
+    saved_hospitals: list[dict[str, str]] = []
+    user_reports: list[dict[str, any]] = []
 
     @rx.var
     def host_address(self) -> str:
         return self.router.page.host
-    
-    @rx.var
-    def hosp_id_param(self) -> str:
-        return self.router.page.params.get('hosp_id')
-    
-    @rx.var
-    def report_id_param(self) -> str:
-        return self.router.page.params.get('report_id')
 
     @rx.var
     def reason_for_logout(self) -> str:

@@ -8,19 +8,13 @@ from typing import Callable, Iterable
 import reflex as rx
 
 class SearchState(BaseState):
-    search_is_loading: bool
-
-    selected_state: str
-
-    selected_city: str
-
-    last_searched_state: str
-
-    last_searched_city: str
-
-    search_results: list[dict]
-    
     error_search: str
+    last_searched_state: str
+    last_searched_city: str
+    search_is_loading: bool
+    search_results: list[dict]
+    selected_state: str
+    selected_city: str
         
     @rx.cached_var
     def state_options(self) -> list[str]:
