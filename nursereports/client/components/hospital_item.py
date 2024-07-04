@@ -118,7 +118,7 @@ def hospital_item_search_arrow(hospital: dict[str, str]) -> rx.Component:
                 rx.icon("arrow-right"),
                 variant="ghost",
                 cursor="pointer",
-                on_click=SearchState.redirect_to_hospital_overview(hospital["hosp_id"]),
+                on_click=SearchState.redirect_to_hospital_overview(hospital['hosp_id']),
             )
         ),
         rx.box(
@@ -127,7 +127,7 @@ def hospital_item_search_arrow(hospital: dict[str, str]) -> rx.Component:
                 size="2",
                 variant="ghost",
                 cursor="pointer",
-                on_click=ReportState.event_state_create_full_report(hospital["hosp_id"]),
+                on_click=ReportState.event_state_create_full_report(hospital['hosp_id']),
             )
         )
     )
@@ -148,16 +148,16 @@ def hospital_item_search_dropdown(hospital: dict[str, str]) -> rx.Component:
                 rx.menu.content(
                     rx.menu.item(
                         "Save to My Hospitals",
-                        on_click=BaseState.event_state_add_hospital(hospital["hosp_id"])
+                        on_click=BaseState.event_state_add_hospital(hospital['hosp_id'])
                         ),
                     rx.menu.separator(),
                     rx.menu.item(
                         "Submit Full Report",
-                        on_click=ReportState.event_state_create_full_report(hospital["hosp_id"])
+                        on_click=ReportState.event_state_create_full_report(hospital['hosp_id'])
                     ),
                     rx.menu.item(
                         "Submit Red Flag Report",
-                        on_click=SearchState.redirect_to_red_flag_report(hospital["hosp_id"])
+                        on_click=SearchState.redirect_to_red_flag_report(hospital['hosp_id'])
                     )
                 )
             )
@@ -193,7 +193,7 @@ def hospital_item_dashboard_trash(hospital: dict[str, str]) -> rx.Component:
                             width="100%",
                             size="3",
                             color_scheme="ruby",
-                            on_click=BaseState.event_state_remove_hospital(hospital["hosp_id"])
+                            on_click=BaseState.event_state_remove_hospital(hospital['hosp_id'])
                         ),
                         rx.button(
                             "Cancel",
