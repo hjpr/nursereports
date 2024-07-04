@@ -1,8 +1,4 @@
-from ..components.c2a import c2a
-from ..components.custom import spacer, login_protected
-from ..components.footer import footer
-from ..components.navbar import navbar
-from ..components.report_progress import progress
+from ..components import c2a, footer, login_protected, navbar, progress, spacer
 from reflex_motion import motion
 from ...states import BaseState, ReportState
 
@@ -14,8 +10,8 @@ import reflex as rx
     title="Nurse Reports",
     on_load=[
         BaseState.event_state_standard_flow("login"),
-        ReportState.event_state_report_flow
-    ]
+        ReportState.event_state_report_flow,
+    ],
 )
 @login_protected
 def staffing_page() -> rx.Component:

@@ -185,6 +185,6 @@ def fireworks() -> rx.Component:
                 );
                 }, 250);
                 """
-            ),
+            )
         )
     )

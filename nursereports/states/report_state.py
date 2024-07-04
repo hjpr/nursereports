@@ -2,14 +2,15 @@ from ..states import PageState
 from ..server.exceptions import RequestFailed
 from ..server.secrets import anyscale_api_key, anyscale_url, api_url, api_key
 from ..server.supabase import (
-    supabase_submit_full_report,
-    supabase_update_user_info,
-    supabase_no_report_id_conflict,
+    supabase_edit_report,
     supabase_get_full_report_info,
     supabase_get_hospital_info,
+    supabase_no_report_id_conflict,
+    supabase_submit_full_report,
+    supabase_update_user_info,
 )
 from loguru import logger
-from typing import Callable, Iterable
+from typing import Callable, Iterable, Literal
 
 import httpx
 import inspect
@@ -27,29 +28,36 @@ class ReportState(PageState):
     groups of the report; compensation, staffing, and assignment.
     """
 
-    report_id: str
     hospital_id: str
     hospital_info: dict[str, str | int]
     is_test: bool = False
     is_loading: bool = False
+    mode: Literal["new", "edit"]
+    report_id: str
 
     def generate_report_id(self) -> None:
         self.report_id = str(uuid.uuid4())
-
-    def reset_report(self) -> None:
-        self.reset()
 
     def event_state_report_flow(self) -> Iterable[Callable]:
         """
         Ensures that a user is navigating to report via proper event
         rather than manually typing information into URL.
         """
-        if not self.hospital_id or not self.report_id:
+        if not self.hospital_id or not self.report_id or not self.mode:
             yield rx.redirect("/dashboard")
-            yield rx.toast.error(
-                """Unable to access URL manually. Please use the search hospitals
-                function instead."""
+            return rx.toast.error("""Unable to access that URL manually.""")
+        if "edit" in self.router.page.raw_path and self.mode != "edit":
+            logger.critical(
+                f"{self.user_claims["payload"]["sub"]} attempting to manually change report context."
             )
+            yield rx.redirect("/dashboard")
+            yield rx.toast.error("""Unable to access that URL manually.""")
+        if "full-report" in self.router.page.raw_path and self.mode != "new":
+            logger.critical(
+                f"{self.user_claims["payload"]["sub"]} attempting to manually change report context."
+            )
+            yield rx.redirect("/dashboard")
+            yield rx.toast.error("""Unable to access that URL manually.""")
 
     def event_state_edit_user_report(self, report_id: str) -> Iterable[Callable]:
         """
@@ -60,9 +68,11 @@ class ReportState(PageState):
             report_id: str - uuid of user's report
         """
         try:
+            self.reset()
             report = supabase_get_full_report_info(self.access_token, report_id)
             self.report_id = report["report_id"]
             self.hospital_id = report["hospital_id"]
+            self.mode = "edit"
             self.save_report_dict_to_state(report)
             self.hospital_info = supabase_get_hospital_info(
                 self.access_token, self.hospital_id
@@ -72,7 +82,30 @@ class ReportState(PageState):
             yield rx.toast.error(str(e))
         except Exception as e:
             logger.critical(str(e))
-            yield rx.toast.error("Error while retrieving report.")
+            yield rx.toast.error("Error while retrieving report details.")
+
+    def event_state_create_full_report(self, hospital_id: str) -> Iterable[Callable]:
+        """
+        Do all the things here required for user to access the full report page. User will be
+        denied access if variables aren't set correctly.
+
+        Args:
+            hospital_id: str - CMS ID of hospital.
+        """
+        try:
+            self.reset()
+            self.hospital_id = hospital_id
+            self.hospital_info = supabase_get_hospital_info(
+                self.access_token, self.hospital_id
+            )
+            self.mode = "new"
+            self.generate_report_id()
+            yield rx.redirect("/report/full-report/overview")
+        except RequestFailed as e:
+            yield rx.toast.error(str(e))
+        except Exception as e:
+            logger.critical(str(e))
+            yield rx.toast.error("Error while setting up new report.")
 
     def event_state_get_hospital_info(self) -> Iterable[Callable]:
         try:
@@ -650,6 +683,39 @@ class ReportState(PageState):
     #
     #################################################################
 
+    def handle_edit_compensation(self) -> Callable:
+        if not self.comp_can_progress:
+            self.comp_error_message = "Some fields incomplete or invalid."
+            return
+        if len(self.comp_input_comments) > 1000:
+            self.comp_error_message = "Comments contain too many characters."
+            return
+        self.comp_error_message = ""
+        return rx.redirect("/report/edit/assignment")
+
+    def handle_edit_assignment(self) -> Callable:
+        if not self.assign_can_progress:
+            self.assign_error_message = "Some fields incomplete or invalid."
+            return
+        if len(self.assign_input_comments) > 1000:
+            self.assign_error_message = "Comments contain too many characters."
+            return
+        self.assign_error_message = ""
+        return rx.redirect("/report/edit/staffing")
+
+    def handle_edit_staffing(self) -> Callable | None:
+        if not self.staffing_can_progress:
+            self.staffing_error_message = "Some fields incomplete or invalid."
+            return
+        if self.has_ratios and not self.ratio_is_valid:
+            self.staffing_error_message = "Some fields incomplete or invalid."
+            return
+        if len(self.staffing_input_comments) > 1000:
+            self.staffing_error_message = "Comments contain too many characters."
+            return
+        self.staffing_error_message = ""
+        return ReportState.edit_report
+
     def handle_submit_compensation(self) -> Callable:
         if not self.comp_can_progress:
             self.comp_error_message = "Some fields incomplete or invalid."
@@ -683,51 +749,67 @@ class ReportState(PageState):
         self.staffing_error_message = ""
         return ReportState.submit_report
 
-    def submit_report(self) -> Iterable[Callable]:
-        """
-        Final checkpoint for submitting report.
-
-        1. Check that all sections are completed to 100%, if not then
-        redirect to those sections and add warning message.
-        2. Ensure that no duplicated report ID's exist. If so,
-        user is trying to resubmit the report they have open.
-        3. Submits report to /report
-        4. Submits user entries to AI moderation.
-        5. Updates user info to reflect submission.
-        """
+    def edit_report(self) -> Iterable[Callable]:
         try:
             self.is_loading = True
-            self.generate_report_id()
+            report = self.prepare_report_dict()
+
+            if not self.comp_can_progress:
+                self.comp_error_message = "Some fields incomplete or invalid."
+                return rx.redirect("/report/edit/compensation")
+            if not self.assign_can_progress:
+                self.assign_error_message = "Some fields incomplete or invalid."
+                return rx.redirect("/report/edit/assignment")
+            if not self.staffing_can_progress:
+                self.staffing_can_progress = "Some fields incomplete or invalid."
+                return rx.redirect("/report/edit/staffing")
+            
+            supabase_edit_report(self.access_token, report)
+            yield ReportState.moderate_user_entries(report)
+            yield rx.redirect("/report/edit/complete")
+            self.reset()
+        except RequestFailed as e:
+            self.is_loading = False
+            yield rx.toast.error(str(e))
+        except Exception as e:
+            self.is_loading = False
+            logger.critical(str(e))
+            yield rx.toast.error("Exception while submitting report for edit.")
+
+    def submit_full_report(self) -> Iterable[Callable]:
+        try:
+            self.is_loading = True
             report = self.prepare_report_dict()
 
             if not self.comp_can_progress:
                 self.comp_error_message = "Some fields incomplete or invalid."
                 return rx.redirect("/report/full-report/compensation")
-
             if not self.assign_can_progress:
                 self.assign_error_message = "Some fields incomplete or invalid."
                 return rx.redirect("/report/full-report/assignment")
-
             if not self.staffing_can_progress:
                 self.staffing_can_progress = "Some fields incomplete or invalid."
                 return rx.redirect("/report/full-report/staffing")
 
-            response = self.ensure_no_duplicate(report)
-            if not response["success"]:
-                self.staffing_error_message = response["status"]
-                return
-
+            supabase_no_report_id_conflict(self.access_token, self.report_id)
             supabase_submit_full_report(self.access_token, report)
-            self.update_user_info()
-            yield ReportState.moderate_user_entries(
-                report
-            )  # Requires yielding to handler for async
+            data = {
+                "needs_onboard": False,
+                "reports": self.user_info["reports"] + 1,
+            }
+            supabase_update_user_info(
+                self.access_token,
+                self.user_claims["payload"]["sub"],
+                data=data
+            )
+            yield ReportState.moderate_user_entries(report)
             yield rx.redirect("/report/full-report/complete")
-            self.is_loading = False
+            self.reset()
         except RequestFailed as e:
             self.is_loading = False
             yield rx.toast.error(str(e))
         except Exception as e:
+            self.is_loading = False
             logger.critical(str(e))
             yield rx.toast.error("Backend error - Check logs for details.")
 
@@ -811,13 +893,6 @@ class ReportState(PageState):
         for key, value in report.items():
             setattr(self, f"{key}", value)
 
-    def ensure_no_duplicate(self, report) -> dict:
-        logger.debug(f"Report ID - {report['report_id']}")
-        response = supabase_no_report_id_conflict(
-            self.access_token, report["report_id"]
-        )
-        return response
-
     #################################################################
     #
     # REPORT MODERATION
@@ -863,7 +938,7 @@ class ReportState(PageState):
             "Content-Type": "application/json",
         }
         data = {
-            "model": "mistralai/Mixtral-8x7B-Instruct-v0.1",
+            "model": "mistralai/Mixtral-8x22B-Instruct-v0.1",
             "messages": [
                 {"role": "system", "content": textwrap.dedent(system_prompt)},
                 {"role": "user", "content": textwrap.dedent(user_prompt)},
@@ -956,12 +1031,3 @@ class ReportState(PageState):
                 f"""User report {report['report_id']} seems ok. No entries found requiring moderation."""
             )
             return
-
-    def update_user_info(self) -> None:
-        data = {
-            "needs_onboard": False,
-            "reports": self.user_info["reports"] + 1,
-        }
-        supabase_update_user_info(
-            self.access_token, self.user_claims["payload"]["sub"], data=data
-        )

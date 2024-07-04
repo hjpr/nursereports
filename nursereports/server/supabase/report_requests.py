@@ -1,5 +1,6 @@
 from ..exceptions import RequestFailed
 from ..secrets import api_key, api_url
+from datetime import datetime, timezone
 from loguru import logger
 
 import httpx
@@ -65,7 +66,7 @@ def supabase_no_report_id_conflict(access_token: str, report_id: str) -> dict:
     if response.is_success:
         id_conflict = json.loads(response.content)
         if not id_conflict:
-            logger.debug("No conflicts in /reports with user's report uuid.")
+            logger.debug("No conflicts in /reports wreith user's report uuid.")
             return {"success": True, "status": None}
         else:
             logger.warning("User's report uuid already exists in /reports.")
@@ -84,8 +85,8 @@ def supabase_submit_full_report(access_token: str, report: dict[str, any]) -> No
     Submits a completed report to /reports.
 
     Args:
-        access_token: jwt object of user
-        report: full report dict
+        access_token: str - jwt object of user
+        report: dict - contains full report fields to update in database
 
     Exceptions:
         RequestFailed: Request to database failed.
@@ -96,6 +97,7 @@ def supabase_submit_full_report(access_token: str, report: dict[str, any]) -> No
         "apikey": api_key,
         "Authorization": f"Bearer {access_token}",
         "Content-Type": "application/json",
+        "Prefer": "return=minimal"
     }
     response = httpx.post(url=url, headers=headers, data=data)
     if response.is_success:
@@ -103,3 +105,31 @@ def supabase_submit_full_report(access_token: str, report: dict[str, any]) -> No
     else:
         rich.inspect(response)
         raise RequestFailed("Request to submit report to database failed.")
+    
+def supabase_edit_report(access_token: str, report: dict[str, any]) -> None:
+    """
+    Edits an existing report in /reports.
+
+    Args:
+        access_token: str - jwt object of user
+        report: dict - contains fields to update
+
+    Exceptions:
+        RequestFailed: Request to database failed.
+    """
+    report["modified_at"] = datetime.now(timezone.utc).isoformat()
+    url = f"{api_url}/rest/v1/reports?report_id=eq.{report["report_id"]}"
+    data = json.dumps(report)
+    headers = {
+        "apikey": api_key,
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json",
+        "Prefer": "return=minimal"
+    }
+    response = httpx.put(url=url, headers=headers, data=data)
+    if response.is_success:
+        logger.debug(f"Successfully edited report {report["report_id"]}.")
+    else:
+        rich.inspect(response)
+        raise RequestFailed("Request to submit report to database failed.")
+

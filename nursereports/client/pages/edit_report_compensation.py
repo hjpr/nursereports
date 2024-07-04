@@ -10,8 +10,8 @@ import reflex as rx
     title="Nurse Reports",
     on_load=[
         BaseState.event_state_standard_flow("login"),
-        ReportState.event_state_report_flow
-        ],
+        ReportState.event_state_report_flow,
+    ],
 )
 @login_protected
 def edit_compensation_page() -> rx.Component:
@@ -32,7 +32,7 @@ def edit_compensation_page() -> rx.Component:
 def content() -> rx.Component:
     return rx.flex(
         editing(),
-        rx.separator(),
+        section(),
         pay(),
         demographics(),
         benefits(),
@@ -48,7 +48,7 @@ def content() -> rx.Component:
         flex_direction="column",
         flex_basis="auto",
         flex_grow="1",
-        flex_shrink="0"
+        flex_shrink="0",
     )
 
 
@@ -62,19 +62,25 @@ def editing() -> rx.Component:
                 rx.cond(
                     ReportState.assign_select_unit == "I don't see my unit",
                     rx.heading(f"{ReportState.assign_input_unit_name}", size="8"),
-                    rx.heading(f"{ReportState.assign_select_unit}", size="8")
+                    rx.heading(f"{ReportState.assign_select_unit}", size="8"),
                 ),
                 rx.cond(
                     ReportState.assign_select_area == "I don't see my area or role",
                     rx.heading(f"{ReportState.assign_input_area}", size="8"),
-                    rx.heading(f"{ReportState.assign_select_area}", size="8")
-                )
+                    rx.heading(f"{ReportState.assign_select_area}", size="8"),
+                ),
             ),
             rx.heading(f"{ReportState.hospital_info["hosp_name"]}"),
-            width="100%"
+            width="100%",
         ),
         width="100%",
-        padding="24px"
+        padding="24px",
+    )
+
+
+def section() -> rx.Component:
+    return rx.callout(
+        "You are currently editing the Compensation section.", icon="info"
     )
 
 
@@ -266,7 +272,7 @@ def pay() -> rx.Component:
             width="100%",
         ),
         width="100%",
-        padding="24px"
+        padding="24px",
     )
 
 
@@ -350,7 +356,7 @@ def demographics() -> rx.Component:
             width="100%",
         ),
         width="100%",
-        padding="24px"
+        padding="24px",
     )
 
 
@@ -504,7 +510,7 @@ def benefits() -> rx.Component:
             width="100%",
         ),
         width="100%",
-        padding="24px"
+        padding="24px",
     )
 
 
@@ -538,7 +544,7 @@ def compensation() -> rx.Component:
             width="100%",
         ),
         width="100%",
-        padding="24px"
+        padding="24px",
     )
 
 
@@ -600,7 +606,7 @@ def comments() -> rx.Component:
             width="100%",
         ),
         width="100%",
-        padding="24px"
+        padding="24px",
     )
 
 
@@ -761,7 +767,7 @@ def overall() -> rx.Component:
             width="100%",
         ),
         width="100%",
-        padding="24px"
+        padding="24px",
     )
 
 
@@ -771,7 +777,7 @@ def button() -> rx.Component:
             rx.button(
                 "Go to Assignment",
                 rx.icon("arrow-big-right"),
-                on_click=rx.redirect("/report/edit/assignment"),
+                on_click=ReportState.handle_edit_compensation,
                 variant="ghost",
                 size="3",
             ),

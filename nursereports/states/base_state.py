@@ -9,7 +9,7 @@ from ..server.exceptions import (
 from ..server.secrets import jwt_key
 from ..server.supabase import (
     supabase_create_initial_user_info,
-    supabase_delete_user_report, # Uncomment below when ready to use function.
+    supabase_delete_user_report,  # Uncomment below when ready to use function.
     supabase_get_new_access_token,
     supabase_get_user_info,
     supabase_get_user_modified_at_timestamp,
@@ -39,9 +39,9 @@ class BaseState(rx.State):
         secure=True,
     )
 
-    user_info: dict[str, any] = {}
+    user_info: dict[str, bool | list | str | int | None] = {}
     saved_hospitals: list[dict[str, str]] = []
-    user_reports: list[dict[str, any]] = []
+    user_reports: list[dict[str, str]] = []
 
     @rx.var
     def host_address(self) -> str:
@@ -199,7 +199,7 @@ class BaseState(rx.State):
         if self.user_claims["reason"] == "empty":
             yield BaseState.handle_sso_redirect
         if self.user_claims["valid"]:
-            yield BaseState.authenticated_missing_info_flow
+            yield BaseState.authenticated_missing_info_flow(access_level)
 
     def check_claims_for_expiring_soon(self) -> None:
         current_time = int(time.time())
@@ -290,7 +290,7 @@ class BaseState(rx.State):
         user_info = supabase_get_user_info(self.access_token)
         self.user_info = user_info
 
-    def update_user_info(self, user_data: Dict[Any, Any]) -> Iterable[Callable]:
+    def update_user_info(self, user_data: dict[str, any]) -> Iterable[Callable]:
         updated_data = supabase_update_user_info(
             self.access_token, self.user_claims["payload"]["sub"], user_data
         )

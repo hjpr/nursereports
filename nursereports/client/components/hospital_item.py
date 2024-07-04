@@ -1,5 +1,5 @@
 
-from ...states import BaseState, SearchState
+from ...states import BaseState, SearchState, ReportState
 
 import reflex as rx
 
@@ -127,7 +127,7 @@ def hospital_item_search_arrow(hospital: dict[str, str]) -> rx.Component:
                 size="2",
                 variant="ghost",
                 cursor="pointer",
-                on_click=SearchState.redirect_to_full_report(hospital["hosp_id"]),
+                on_click=ReportState.event_state_create_full_report(hospital["hosp_id"]),
             )
         )
     )
@@ -153,7 +153,7 @@ def hospital_item_search_dropdown(hospital: dict[str, str]) -> rx.Component:
                     rx.menu.separator(),
                     rx.menu.item(
                         "Submit Full Report",
-                        on_click=SearchState.redirect_to_full_report(hospital["hosp_id"])
+                        on_click=ReportState.event_state_create_full_report(hospital["hosp_id"])
                     ),
                     rx.menu.item(
                         "Submit Red Flag Report",

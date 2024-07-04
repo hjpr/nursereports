@@ -1,12 +1,15 @@
-from ..components.c2a import c2a
-from ..components.custom import spacer, login_protected
-from ..components.footer import footer
-from ..components.lists import leaving_reason, unit_specialties
-from ..components.navbar import navbar
-from ..components.report_progress import progress
+from ..components import (
+    c2a,
+    footer,
+    leaving_reason,
+    login_protected,
+    navbar,
+    progress,
+    spacer,
+    unit_specialties
+)
 from reflex_motion import motion
-from ...states.base_state import BaseState
-from ...states.report_state import ReportState
+from ...states import BaseState, ReportState
 
 import reflex as rx
 
