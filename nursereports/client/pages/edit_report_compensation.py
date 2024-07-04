@@ -70,7 +70,7 @@ def editing() -> rx.Component:
                     rx.heading(f"{ReportState.assign_select_area}", size="8"),
                 ),
             ),
-            rx.heading(f"{ReportState.hospital_info["hosp_name"]}"),
+            rx.heading(f"{ReportState.hospital_info['hosp_name']}"),
             width="100%",
         ),
         width="100%",
