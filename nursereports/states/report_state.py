@@ -974,6 +974,7 @@ class ReportState(PageState):
                 if response.is_success:
                     logger.debug("Retrieved moderation suggestions from Anyscale.")
                     content = json.loads(response.content)
+                    rich.inspect(content)
                     self.parse_moderation_suggestions(content, report)
                     return None
                 else:

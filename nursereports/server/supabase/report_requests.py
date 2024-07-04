@@ -118,7 +118,7 @@ def supabase_edit_report(access_token: str, report: dict[str, any]) -> None:
         RequestFailed: Request to database failed.
     """
     report["modified_at"] = datetime.now(timezone.utc).isoformat()
-    url = f"{api_url}/rest/v1/reports?report_id=eq.{report["report_id"]}"
+    url = f"{api_url}/rest/v1/reports?report_id=eq.{report['report_id']}"
     data = json.dumps(report)
     headers = {
         "apikey": api_key,
@@ -128,7 +128,7 @@ def supabase_edit_report(access_token: str, report: dict[str, any]) -> None:
     }
     response = httpx.put(url=url, headers=headers, data=data)
     if response.is_success:
-        logger.debug(f"Successfully edited report {report["report_id"]}.")
+        logger.debug(f"Successfully edited report {report['report_id']}.")
     else:
         rich.inspect(response)
         raise RequestFailed("Request to submit report to database failed.")
