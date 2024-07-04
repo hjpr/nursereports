@@ -48,13 +48,13 @@ class ReportState(PageState):
             return rx.toast.error("""Unable to access that URL manually.""")
         if "edit" in self.router.page.raw_path and self.mode != "edit":
             logger.critical(
-                f"{self.user_claims["payload"]["sub"]} attempting to manually change report context."
+                f"{self.user_claims['payload']['sub']} attempting to manually change report context."
             )
             yield rx.redirect("/dashboard")
             yield rx.toast.error("""Unable to access that URL manually.""")
         if "full-report" in self.router.page.raw_path and self.mode != "new":
             logger.critical(
-                f"{self.user_claims["payload"]["sub"]} attempting to manually change report context."
+                f"{self.user_claims['payload']['sub']} attempting to manually change report context."
             )
             yield rx.redirect("/dashboard")
             yield rx.toast.error("""Unable to access that URL manually.""")
