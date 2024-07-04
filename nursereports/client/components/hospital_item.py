@@ -16,7 +16,7 @@ def hospital_item_search(hospital: dict[str, str]) -> rx.Component:
                         line_height="1em"
                         ),
                     rx.text(
-                        f"{hospital["hosp_city"]}, {hospital["hosp_state"]}",
+                        f"{hospital['hosp_city']}, {hospital['hosp_state']}",
                         font_size=["14px", "14px", "16px", "16px", "16px"],
                         font_style="italic",
                         ),
@@ -69,7 +69,7 @@ def hospital_item_dashboard(hospital: dict[str, str]) -> rx.Component:
                     line_height="1em"
                 ),
                 rx.text(
-                    f"{hospital["hosp_city"]}, {hospital["hosp_state"]}",
+                    f"{hospital['hosp_city']}, {hospital['hosp_state']}",
                     font_size="14px",
                     font_style="italic",
                 ),
