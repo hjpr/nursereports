@@ -29,7 +29,7 @@ class ReportState(PageState):
     """
 
     hospital_id: str
-    hospital_info: dict[str, str | int]
+    hospital_info: dict[str, str | int | list]
     is_test: bool = False
     is_loading: bool = False
     mode: Literal["new", "edit"]
@@ -45,19 +45,10 @@ class ReportState(PageState):
         """
         if not self.hospital_id or not self.report_id or not self.mode:
             yield rx.redirect("/dashboard")
+            logger.critical(
+                f"{self.user_claims['payload']['sub']} attempting to manually change report context."
+            )
             return rx.toast.error("""Unable to access that URL manually.""")
-        if "edit" in self.router.page.raw_path and self.mode != "edit":
-            logger.critical(
-                f"{self.user_claims['payload']['sub']} attempting to manually change report context."
-            )
-            yield rx.redirect("/dashboard")
-            yield rx.toast.error("""Unable to access that URL manually.""")
-        if "full-report" in self.router.page.raw_path and self.mode != "new":
-            logger.critical(
-                f"{self.user_claims['payload']['sub']} attempting to manually change report context."
-            )
-            yield rx.redirect("/dashboard")
-            yield rx.toast.error("""Unable to access that URL manually.""")
 
     def event_state_edit_user_report(self, report_id: str) -> Iterable[Callable]:
         """
@@ -389,15 +380,15 @@ class ReportState(PageState):
         else:
             return False
 
-    @rx.cached_var
+    @rx.var(cache=True)
     def hospital_units(self) -> list[str]:
-        units = []
+        units = self.hospital_info["hosp_units"]
         units.append("I don't see my unit")
         return units
 
-    @rx.cached_var
+    @rx.var(cache=True)
     def hospital_areas(self) -> list[str]:
-        areas = []
+        areas = self.hospital_info["hosp_areas_roles"]
         areas.append("I don't see my area or role")
         return areas
 

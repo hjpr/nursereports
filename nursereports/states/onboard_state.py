@@ -13,18 +13,18 @@ class OnboardState(BaseState):
     license_state: str
     onboard_error_message: str
 
-    @rx.cached_var
+    @rx.var(cache=True)
     def onboard_has_error(self) -> bool:
         return True if self.onboard_error_message else False
 
-    @rx.cached_var
+    @rx.var(cache=True)
     def is_student(self) -> bool:
         if self.license == "Nursing Student":
             return True
         else:
             return False
 
-    @rx.cached_var
+    @rx.var(cache=True)
     def can_give_review(self) -> bool:
         if self.has_review == "No":
             return False

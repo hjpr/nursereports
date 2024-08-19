@@ -10,7 +10,7 @@ import rich
 
 def supabase_get_hospital_info(access_token: str, hosp_id: str) -> dict[str, any]:
     """
-    Retrieves hospital info from /hospital.
+    Retrieves hospital info from /hospital
 
     Args:
         access_token: jwt of user
@@ -25,6 +25,8 @@ def supabase_get_hospital_info(access_token: str, hosp_id: str) -> dict[str, any
             hosp_state: state abbreviation
             hosp_zip: <-
             hosp_county: <-
+            hosp_units: deduplicated list of units
+            hosp_areas_roles: deduplicated list of areas and/or roles
 
     Exceptions:
         RequestFailed: request to pull info failed.

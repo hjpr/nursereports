@@ -9,7 +9,7 @@ from ..server.exceptions import (
 from ..server.secrets import jwt_key
 from ..server.supabase import (
     supabase_create_initial_user_info,
-    supabase_delete_user_report,  # Uncomment below when ready to use function.
+    supabase_delete_user_report,  # Uncomment when ready to use function.
     supabase_get_new_access_token,
     supabase_get_user_info,
     supabase_get_user_modified_at_timestamp,
@@ -51,7 +51,7 @@ class BaseState(rx.State):
     def reason_for_logout(self) -> str:
         return self.router.page.params.get("logout_reason")
 
-    @rx.cached_var
+    @rx.var(cache=True)
     def user_claims(self) -> dict:
         """Pull claims from JWT if valid, authenticated, and not expired.
 
@@ -92,14 +92,14 @@ class BaseState(rx.State):
         else:
             return {"valid": False, "payload": None, "reason": "empty"}
 
-    @rx.cached_var
+    @rx.var(cache=True)
     def user_is_authenticated(self) -> bool:
         if self.access_token:
             return True if self.user_claims["valid"] else False
         else:
             return False
 
-    @rx.cached_var
+    @rx.var(cache=True)
     def user_has_reported(self) -> bool:
         if self.access_token and self.user_info:
             return False if self.user_info["needs_onboard"] else True
