@@ -1,7 +1,7 @@
 from ..secrets import api_key, api_url
+from datetime import datetime, timezone
 from functools import wraps
 
-import datetime
 import httpx
 import json
 import time
@@ -31,7 +31,7 @@ def rate_limit_supabase(table: str, entry_limit: int, time_limit: int):
             access_token = args[0]
             current_unix_time = time.time()
             exclusion_period = current_unix_time - (time_limit * 60)
-            exclusion_obj = datetime.datetime.utcfromtimestamp(exclusion_period)
+            exclusion_obj = datetime.fromtimestamp(exclusion_period, tz=timezone.utc)
             exclusion_tz = exclusion_obj.strftime("%Y-%m-%d %H:%M:%S %z")
             url = f"{api_url}/rest/v1/{table}?" + f"created_at=gte.{exclusion_tz}"
             headers = {

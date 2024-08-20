@@ -6,6 +6,7 @@ from .auth_requests import (
 from .feedback_requests import supabase_submit_feedback
 from .rate_limit_requests import rate_limit_supabase
 from .report_requests import (
+    supabase_check_for_existing_report,
     supabase_edit_report,
     supabase_get_hospital_info,
     supabase_no_report_id_conflict,

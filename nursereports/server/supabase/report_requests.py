@@ -1,12 +1,49 @@
-from ..exceptions import RequestFailed
+from ..exceptions import RequestFailed, DuplicateReport, DuplicateUUID
 from ..secrets import api_key, api_url
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from loguru import logger
 
 import httpx
 import json
 import rich
 
+
+def supabase_check_for_existing_report(access_token: str, report: dict) -> None:
+    """
+    Checks for an existing report of the same unit within a 30 day window.
+
+    Args:
+        access_token: jwt of user
+        report: dict of report prepared from state vars
+
+    Exceptions:
+        DuplicateReport: a duplicate report was found in database.
+        RequestFailed: request to check existing reports failed.
+    """
+    thirty_days_prior = datetime.now(timezone.utc) - timedelta(days=30)
+    date_limit = thirty_days_prior.strftime("%Y-%m-%d %H:%M:%S %z")
+    user_id = report["user_id"]
+
+    url = f"{api_url}/rest/v1/reports?user_id=eq.{user_id}&created_at=gte.{date_limit}"
+    headers = {
+        "apikey": api_key,
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json",
+    }
+    response = httpx.get(url=url, headers=headers)
+    if response.is_success:
+        existing_reports = json.loads(response.content)
+        for existing_report in existing_reports:
+            if report["assign_select_specific_unit"] == "Yes":
+                if (existing_report["assign_select_unit"] == report["assign_select_unit"] and
+                    existing_report["assign_input_unit_name"] == report["assign_input_unit_name"]):
+                    raise DuplicateReport("A report was already submitted for this unit within 30 days.")
+            else:
+                if (existing_report["assign_select_area"] == report["assign_select_area"] and
+                    existing_report["assign_input_area"] == report["assign_input_area"]):
+                    raise DuplicateReport("A report was already submitting for this area/role within 30 days.")
+    else:
+        raise RequestFailed("Request to check for existing report failed.")
 
 def supabase_get_hospital_info(access_token: str, hosp_id: str) -> dict[str, any]:
     """
@@ -43,7 +80,7 @@ def supabase_get_hospital_info(access_token: str, hosp_id: str) -> dict[str, any
         return content[0]
     else:
         logger.critical(f"Failed to retrieve {hosp_id} from /hospitals")
-        raise RequestFailed("Request failed retrieving hospital ")
+        raise RequestFailed("Request failed retrieving hospital.")
 
 def supabase_no_report_id_conflict(access_token: str, report_id: str) -> dict:
     """
@@ -53,10 +90,9 @@ def supabase_no_report_id_conflict(access_token: str, report_id: str) -> dict:
         access_token: jwt object of user
         report_id: report uuid
 
-    Returns:
-        dict:
-            success: bool
-            status: user readable error if any
+    Exceptions:
+        DuplicateUUID: found a duplicate UUID in database.
+        RequestFailed: request to database failed
     """
     url = f"{api_url}/rest/v1/reports?report_id=eq.{report_id}&select=*"
     headers = {
@@ -67,20 +103,12 @@ def supabase_no_report_id_conflict(access_token: str, report_id: str) -> dict:
     response = httpx.get(url=url, headers=headers)
     if response.is_success:
         id_conflict = json.loads(response.content)
-        if not id_conflict:
-            logger.debug("No conflicts in /reports wreith user's report uuid.")
-            return {"success": True, "status": None}
-        else:
-            logger.warning("User's report uuid already exists in /reports.")
-            return {"success": False, "status": "Conflict"}
+        if id_conflict:
+            raise DuplicateUUID("Generated a duplicate UUID. Wow. Buy a lottery ticket!")
     else:
-        logger.critical("Failed to search for uuid conflicts in /reports.")
-        rich.inspect(response)
-        return {
-            "success": False,
-            "status": f"{response.status_code} - {response.reason_phrase}",
-        }
-
+        raise RequestFailed(
+            "Request to check for duplicate UUID's in database failed."
+        )
 
 def supabase_submit_full_report(access_token: str, report: dict[str, any]) -> None:
     """
@@ -91,7 +119,7 @@ def supabase_submit_full_report(access_token: str, report: dict[str, any]) -> No
         report: dict - contains full report fields to update in database
 
     Exceptions:
-        RequestFailed: Request to database failed.
+        RequestFailed: request to database failed
     """
     url = f"{api_url}/rest/v1/reports"
     data = json.dumps(report)
@@ -117,7 +145,7 @@ def supabase_edit_report(access_token: str, report: dict[str, any]) -> None:
         report: dict - contains fields to update
 
     Exceptions:
-        RequestFailed: Request to database failed.
+        RequestFailed: request to database failed.
     """
     report["modified_at"] = datetime.now(timezone.utc).isoformat()
     url = f"{api_url}/rest/v1/reports?report_id=eq.{report['report_id']}"

@@ -50,11 +50,15 @@ class ReadError(DatabaseError):
 class NoDataError(DatabaseError): ...
 
 
+class DuplicateReport(DatabaseError):
+    """A report matching the unit or area was submitted within the past 30 days."""
+
 class DuplicateUserError(DatabaseError): ...
 
 
-# This one should throw an error to db
+class DuplicateUUID(DatabaseError): ...
 
+# This one should throw an error to db
 
 class FormError(Exception):
     def __init__(self, error_message):

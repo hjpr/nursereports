@@ -1,7 +1,8 @@
 from ..states import PageState
-from ..server.exceptions import RequestFailed
+from ..server.exceptions import RequestFailed, DuplicateReport, DuplicateUUID
 from ..server.secrets import anyscale_api_key, anyscale_url, api_url, api_key
 from ..server.supabase import (
+    supabase_check_for_existing_report,
     supabase_edit_report,
     supabase_get_full_report_info,
     supabase_get_hospital_info,
@@ -738,13 +739,12 @@ class ReportState(PageState):
             self.staffing_error_message = "Comments contain too many characters."
             return
         self.staffing_error_message = ""
-        return ReportState.submit_report
+        return ReportState.submit_full_report
 
     def edit_report(self) -> Iterable[Callable]:
         try:
             self.is_loading = True
             report = self.prepare_report_dict()
-
             if not self.comp_can_progress:
                 self.comp_error_message = "Some fields incomplete or invalid."
                 return rx.redirect("/report/edit/compensation")
@@ -760,18 +760,16 @@ class ReportState(PageState):
             yield rx.redirect("/report/edit/complete")
             self.reset()
         except RequestFailed as e:
-            self.is_loading = False
             yield rx.toast.error(str(e))
-        except Exception as e:
             self.is_loading = False
-            logger.critical(str(e))
+        except Exception:
             yield rx.toast.error("Exception while submitting report for edit.")
+            self.is_loading = False
 
     def submit_full_report(self) -> Iterable[Callable]:
         try:
             self.is_loading = True
             report = self.prepare_report_dict()
-
             if not self.comp_can_progress:
                 self.comp_error_message = "Some fields incomplete or invalid."
                 return rx.redirect("/report/full-report/compensation")
@@ -781,28 +779,37 @@ class ReportState(PageState):
             if not self.staffing_can_progress:
                 self.staffing_can_progress = "Some fields incomplete or invalid."
                 return rx.redirect("/report/full-report/staffing")
-
+            
             supabase_no_report_id_conflict(self.access_token, self.report_id)
+            supabase_check_for_existing_report(self.access_token, report)
             supabase_submit_full_report(self.access_token, report)
-            data = {
-                "needs_onboard": False,
-                "reports": self.user_info["reports"] + 1,
-            }
-            supabase_update_user_info(
+
+            updated_data = supabase_update_user_info(
                 self.access_token,
                 self.user_claims["payload"]["sub"],
-                data=data
+                data={
+                "needs_onboard": False,
+                "reports": self.user_info["reports"] + 1,
+                }
             )
+            self.user_info.update(updated_data)
+
             yield ReportState.moderate_user_entries(report)
             yield rx.redirect("/report/full-report/complete")
             self.reset()
+        except DuplicateReport:
+            self.is_loading = False
+            yield ReportState.edit_report
+        except DuplicateUUID:
+            self.is_loading = False
+            self.generate_report_id()
+            yield ReportState.submit_full_report
         except RequestFailed as e:
-            self.is_loading = False
             yield rx.toast.error(str(e))
-        except Exception as e:
             self.is_loading = False
-            logger.critical(str(e))
-            yield rx.toast.error("Backend error - Check logs for details.")
+        except Exception:
+            yield rx.toast.error("Uncaught exception. If this persists contact support@nursereports.org")
+            self.is_loading = False
 
     def prepare_report_dict(self) -> dict:
         report = {
@@ -875,7 +882,7 @@ class ReportState(PageState):
         return report
 
     def save_report_dict_to_state(self, report: dict) -> None:
-        # Don't set these values to state
+        # Pop the following values out of the report as erroneous to report state.
         report.pop("hospital_id", None)
         report.pop("user_id", None)
         report.pop("license", None)
