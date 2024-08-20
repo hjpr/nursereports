@@ -9,6 +9,8 @@ from ..server.supabase import (
     supabase_no_report_id_conflict,
     supabase_submit_full_report,
     supabase_update_user_info,
+    supabase_update_hospital_units,
+    supabase_update_hospital_area_role
 )
 from loguru import logger
 from typing import Callable, Iterable, Literal
@@ -384,12 +386,14 @@ class ReportState(PageState):
     @rx.var(cache=True)
     def hospital_units(self) -> list[str]:
         units = self.hospital_info["hosp_units"]
+        units.sort()
         units.append("I don't see my unit")
         return units
 
     @rx.var(cache=True)
     def hospital_areas(self) -> list[str]:
         areas = self.hospital_info["hosp_areas_roles"]
+        areas.sort()
         areas.append("I don't see my area or role")
         return areas
 
@@ -768,6 +772,7 @@ class ReportState(PageState):
 
     def submit_full_report(self) -> Iterable[Callable]:
         try:
+            # Ensure values valid and complete.
             self.is_loading = True
             report = self.prepare_report_dict()
             if not self.comp_can_progress:
@@ -780,10 +785,12 @@ class ReportState(PageState):
                 self.staffing_can_progress = "Some fields incomplete or invalid."
                 return rx.redirect("/report/full-report/staffing")
             
+            # Check for conflicts and then submit report.
             supabase_no_report_id_conflict(self.access_token, self.report_id)
             supabase_check_for_existing_report(self.access_token, report)
             supabase_submit_full_report(self.access_token, report)
 
+            # Update user info to give credit for report. Save updated user info to state.
             updated_data = supabase_update_user_info(
                 self.access_token,
                 self.user_claims["payload"]["sub"],
@@ -794,7 +801,19 @@ class ReportState(PageState):
             )
             self.user_info.update(updated_data)
 
+            # If new unit or area/role, upload to hospital info.
+            hosp_id = self.hospital_id
+            unit = report["assign_input_unit_name"]
+            area_role = report["assign_input_area"]
+            if unit:
+                supabase_update_hospital_units(self.access_token, hosp_id, unit)
+            if area_role:
+                supabase_update_hospital_area_role(self.access_token, hosp_id, area_role)
+
+            # Send all user inputs to anyscale to moderate inputs.
             yield ReportState.moderate_user_entries(report)
+
+            # When complete send to final page and reset Report Vars.
             yield rx.redirect("/report/full-report/complete")
             self.reset()
         except DuplicateReport:
@@ -882,7 +901,9 @@ class ReportState(PageState):
         return report
 
     def save_report_dict_to_state(self, report: dict) -> None:
-        # Pop the following values out of the report as erroneous to report state.
+        """
+        Pop the following values out of the report as erroneous to report state.
+        """
         report.pop("hospital_id", None)
         report.pop("user_id", None)
         report.pop("license", None)
@@ -890,12 +911,6 @@ class ReportState(PageState):
         report.pop("trust")
         for key, value in report.items():
             setattr(self, f"{key}", value)
-
-    #################################################################
-    #
-    # REPORT MODERATION
-    #
-    #################################################################
 
     @rx.background
     async def moderate_user_entries(self, report: dict) -> None:
