@@ -183,8 +183,12 @@ def supabase_update_hospital_units(access_token: str, hosp_id: str,  unit: str) 
     if unit not in hospital_units:
         hospital_units.append(unit)
 
-    data = { "hosp_units": hospital_units }
-    response = httpx.patch(url=url, headers=headers, data=json.dumps(data))
+    data = { 
+        "hosp_units": hospital_units,
+        "needs_validation": True,
+        "needs_moderation": True,      
+    }
+    response = httpx.put(url=url, headers=headers, data=json.dumps(data))
     if response.is_success:
         logger.debug("Updated unit info in public/hospitals.")
     else:
@@ -210,11 +214,14 @@ def supabase_update_hospital_area_role(access_token: str, hosp_id: str, area_rol
     if area_role not in hospital_areas_roles:
         hospital_areas_roles.append(area_role)
 
-    data = { "hosp_areas_roles": hospital_areas_roles }
-    response = httpx.patch(url=url, headers=headers, data=json.dumps(data))
+    data = { 
+        "hosp_areas_roles": hospital_areas_roles,
+        "needs_validation": True,
+        "needs_moderation": True
+        }
+    response = httpx.put(url=url, headers=headers, data=json.dumps(data))
     if response.is_success:
         logger.debug("Updated unit info in public/hospitals.")
     else:
         raise RequestFailed("Failed to update unit information.")
-
 
