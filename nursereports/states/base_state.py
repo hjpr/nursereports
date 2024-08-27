@@ -204,6 +204,7 @@ class BaseState(rx.State):
         """
         if self.user_claims["reason"] == "empty":
             yield BaseState.handle_sso_redirect
+            yield BaseState.authenticated_missing_info_flow
         if self.user_claims["valid"]:
             yield BaseState.authenticated_missing_info_flow(access_level)
 
