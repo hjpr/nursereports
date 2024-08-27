@@ -202,11 +202,13 @@ class BaseState(rx.State):
         may be attempting to login using an SSO redirect. If coming from SSO then
         process the JWT and set the user data.
         """
-        if self.user_claims["reason"] == "empty":
-            yield BaseState.handle_sso_redirect
-            yield BaseState.authenticated_missing_info_flow
-        if self.user_claims["valid"]:
-            yield BaseState.authenticated_missing_info_flow(access_level)
+        try:
+            if self.user_claims["reason"] == "empty":
+                yield BaseState.handle_sso_redirect(access_level)
+            if self.user_claims["valid"]:
+                yield BaseState.authenticated_missing_info_flow(access_level)
+        except Exception:
+            return rx.toast.error("Invalid URL format for login.")
 
     def check_claims_for_expiring_soon(self) -> None:
         current_time = int(time.time())
@@ -231,15 +233,13 @@ class BaseState(rx.State):
             else:
                 raise PageRequiresLogin("Login before accessing this page.")
 
-    def handle_sso_redirect(self) -> Iterable[Callable]:
-        try:
-            raw_path = self.router.page.raw_path
-            if ("access_token" in raw_path) and ("refresh_token" in raw_path):
-                fragment = raw_path.split("#")[1]
-                self.access_token = fragment.split("&")[0].split("=")[1]
-                self.refresh_token = fragment.split("&")[4].split("=")[1]
-        except Exception:
-            yield rx.toast.error("Invalid URL format for login.")
+    def handle_sso_redirect(self, access_level: str) -> Callable:
+        raw_path = self.router.page.raw_path
+        if ("access_token" in raw_path) and ("refresh_token" in raw_path):
+            fragment = raw_path.split("#")[1]
+            self.access_token = fragment.split("&")[0].split("=")[1]
+            self.refresh_token = fragment.split("&")[4].split("=")[1]
+            return BaseState.authenticated_missing_info_flow(access_level)
 
     def check_user_data_has_updated(self) -> bool:
         if self.user_info:
