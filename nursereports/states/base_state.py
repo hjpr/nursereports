@@ -174,13 +174,7 @@ class BaseState(rx.State):
             self.check_claims_for_expiring_soon()
             self.set_all_user_data_to_state()
             self.check_access(access_level)
-
-            # Redirect user based on report status.
-            if self.user_has_reported:
-                yield rx.redirect("/dashboard")
-            else:
-                yield rx.redirect("/onboard")
-
+            yield BaseState.redirect_user_to_onboard_or_dashboard
         except DuplicateUserError:
             yield rx.redirect("/logout/error")
         except PageRequiresLogin as e:
@@ -364,6 +358,12 @@ class BaseState(rx.State):
         yield NavbarState.set_alert_message(
             "Please submit a report before accessing that content."
         )
+
+    def redirect_user_to_onboard_or_dashboard(self) -> Callable:
+        if self.user_has_reported:
+            return rx.redirect("/dashboard")
+        else:
+            return rx.redirect("/onboard")
 
     def event_state_logout(self) -> Iterable[Callable]:
         from . import NavbarState
