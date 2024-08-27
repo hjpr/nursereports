@@ -164,7 +164,7 @@ class BaseState(rx.State):
 
     def authenticated_missing_info_flow(
         self, access_level: str
-    ) -> Iterable[Callable] | None:
+    ) -> Iterable[Callable]:
         """
         User is authenticated but user info not present. After retrieving user
         data, make sure user is accessing appropriate resources for their
@@ -174,7 +174,13 @@ class BaseState(rx.State):
             self.check_claims_for_expiring_soon()
             self.set_all_user_data_to_state()
             self.check_access(access_level)
-            yield BaseState.redirect_user_to_onboard_or_dashboard
+
+            # Redirect user based on report status.
+            if self.user_has_reported:
+                yield rx.redirect("/dashboard")
+            else:
+                yield rx.redirect("/onboard")
+
         except DuplicateUserError:
             yield rx.redirect("/logout/error")
         except PageRequiresLogin as e:
@@ -357,12 +363,6 @@ class BaseState(rx.State):
         yield NavbarState.set_alert_message(
             "Please submit a report before accessing that content."
         )
-
-    def redirect_user_to_onboard_or_dashboard(self) -> Iterable[Callable]:
-        if self.user_has_reported:
-            yield rx.redirect("/dashboard")
-        else:
-            yield rx.redirect("/onboard")
 
     def event_state_logout(self) -> Iterable[Callable]:
         from . import NavbarState
