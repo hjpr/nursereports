@@ -385,17 +385,23 @@ class ReportState(PageState):
 
     @rx.var(cache=True)
     def hospital_units(self) -> list[str]:
-        units = self.hospital_info["hosp_units"]
-        units.sort()
-        units.append("I don't see my unit")
-        return units
+        if self.hospital_info:
+            units = self.hospital_info["hosp_units"]
+            units.sort()
+            units.append("I don't see my unit")
+            return units
+        else:
+            return ["I don't see my unit"]
 
     @rx.var(cache=True)
     def hospital_areas(self) -> list[str]:
-        areas = self.hospital_info["hosp_areas_roles"]
-        areas.sort()
-        areas.append("I don't see my area or role")
-        return areas
+        if self.hospital_info:
+            areas = self.hospital_info["hosp_areas_roles"]
+            areas.sort()
+            areas.append("I don't see my area or role")
+            return areas
+        else:
+            return ["I don't see my area or role"]
 
     @rx.var
     def has_unit(self) -> bool:
