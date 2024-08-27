@@ -170,7 +170,7 @@ def hospital_item_dashboard_arrow(hospital: dict[str, str]) -> rx.Component:
         rx.icon("arrow-right"),
         variant="ghost",
         cursor="pointer",
-        on_click=SearchState.redirect_to_hospital_overview(hospital)
+        on_click=SearchState.redirect_to_hospital_overview(hospital['hosp_id'])
     )
 
 
