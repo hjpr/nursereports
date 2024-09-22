@@ -28,9 +28,47 @@ def hospital_overview() -> rx.Component:
 
 def content() -> rx.Component:
     return rx.flex(
-        rx.text("Hospital Overview Placeholder Page"),
+        heading(),
+        pay(),
+        units(),
         flex_direction='column',
         flex_basis='auto',
         flex_grow='1',
         flex_shrink='0',
+    )
+
+def heading() -> rx.Component:
+    return rx.flex(
+        rx.text("Hospital heading")
+    )
+
+def pay() -> rx.Component:
+    return rx.flex(
+        pay_hospital(),
+        pay_state()
+    )
+
+def pay_hospital() -> rx.Component:
+    return rx.flex(
+        rx.text("Hospital pay")
+    )
+
+def pay_state() -> rx.Component:
+    return rx.flex(
+        rx.text("State pay")
+    )
+
+def units() -> rx.Component:
+    return rx.flex(
+        rx.text("Hospital units")
+    )
+
+def unit_ratings() -> rx.Component:
+    return rx.flex(
+        rx.text("Unit ratings")
+    )
+
+def responses() -> rx.Component:
+    return rx.flex(
+        rx.text("Hospital responses")
     )
