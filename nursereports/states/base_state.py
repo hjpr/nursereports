@@ -208,7 +208,7 @@ class BaseState(rx.State):
         current_time = int(time.time())
         expires_at = self.user_claims["payload"]["exp"]
         time_left_sec = expires_at - current_time
-        if 5 <= time_left_sec <= 1800:
+        if (5 <= time_left_sec <= 1800) and (self.access_token and self.refresh_token):
             self.refresh_access_token()
 
     def refresh_access_token(self) -> None:

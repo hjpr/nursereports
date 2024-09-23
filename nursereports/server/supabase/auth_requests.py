@@ -5,7 +5,7 @@ from loguru import logger
 
 import httpx
 import json
-
+import rich
 
 def supabase_login_with_email(email: str, password: str) -> dict:
     """
@@ -18,7 +18,6 @@ def supabase_login_with_email(email: str, password: str) -> dict:
     Returns:
         dict:
             access_token: str - user JWT object.
-            refresh_token: str - token used to refresh JWT.
     """
     url = f"{api_url}/auth/v1/token"
     params = {
@@ -40,9 +39,9 @@ def supabase_login_with_email(email: str, password: str) -> dict:
     )
     if response.is_success:
         logger.debug("Successfully signed in using email.")
+        payload = json.loads(response.content)
         return {
-            "access_token": response.cookies.get("sb-access-token"),
-            "refresh_token": response.cookies.get("sb-refresh-token"),
+            "access_token": payload.get("access_token"),
         }
     else:
         logger.critical("Failed to login using email.")

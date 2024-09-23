@@ -13,6 +13,7 @@ from ..server.supabase import (
 )
 from .base_state import BaseState
 
+from loguru import logger
 from typing import Callable, Iterable
 
 import reflex as rx
@@ -89,8 +90,8 @@ class NavbarState(BaseState):
         email = form_data.get("login_email")
         password = form_data.get("login_password")
         tokens = supabase_login_with_email(email, password)
+        logger.debug(tokens)
         self.access_token = tokens["access_token"]
-        self.refresh_token = tokens["refresh_token"]
         self.show_login = False
         self.error_sign_in_message = ""
         self.set_all_user_data_to_state()

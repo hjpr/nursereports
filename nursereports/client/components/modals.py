@@ -32,15 +32,21 @@ def info_modal(title: str, content: rx.Component) -> rx.Component:
 
 
 def saved_hospitals_modal_content() -> rx.Component:
-    return rx.flex(rx.text("Spectacles, testicles, wallet and watch."))
+    return rx.flex(
+        rx.text("Save hospitals to your dashboard to keep a close eye on them.")
+    )
 
 
 def my_pay_modal_content() -> rx.Component:
-    return rx.flex(rx.text("Shidding and farding."))
+    return rx.flex(
+        rx.text("Compare local hospital rates to the state average.")
+    )
 
 
 def my_reports_modal_content() -> rx.Component:
-    return rx.flex(rx.text("Tony'd had schizophrenia before - and this was not it."))
+    return rx.flex(
+        rx.text("Review and edit all reports that you've made.")
+    )
 
 
 def remove_report_modal() -> rx.Component:
