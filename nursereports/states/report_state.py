@@ -13,7 +13,7 @@ from ..server.supabase import (
     supabase_update_hospital_area_role
 )
 from loguru import logger
-from typing import Callable, Iterable, Literal
+from typing import Callable, Iterable
 
 import httpx
 import inspect
@@ -35,7 +35,7 @@ class ReportState(PageState):
     hospital_info: dict[str, str | int | list]
     is_test: bool = False
     is_loading: bool = False
-    mode: Literal["new", "edit"]
+    mode: str
     report_id: str
 
     def generate_report_id(self) -> None:

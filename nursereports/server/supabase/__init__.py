@@ -4,7 +4,10 @@ from .auth_requests import (
     supabase_login_with_email,
 )
 from .feedback_requests import supabase_submit_feedback
-from .hospital_requests import supabase_get_hospital_overview_info
+from .hospital_requests import (
+    supabase_get_hospital_overview_info,
+    supabase_get_hospital_report_data
+)
 from .rate_limit_requests import rate_limit_supabase
 from .report_requests import (
     supabase_check_for_existing_report,

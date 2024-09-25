@@ -50,11 +50,7 @@ def hospital_item_search(hospital: dict[str, str]) -> rx.Component:
             width="100%"
         ),
         min_height="100px",
-        width="100%",
-        bg="white",
-        border="1px solid",
-        border_color="var(--chakra-colors-chakra-border-color)",
-        border_radius="var(--radius-4)",
+        width="100%"
     )
 
 
@@ -103,10 +99,6 @@ def hospital_item_dashboard(hospital: dict[str, str]) -> rx.Component:
         ),
         min_height="100px",
         width="100%",
-        bg="white",
-        border="1px solid",
-        border_color="var(--chakra-colors-chakra-border-color)",
-        border_radius="var(--radius-4)",
     )
 
 
