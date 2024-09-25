@@ -62,9 +62,7 @@ def heading() -> rx.Component:
             rx.flex(
                 rx.heading(HospitalState.hospital_info["hosp_name"], size='7'),
                 rx.text(HospitalState.hospital_info["hosp_address"]),
-                rx.text(
-                    f"{HospitalState.hospital_info["hosp_city"]}, {HospitalState.hospital_info["hosp_state"]} {HospitalState.hospital_info["hosp_zip"]}"
-                ),
+                rx.text(f'{HospitalState.hospital_info["hosp_city"]}, {HospitalState.hospital_info["hosp_state"]} {HospitalState.hospital_info["hosp_zip"]}'),
                 flex_direction="column",
                 spacing='2'
             ),
