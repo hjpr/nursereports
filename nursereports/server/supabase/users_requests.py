@@ -131,7 +131,6 @@ def supabase_get_user_modified_at_timestamp(access_token: str) -> dict | None:
     response = httpx.get(url=url, headers=headers)
     if response.is_success:
         content = json.loads(response.content)
-        logger.debug("Pulled last modified timestamp data from user data.")
         return content[0]
     else:
         raise RequestFailed(

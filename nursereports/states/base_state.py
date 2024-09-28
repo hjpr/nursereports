@@ -25,6 +25,7 @@ from typing import Callable, Iterable
 import jwt
 import reflex as rx
 import time
+import rich
 
 
 class BaseState(rx.State):
@@ -87,8 +88,6 @@ class BaseState(rx.State):
                 return {"valid": False, "payload": None, "reason": "expired"}
             except jwt.InvalidSignatureError:
                 return {"valid": False, "payload": None, "reason": "invalid"}
-            except Exception as e:
-                return {"valid": False, "payload": None, "reason": f"{str(e)}"}
         else:
             return {"valid": False, "payload": None, "reason": "empty"}
 
@@ -192,17 +191,22 @@ class BaseState(rx.State):
 
     def unauthenticated_flow(self, access_level: str) -> Iterable[Callable]:
         """
-        User is not authenticated, and is either just browsing the index page, or
-        may be attempting to login using an SSO redirect. If coming from SSO then
-        process the JWT and set the user data.
+        User is not authenticated. Can be
+            - User with access_token whose claims have expired.
+            - User attempting to use forged access_token.
+            - User without token.
         """
-        try:
-            if self.user_claims["reason"] == "empty":
-                yield BaseState.handle_sso_redirect(access_level)
-            if self.user_claims["valid"]:
-                yield BaseState.authenticated_missing_info_flow(access_level)
-        except Exception:
-            return rx.toast.error("Invalid URL format for login.")
+        if self.user_claims["reason"] == "expired":
+            yield rx.redirect("/")
+            self.reset()
+            yield rx.toast.warning("Session expired, please login again.")
+        if self.user_claims["reason"] == "invalid":
+            yield rx.redirect("/")
+
+            self.reset()
+            yield rx.toast.error("Invalid login credentials.")
+        if self.user_claims["reason"] == "empty":
+            logger.debug("A user is just browsing...")
 
     def check_claims_for_expiring_soon(self) -> None:
         current_time = int(time.time())

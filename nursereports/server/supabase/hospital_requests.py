@@ -74,6 +74,11 @@ def supabase_get_hospital_report_data(access_token: str, hosp_id: str) -> dict[s
                 comp_input_comments: str - user entered comments on compensation
                 assign_input_comments: str - user entered comments on compensation
                 staffing_input_comments: str - user entered comments on compensation
+                assign_select_specific_unit: str - "yes" or "no"
+                assign_select_unit: str - previously entered units
+                assign_input_unit_name: str - if unit not previously entered
+                assign_select_area: str - previously entered areas/roles
+                assign_input_area: str - if area/role not previously entered
                 (...) see Obsidian diagram for rest of rows
 
     Exceptions:

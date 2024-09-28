@@ -87,10 +87,13 @@ class NavbarState(BaseState):
             yield rx.redirect("/logout/error")
 
     def login_with_email(self, form_data: dict) -> None:
+        """
+        Logs in with email and retrieves only access_token. Refresh_token only
+        available with SSO.
+        """
         email = form_data.get("login_email")
         password = form_data.get("login_password")
         tokens = supabase_login_with_email(email, password)
-        logger.debug(tokens)
         self.access_token = tokens["access_token"]
         self.show_login = False
         self.error_sign_in_message = ""

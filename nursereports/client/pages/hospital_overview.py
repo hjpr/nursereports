@@ -44,7 +44,7 @@ def content() -> rx.Component:
             reviews(),
             width="100%",
             max_width="1100px",
-            padding="48px",
+            padding="24px",
             align="center",
             spacing="5",
             flex_direction="column",
@@ -127,7 +127,7 @@ def units() -> rx.Component:
             ),
             # Container for units.
             rx.cond(
-                HospitalState.unit_area_role_info,
+                HospitalState.units_areas_roles_available,
                 # If reviews for units present...
                 rx.flex(
                     unit_ratings_graph(),
@@ -163,25 +163,50 @@ def unit_grades() -> rx.Component:
 def reviews() -> rx.Component:
     """Free response section."""
     return rx.flex(
-        rx.hstack(
+        rx.flex(
             # Reviews header.
-            rx.flex(
-                rx.icon("speech"),
-                rx.heading("Reviews", padding="0px 12px"),
-                width="20%",
+            rx.flex(    
+                rx.icon("speech", margin="4px 0 0 0"),
+                rx.heading("Reviews", margin="0 0 0 12px"),
+                width=["100%", "100%", "100%", "20%", "20%"],
                 flex_direction="row",
-                align="center",
+                justify_content=["center", "center", "center", "flex-start", "flex-start"],
+            ),
+            rx.flex(
+                height='48px',
+                display=["flex", "flex", "flex", "none", "none"]
             ),
             # Container for reviews.
             rx.flex(
                 rx.cond(
                     HospitalState.review_info,
                     # If hospital has reviews...
-                    rx.vstack(
+                    rx.flex(
+                        rx.flex(
+                            rx.select(
+                                ["Placeholder"],
+                                placeholder="All units/areas/roles",
+                                label="Select a unit/area/role"
+                            ),
+                            rx.select(
+                                ["Most Recent", "Most Helpful"],
+                                placeholder="Filters",
+                                label="Select a filter"
+                            ),
+                            rx.button(
+                                rx.text("Clear filters")
+                            ),
+                            flex_direction="row",
+                            spacing="2",
+                            justify="center",
+                            width="100%"
+                        ),
                         rx.foreach(
                             HospitalState.review_info,
                             response_card
-                        )
+                        ),
+                        flex_direction="column",
+                        spacing="8"
                     ),
                     # If hospital doesn't have reviews...
                     rx.flex(
@@ -190,12 +215,14 @@ def reviews() -> rx.Component:
                         width="100%"
                     )
                 ),
+                spacing='3',
                 width="100%"
             ),
-            width="100%"
+            flex_direction=["column", "column", "column", "row", "row"],
+            width="100%",
         ),
-        width="100%",
-        padding="24px"
+        padding="24px 0 0 0",
+        width="100%"
     )
 
 def response_card(review: dict[str, str]) -> rx.Component:
@@ -204,6 +231,7 @@ def response_card(review: dict[str, str]) -> rx.Component:
 
     Dict:
         user_id
+        created_at
         has_comp_comments
         comp_comments
         has_assign_comments
@@ -214,6 +242,7 @@ def response_card(review: dict[str, str]) -> rx.Component:
         unit
         has_area_role
         area_role
+
     """
     return rx.flex(
         rx.vstack(
@@ -225,23 +254,7 @@ def response_card(review: dict[str, str]) -> rx.Component:
                 ),
                 rx.spacer(),
                 rx.flex(
-                    rx.button(
-                        rx.icon("flag", color="red", size=18),
-                        variant="ghost",
-                        cursor="pointer",
-                        margin="0 12px 0 0",
-                        _hover={"bg": "none"}
-                    ),
-                    rx.button(
-                        rx.icon("thumbs-up", size=18),
-                        rx.text("0"),
-                        variant="ghost",
-                        cursor="pointer",
-                        _hover={"bg": "none"}
-                    ),
-                    align="center",
-                    spacing="1",
-                    flex_direction="row"
+                    rx.text(review["formatted_created_at"]),
                 ),
                 width="100%"
             ),
@@ -266,8 +279,21 @@ def response_card(review: dict[str, str]) -> rx.Component:
                     width="100%"
                 )
             ),
+            rx.flex(
+                rx.button(
+                    rx.icon("thumbs-up", size=18),
+                    rx.text("0"),
+                    variant="ghost",
+                    cursor="pointer",
+                    _hover={"bg": "none"}
+                ),
+                align="center",
+                justify="center",
+                spacing="1",
+                flex_direction="row",
+                width="100%"
+            ),
             width="100%",
         ),
-        padding="24px",
         width="100%"
     )
