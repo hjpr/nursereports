@@ -242,7 +242,7 @@ class HospitalState(BaseState):
                         units_areas_roles.add(review["unit"])
                     if review["has_area_role"]:
                         units_areas_roles.add(review["area_role"])
-                self.units_areas_roles_for_reviews = list(units_areas_roles)
+                self.units_areas_roles_for_reviews = sorted(list(units_areas_roles))
 
         except Exception as e:
             logger.critical(e)
