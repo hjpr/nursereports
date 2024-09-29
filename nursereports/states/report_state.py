@@ -3,7 +3,7 @@ from ..server.exceptions import RequestFailed, DuplicateReport, DuplicateUUID
 from ..server.secrets import anyscale_api_key, anyscale_url, api_url, api_key
 from ..server.supabase import (
     supabase_check_for_existing_report,
-    supabase_edit_report,
+    supabase_user_edit_report,
     supabase_get_full_report_info,
     supabase_get_hospital_info,
     supabase_no_report_id_conflict,
@@ -765,7 +765,7 @@ class ReportState(PageState):
                 self.staffing_can_progress = "Some fields incomplete or invalid."
                 return rx.redirect("/report/edit/staffing")
             
-            supabase_edit_report(self.access_token, report)
+            supabase_user_edit_report(self.access_token, report)
             yield ReportState.moderate_user_entries(report)
             yield rx.redirect("/report/edit/complete")
             self.reset()

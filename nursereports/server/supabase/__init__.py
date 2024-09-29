@@ -11,7 +11,8 @@ from .hospital_requests import (
 from .rate_limit_requests import rate_limit_supabase
 from .report_requests import (
     supabase_check_for_existing_report,
-    supabase_edit_report,
+    supabase_admin_edit_report,
+    supabase_user_edit_report,
     supabase_get_hospital_info,
     supabase_no_report_id_conflict,
     supabase_submit_full_report,

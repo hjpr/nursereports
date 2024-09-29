@@ -22,6 +22,7 @@ from datetime import datetime
 from loguru import logger
 from typing import Callable, Iterable
 
+import httpx
 import jwt
 import reflex as rx
 import time

@@ -55,7 +55,7 @@ def content() -> rx.Component:
         my_reports_remove_modal(),
         width="100%",
         max_width="1100px",
-        padding="48px",
+        padding="24px",
         align="center",
         spacing="5",
         flex_direction="column",

@@ -16,6 +16,7 @@ import reflex as rx
         BaseState.event_state_standard_flow("report"),
         HospitalState.event_state_load_hospital_info,
         HospitalState.event_state_load_report_info,
+        HospitalState.event_state_load_review_info
     ]
 
 )
@@ -52,7 +53,14 @@ def content() -> rx.Component:
             flex_grow="1",
             flex_shrink="0",
         ),
-        rx.spinner()
+        rx.flex(
+            rx.spinner(),
+            width="100%",
+            max_width="1100px",
+            padding="48px",
+            align="center",
+            justify="center"
+        )
     )
 
 def heading() -> rx.Component:
@@ -127,7 +135,7 @@ def units() -> rx.Component:
             ),
             # Container for units.
             rx.cond(
-                HospitalState.units_areas_roles_available,
+                HospitalState.units_areas_roles_for_units,
                 # If reviews for units present...
                 rx.flex(
                     unit_ratings_graph(),
@@ -173,7 +181,7 @@ def reviews() -> rx.Component:
                 justify_content=["center", "center", "center", "flex-start", "flex-start"],
             ),
             rx.flex(
-                height='48px',
+                height='24px',
                 display=["flex", "flex", "flex", "none", "none"]
             ),
             # Container for reviews.
@@ -183,26 +191,65 @@ def reviews() -> rx.Component:
                     # If hospital has reviews...
                     rx.flex(
                         rx.flex(
-                            rx.select(
-                                ["Placeholder"],
-                                placeholder="All units/areas/roles",
-                                label="Select a unit/area/role"
+                            rx.cond(
+                                HospitalState.units_areas_roles_for_reviews,
+                                # If units and filters are available
+                                rx.flex(
+                                    rx.select(
+                                        HospitalState.units_areas_roles_for_reviews,
+                                        value=HospitalState.review_filter_units_areas_roles,
+                                        placeholder="All units/areas/roles",
+                                        label="Select a unit/area/role",
+                                        on_change=HospitalState.set_review_filter_units_areas_roles
+                                    ),
+                                    rx.select(
+                                        ["Most Recent", "Most Helpful"],
+                                        value=HospitalState.review_sorted,
+                                        placeholder="Sort by",
+                                        label="Select a sort method",
+                                        on_change=HospitalState.set_review_sorted
+                                    ),
+                                    rx.button(
+                                        rx.text("Clear filters"),
+                                        on_click=[
+                                            HospitalState.set_review_filter_units_areas_roles(""),
+                                            HospitalState.set_review_sorted("")
+                                        ]
+                                    ),
+                                    flex_direction="row",
+                                    flex_wrap="wrap",
+                                    spacing="2",
+                                    justify="center",
+                                    width="100%"
+                                ),
+                                # If units and filters aren't available
+                                rx.flex(
+                                    rx.select(
+                                        [],
+                                        placeholder="No units/areas/roles",
+                                        disabled=True
+                                    ),
+                                    rx.select(
+                                        [],
+                                        placeholder="No sorting available",
+                                        disabled=True
+                                    ),
+                                    rx.button(
+                                        "Clear filters",
+                                    ),
+                                    flex_direction="row",
+                                    flex_wrap="wrap",
+                                    spacing="2",
+                                    justify="center",
+                                    width="100%"
+                                )
                             ),
-                            rx.select(
-                                ["Most Recent", "Most Helpful"],
-                                placeholder="Filters",
-                                label="Select a filter"
-                            ),
-                            rx.button(
-                                rx.text("Clear filters")
-                            ),
-                            flex_direction="row",
-                            spacing="2",
                             justify="center",
+                            padding="24px",
                             width="100%"
                         ),
                         rx.foreach(
-                            HospitalState.review_info,
+                            HospitalState.filtered_review_info,
                             response_card
                         ),
                         flex_direction="column",
@@ -280,12 +327,33 @@ def response_card(review: dict[str, str]) -> rx.Component:
                 )
             ),
             rx.flex(
-                rx.button(
-                    rx.icon("thumbs-up", size=18),
-                    rx.text("0"),
-                    variant="ghost",
-                    cursor="pointer",
-                    _hover={"bg": "none"}
+                rx.cond(
+                    review["user_has_liked"],
+                    # If user has liked the review
+                    rx.flex(
+                        rx.button(
+                            rx.icon("thumbs-up", size=18),
+                            rx.text(review["likes_number"]),
+                            variant="ghost",
+                            cursor="pointer",
+                            _hover={"bg": "none"},
+                            on_click=HospitalState.event_state_like_unlike_review(review)
+                        ),
+                        rx.text("You upvoted this.", size="2"),
+                        flex_direction="column",
+                        spacing="2"
+                    ),
+                    # If user hasn't liked review
+                    rx.flex(
+                        rx.button(
+                            rx.icon("thumbs-up", size=18),
+                            rx.text(review["likes_number"]),
+                            variant="ghost",
+                            cursor="pointer",
+                            _hover={"bg": "none"},
+                            on_click=HospitalState.event_state_like_unlike_review(review)
+                        )
+                    )
                 ),
                 align="center",
                 justify="center",

@@ -93,8 +93,9 @@ def supabase_get_hospital_report_data(access_token: str, hosp_id: str) -> dict[s
     response = httpx.get(url=url, headers=headers)
     if response.is_success:
         content= json.loads(response.content)
-        rich.inspect(content)
         return content
     else:
         logger.critical(f"Failed to retrieve {hosp_id} from /reports")
         raise RequestFailed("Request failed retrieving hospital.")
+    
+    

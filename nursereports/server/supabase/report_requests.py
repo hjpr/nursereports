@@ -1,5 +1,5 @@
 from ..exceptions import RequestFailed, DuplicateReport, DuplicateUUID
-from ..secrets import api_key, api_url
+from ..secrets import api_key, api_url, admin_key
 from datetime import datetime, timedelta, timezone
 from loguru import logger
 
@@ -136,9 +136,9 @@ def supabase_submit_full_report(access_token: str, report: dict[str, any]) -> No
         rich.inspect(response)
         raise RequestFailed("Request to submit report to database failed.")
     
-def supabase_edit_report(access_token: str, report: dict[str, any]) -> None:
+def supabase_user_edit_report(access_token: str, report: dict[str, any]) -> None:
     """
-    Edits an existing report in /reports.
+    Edits an existing report in /reports via a user
 
     Args:
         access_token: str - jwt object of user
@@ -153,6 +153,32 @@ def supabase_edit_report(access_token: str, report: dict[str, any]) -> None:
     headers = {
         "apikey": api_key,
         "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json",
+        "Prefer": "return=minimal"
+    }
+    response = httpx.put(url=url, headers=headers, data=data)
+    if response.is_success:
+        logger.debug(f"Successfully edited report {report['report_id']}.")
+    else:
+        rich.inspect(response)
+        raise RequestFailed("Request to submit report to database failed.")
+    
+def supabase_admin_edit_report(report: dict[str, any]) -> None:
+    """
+    Edits an existing report in /reports via admin or site feature.
+
+    Args:
+        access_token: str - jwt object of user
+        report: dict - contains fields to update
+
+    Exceptions:
+        RequestFailed: request to database failed.
+    """
+    url = f"{api_url}/rest/v1/reports?report_id=eq.{report['report_id']}"
+    data = json.dumps(report)
+    headers = {
+        "apikey": api_key,
+        "Authorization": f"Bearer {admin_key}",
         "Content-Type": "application/json",
         "Prefer": "return=minimal"
     }

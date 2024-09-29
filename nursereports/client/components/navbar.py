@@ -1,4 +1,5 @@
 from ..components.custom import spacer
+from reflex.style import toggle_color_mode
 from ...states import BaseState
 from ...states import NavbarState
 
@@ -39,13 +40,12 @@ def navbar() -> rx.Component:
             max_width="1000px",
             padding="0px 36px 0px 36px",
         ),
+        bg="white",
         width="100%",
         align_items="center",
         justify_content="center",
         height="64px",
         border_bottom="1px solid #E2E8F0",
-        bg="var(--color-panel-translucent)",
-        backdrop_filter="blur(10px)",
         position="sticky",
         top="0px",
         z_index="5",
