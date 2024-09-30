@@ -16,6 +16,7 @@ import reflex as rx
         BaseState.event_state_standard_flow("report"),
         HospitalState.event_state_load_hospital_info,
         HospitalState.event_state_load_report_info,
+        HospitalState.event_state_load_pay_info,
         HospitalState.event_state_load_review_info
     ]
 
@@ -30,7 +31,7 @@ def hospital_overview() -> rx.Component:
         flex_direction='column',
         align_items='center',
         min_height='100vh'
-    )
+    ) 
 
 def content() -> rx.Component:
     return rx.cond(
@@ -89,28 +90,55 @@ def heading() -> rx.Component:
 
 def pay() -> rx.Component:
     return rx.flex(
-        rx.hstack(
+        rx.flex(
             rx.flex(
-                rx.icon("piggy-bank"),
+                rx.icon("piggy-bank", margin="3px 0 0 0"),
                 rx.heading("Pay", padding="0px 12px"),
-                width="20%",
+                width=["100%", "100%", "100%", "20%", "20%"],
                 flex_direction="row",
-                align="center",
+                justify_content=["center", "center", "center", "flex-start", "flex-start"],
             ),
-            pay_hospital(),
-            pay_state(),
+            rx.flex(
+                rx.flex(
+                    rx.segmented_control.root(
+                        rx.segmented_control.item("Staff", value="staff"),
+                        rx.segmented_control.item("Travelers", value="contract"),
+                        on_change=HospitalState.setvar("pay_graph_selected"),
+                        value=HospitalState.pay_graph_selected
+                    ),
+                    padding="24px 0 12px 0"
+                ),
+                pay_hospital(),
+                flex_direction="column",
+                spacing="6",
+                align="center",
+                width="100%"
+            ),
             spacing='2',
             height="100%",
-            width="100%"
+            flex_direction=["column", "column", "column", "row", "row"],
+            width="100%",
         ),
         width="100%",
-        padding="24px",   
+        padding="24px 0 24px 0",   
     )
 
 def pay_hospital() -> rx.Component:
     return rx.flex(
-        rx.text("Hospital pay placeholder"),
-        justify="center",
+        rx.cond(
+            HospitalState.pay_graph_selected == "staff",
+            # Show the staff pay graph
+            rx.card(
+                rx.text("Staff")
+            ),
+            # Show the traveler pay graph
+            rx.card(
+                rx.text("Travel")
+            )
+        ),
+        flex_direction="column",
+        spacing="6",
+        align="center",
         width="100%"
     )
 
@@ -124,47 +152,54 @@ def pay_state() -> rx.Component:
 def units() -> rx.Component:
     """Units section."""
     return rx.flex(
-        rx.hstack(
-            # Units header.
+        rx.flex(
             rx.flex(
-                rx.icon("stethoscope"),
+                rx.icon("stethoscope", margin="4px 0 0 0"),
                 rx.heading("Units", padding="0px 12px"),
-                width="20%",
+                width=["100%", "100%", "100%", "20%", "20%"],
                 flex_direction="row",
-                align="center",
+                justify_content=["center", "center", "center", "flex-start", "flex-start"],
+            ),
+            rx.flex(
+                height="24px",
+                display=["flex", "flex", "flex", "none", "none"]
+
             ),
             # Container for units.
             rx.cond(
                 HospitalState.units_areas_roles_for_units,
                 # If reviews for units present...
                 rx.flex(
-                    unit_ratings_graph(),
                     unit_grades(),
+                    unit_ratings_graph(),
                     justify="center",
+                    padding="24px",
                     width="100%"
                 ),
                 # If reviews for units not present...
                 rx.flex(
                     rx.text("Nothing yet, check back later!"),
                     justify="center",
+                    padding="24px",
                     width="100%"
                 )
             ),
-            width="100%"
+            flex_direction=["column", "column", "column", "row", "row"],
+            width="100%",
         ),
         width="100%",
-        padding="24px"
-    )
-
-def unit_ratings_graph() -> rx.Component:
-    return rx.flex(
-        rx.text("Unit Ratings Graph Placeholder."),
-        width="100%"
+        padding="24px 0 24px 0"
     )
 
 def unit_grades() -> rx.Component:
     return rx.flex(
         rx.text("Unit Grades Placeholder."),
+        width="100%"
+    )
+
+def unit_ratings_graph() -> rx.Component:
+    return rx.flex(
+        rx.text("Unit Ratings Graph Placeholder."),
         width="100%"
     )
 
@@ -268,7 +303,7 @@ def reviews() -> rx.Component:
             flex_direction=["column", "column", "column", "row", "row"],
             width="100%",
         ),
-        padding="24px 0 0 0",
+        padding="24px 0 24px 0",
         width="100%"
     )
 

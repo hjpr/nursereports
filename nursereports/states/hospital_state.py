@@ -1,3 +1,5 @@
+import numpy as np
+import polars as pl
 import re
 import reflex as rx
 import rich
@@ -12,6 +14,7 @@ from ..server.exceptions import RequestFailed
 
 from datetime import datetime
 from loguru import logger
+from scipy import interpolate
 from typing import Any, Callable, Iterable
 
 
@@ -28,6 +31,16 @@ class HospitalState(BaseState):
     /reports
     """
     report_info: list[dict]
+    """
+    Pay info loaded from event_state_load_pay_info derived from report_info.
+    """
+    interpolated_full_time_pay: list[dict]
+    interpolated_part_time_pay: list[dict]
+    interpolated_prn_pay: list[dict]
+    averaged_contract_pay: list[dict]
+    contract_pay: list[dict]
+
+    pay_graph_selected: str = "staff"
     """
     Unit/area/role info loaded in during event_state_load_hospital_info,
     contains a list of available units from /hospitals from each unit that
@@ -91,7 +104,7 @@ class HospitalState(BaseState):
                 filtered_review_items = sorted(
                     filtered_review_items,
                     key=lambda review: review["likes_number"],
-                    reverse=True
+                    reverse=True,
                 )
 
         return filtered_review_items
@@ -130,6 +143,125 @@ class HospitalState(BaseState):
         except RequestFailed as e:
             logger.critical(e)
             yield rx.toast.error("Failed to retrieve review data from backend.")
+
+    def event_state_load_pay_info(self) -> Iterable[Callable]:
+        """
+        Loads and formats...
+            full_time_pay_info
+            part_time_pay_info
+            prn_pay_info
+            contract_pay_info
+
+        Casts any non-int value to int for graph use.
+        """
+        try:
+            if self.report_info:
+                report_info = supabase_get_hospital_report_data(
+                    self.access_token, self.hosp_id
+                )
+                pay_df = pl.DataFrame(report_info)
+
+                # Full time pay data and interpolation.
+
+                full_time_pay_df = pay_df.filter(
+                    pl.col("comp_select_emp_type") == "Full-time"
+                ).select(["comp_input_pay_amount", "comp_select_total_experience"])
+                full_time_pay_df = full_time_pay_df.with_columns(
+                    pl.col("comp_select_total_experience")
+                    .cast(pl.Int8, strict=False)
+                    .fill_null(26)
+                ).sort(by=pl.col("comp_select_total_experience"))
+                full_time_pay = full_time_pay_df.to_dicts()
+                if full_time_pay:
+                    x = full_time_pay_df["comp_select_total_experience"].to_numpy()
+                    y = full_time_pay_df["comp_input_pay_amount"].to_numpy()
+                    f = interpolate.interp1d(
+                        x, y, kind="quadratic", fill_value="extrapolate"
+                    )
+                    x_interpolated = np.arange(0, 27)
+                    y_interpolated = f(x_interpolated)
+                    full_time_pay_interpolated_df = pl.DataFrame(
+                        {
+                            "years_experience": x_interpolated,
+                            "interpolated_pay": y_interpolated,
+                        }
+                    )
+                    self.interpolated_full_time_pay = (
+                        full_time_pay_interpolated_df.to_dicts()
+                    )
+
+                # Part time pay data and interpolation.
+
+                part_time_pay_df = pay_df.filter(
+                    pl.col("comp_select_emp_type") == "Part-time"
+                ).select(["comp_input_pay_amount", "comp_select_total_experience"])
+                part_time_pay_df = part_time_pay_df.with_columns(
+                    pl.col("comp_select_total_experience")
+                    .cast(pl.Int8, strict=False)
+                    .fill_null(26)
+                )
+                part_time_pay = part_time_pay_df.to_dicts()
+                if part_time_pay:
+                    x = part_time_pay_df["comp_select_total_experience"].to_numpy()
+                    y = part_time_pay_df["comp_input_pay_amount"].to_numpy()
+                    f = interpolate.interp1d(
+                        x, y, kind="quadratic", fill_value="extrapolate"
+                    )
+                    x_interpolated = np.arange(0, 27)
+                    y_interpolated = f(x_interpolated)
+                    part_time_pay_interpolated_df = pl.DataFrame(
+                        {
+                            "years_experience": x_interpolated,
+                            "interpolated_pay": y_interpolated,
+                        }
+                    )
+                    self.interpolated_part_time_pay = (
+                        part_time_pay_interpolated_df.to_dicts()
+                    )
+
+                # PRN pay data and interpolation.
+
+                prn_pay_df = pay_df.filter(
+                    pl.col("comp_select_emp_type") == "PRN"
+                ).select(["comp_input_pay_amount", "comp_select_total_experience"])
+                prn_pay_df = (
+                    prn_pay_df.with_columns(pl.col("comp_select_total_experience"))
+                    .cast(pl.Int8, strict=False)
+                    .fill_null(26)
+                )
+                prn_pay = prn_pay_df.to_dicts()
+                if prn_pay:
+                    x = prn_pay_df["comp_select_total_experience"].to_numpy()
+                    y = prn_pay_df["comp_input_pay_amount"].to_numpy()
+                    f = interpolate.interp1d(
+                        x, y, kind="quadratic", fill_value="extrapolate"
+                    )
+                    x_interpolated = np.arange(0, 27)
+                    y_interpolated = f(x_interpolated)
+                    prn_pay_interpolated_df = pl.DataFrame(
+                        {
+                            "years_experience": x_interpolated,
+                            "interpolated_pay": y_interpolated,
+                        }
+                    )
+                    self.interpolated_prn_pay = prn_pay_interpolated_df.to_dicts()
+
+                # Contract pay data and averaged pay.
+
+                contract_pay_df = pay_df.filter(
+                    pl.col("comp_select_emp_type") == "Contract"
+                ).select([
+                    "comp_input_pay_amount",
+                    "created_at"
+                ])
+                contract_pay = contract_pay_df.to_dicts()
+                if contract_pay:
+                    averaged_contract_pay_df = contract_pay_df.select(
+                        pl.col("comp_input_pay_amount").mean().alias("average_contract_pay")
+                    )
+                    self.averaged_contract_pay = averaged_contract_pay_df.to_dict()
+        except Exception as e:
+            logger.critical(e)
 
     def event_state_load_review_info(self) -> Iterable[Callable]:
         """
@@ -227,7 +359,9 @@ class HospitalState(BaseState):
                         # Format likes for the frontend so the user can see if they liked comment
 
                         review_dict["likes_number"] = len(review_dict["likes"])
-                        review_dict["user_has_liked"] = self.user_info["user_id"] in review_dict["likes"]
+                        review_dict["user_has_liked"] = (
+                            self.user_info["user_id"] in review_dict["likes"]
+                        )
                         review_info.append(review_dict)
 
                 self.review_info = review_info
@@ -272,7 +406,9 @@ class HospitalState(BaseState):
                 if review["report_id"] == review_to_edit["report_id"]:
                     review["likes"] = review_to_edit["likes"]
                     review["likes_number"] = len(review_to_edit["likes"])
-                    review["user_has_liked"] = self.user_info["user_id"] in review_to_edit["likes"]
+                    review["user_has_liked"] = (
+                        self.user_info["user_id"] in review_to_edit["likes"]
+                    )
 
         except RequestFailed:
             rx.toast.error("Error providing review feedback.")
