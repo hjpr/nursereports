@@ -147,10 +147,11 @@ class HospitalState(BaseState):
     def event_state_load_pay_info(self) -> Iterable[Callable]:
         """
         Loads and formats...
-            full_time_pay_info
-            part_time_pay_info
-            prn_pay_info
-            contract_pay_info
+            interpolated_full_time_pay
+            interpolated_part_time_pay
+            interpolated_prn_pay
+            averaged_contract_pay
+            contract_pay
 
         Casts any non-int value to int for graph use.
         """
