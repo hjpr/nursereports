@@ -73,7 +73,7 @@ class HospitalState(BaseState):
     """
     review_info: list[dict]
     """
-    Units/areas/roles pulled from review_info to allow users to filter the
+    Units/areas/roles loaded during event_state_load_review_info to allow users to filter the
     reviews by the respective unit/area/role.
     """
     units_areas_roles_for_reviews: list[str]
@@ -195,7 +195,7 @@ class HospitalState(BaseState):
             )
             units = self.hospital_info.get("hosp_units")
             areas_roles = self.hospital_info.get("hosp_areas_roles")
-            self.units_areas_roles_available = units + areas_roles
+            self.units_areas_roles_for_units = units + areas_roles
         except RequestFailed as e:
             logger.error(e)
             yield rx.toast.error("Failed to retrieve report data from backend.")
@@ -336,7 +336,7 @@ class HospitalState(BaseState):
                     pl.col("comp_select_emp_type") == "Contract"
                 ).select(["comp_input_pay_amount", "created_at"])
                 contract_pay = contract_pay_df.to_dicts()
-                self.contract_pay_reports_limited = bool(len(contract_pay) < 10)
+                self.contract_hospital_pay_info_limited = bool(len(contract_pay) < 10)
                 if contract_pay:
                     averaged_contract_pay_df = contract_pay_df.select(
                         pl.col("comp_input_pay_amount")
