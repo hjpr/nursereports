@@ -34,10 +34,14 @@ class HospitalState(BaseState):
     """
     Pay info loaded from event_state_load_pay_info derived from report_info.
     """
-    interpolated_full_time_pay: dict
-    interpolated_part_time_pay: dict
-    interpolated_prn_pay: dict
-    averaged_contract_pay: dict
+    interpolated_ft_pay_hospital: dict
+    interpolated_pt_pay_hospital: dict
+    interpolated_prn_pay_hospital: dict
+    interpolated_ft_pay_state: dict
+    interpolated_pt_pay_state: dict
+    interpolated_prn_pay_state: dict
+    averaged_contract_pay_hospital: dict
+    averaged_contract_pay_state: dict
     contract_pay: list[dict]
     """
     Sets context for what user is viewing.
@@ -52,14 +56,14 @@ class HospitalState(BaseState):
       Set during
     event_state_load_pay_info
     """
-    ft_hospital_pay_info_limited: bool
-    ft_state_pay_info_limited: bool
-    pt_hospital_pay_info_limited: bool
-    pt_state_pay_info_limited: bool
-    prn_hospital_pay_info_limited: bool
-    prn_state_pay_info_limited: bool
-    contract_hospital_pay_info_limited: bool
-    contract_state_pay_info_limited: bool
+    ft_pay_hospital_info_limited: bool
+    pt_pay_hospital_info_limited: bool
+    prn_pay_hospital_info_limited: bool
+    ft_pay_state_info_limited: bool
+    pt_pay_state_info_limited: bool
+    prn_pay_state_info_limited: bool
+    contract_pay_info_hospital_limited: bool
+    contract_pay_info_state_limited: bool
     """
     Unit/area/role info loaded in during event_state_load_hospital_info,
     contains a list of available units from /hospitals from each unit that
@@ -88,24 +92,6 @@ class HospitalState(BaseState):
         return True if len(self.report_info) > 0 else False
 
     @rx.var(cache=True)
-    def has_staff_pay_info_hospital(self) -> bool:
-        return (
-            True
-            if self.interpolated_full_time_pay
-            or self.interpolated_part_time_pay
-            or self.interpolated_prn_pay
-            else False
-        )
-
-    @rx.var(cache=True)
-    def has_staff_pay_info_state(self) -> bool:
-        return False
-
-    @rx.var(cache=True)
-    def has_contract_pay_info(self) -> bool:
-        return True if self.contract_pay else False
-
-    @rx.var(cache=True)
     def hosp_id(self) -> str:
         """Returns hosp_id if page param hosp_id is a valid CMS ID format."""
         hosp_id = self.router.page.params.get("cms_id")
@@ -115,33 +101,66 @@ class HospitalState(BaseState):
         return hosp_id if cms_is_valid else None
 
     @rx.var(cache=True)
-    def full_time_pay_hospital(self) -> str:
-        if self.interpolated_full_time_pay:
-            rounded = round(self.interpolated_full_time_pay.get(self.selected_experience), 2)
+    def ft_pay_hospital_formatted(self) -> dict:
+        if self.interpolated_ft_pay_hospital:
+            rounded_hourly = round(self.interpolated_ft_pay_hospital.get(self.selected_experience), 2)
+            formatted_hourly = "{:.2f}".format(rounded_hourly)
+            rounded_yearly = round(rounded_hourly * 36 * 52)
+            formatted_yearly = "{:,}".format(rounded_yearly)
+            return {
+                "hourly": f"${formatted_hourly} /hr",
+                "yearly": f"(${formatted_yearly} /yr)"
+            }
+        else:
+            return False
+    
+    @rx.var(cache=True)
+    def ft_pay_state_formatted(self) -> str:
+        if self.interpolated_ft_pay_state:
+            rounded = round(self.interpolated_ft_pay_state.get(self.selected_experience), 2)
             formatted = "{:.2f}".format(rounded)
             return f"${formatted}/hr"
         else:
             return False
     
     @rx.var(cache=True)
-    def full_time_pay_state(self) -> str:
-        pass
+    def pt_pay_hospital_formatted(self) -> str:
+        if self.interpolated_pt_pay_hospital:
+            rounded = round(self.interpolated_pt_pay_hospital.get(self.selected_experience), 2)
+            formatted = "{:.2f}".format(rounded)
+            return f"${formatted}/hr"
+        else:
+            return False
+    
     
     @rx.var(cache=True)
-    def part_time_pay_hospital(self) -> str:
-        return self.interpolated_full_time_pay.get(f"{self.selected_experience}")
+    def pt_pay_state_formatted(self) -> str:
+        if self.interpolated_ft_pay_state:
+            rounded = round(self.interpolated_ft_pay_state.get(self.selected_experience), 2)
+            formatted = "{:.2f}".format(rounded)
+            return f"${formatted}/hr"
+        else:
+            return False
+    
     
     @rx.var(cache=True)
-    def part_time_pay_state(self) -> str:
-        pass
+    def prn_pay_hospital_formatted(self) -> str:
+        if self.interpolated_prn_pay_hospital:
+            rounded = round(self.interpolated_prn_pay_hospital.get(self.selected_experience), 2)
+            formatted = "{:.2f}".format(rounded)
+            return f"${formatted}/hr"
+        else:
+            return False
+    
     
     @rx.var(cache=True)
-    def prn_pay_hospital(self) -> str:
-        return self.interpolated_full_time_pay.get(f"{self.selected_experience}")
-    
-    @rx.var(cache=True)
-    def prn_pay_state(self) -> str:
-        pass
+    def prn_pay_state_formatted(self) -> str:
+        if self.interpolated_prn_pay_state:
+            rounded = round(self.interpolated_prn_pay_state.get(self.selected_experience), 2)
+            formatted = "{:.2f}".format(rounded)
+            return f"${formatted}/hr"
+        else:
+            return False
 
     @rx.var(cache=True)
     def filtered_review_info(self) -> list[dict]:
@@ -233,68 +252,68 @@ class HospitalState(BaseState):
 
                 # Full time pay data and interpolation. Also check if enough reports.
 
-                full_time_pay_df = pay_df.filter(
+                ft_pay_hospital_df = pay_df.filter(
                     pl.col("comp_select_emp_type") == "Full-time"
                 ).select(["comp_input_pay_amount", "comp_select_total_experience"])
-                full_time_pay_df = full_time_pay_df.with_columns(
+                ft_pay_hospital_df = ft_pay_hospital_df.with_columns(
                     pl.col("comp_select_total_experience")
                     .cast(pl.Int8, strict=False)
                     .fill_null(26)
                 ).sort(by=pl.col("comp_select_total_experience"))
-                full_time_pay = full_time_pay_df.to_dicts()
-                self.ft_hospital_pay_info_limited = bool(len(full_time_pay) < 10)
-                if full_time_pay:
-                    x = full_time_pay_df["comp_select_total_experience"].to_numpy()
-                    y = full_time_pay_df["comp_input_pay_amount"].to_numpy()
+                ft_pay = ft_pay_hospital_df.to_dicts()
+                self.ft_pay_hospital_info_limited = bool(len(ft_pay) < 10)
+                if ft_pay:
+                    x = ft_pay_hospital_df["comp_select_total_experience"].to_numpy()
+                    y = ft_pay_hospital_df["comp_input_pay_amount"].to_numpy()
                     f = interpolate.interp1d(
                         x, y, kind="quadratic", fill_value="extrapolate"
                     )
                     x_interpolated = np.arange(0, 27)
                     y_interpolated = f(x_interpolated)
-                    full_time_pay_interpolated_df = pl.DataFrame(
+                    filtered_ft_pay_hospital_df = pl.DataFrame(
                         {
                             "years_experience": x_interpolated,
                             "interpolated_pay": y_interpolated,
                         }
                     )
-                    interpolated_full_time_pay = (
-                        full_time_pay_interpolated_df.to_dicts()
+                    interpolated_ft_pay_hospital = (
+                        filtered_ft_pay_hospital_df.to_dicts()
                     )
-                    self.interpolated_full_time_pay = {
+                    self.interpolated_ft_pay_hospital = {
                         item["years_experience"]: item["interpolated_pay"]
-                        for item in interpolated_full_time_pay
+                        for item in interpolated_ft_pay_hospital
                     }
 
                 # Part time pay data and interpolation. Also check if enough reports.
 
-                part_time_pay_df = pay_df.filter(
+                pt_pay_df = pay_df.filter(
                     pl.col("comp_select_emp_type") == "Part-time"
                 ).select(["comp_input_pay_amount", "comp_select_total_experience"])
-                part_time_pay_df = part_time_pay_df.with_columns(
+                pt_pay_df = pt_pay_df.with_columns(
                     pl.col("comp_select_total_experience")
                     .cast(pl.Int8, strict=False)
                     .fill_null(26)
                 )
-                part_time_pay = part_time_pay_df.to_dicts()
-                self.pt_hospital_pay_info_limited = bool(len(part_time_pay) < 10)
-                if part_time_pay:
-                    x = part_time_pay_df["comp_select_total_experience"].to_numpy()
-                    y = part_time_pay_df["comp_input_pay_amount"].to_numpy()
+                pt_pay = pt_pay_df.to_dicts()
+                self.pt_pay_hospital_info_limited = bool(len(pt_pay) < 10)
+                if pt_pay:
+                    x = pt_pay_df["comp_select_total_experience"].to_numpy()
+                    y = pt_pay_df["comp_input_pay_amount"].to_numpy()
                     f = interpolate.interp1d(
                         x, y, kind="quadratic", fill_value="extrapolate"
                     )
                     x_interpolated = np.arange(0, 27)
                     y_interpolated = f(x_interpolated)
-                    part_time_pay_interpolated_df = pl.DataFrame(
+                    filtered_pt_df = pl.DataFrame(
                         {
                             "years_experience": x_interpolated,
                             "interpolated_pay": y_interpolated,
                         }
                     )
-                    interpolated_part_time_pay = part_time_pay_interpolated_df.to_dict()
-                    self.interpolated_part_time_pay = {
+                    interpolated_pt_pay_hospital = filtered_pt_df.to_dict()
+                    self.interpolated_pt_pay_hospital = {
                         item["years_experience"]: item["interpolated_pay"]
-                        for item in interpolated_part_time_pay
+                        for item in interpolated_pt_pay_hospital
                     }
 
                 # PRN pay data and interpolation.
@@ -308,7 +327,7 @@ class HospitalState(BaseState):
                     .fill_null(26)
                 )
                 prn_pay = prn_pay_df.to_dicts()
-                self.prn_hospital_pay_info_limited = bool(len(prn_pay) < 10)
+                self.prn_pay_hospital_info_limited = bool(len(prn_pay) < 10)
 
                 if prn_pay:
                     x = prn_pay_df["comp_select_total_experience"].to_numpy()
@@ -318,16 +337,16 @@ class HospitalState(BaseState):
                     )
                     x_interpolated = np.arange(0, 27)
                     y_interpolated = f(x_interpolated)
-                    prn_pay_interpolated_df = pl.DataFrame(
+                    interpolated_prn_pay_hospital_df = pl.DataFrame(
                         {
                             "years_experience": x_interpolated,
                             "interpolated_pay": y_interpolated,
                         }
                     )
-                    interpolated_prn_pay = prn_pay_interpolated_df.to_dicts()
-                    self.interpolated_prn_time_pay = {
+                    interpolated_prn_pay_hospital = interpolated_prn_pay_hospital_df.to_dicts()
+                    self.interpolated_prn_pay_hospital = {
                         item["years_experience"]: item["interpolated_pay"]
-                        for item in interpolated_prn_pay
+                        for item in interpolated_prn_pay_hospital
                     }
 
                 # Contract pay data and averaged pay.
@@ -336,14 +355,14 @@ class HospitalState(BaseState):
                     pl.col("comp_select_emp_type") == "Contract"
                 ).select(["comp_input_pay_amount", "created_at"])
                 contract_pay = contract_pay_df.to_dicts()
-                self.contract_hospital_pay_info_limited = bool(len(contract_pay) < 10)
+                self.contract_pay_info_hospital_limited = bool(len(contract_pay) < 10)
                 if contract_pay:
                     averaged_contract_pay_df = contract_pay_df.select(
                         pl.col("comp_input_pay_amount")
                         .mean()
                         .alias("average_contract_pay")
                     )
-                    self.averaged_contract_pay = averaged_contract_pay_df.to_dict()
+                    self.averaged_contract_pay_hospital = averaged_contract_pay_df.to_dict()
         except Exception as e:
             logger.critical(e)
 
