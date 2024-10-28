@@ -17,6 +17,7 @@ import reflex as rx
         HospitalState.event_state_load_hospital_info,
         HospitalState.event_state_load_report_info,
         HospitalState.event_state_load_pay_info,
+        HospitalState.event_state_load_unit_info,
         HospitalState.event_state_load_review_info
     ]
 
@@ -63,22 +64,31 @@ def heading() -> rx.Component:
         HospitalState.hosp_id,
         rx.flex(
             rx.flex(
-                rx.heading(HospitalState.hospital_info["hosp_name"], size='7'),
-                rx.text(HospitalState.hospital_info["hosp_address"]),
-                rx.text(f'{HospitalState.hospital_info["hosp_city"]}, {HospitalState.hospital_info["hosp_state"]} {HospitalState.hospital_info["hosp_zip"]}'),
-                flex_direction="column",
-                spacing='2'
+                rx.flex(
+                    rx.flex(
+                        rx.icon("hospital", class_name="mr-3 h-8 w-8"),
+                        rx.text("Info", class_name="font-bold text-2xl"),
+                        class_name="flex-row items-center"
+                    ),
+                    class_name="flex-col items-center lg:items-start w-full lg:w-3/12"
+                ),
+                rx.flex(
+                    heading_content(),
+                    class_name="flex-col items-center rounded shadow-lg bg-white md:justify-self-center space-y-6 md:space-y-10 p-6 lg:p-12 w-full"
+                ),
+                class_name="flex-col lg:flex-row space-y-6 lg:space-y-0 w-full"
             ),
-            height="100%",
-            width="100%",
-            padding="24px",
-            justify="center"
+            class_name="flex-row p-6 lg:p-12 w-full"
         ),
-        rx.card(
-            rx.text("No hospital information."),
-            height="100%",
-            width="100%",
-            padding="24px"
+    )
+
+def heading_content() -> rx.Component:
+    return rx.flex(
+        rx.flex(
+            rx.heading(HospitalState.hospital_info["hosp_name"], size='7'),
+            rx.text(HospitalState.hospital_info["hosp_address"]),
+            rx.text(f'{HospitalState.hospital_info["hosp_city"]}, {HospitalState.hospital_info["hosp_state"]} {HospitalState.hospital_info["hosp_zip"]}'),
+            class_name="flex-col space-y-4 w-full"
         )
     )
 
@@ -157,10 +167,10 @@ def full_time_hospital_pay_card() -> rx.Component:
     return rx.flex(
         rx.flex(
             rx.text(
-                "Hospital Estimate",
+                "Hospital Average",
                 class_name="text-xl"
             ),
-            class_name="flex-col bg-teal-100 items-center p-3 w-full"
+            class_name="flex-col bg-teal-100 items-center p-2 w-full"
         ),
         rx.flex(
             rx.cond(
@@ -174,11 +184,11 @@ def full_time_hospital_pay_card() -> rx.Component:
                         HospitalState.ft_pay_hospital_formatted["yearly"],
                         class_name="text-lg"
                     ),
-                    class_name="flex-col items-center justify-center w-full"
+                    class_name="flex-col items-center justify-center h-14 w-full"
                 ),
                 rx.flex(
                     rx.icon("ban", color="lightgrey", size=40),
-                    class_name="flex-col items-center justify-center w-full"
+                    class_name="flex-col items-center justify-center h-14 w-full"
                 )
             ),
             rx.badge(HospitalState.selected_employment_type, size="3"),
@@ -190,6 +200,7 @@ def full_time_hospital_pay_card() -> rx.Component:
                         icon="triangle_alert",
                         color_scheme="orange",
                         variant="surface",
+                        size="1",
                         class_name="w-auto"
                     ),
                 ),
@@ -198,8 +209,9 @@ def full_time_hospital_pay_card() -> rx.Component:
                     rx.callout(
                         "No pay data",
                         icon="octagon_alert",
-                        color_scheme="red",
+                        color_scheme="ruby",
                         variant="surface",
+                        size="1",
                         class_name="w-auto"
                     ),
                 ),
@@ -218,7 +230,7 @@ def full_time_state_pay_card() -> rx.Component:
                 "State Average",
                 class_name="text-xl"
             ),
-            class_name="flex-col bg-teal-100 items-center p-3 w-full"
+            class_name="flex-col bg-teal-100 items-center p-2 w-full"
         ),
         # STATE PAY INFO
         rx.flex(
@@ -229,11 +241,11 @@ def full_time_state_pay_card() -> rx.Component:
                         HospitalState.ft_pay_state_formatted,
                         class_name="text-4xl font-bold"
                     ),
-                    class_name="flex-col items-center justify-center w-full"
+                    class_name="flex-col items-center justify-center h-14 w-full"
                 ),
                 rx.flex(
                     rx.icon("ban", color="lightgrey", size=40),
-                    class_name="flex-col items-center justify-center w-full"
+                    class_name="flex-col items-center justify-center h-14 w-full"
                 )
             ),
             rx.badge(HospitalState.selected_employment_type, size="3"),
@@ -246,6 +258,7 @@ def full_time_state_pay_card() -> rx.Component:
                         icon="triangle_alert",
                         color_scheme="orange",
                         variant="surface",
+                        size="1",
                         class_name="w-auto"
                     ),
                 ),
@@ -254,8 +267,9 @@ def full_time_state_pay_card() -> rx.Component:
                     rx.callout(
                         "No pay data",
                         icon="octagon_alert",
-                        color_scheme="red",
+                        color_scheme="ruby",
                         variant="surface",
+                        size="1",
                         class_name="w-auto"
                     ),
                 ),
@@ -270,10 +284,10 @@ def part_time_hospital_pay() -> rx.Component:
     return rx.flex(
         rx.flex(
             rx.text(
-                "Hospital Estimate",
+                "Hospital Average",
                 class_name="text-xl"
             ),
-            class_name="flex-col bg-teal-100 items-center p-3 w-full"
+            class_name="flex-col bg-teal-100 items-center p-2 w-full"
         ),
         rx.flex(
             rx.cond(
@@ -283,11 +297,11 @@ def part_time_hospital_pay() -> rx.Component:
                         HospitalState.pt_pay_hospital_formatted,
                         class_name="text-4xl font-bold"
                     ),
-                    class_name="flex-col items-center justify-center w-full"
+                    class_name="flex-col items-center justify-center h-14 w-full"
                 ),
                 rx.flex(
                     rx.icon("ban", color="lightgrey", size=40),
-                    class_name="flex-col items-center justify-center w-full"
+                    class_name="flex-col items-center justify-center h-14 w-full"
                 )
             ),
             rx.badge(HospitalState.selected_employment_type, size="3"),
@@ -299,6 +313,7 @@ def part_time_hospital_pay() -> rx.Component:
                         icon="triangle_alert",
                         color_scheme="orange",
                         variant="surface",
+                        size="1",
                         class_name="w-auto"
                     ),
                 ),
@@ -307,8 +322,9 @@ def part_time_hospital_pay() -> rx.Component:
                     rx.callout(
                         "No pay data",
                         icon="octagon_alert",
-                        color_scheme="red",
+                        color_scheme="ruby",
                         variant="surface",
+                        size="1",
                         class_name="w-auto"
                     ),
                 ),
@@ -327,7 +343,7 @@ def part_time_state_pay() -> rx.Component:
                 "State Average",
                 class_name="text-xl"
             ),
-            class_name="flex-col bg-teal-100 items-center p-3 w-full"
+            class_name="flex-col bg-teal-100 items-center p-2 w-full"
         ),
         rx.flex(
             rx.cond(
@@ -337,11 +353,11 @@ def part_time_state_pay() -> rx.Component:
                         HospitalState.pt_pay_state_formatted,
                         class_name="text-4xl font-bold"
                     ),
-                    class_name="flex-col items-center justify-center w-full"
+                    class_name="flex-col items-center justify-center h-14 w-full"
                 ),
                 rx.flex(
                     rx.icon("ban", color="lightgrey", size=40),
-                    class_name="flex-col items-center justify-center w-full"
+                    class_name="flex-col items-center justify-center h-14 w-full"
                 )
             ),
             rx.badge(HospitalState.selected_employment_type, size="3"),
@@ -353,6 +369,7 @@ def part_time_state_pay() -> rx.Component:
                         icon="triangle_alert",
                         color_scheme="orange",
                         variant="surface",
+                        size="1",
                         class_name="w-auto"
                     ),
                 ),
@@ -361,8 +378,9 @@ def part_time_state_pay() -> rx.Component:
                     rx.callout(
                         "No pay data",
                         icon="octagon_alert",
-                        color_scheme="red",
+                        color_scheme="ruby",
                         variant="surface",
+                        size="1",
                         class_name="w-auto"
                     ),
                 ),
@@ -377,10 +395,10 @@ def prn_hospital_pay() -> rx.Component:
     return rx.flex(
         rx.flex(
             rx.text(
-                "Hospital Estimate",
+                "Hospital Average",
                 class_name="text-xl"
             ),
-            class_name="flex-col bg-teal-100 items-center p-3 w-full"
+            class_name="flex-col bg-teal-100 items-center p-2 w-full"
         ),
         rx.flex(
             rx.cond(
@@ -390,11 +408,11 @@ def prn_hospital_pay() -> rx.Component:
                         HospitalState.prn_pay_hospital_formatted,
                         class_name="text-4xl font-bold"
                     ),
-                    class_name="flex-col items-center justify-center w-full"
+                    class_name="flex-col items-center justify-center h-14 w-full"
                 ),
                 rx.flex(
                     rx.icon("ban", color="lightgrey", size=40),
-                    class_name="flex-col items-center justify-center w-full"
+                    class_name="flex-col items-center justify-center h-14 w-full"
                 )
             ),
             rx.badge(HospitalState.selected_employment_type, size="3"),
@@ -406,6 +424,7 @@ def prn_hospital_pay() -> rx.Component:
                         icon="triangle_alert",
                         color_scheme="orange",
                         variant="surface",
+                        size="1",
                         class_name="w-auto"
                     ),
                 ),
@@ -414,8 +433,9 @@ def prn_hospital_pay() -> rx.Component:
                     rx.callout(
                         "No pay data",
                         icon="octagon_alert",
-                        color_scheme="red",
+                        color_scheme="ruby",
                         variant="surface",
+                        size="1",
                         class_name="w-auto"
                     ),
                 ),
@@ -433,7 +453,7 @@ def prn_state_pay() -> rx.Component:
                 "State Average",
                 class_name="text-xl"
             ),
-            class_name="flex-col bg-teal-100 items-center p-3 w-full"
+            class_name="flex-col bg-teal-100 items-center p-2 w-full"
         ),
         rx.flex(
             rx.cond(
@@ -443,11 +463,11 @@ def prn_state_pay() -> rx.Component:
                         HospitalState.prn_pay_state_formatted,
                         class_name="text-4xl font-bold"
                     ),
-                    class_name="flex-col items-center justify-center w-full"
+                    class_name="flex-col items-center justify-center h-14 w-full"
                 ),
                 rx.flex(
                     rx.icon("ban", color="lightgrey", size=40),
-                    class_name="flex-col items-center justify-center w-full"
+                    class_name="flex-col items-center justify-center h-14 w-full"
                 )
             ),
             rx.badge(HospitalState.selected_employment_type, size="3"),
@@ -459,6 +479,7 @@ def prn_state_pay() -> rx.Component:
                         icon="triangle_alert",
                         color_scheme="orange",
                         variant="surface",
+                        size="1",
                         class_name="w-auto"
                     ),
                 ),
@@ -467,8 +488,9 @@ def prn_state_pay() -> rx.Component:
                     rx.callout(
                         "No pay data",
                         icon="octagon_alert",
-                        color_scheme="red",
+                        color_scheme="ruby",
                         variant="surface",
+                        size="1",
                         class_name="w-auto"
                     ),
                 ),
@@ -492,7 +514,7 @@ def staff_experience_control_slider() -> rx.Component:
                 "Experience",
                 class_name="text-xl"
             ),
-            class_name="flex-col bg-teal-100 items-center p-3 w-full"
+            class_name="flex-col bg-teal-100 items-center p-2 w-full"
         ),
         rx.flex(
             rx.text(
@@ -522,7 +544,7 @@ def staff_employment_type_selection() -> rx.Component:
                 "Employment Type",
                 class_name="text-xl"
             ),
-            class_name="flex-col bg-teal-100 items-center p-3 w-full"
+            class_name="flex-col bg-teal-100 items-center p-2 w-full"
         ),
         rx.flex(
             rx.radio(
@@ -547,47 +569,43 @@ def units() -> rx.Component:
     return rx.flex(
         rx.flex(
             rx.flex(
-                rx.icon("stethoscope", margin="4px 0 0 0"),
-                rx.heading("Units", padding="0px 12px"),
-                width=["100%", "100%", "100%", "20%", "20%"],
-                flex_direction="row",
-                justify_content=["center", "center", "center", "flex-start", "flex-start"],
+                rx.flex(
+                    rx.icon("stethoscope", class_name="mr-3 h-8 w-8"),
+                    rx.heading("Units", class_name="font-bold text-2xl"),
+                    class_name="flex-row items-center"
+                ),
+                class_name="flex-col items-center lg:items-start w-full lg:w-3/12"
             ),
             rx.flex(
-                height="24px",
-                display=["flex", "flex", "flex", "none", "none"]
-
+                units_content(),
+                class_name="flex-col items-center rounded shadow-lg bg-white md:justify-self-center space-y-6 md:space-y-10 p-6 lg:p-12 w-full"
             ),
-            # Container for units.
-            rx.cond(
-                HospitalState.units_areas_roles_for_units,
-                # If reviews for units present...
-                rx.flex(
-                    unit_grades(),
-                    unit_ratings_graph(),
-                    justify="center",
-                    padding="24px",
-                    width="100%"
-                ),
-                # If reviews for units not present...
-                rx.flex(
-                    rx.text("Nothing yet, check back later!"),
-                    justify="center",
-                    padding="24px",
-                    width="100%"
-                )
-            ),
-            flex_direction=["column", "column", "column", "row", "row"],
-            width="100%",
+            class_name="flex-col lg:flex-row space-y-6 lg:space-y-0 w-full"
         ),
-        width="100%",
-        padding="24px 0 24px 0"
+        class_name="flex-row p-6 lg:p-12 w-full"
+    )
+
+def units_content() -> rx.Component:
+    return rx.cond(
+        HospitalState.units_areas_roles_for_units,
+        # If reviews for units present...
+        rx.flex(
+            unit_grades(),
+            unit_ratings_graph(),
+            class_name="flex-col items-center w-full"
+        ),
+        # If reviews for units not present...
+        rx.flex(
+            rx.text("Nothing yet, check back later!"),
+            justify="center",
+            padding="24px",
+            width="100%"
+        )
     )
 
 def unit_grades() -> rx.Component:
     return rx.flex(
-        rx.text("Unit Grades Placeholder."),
-        width="100%"
+        class_name="flex-col items-center w-full"
     )
 
 def unit_ratings_graph() -> rx.Component:
@@ -624,7 +642,7 @@ def review_content() -> rx.Component:
             # REVIEWS PRESENT
             rx.flex(
                 rx.cond(
-                    HospitalState.units_areas_roles_for_reviews,
+                    HospitalState.units_for_reviews | HospitalState.areas_roles_for_reviews,
                     review_filters(),
                 ),
                 rx.flex(
@@ -648,7 +666,7 @@ def review_content() -> rx.Component:
 def review_filters() -> rx.Component:
     return rx.flex(
         rx.select(
-            HospitalState.units_areas_roles_for_reviews,
+            HospitalState.units_for_reviews,
             value=HospitalState.review_filter_units_areas_roles,
             placeholder="All units/areas/roles",
             label="Select a unit/area/role",
@@ -684,15 +702,10 @@ def response_card(review: dict[str, str]) -> rx.Component:
     Dict:
         user_id
         created_at
-        has_comp_comments
-        comp_comments
-        has_assign_comments
-        assign_comments
-        has_staffing_comments
-        staffing_comments
-        has_unit
+        comp_input_comments
+        assign_input_comments
+        staffing_input_comments
         unit
-        has_area_role
         area_role
 
     """
@@ -700,7 +713,7 @@ def response_card(review: dict[str, str]) -> rx.Component:
         rx.vstack(
             rx.hstack(
                 rx.cond(
-                    review["has_unit"],    
+                    review["unit"],    
                     rx.text(review["unit"], weight="bold"),
                     rx.text(review["area_role"], weight="bold")
                 ),
@@ -711,23 +724,23 @@ def response_card(review: dict[str, str]) -> rx.Component:
                 width="100%"
             ),
             rx.cond(
-                review["has_comp_comments"],
+                review["comp_input_comments"],
                 rx.flex(
-                    rx.text(review["comp_comments"]),
+                    rx.text(review["comp_input_comments"]),
                     width="100%"
                 )
             ),
             rx.cond(
-                review["has_assign_comments"],
+                review["assign_input_comments"],
                 rx.flex(
-                    rx.text(review["assign_comments"]),
+                    rx.text(review["assign_input_comments"]),
                     width="100%"
                 )
             ),
             rx.cond(
-                review["has_staffing_comments"],
+                review["staffing_input_comments"],
                 rx.flex(
-                    rx.text(review["staffing_comments"]),
+                    rx.text(review["staffing_input_comments"]),
                     width="100%"
                 )
             ),

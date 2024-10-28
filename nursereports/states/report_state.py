@@ -867,10 +867,14 @@ class ReportState(PageState):
             "comp_input_comments": self.comp_input_comments,
             "comp_select_overall": self.comp_select_overall,
             "assign_select_specific_unit": self.assign_select_specific_unit,
-            "assign_select_unit": self.assign_select_unit,
+            "assign_select_unit": (
+                self.assign_select_unit if self.assign_select_unit != "I don't see my unit" else None
+                ),
             "assign_input_unit_name": self.assign_input_unit_name,
             "assign_select_acuity": self.assign_select_acuity,
-            "assign_select_area": self.assign_select_area,
+            "assign_select_area": (
+                self.assign_select_area if self.assign_select_area != "I dont see my area or role" else None
+            ),
             "assign_input_area": self.assign_input_area,
             "assign_select_specialty_1": self.assign_select_specialty_1,
             "assign_select_specialty_2": self.assign_select_specialty_2,

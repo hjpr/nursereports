@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import polars as pl
 import re
 import reflex as rx
@@ -25,12 +26,16 @@ class HospitalState(BaseState):
     """
 
     hospital_info: dict[str, Any]
+
     """
     Report info loaded in during event_state_load_report_info, contains a
     list of dicts where each dict is a complete report from a user from
     /reports
     """
     report_info: list[dict]
+    report_scores: list[dict]
+    report_dataframe: pd.DataFrame
+
     """
     Pay info loaded from event_state_load_pay_info derived from report_info.
     """
@@ -43,6 +48,7 @@ class HospitalState(BaseState):
     averaged_contract_pay_hospital: dict
     averaged_contract_pay_state: dict
     contract_pay: list[dict]
+
     """
     Sets context for what user is viewing.
     """
@@ -64,28 +70,33 @@ class HospitalState(BaseState):
     prn_pay_state_info_limited: bool
     contract_pay_info_hospital_limited: bool
     contract_pay_info_state_limited: bool
+
     """
     Unit/area/role info loaded in during event_state_load_hospital_info,
     contains a list of available units from /hospitals from each unit that
     a user adds via a report.
     """
     units_areas_roles_for_units: list[str]
+
     """
     Review info loaded in during event_state_load_report_info, contains a list
     of dicts where each dict is a user report where that user left a comment in
     any of the three free response sections from /reports.
     """
     review_info: list[dict]
+
     """
     Units/areas/roles loaded during event_state_load_review_info to allow users to filter the
     reviews by the respective unit/area/role.
     """
-    units_areas_roles_for_reviews: list[str]
+    units_for_reviews: list[str]
+    areas_roles_for_reviews: list[str]
+
     """User selectable filter by unit/area/role"""
     review_filter_units_areas_roles: str
+
     """User selectable filter by most liked/helpful etc."""
     review_sorted: str = "Most Recent"
-    """Which page of reviews that user is on"""
 
     @rx.var(cache=True)
     def has_report_info(self) -> bool:
@@ -195,9 +206,13 @@ class HospitalState(BaseState):
         return filtered_review_items
 
     @staticmethod
-    def format_datetime_for_overview(time_str) -> str:
-        timestamp = datetime.fromisoformat(time_str)
-        return timestamp.strftime("%B %Y")
+    def letter_to_number(letter: str) -> int:
+        return {'a': 4, 'b': 3, 'c': 2, 'd': 1, 'f': 0}.get(letter)
+
+    @staticmethod
+    def number_to_letter(number: int) -> str:
+        rich.inspect(number)
+        return {4: 'a', 3: 'b', 2: 'c', 1: 'd', 0: 'f'}.get(number)
 
     def set_slider(self, value) -> None:
         self.selected_experience = value[0]
@@ -212,9 +227,6 @@ class HospitalState(BaseState):
             self.hospital_info = supabase_get_hospital_overview_info(
                 self.access_token, self.hosp_id
             )
-            units = self.hospital_info.get("hosp_units")
-            areas_roles = self.hospital_info.get("hosp_areas_roles")
-            self.units_areas_roles_for_units = units + areas_roles
         except RequestFailed as e:
             logger.error(e)
             yield rx.toast.error("Failed to retrieve report data from backend.")
@@ -245,10 +257,7 @@ class HospitalState(BaseState):
         """
         try:
             if self.report_info:
-                report_info = supabase_get_hospital_report_data(
-                    self.access_token, self.hosp_id
-                )
-                pay_df = pl.DataFrame(report_info)
+                pay_df = pl.DataFrame(self.report_info.copy())
 
                 # Full time pay data and interpolation. Also check if enough reports.
 
@@ -366,120 +375,199 @@ class HospitalState(BaseState):
         except Exception as e:
             logger.critical(e)
 
-    def event_state_load_review_info(self) -> Iterable[Callable]:
+    def event_state_load_unit_info(self) -> Iterable[Callable]:
         """
-        After loading the reports, check through if users left any free responses
-        so that we can view those responses in our filterable reviews section.
-        Build and store self.review_info to state to access info, and handle
-        pulling out the units/areas/roles for filters.
-
-        All reviews have the following...
-
-        user_id: str
-        report_id: str
-        created_at: str
-        formatted_created_at: str
-        has_comp_comments: bool
-        comp_comments: str
-        has_assign_comments: bool
-        assign_comments: str
-        has_staffing_comments: bool
-        staffing_comments: str
-
-        Reviews with comments additionally have...
-
-        has_unit
-        has_area_role
-        unit
-        area_role
-        likes
-        likes_number
-        user_has_liked
+        Check reports and strip units out. 
         """
         try:
             if self.report_info:
-                review_info = []
-
-                # Only do this process if there are comments in report.
-
-                for report in self.report_info:
-                    if (
-                        report.get("comp_input_comments")
-                        or report.get("assign_input_comments")
-                        or report.get("staffing_input_comments")
-                    ):
-                        review_dict = {
-                            "user_id": report.get("user_id"),
-                            "report_id": report.get("report_id"),
-                            "created_at": report.get("created_at"),
-                            "formatted_created_at": self.format_datetime_for_overview(
-                                report.get("created_at")
-                            ),
-                            "has_comp_comments": bool(
-                                report.get("comp_input_comments")
-                            ),
-                            "comp_comments": report.get("comp_input_comments"),
-                            "has_assign_comments": bool(
-                                report.get("assign_input_comments")
-                            ),
-                            "assign_comments": report.get("assign_input_comments"),
-                            "has_staffing_comments": bool(
-                                report.get("staffing_input_comments")
-                            ),
-                            "staffing_comments": report.get("staffing_input_comments"),
-                            "likes": report.get("likes"),
-                        }
-
-                        # Pull out units for unit/area/role filtering.
-
-                        if report.get("assign_select_specific_unit") == "Yes":
-                            review_dict["has_unit"] = True
-                            review_dict["has_area_role"] = False
-                            if (
-                                report.get("assign_select_unit")
-                                == "I don't see my unit"
-                            ):
-                                review_dict["unit"] = report.get(
-                                    "assign_input_unit_name"
-                                )
-                            else:
-                                review_dict["unit"] = report.get("assign_select_unit")
-                        else:
-                            review_dict["has_area_role"] = True
-                            review_dict["has_unit"] = False
-                            if (
-                                report.get("assign_select_area")
-                                == "I don't see my area or role"
-                            ):
-                                review_dict["area_role"] = report.get(
-                                    "assign_input_area"
-                                )
-                            else:
-                                review_dict["area_role"] = report.get(
-                                    "assign_select_area"
-                                )
-
-                        # Format likes for the frontend so the user can see if they liked comment
-
-                        review_dict["likes_number"] = len(review_dict["likes"])
-                        review_dict["user_has_liked"] = (
-                            self.user_info["user_id"] in review_dict["likes"]
+                filtered_df = (
+                    pl.DataFrame(self.report_info.copy())
+                    .with_columns([
+                        pl.when(pl.col("assign_select_specific_unit") == "Yes")
+                        .then(
+                            pl.coalesce(
+                                pl.col("assign_select_unit"),
+                                pl.col("assign_input_unit_name")
+                            )
                         )
-                        review_info.append(review_dict)
+                        .otherwise(
+                            pl.coalesce(
+                                pl.col("assign_select_area"),
+                                pl.col("assign_input_area")
+                            )
+                        )
+                        .alias("units_areas_roles")
+                    ])
+                    .select([
+                        "units_areas_roles",
+                        "comp_select_overall",
+                        "assign_select_overall",
+                        "staffing_select_overall"
+                    ])
+                )
 
-                self.review_info = review_info
+                """
+                Averages scores by unit for view in the units section.
+                """
 
-            # Make sure that units/areas/roles available to filter are unique
+                # scored_units_areas_roles_df = (
+                #     filtered_df
+                #     .with_columns([
+                #         pl.col("comp_select_overall").map_elements(self.letter_to_number, pl.Int8).alias("comp_numeric"),
+                #         pl.col("assign_select_overall").map_elements(self.letter_to_number, pl.Int8).alias("assign_numeric"),
+                #         pl.col("staffing_select_overall").map_elements(self.letter_to_number, pl.Int8).alias("staffing_numeric")
+                #     ])
+                #     .group_by("units_areas_roles")
+                #     .agg([
+                #         pl.col("comp_numeric").mean().map_elements(self.number_to_letter, pl.Utf8).alias("comp_select_overall"),
+                #         pl.col("assign_numeric").mean().map_elements(self.number_to_letter, pl.Utf8).alias("assign_select_overall"),
+                #         pl.col("staffing_select_overall").map_elements(self.number_to_letter, pl.Utf8).alias("staffing_select_overall")
+                #     ])
+                # )
 
-            if self.review_info:
-                units_areas_roles = set()
+                # """
+                # Calculate an overall average for the hospital and save it as "hospital" under the unit_area_role
+                # """
 
-                for review in self.review_info:
-                    if review["has_unit"]:
-                        units_areas_roles.add(review["unit"])
-                    if review["has_area_role"]:
-                        units_areas_roles.add(review["area_role"])
-                self.units_areas_roles_for_reviews = sorted(list(units_areas_roles))
+                # hospital_average = (
+                #     filtered_df
+                #     .with_columns([
+                #         pl.col("comp_select_overall").map_elements(self.letter_to_number).alias("comp_numeric"),
+                #         pl.col("assign_select_overall").map_elements(self.letter_to_number).alias("assign_numeric"),
+                #         pl.col("staffing_select_overall").map_elements(self.letter_to_number).alias("staffing_numeric")
+                #     ])
+                #     .select([
+                #         pl.lit("hospital_average").alias("areas_units_roles"),
+                #         pl.col("comp_numeric").mean().map_elements(self.number_to_letter).alias("comp_select_overall"),
+                #         pl.col("assign_numeric").mean().map_elements(self.number_to_letter).alias("assign_select_overall"),
+                #         pl.col("staffing_select_overall").map_elements(self.number_to_letter).alias("staffing_select_overall")
+                #     ])
+                # )
+
+                # final_scored_df = pl.concat([scored_units_areas_roles_df, hospital_average])
+                # self.report_scores = final_scored_df.to_dicts()
+                # self.report_dataframe = pd.DataFrame(final_scored_df)
+
+        except Exception as e:
+            logger.critical(e)
+
+    def event_state_load_review_info(self) -> Iterable[Callable]:
+        """
+        If reports are present, load a dataframe for relevant values. Perform
+        dataframe methods to populate and add columns we need for various review
+        features. Also strip out reports that don't contain review info.
+        """
+        try:
+            if self.report_info:
+
+                review_df = (
+                    pl.DataFrame(self.report_info.copy())
+                    .select([
+                        "user_id",
+                        "report_id",
+                        "created_at",
+                        "likes",
+                        "assign_select_specific_unit",
+                        "assign_select_unit",
+                        "assign_input_unit_name",
+                        "assign_select_area",
+                        "assign_input_area",
+                        "comp_input_comments",
+                        "assign_input_comments",
+                        "staffing_input_comments"
+                    ])
+                    .with_columns(
+                        # "Number of likes a post has"
+                        pl.col("likes").list.len().alias("likes_number"),
+
+                        # "If current user has liked the review"
+                        pl.col("likes").list.contains(self.user_info["user_id"]).alias("user_has_liked"),
+
+                        # "Formatted date from timestamp string"
+                        pl.col("created_at").str.to_datetime("%Y-%m-%dT%H:%M:%S%.f%z")
+                            .dt.strftime("%B %Y")
+                            .alias("formatted_created_at"),
+
+                        # "Coalese unit down to single column"
+                        pl.when(
+                            pl.col("assign_select_specific_unit").str.contains("Yes")
+                        )
+                        .then(
+                            pl.coalesce(
+                                pl.col("assign_select_unit"),
+                                pl.col("assign_input_unit_name")
+                            )
+                        )
+                        .alias("unit"),
+
+                        # "Coalesce area_role down to single column"
+                        pl.when(
+                            pl.col("assign_select_specific_unit").str.contains("No")
+                        )
+                        .then(
+                            pl.coalesce(
+                                pl.col("assign_select_area"),
+                                pl.col("assign_input_area")
+                            )
+                        )
+                        .alias("area_role"),
+
+                        # Replace empty strings with None
+                        pl.when(
+                            (pl.col("comp_input_comments").str.len_chars() == 0)
+                        )
+                        .then(None)
+                        .otherwise(pl.col("comp_input_comments"))
+                        .alias("comp_input_comments"),
+
+                        pl.when(
+                            (pl.col("assign_input_comments").str.len_chars() == 0)
+                        )
+                        .then(None)
+                        .otherwise(pl.col("assign_input_comments"))
+                        .alias("assign_input_comments"),
+
+                        pl.when(
+                            (pl.col("staffing_input_comments").str.len_chars() == 0)
+                        )
+                        .then(None)
+                        .otherwise(pl.col("staffing_input_comments"))
+                        .alias("staffing_input_comments")
+
+                    )
+                    .filter(
+                        (pl.col("comp_input_comments").is_not_null()) |
+                        (pl.col("assign_input_comments").is_not_null()) |
+                        (pl.col("staffing_input_comments").is_not_null())
+                    )
+                )
+
+                """
+                Set the state units/areas/roles to use for dropdowns in review section.
+                """
+
+                self.units_for_reviews = sorted(
+                    review_df.select("unit")
+                    .filter(pl.col("unit").is_not_null())
+                    .unique()
+                    .to_series()
+                    .to_list()
+                )
+
+                self.areas_roles_for_reviews = sorted(
+                    review_df.select("area_role")
+                    .filter(pl.col("area_role").is_not_null())
+                    .unique()
+                    .to_series()
+                    .to_list()
+                )
+
+                """
+                Set reviews to state.
+                """
+
+                self.review_info = review_df.to_dicts()
 
         except Exception as e:
             logger.critical(e)
@@ -515,3 +603,5 @@ class HospitalState(BaseState):
 
         except RequestFailed:
             rx.toast.error("Error providing review feedback.")
+
+
