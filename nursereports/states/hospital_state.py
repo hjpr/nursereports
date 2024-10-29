@@ -89,8 +89,7 @@ class HospitalState(BaseState):
     Units/areas/roles loaded during event_state_load_review_info to allow users to filter the
     reviews by the respective unit/area/role.
     """
-    units_for_reviews: list[str]
-    areas_roles_for_reviews: list[str]
+    units_areas_roles_for_reviews: list[str]
 
     """User selectable filter by unit/area/role"""
     review_filter_units_areas_roles: str
@@ -176,17 +175,16 @@ class HospitalState(BaseState):
     @rx.var(cache=True)
     def filtered_review_info(self) -> list[dict]:
         """
-        If user has selected filters, return list of dicts containing only
-        reports from review_info
+        If no filters are selected, returns all reviews. Otherwise applies filters
+        so that user can filter down to desired reviews.
         """
         filtered_review_items = self.review_info
 
-        if self.review_filter_units_areas_roles and self.review_info:
+        if self.review_filter_units_areas_roles and filtered_review_items:
             filtered_review_items = [
-                review
-                for review in filtered_review_items
-                if self.review_filter_units_areas_roles in review.get("unit", "")
-                or self.review_filter_units_areas_roles in review.get("area_role", "")
+                review for review in filtered_review_items
+                if self.review_filter_units_areas_roles == review.get("unit", "")
+                or self.review_filter_units_areas_roles == review.get("area_role", "")
             ]
 
         if self.review_sorted and self.review_info:
@@ -210,9 +208,8 @@ class HospitalState(BaseState):
         return {'a': 4, 'b': 3, 'c': 2, 'd': 1, 'f': 0}.get(letter)
 
     @staticmethod
-    def number_to_letter(number: int) -> str:
-        rich.inspect(number)
-        return {4: 'a', 3: 'b', 2: 'c', 1: 'd', 0: 'f'}.get(number)
+    def number_to_letter(number: int | float) -> str:
+        return {4: 'a', 3: 'b', 2: 'c', 1: 'd', 0: 'f'}.get(round(number))
 
     def set_slider(self, value) -> None:
         self.selected_experience = value[0]
@@ -377,30 +374,42 @@ class HospitalState(BaseState):
 
     def event_state_load_unit_info(self) -> Iterable[Callable]:
         """
-        Check reports and strip units out. 
+        From reports data, pull out info pertinent to unit classification
+        and scoring and perform dataframe operations to average and organize
+        scoring.
         """
         try:
             if self.report_info:
-                filtered_df = (
+                units_df = (
                     pl.DataFrame(self.report_info.copy())
-                    .with_columns([
-                        pl.when(pl.col("assign_select_specific_unit") == "Yes")
+                    .with_columns(
+                        pl.when(
+                            pl.col("assign_select_specific_unit").str.contains("Yes")
+                        )
                         .then(
                             pl.coalesce(
                                 pl.col("assign_select_unit"),
                                 pl.col("assign_input_unit_name")
                             )
                         )
-                        .otherwise(
+                        .otherwise(None)
+                        .alias("unit"),
+
+                        pl.when(
+                            pl.col("assign_select_specific_unit").str.contains("No")
+                        )
+                        .then(
                             pl.coalesce(
                                 pl.col("assign_select_area"),
                                 pl.col("assign_input_area")
                             )
                         )
-                        .alias("units_areas_roles")
-                    ])
+                        .otherwise(None)
+                        .alias("area_role")
+                    )
                     .select([
-                        "units_areas_roles",
+                        "unit",
+                        "area_role",
                         "comp_select_overall",
                         "assign_select_overall",
                         "staffing_select_overall"
@@ -408,46 +417,102 @@ class HospitalState(BaseState):
                 )
 
                 """
+                Pull out units/areas/roles for filtering/selection
+                """
+
+                units_for_units = sorted(
+                    units_df.select("unit")
+                    .filter(pl.col("unit").is_not_null())
+                    .unique()
+                    .to_series()
+                    .to_list()
+                )
+
+                areas_roles_for_unit = sorted(
+                    units_df.select("area_role")
+                    .filter(pl.col("area_role").is_not_null())
+                    .unique()
+                    .to_series()
+                    .to_list()
+                )
+
+                self.units_areas_roles_for_units = units_for_units + areas_roles_for_unit
+
+                # logger.debug("Units Dataframe")
+                # logger.debug(units_df.head())
+                # logger.debug(units_df.to_dicts())
+
+                """
                 Averages scores by unit for view in the units section.
                 """
 
-                # scored_units_areas_roles_df = (
-                #     filtered_df
-                #     .with_columns([
-                #         pl.col("comp_select_overall").map_elements(self.letter_to_number, pl.Int8).alias("comp_numeric"),
-                #         pl.col("assign_select_overall").map_elements(self.letter_to_number, pl.Int8).alias("assign_numeric"),
-                #         pl.col("staffing_select_overall").map_elements(self.letter_to_number, pl.Int8).alias("staffing_numeric")
-                #     ])
-                #     .group_by("units_areas_roles")
-                #     .agg([
-                #         pl.col("comp_numeric").mean().map_elements(self.number_to_letter, pl.Utf8).alias("comp_select_overall"),
-                #         pl.col("assign_numeric").mean().map_elements(self.number_to_letter, pl.Utf8).alias("assign_select_overall"),
-                #         pl.col("staffing_select_overall").map_elements(self.number_to_letter, pl.Utf8).alias("staffing_select_overall")
-                #     ])
-                # )
+                scored_unit_df = (
+                    units_df
+                    .with_columns([
+                        pl.col("comp_select_overall").map_elements(self.letter_to_number, pl.Int8).alias("comp_numeric"),
+                        pl.col("assign_select_overall").map_elements(self.letter_to_number, pl.Int8).alias("assign_numeric"),
+                        pl.col("staffing_select_overall").map_elements(self.letter_to_number, pl.Int8).alias("staffing_numeric")
+                    ])
+                    .filter(pl.col("unit").is_not_null())
+                    .group_by("unit")
+                    .agg([
+                        pl.col("comp_numeric").mean().map_elements(self.number_to_letter, pl.Utf8).alias("comp_mean"),
+                        pl.col("assign_numeric").mean().map_elements(self.number_to_letter, pl.Utf8).alias("assign_mean"),
+                        pl.col("staffing_numeric").mean().map_elements(self.number_to_letter, pl.Utf8).alias("staffing_mean")
+                    ])
+                )
 
-                # """
-                # Calculate an overall average for the hospital and save it as "hospital" under the unit_area_role
-                # """
+                # logger.debug("Scored Unit Averages")
+                # logger.debug(scored_unit_df.head())
+                # logger.debug(scored_unit_df.to_dicts())
 
-                # hospital_average = (
-                #     filtered_df
-                #     .with_columns([
-                #         pl.col("comp_select_overall").map_elements(self.letter_to_number).alias("comp_numeric"),
-                #         pl.col("assign_select_overall").map_elements(self.letter_to_number).alias("assign_numeric"),
-                #         pl.col("staffing_select_overall").map_elements(self.letter_to_number).alias("staffing_numeric")
-                #     ])
-                #     .select([
-                #         pl.lit("hospital_average").alias("areas_units_roles"),
-                #         pl.col("comp_numeric").mean().map_elements(self.number_to_letter).alias("comp_select_overall"),
-                #         pl.col("assign_numeric").mean().map_elements(self.number_to_letter).alias("assign_select_overall"),
-                #         pl.col("staffing_select_overall").map_elements(self.number_to_letter).alias("staffing_select_overall")
-                #     ])
-                # )
+                scored_area_role_df = (
+                    units_df
+                    .with_columns([
+                        pl.col("comp_select_overall").map_elements(self.letter_to_number, pl.Int8).alias("comp_numeric"),
+                        pl.col("assign_select_overall").map_elements(self.letter_to_number, pl.Int8).alias("assign_numeric"),
+                        pl.col("staffing_select_overall").map_elements(self.letter_to_number, pl.Int8).alias("staffing_numeric")
+                    ])
+                    .filter(pl.col("area_role").is_not_null())
+                    .group_by("area_role")
+                    .agg([
+                        pl.col("comp_numeric").mean().map_elements(self.number_to_letter, pl.Utf8).alias("comp_mean"),
+                        pl.col("assign_numeric").mean().map_elements(self.number_to_letter, pl.Utf8).alias("assign_mean"),
+                        pl.col("staffing_select_overall").mean().map_elements(self.number_to_letter, pl.Utf8).alias("staffing_mean")
+                    ])
+                )
+                # logger.debug("Scored Area/Role Averages")
+                # logger.debug(scored_area_role_df.head())
+                # logger.debug(scored_area_role_df.to_dicts())
 
-                # final_scored_df = pl.concat([scored_units_areas_roles_df, hospital_average])
-                # self.report_scores = final_scored_df.to_dicts()
-                # self.report_dataframe = pd.DataFrame(final_scored_df)
+                scored_hospital_df = (
+                    units_df
+                    .with_columns([
+                        pl.col("comp_select_overall").map_elements(self.letter_to_number, pl.Int8).alias("comp_numeric"),
+                        pl.col("assign_select_overall").map_elements(self.letter_to_number, pl.Int8).alias("assign_numeric"),
+                        pl.col("staffing_select_overall").map_elements(self.letter_to_number, pl.Int8).alias("staffing_numeric"),
+                    ])
+                    .select([
+                        pl.lit("Hospital").alias("unit"),
+                        pl.col("comp_numeric").mean().map_elements(self.number_to_letter, pl.Utf8).alias("hospital_comp_mean"),
+                        pl.col("assign_numeric").mean().map_elements(self.number_to_letter, pl.Utf8).alias("hospital_assign_mean"),
+                        pl.col("staffing_numeric").mean().map_elements(self.number_to_letter, pl.Utf8).alias("hospital_staffing_mean"),
+                        (
+                            ((pl.col("comp_numeric").mean() + pl.col("assign_numeric").mean() + pl.col("staffing_numeric").mean()) / 3)
+                            .map_elements(self.number_to_letter, pl.Utf8).alias("hospital_overall_mean")
+                        )
+                    ])
+                )
+                
+                # logger.debug("Hospital Averages")
+                # logger.debug(scored_hospital_df.head())
+                # logger.debug(scored_hospital_df.to_dicts())
+
+                # scored_df = pl.concat([
+                #     scored_unit_df, scored_area_role_df
+                # ])
+                # self.scored_units_areas_roles = scored_df.to_dicts
+                # logger.debug(self.scored_units_areas_roles)
 
         except Exception as e:
             logger.critical(e)
@@ -499,6 +564,7 @@ class HospitalState(BaseState):
                                 pl.col("assign_input_unit_name")
                             )
                         )
+                        .otherwise(None)
                         .alias("unit"),
 
                         # "Coalesce area_role down to single column"
@@ -511,6 +577,7 @@ class HospitalState(BaseState):
                                 pl.col("assign_input_area")
                             )
                         )
+                        .otherwise(None)
                         .alias("area_role"),
 
                         # Replace empty strings with None
@@ -547,7 +614,7 @@ class HospitalState(BaseState):
                 Set the state units/areas/roles to use for dropdowns in review section.
                 """
 
-                self.units_for_reviews = sorted(
+                units_for_reviews = sorted(
                     review_df.select("unit")
                     .filter(pl.col("unit").is_not_null())
                     .unique()
@@ -555,13 +622,15 @@ class HospitalState(BaseState):
                     .to_list()
                 )
 
-                self.areas_roles_for_reviews = sorted(
+                areas_roles_for_reviews = sorted(
                     review_df.select("area_role")
                     .filter(pl.col("area_role").is_not_null())
                     .unique()
                     .to_series()
                     .to_list()
                 )
+
+                self.units_areas_roles_for_reviews = units_for_reviews + areas_roles_for_reviews
 
                 """
                 Set reviews to state.

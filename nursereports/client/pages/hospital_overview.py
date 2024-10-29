@@ -605,13 +605,14 @@ def units_content() -> rx.Component:
 
 def unit_grades() -> rx.Component:
     return rx.flex(
+        rx.text("Unit Grades Placeholder"),
         class_name="flex-col items-center w-full"
     )
 
 def unit_ratings_graph() -> rx.Component:
     return rx.flex(
         rx.text("Unit Ratings Graph Placeholder."),
-        width="100%"
+        class_name="flex-col items-center w-full"
     )
 
 def reviews() -> rx.Component:
@@ -642,7 +643,7 @@ def review_content() -> rx.Component:
             # REVIEWS PRESENT
             rx.flex(
                 rx.cond(
-                    HospitalState.units_for_reviews | HospitalState.areas_roles_for_reviews,
+                    HospitalState.units_areas_roles_for_reviews,
                     review_filters(),
                 ),
                 rx.flex(
@@ -666,7 +667,7 @@ def review_content() -> rx.Component:
 def review_filters() -> rx.Component:
     return rx.flex(
         rx.select(
-            HospitalState.units_for_reviews,
+            HospitalState.units_areas_roles_for_reviews,
             value=HospitalState.review_filter_units_areas_roles,
             placeholder="All units/areas/roles",
             label="Select a unit/area/role",
