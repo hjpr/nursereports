@@ -22,7 +22,6 @@ from datetime import datetime
 from loguru import logger
 from typing import Callable, Iterable
 
-import httpx
 import jwt
 import reflex as rx
 import time
@@ -30,6 +29,7 @@ import rich
 
 
 class BaseState(rx.State):
+
     access_token: str = rx.Cookie(
         name="access_token",
         same_site="strict",
@@ -40,10 +40,8 @@ class BaseState(rx.State):
         same_site="strict",
         secure=True,
     )
-
-    user_info: dict[str, bool | list | str | int | None] = {}
+    user_info: dict[str, any] = {}
     saved_hospitals: list[dict[str, str]] = []
-    user_reports: list[dict[str, str]] = []
 
     @rx.var
     def host_address(self) -> str:
@@ -53,29 +51,12 @@ class BaseState(rx.State):
     def reason_for_logout(self) -> str:
         return self.router.page.params.get("logout_reason")
 
-    @rx.var(cache=True)
-    def user_claims(self) -> dict:
-        """Pull claims from JWT if valid, authenticated, and not expired.
-
-        Returns:
-            dict:
-                valid: bool
-                payload: dict of claims if valid
-                reason: if claims invalid, 'expired', 'invalid',
-                    or 'empty'
-
-        Payload contains:
-            aud: role 'authenticated' if valid
-            exp: unix timestamp of expiration
-            iat: unix timestamp of issue
-            iss: issuer of jwt
-            sub: user id as uuid
-            email: <-
-            phone: <-
-            app_metadata: stuff like methods of login
-            user_metadata: useful store of small info
-            role: 'authenticated' unless change to role system
+    @rx.var
+    def user_claims(self) -> dict[str, str]:
         """
+        Pull claims from JWT if valid, authenticated, and not expired.
+        """
+
         if self.access_token:
             try:
                 claims = jwt.decode(
@@ -84,27 +65,46 @@ class BaseState(rx.State):
                     audience="authenticated",
                     algorithms=["HS256"],
                 )
-                return {"valid": True, "payload": claims, "reason": None}
-            except jwt.ExpiredSignatureError:
-                return {"valid": False, "payload": None, "reason": "expired"}
-            except jwt.InvalidSignatureError:
-                return {"valid": False, "payload": None, "reason": "invalid"}
-        else:
-            return {"valid": False, "payload": None, "reason": "empty"}
+                return claims
+            
+            except Exception as e:
+                logger.critical(e)
+                return {}
+            
+    @rx.var(cache=True)
+    def user_claims_id(self) -> str:
+        return self.user_claims.get("sub", None)
+    
+    @rx.var(cache=True)
+    def user_claims_email(self) -> str:
+        return self.user_claims.get("email", None)
+    
+    @rx.var(cache=True)
+    def user_claims_issued_by(self) -> str:
+        return self.user_claims.get("iss", None)
+    
+    @rx.var(cache=True)
+    def user_claims_issued_at(self) -> str:
+        return self.user_claims.get("iat", None)
 
     @rx.var(cache=True)
-    def user_is_authenticated(self) -> bool:
-        if self.access_token:
-            return True if self.user_claims["valid"] else False
-        else:
-            return False
+    def user_claims_expires_at(self) -> str:
+        return self.user_claims.get("exp", int(time.time()))
+    
+    @rx.var
+    def user_claims_expiring(self) -> bool:
+        current_time = int(time.time)
+        expires_at = self.user_claims_expires_at
+        seconds_to_expiration = expires_at - current_time
+        return True if seconds_to_expiration <= 900 else False
+
+    @rx.var(cache=True)
+    def user_claims_authenticated(self) -> bool:
+        return True if self.user_claims.get("aud") == "authenticated" else False
 
     @rx.var(cache=True)
     def user_has_reported(self) -> bool:
-        if self.access_token and self.user_info:
-            return False if self.user_info["needs_onboard"] else True
-        else:
-            return False
+        return self.user_info.get("needs_onboard", False)
 
     def event_state_standard_flow(self, access_level: str) -> Iterable[Callable]:
         """
@@ -114,35 +114,27 @@ class BaseState(rx.State):
             1: User claims are valid.
             2: User info is present.
             3: User is where they are allowed to be.
-
-        Args:
-            access_level: 'none', 'login', or 'report'
-
-        Returns:
-            Sends proper flow direction to event handler.
         """
-        if self.user_claims["valid"] and self.user_info:
+
+        # Should we make a check for token expiration?
+        if self.user_claims_authenticated and self.user_info:
             return BaseState.authenticated_flow(access_level)
-        if self.user_claims["valid"] and not self.user_info:
+        if self.user_claims_authenticated and not self.user_info:
             return BaseState.authenticated_missing_info_flow(access_level)
-        if not self.user_claims["valid"]:
+        if not self.user_claims_authenticated:
             return BaseState.unauthenticated_flow(access_level)
 
     def event_state_refresh_user_info(self) -> Iterable[Callable]:
         """
-        Use to load or refresh current user info. Runs on_load when opening the dashboard,
-        ensuring that all the user values are up to date with the backend.
+        Loads/refreshes user info. Runs each time the dashboard is opened.
         """
         try:
             if self.check_user_data_has_updated():
                 self.set_all_user_data_to_state()
             else:
                 logger.debug("User information and database are in sync.")
-        except (
-            DuplicateUserError,
-            ReadError,
-            RequestFailed,
-        ):
+        except Exception as e:
+            logger.critical(e)
             yield rx.redirect("/logout/error")
 
     def authenticated_flow(self, access_level: str) -> Iterable[Callable] | None:
@@ -208,13 +200,6 @@ class BaseState(rx.State):
             yield rx.toast.error("Invalid login credentials.")
         if self.user_claims["reason"] == "empty":
             logger.debug("A user is just browsing...")
-
-    def check_claims_for_expiring_soon(self) -> None:
-        current_time = int(time.time())
-        expires_at = self.user_claims["payload"]["exp"]
-        time_left_sec = expires_at - current_time
-        if (5 <= time_left_sec <= 1800) and (self.access_token and self.refresh_token):
-            self.refresh_access_token()
 
     def refresh_access_token(self) -> None:
         access_token = self.access_token

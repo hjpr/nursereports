@@ -219,7 +219,7 @@ def full_time_hospital_pay_card() -> rx.Component:
             ),
             class_name="flex-col items-center p-6 space-y-6 w-full"
         ),
-        class_name="flex-col items-center divide-y divide-dashed w-full"
+        class_name="flex-col items-center divide-y w-full"
     )
 
 def full_time_state_pay_card() -> rx.Component:
@@ -277,7 +277,7 @@ def full_time_state_pay_card() -> rx.Component:
             ),
             class_name="flex-col items-center p-6 space-y-6 w-full"
         ),
-        class_name="flex-col items-center divide-y divide-dashed w-full"
+        class_name="flex-col items-center divide-y w-full"
     )
 
 def part_time_hospital_pay() -> rx.Component:
@@ -332,7 +332,7 @@ def part_time_hospital_pay() -> rx.Component:
             ),
             class_name="flex-col items-center p-6 space-y-6 w-full"
         ),
-        class_name="flex-col items-center divide-y divide-dashed w-full"
+        class_name="flex-col items-center divide-y w-full"
     )
 
 
@@ -388,7 +388,7 @@ def part_time_state_pay() -> rx.Component:
             ),
             class_name="flex-col items-center p-6 space-y-6 w-full"
         ),
-        class_name="flex-col items-center divide-y divide-dashed w-full"
+        class_name="flex-col items-center divide-y w-full"
     )
 
 def prn_hospital_pay() -> rx.Component:
@@ -443,7 +443,7 @@ def prn_hospital_pay() -> rx.Component:
             ),
             class_name="flex-col items-center p-6 space-y-6 w-full"
         ),
-        class_name="flex-col items-center divide-y divide-dashed w-full"
+        class_name="flex-col items-center divide-y w-full"
     )
 
 def prn_state_pay() -> rx.Component:
@@ -498,7 +498,7 @@ def prn_state_pay() -> rx.Component:
             ),
             class_name="flex-col items-center p-6 space-y-6 w-full"
         ),
-        class_name="flex-col items-center divide-y divide-dashed w-full"
+        class_name="flex-col items-center divide-y w-full"
     )
 
 def contract_hospital_pay() -> rx.Component:
@@ -534,7 +534,7 @@ def staff_experience_control_slider() -> rx.Component:
             ),
             class_name="flex-col items-center p-6 space-y-2 w-full"
         ),
-        class_name="flex-col items-center divide-y divide-dashed w-full"
+        class_name="flex-col items-center divide-y w-full"
     )
 
 def staff_employment_type_selection() -> rx.Component:
@@ -561,11 +561,10 @@ def staff_employment_type_selection() -> rx.Component:
             ),
             class_name="flex-col items-center space-y-4 p-6 w-full"
         ),
-        class_name="flex-col items-center divide-y divide-dashed w-full"
+        class_name="flex-col items-center divide-y w-full"
     )
 
 def units() -> rx.Component:
-    """Units section."""
     return rx.flex(
         rx.flex(
             rx.flex(
@@ -588,31 +587,74 @@ def units() -> rx.Component:
 def units_content() -> rx.Component:
     return rx.cond(
         HospitalState.units_areas_roles_for_units,
-        # If reviews for units present...
         rx.flex(
-            unit_grades(),
-            unit_ratings_graph(),
-            class_name="flex-col items-center w-full"
+            unit_area_role_hospital_scores(),
+            unit_area_role_rankings(),
+            class_name="flex-col items-center space-y-6 divide-y w-full"
         ),
-        # If reviews for units not present...
         rx.flex(
             rx.text("Nothing yet, check back later!"),
-            justify="center",
-            padding="24px",
-            width="100%"
+            class_name="flex-col items-center p-6 w-full"
         )
     )
 
-def unit_grades() -> rx.Component:
+def unit_area_role_hospital_scores() -> rx.Component:
     return rx.flex(
-        rx.text("Unit Grades Placeholder"),
+        rx.flex(
+            rx.flex(
+                rx.select(
+                    HospitalState.units_areas_roles_for_units,
+                    placeholder="Hospital Overall",
+                    value=HospitalState.selected_unit,
+                    label="Units/Areas/Roles",
+                    on_change=HospitalState.set_selected_unit
+                ),
+                rx.button(
+                    "Clear selection",
+                    on_click=HospitalState.set_selected_unit("")
+                ),
+                class_name="flex-row space-x-2"
+            ),
+            class_name="flex-col items-center justify-items-center w-full"
+        ),
+        rx.flex(
+            rx.cond(
+                HospitalState.selected_unit,
+                rx.heading(HospitalState.selected_unit),
+                rx.heading("Hospital Overall")
+            ),
+            class_name="flex-col items-center p-6 w-full"
+        ),
+        rx.flex(
+            rx.flex(
+                rx.text(HospitalState.filtered_unit_info["comp_mean"]),
+                rx.text("Compensation"),
+                class_name="flex-col items-center w-full"
+            ),
+            rx.flex(
+                rx.text(HospitalState.filtered_unit_info["assign_mean"]),
+                rx.text("Assignment"),
+                class_name="flex-col items-center w-full"
+            ),
+            rx.flex(
+                rx.text(HospitalState.filtered_unit_info["staffing_mean"]),
+                rx.text("Staffing"),
+                class_name="flex-col items-center w-full"
+            ),
+            rx.flex(
+                rx.text(HospitalState.filtered_unit_info["overall_mean"]),
+                rx.text("Overall"),
+                class_name="flex-col items-center w-full"
+            ),
+            class_name="flex-row items-center justify-between w-full"
+        ),
         class_name="flex-col items-center w-full"
     )
 
-def unit_ratings_graph() -> rx.Component:
+def unit_area_role_rankings() -> rx.Component:
     return rx.flex(
-        rx.text("Unit Ratings Graph Placeholder."),
-        class_name="flex-col items-center w-full"
+        rx.text("Unit ratings placeholder"),
+        class_name="flex-col items-center pt-6 w-full"
     )
 
 def reviews() -> rx.Component:

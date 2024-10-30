@@ -43,6 +43,7 @@ def supabase_check_for_existing_report(access_token: str, report: dict) -> None:
                     existing_report["assign_input_area"] == report["assign_input_area"]):
                     raise DuplicateReport("A report was already submitting for this area/role within 30 days.")
     else:
+        rich.inspect(response)
         raise RequestFailed("Request to check for existing report failed.")
 
 def supabase_get_hospital_info(access_token: str, hosp_id: str) -> dict[str, any]:
@@ -232,11 +233,11 @@ def supabase_update_hospital_area_role(access_token: str, hosp_id: str, area_rol
     }
     response = httpx.get(url=url, headers=headers)
     if response.is_success:
-        hospital_info = json.loads(response.content)
+        hospital_info = json.loads(response.content)[0]
     else:
         raise RequestFailed("Request failed retrieving hospital.")
     
-    hospital_areas_roles: list = hospital_info["hosp_areas_roles"]
+    hospital_areas_roles = hospital_info["hosp_areas_roles"]
     if area_role not in hospital_areas_roles:
         hospital_areas_roles.append(area_role)
 
@@ -245,9 +246,10 @@ def supabase_update_hospital_area_role(access_token: str, hosp_id: str, area_rol
         "needs_validation": True,
         "needs_moderation": True
         }
-    response = httpx.put(url=url, headers=headers, data=json.dumps(data))
+    response = httpx.patch(url=url, headers=headers, data=json.dumps(data))
     if response.is_success:
         logger.debug("Updated unit info in public/hospitals.")
     else:
+        rich.inspect(response)
         raise RequestFailed("Failed to update unit information.")
 

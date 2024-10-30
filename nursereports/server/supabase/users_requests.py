@@ -31,7 +31,6 @@ def supabase_get_user_info(access_token: str) -> dict | None:
             modified_at: timestamptz - user modified last date, default is nowutc()
             my_jobs: list[dict] - default value is NULL
             needs_onboard: bool - default value is True
-            reports: int - default value is 0
             saved_hospitals: dict - default value is NULL
             trust: int - default value is 0
             user_id: uuid - jwt provided uuid
@@ -83,7 +82,6 @@ def supabase_create_initial_user_info(access_token: str, user_id: str) -> None:
         modified_at: timestamptz - user modified last date, default is nowutc()
         my_jobs: list[dict] - default value is NULL
         needs_onboard: bool - default value is True
-        reports: int - default value is 0
         saved_hospitals: dict - default value is NULL
         trust: int - default value is 0
         user_id: uuid - jwt provided uuid
