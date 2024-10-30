@@ -29,7 +29,6 @@ import rich
 
 
 class BaseState(rx.State):
-
     access_token: str = rx.Cookie(
         name="access_token",
         same_site="strict",
@@ -56,9 +55,8 @@ class BaseState(rx.State):
         """
         Pull claims from JWT if valid, authenticated, and not expired.
         """
-
-        if self.access_token:
-            try:
+        try:
+            if self.access_token:
                 claims = jwt.decode(
                     self.access_token,
                     jwt_key,
@@ -66,31 +64,33 @@ class BaseState(rx.State):
                     algorithms=["HS256"],
                 )
                 return claims
-            
-            except Exception as e:
-                logger.critical(e)
+            else:
                 return {}
-            
+
+        except Exception as e:
+            logger.critical(e)
+            return {}
+
     @rx.var(cache=True)
-    def user_claims_id(self) -> str:
+    def user_claims_id(self) -> str | None:
         return self.user_claims.get("sub", None)
-    
+
     @rx.var(cache=True)
-    def user_claims_email(self) -> str:
+    def user_claims_email(self) -> str | None:
         return self.user_claims.get("email", None)
-    
+
     @rx.var(cache=True)
-    def user_claims_issued_by(self) -> str:
+    def user_claims_issued_by(self) -> str | None:
         return self.user_claims.get("iss", None)
-    
+
     @rx.var(cache=True)
-    def user_claims_issued_at(self) -> str:
+    def user_claims_issued_at(self) -> int | None:
         return self.user_claims.get("iat", None)
 
     @rx.var(cache=True)
-    def user_claims_expires_at(self) -> str:
+    def user_claims_expires_at(self) -> int:
         return self.user_claims.get("exp", int(time.time()))
-    
+
     @rx.var
     def user_claims_expiring(self) -> bool:
         current_time = int(time.time)
@@ -106,161 +106,91 @@ class BaseState(rx.State):
     def user_has_reported(self) -> bool:
         return self.user_info.get("needs_onboard", False)
 
-    def event_state_standard_flow(self, access_level: str) -> Iterable[Callable]:
+    def event_state_standard_flow(self) -> Iterable[Callable]:
         """
         Simple standard login flow. Runs on_load prior to every page.
-
-        This process ensures that:
-            1: User claims are valid.
-            2: User info is present.
-            3: User is where they are allowed to be.
         """
+        # If user is authenticated.
+        if self.user_claims_authenticated:
+            # Ensure expiring access tokens are refreshed.
+            if self.user_claims_expiring and (self.access_token and self.refresh_token):
+                self.refresh_access_token()
 
-        # Should we make a check for token expiration?
-        if self.user_claims_authenticated and self.user_info:
-            return BaseState.authenticated_flow(access_level)
-        if self.user_claims_authenticated and not self.user_info:
-            return BaseState.authenticated_missing_info_flow(access_level)
+            # Ensure user data is present and current.
+            if not (self.user_info and self.local_user_data_synced_with_remote()):
+                yield from self.reset_user_info()
+
+        # If user is not authenticated.
         if not self.user_claims_authenticated:
-            return BaseState.unauthenticated_flow(access_level)
+            # User claims are expired
+            if self.access_token or self.refresh_token:
+                self.access_token = ""
+                self.refresh_token = ""
+                yield rx.redirect("/")
+                yield rx.toast.info("Login expired, please login again.")
 
-    def event_state_refresh_user_info(self) -> Iterable[Callable]:
-        """
-        Loads/refreshes user info. Runs each time the dashboard is opened.
-        """
-        try:
-            if self.check_user_data_has_updated():
-                self.set_all_user_data_to_state()
-            else:
-                logger.debug("User information and database are in sync.")
-        except Exception as e:
-            logger.critical(e)
-            yield rx.redirect("/logout/error")
-
-    def authenticated_flow(self, access_level: str) -> Iterable[Callable] | None:
-        """
-        User is authenticated and user info is  present. Just make sure that
-        user is accessing the appropriate resources for their access_level.
-        """
-        try:
-            self.check_claims_for_expiring_soon()
-            self.check_access(access_level)
-        except TokenRefreshFailed as e:
-            yield rx.toast.error(str(e))
-        except PageRequiresLogin as e:
-            yield rx.toast.error(str(e))
-            yield rx.redirect("/")
-        except UserMissingReport as e:
-            yield rx.toast.error(str(e))
-            yield rx.redirect("/onboard")
-
-    def authenticated_missing_info_flow(
-        self, access_level: str
-    ) -> Iterable[Callable]:
-        """
-        User is authenticated but user info not present. After retrieving user
-        data, make sure user is accessing appropriate resources for their
-        access_level.
-        """
-        try:
-            self.check_claims_for_expiring_soon()
-            self.set_all_user_data_to_state()
-            self.check_access(access_level)
-            yield BaseState.redirect_user_to_onboard_or_dashboard
-        except DuplicateUserError:
-            yield rx.redirect("/logout/error")
-        except PageRequiresLogin as e:
-            yield rx.toast.error(str(e))
-            yield rx.redirect("/")
-        except ReadError as e:
-            yield rx.toast.error(str(e))
-        except RequestFailed:
-            yield rx.toast.error("Unable to connect to backend.")
-        except TokenRefreshFailed as e:
-            yield rx.toast.error(str(e))
-        except UserMissingReport as e:
-            yield rx.toast.error(str(e))
-            yield rx.redirect("/onboard")
-
-    def unauthenticated_flow(self, access_level: str) -> Iterable[Callable]:
-        """
-        User is not authenticated. Can be
-            - User with access_token whose claims have expired.
-            - User attempting to use forged access_token.
-            - User without token.
-        """
-        if self.user_claims["reason"] == "expired":
-            yield rx.redirect("/")
-            self.reset()
-            yield rx.toast.warning("Session expired, please login again.")
-        if self.user_claims["reason"] == "invalid":
-            yield rx.redirect("/")
-
-            self.reset()
-            yield rx.toast.error("Invalid login credentials.")
-        if self.user_claims["reason"] == "empty":
-            logger.debug("A user is just browsing...")
+            # User coming from an SSO redirect.
+            url = self.router.page.raw_path
+            if ("access_token" in url) and ("refresh_token" in url):
+                yield rx.toast.info("Logging you in...")
+                fragment = url.split("#")[1]
+                self.access_token = fragment.split("&")[0].split("=")[1]
+                self.refresh_token = fragment.split("&")[4].split("=")[1]
+                yield rx.redirect("/dashboard")
 
     def refresh_access_token(self) -> None:
+        """
+        Refresh JWT token using refresh token.
+        """
         access_token = self.access_token
         refresh_token = self.refresh_token
         tokens = supabase_get_new_access_token(access_token, refresh_token)
-        self.access_token = tokens["access_token"]
-        self.refresh_token = tokens["refresh_token"]
+        self.access_token = tokens.get("access_token", "")
+        self.refresh_token = tokens.get("refresh_token", "")
 
-    def check_access(self, access_level: str) -> None:
-        if access_level == "login" and not self.user_is_authenticated:
-            raise PageRequiresLogin("Login before accessing this page.")
-        if access_level == "report" and not self.user_has_reported:
-            if self.user_is_authenticated:
-                raise UserMissingReport("Submit a report before accessing this page.")
-            else:
-                raise PageRequiresLogin("Login before accessing this page.")
+    def local_user_data_synced_with_remote(self) -> bool:
+        """
+        Check modified_at timestamps to ensure user_info is in sync.
+        """
+        remote_modified_at_timestamp = supabase_get_user_modified_at_timestamp(
+            self.access_token
+        )["modified_at"]
+        local_modified_at_timestamp = self.user_info.get("modified_at", None)
+        return (
+            True
+            if remote_modified_at_timestamp == local_modified_at_timestamp
+            else False
+        )
 
-    def handle_sso_redirect(self, access_level: str) -> Callable:
-        raw_path = self.router.page.raw_path
-        if ("access_token" in raw_path) and ("refresh_token" in raw_path):
-            fragment = raw_path.split("#")[1]
-            self.access_token = fragment.split("&")[0].split("=")[1]
-            self.refresh_token = fragment.split("&")[4].split("=")[1]
-            return BaseState.authenticated_missing_info_flow(access_level)
-
-    def check_user_data_has_updated(self) -> bool:
-        if self.user_info:
-            access_token = self.access_token
-            database_timestamp = supabase_get_user_modified_at_timestamp(access_token)[
-                "modified_at"
-            ]
-            state_timestamp = self.user_info["modified_at"]
-            logger.debug(
-                f"Comparing db to state timestamps - {database_timestamp} {state_timestamp}"
-            )
-            return False if database_timestamp == state_timestamp else True
-
-    def set_all_user_data_to_state(self) -> None:
-        if self.user_claims["valid"]:
-            # Set user info to state.
+    def reset_user_info(self) -> Iterable[Callable]:
+        """
+        Resets exising user's info, or creates new user if user info missing.
+        """
+        try:
+            # Set user info to state or create new user
             user_info = supabase_get_user_info(self.access_token)
             if user_info:
                 self.user_info = user_info
             else:
-                self.create_new_user()
+                yield from self.create_new_user()
 
             # Set saved hospitals to state.
-            if self.user_info["saved_hospitals"]:
-                saved_hospitals = supabase_populate_saved_hospital_details(
-                    self.access_token, self.user_info["saved_hospitals"]
-                )
+            saved_hospitals = supabase_populate_saved_hospital_details(
+                self.access_token, self.user_info.get("saved_hospitals", None)
+            )
+
+            # Format hospital names from all caps to .title case.
+            if saved_hospitals:
                 for hospital in saved_hospitals:
                     hospital["hosp_city"] = hospital["hosp_city"].title()
                 self.saved_hospitals = saved_hospitals
-            else:
-                self.saved_hospitals = []
 
             # Set user reports to state.
             user_reports = supabase_get_user_reports(
-                self.access_token, self.user_claims["payload"]["sub"]
+                self.access_token, self.user_claims_id
             )
+
+            # Format user report timestamps
             if user_reports:
                 for hospital in user_reports:
                     hospital["created_at"] = datetime.fromisoformat(
@@ -270,22 +200,39 @@ class BaseState(rx.State):
                         hospital["modified_at"] = datetime.fromisoformat(
                             hospital["modified_at"]
                         ).strftime("%Y - %B")
-                self.user_reports = user_reports
-            else:
-                self.user_reports = []
+            self.user_reports = user_reports
 
-    def create_new_user(self) -> None:
-        supabase_create_initial_user_info(
-            self.access_token, self.user_claims["payload"]["sub"]
-        )
-        user_info = supabase_get_user_info(self.access_token)
-        self.user_info = user_info
+        except Exception as e:
+            logger.critical(e)
+            yield rx.redirect("/")
+            yield rx.toast.error("Unable to reset user info.")
 
-    def update_user_info(self, user_data: dict[str, any]) -> Iterable[Callable]:
-        updated_data = supabase_update_user_info(
-            self.access_token, self.user_claims["payload"]["sub"], user_data
-        )
-        self.user_info.update(updated_data)
+    def create_new_user(self) -> Iterable[Callable]:
+        """
+        Create new user in remote database and save to local state.
+        """
+        try:
+            supabase_create_initial_user_info(self.access_token, self.user_claims_id)
+            user_info = supabase_get_user_info(self.access_token)
+            self.user_info = user_info
+        except Exception as e:
+            logger.critical(e)
+            yield rx.toast.error("Unable to perform new user creation.")
+
+    def update_user_info_and_sync_locally(
+        self, data: dict[str, any]
+    ) -> Iterable[Callable]:
+        """
+        Provide user info data to update to remote database, then save to local state.
+        """
+        try:
+            updated_data = supabase_update_user_info(
+                self.access_token, self.user_claims_id, data
+            )
+            self.user_info.update(updated_data)
+        except Exception as e:
+            logger.critical(e)
+            yield rx.toast.error("Unable to perform requested update.")
 
     def event_state_add_hospital(self, hosp_id: str) -> Iterable[Callable]:
         try:
@@ -294,7 +241,7 @@ class BaseState(rx.State):
             elif hosp_id not in self.user_info["saved_hospitals"]:
                 new_user_info = self.user_info["saved_hospitals"] + [hosp_id]
                 user_info = {"saved_hospitals": new_user_info}
-                self.update_user_info(user_info)
+                yield from self.update_user_info_and_sync_locally(user_info)
                 yield rx.toast.success("Hospital saved to 'My Hospitals'.")
             else:
                 yield rx.toast.warning("Hospital is already added to your list.")
@@ -309,7 +256,7 @@ class BaseState(rx.State):
                 h for h in self.user_info["saved_hospitals"] if h != hosp_id
             ]
             user_info = {"saved_hospitals": new_user_info}
-            self.update_user_info(user_info)
+            self.update_user_info_and_sync_locally(user_info)
             new_saved_hospitals = [
                 h for h in self.saved_hospitals if h.get("hosp_id") != hosp_id
             ]
