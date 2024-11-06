@@ -23,8 +23,8 @@ import reflex as rx
     route="/dashboard",
     title="Nurse Reports",
     on_load=[
-        BaseState.event_state_standard_flow("report"),
-        BaseState.event_state_refresh_user_info,
+        BaseState.event_state_auth_flow,
+        BaseState.event_state_access_flow("report")
     ],
 )
 @report_protected

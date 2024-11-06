@@ -8,7 +8,8 @@ import reflex as rx
     route="/report/edit/complete/",
     title="Nurse Reports",
     on_load=[
-        BaseState.event_state_standard_flow("login"),
+        BaseState.event_state_auth_flow,
+        BaseState.event_state_access_flow("report")
     ],
 )
 @login_protected

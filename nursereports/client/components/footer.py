@@ -141,7 +141,7 @@ def footer() -> rx.Component:
 
 def feedback() -> rx.Component:
     return rx.cond(
-        BaseState.user_is_authenticated,
+        BaseState.user_claims_authenticated,
         rx.link(
             "Feedback",
             size="2",

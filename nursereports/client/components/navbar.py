@@ -53,7 +53,7 @@ def navbar() -> rx.Component:
 
 
 def links() -> rx.Component:
-    return rx.cond(BaseState.user_is_authenticated, auth_links(), unauth_links())
+    return rx.cond(BaseState.user_claims_authenticated, auth_links(), unauth_links())
 
 
 def unauth_links() -> rx.Component:
@@ -93,7 +93,7 @@ def auth_links() -> rx.Component:
 
 
 def sign_in_or_menu() -> rx.Component:
-    return rx.cond(BaseState.user_is_authenticated, menu(), signin())
+    return rx.cond(BaseState.user_claims_authenticated, menu(), signin())
 
 
 def signin() -> rx.Component:
@@ -171,7 +171,7 @@ def menu() -> rx.Component:
 
 def hamburger_mobile() -> rx.Component:
     return rx.cond(
-        BaseState.user_is_authenticated,
+        BaseState.user_claims_authenticated,
         rx.cond(
             BaseState.user_has_reported,
             auth_report_hamburger_mobile(),
@@ -353,29 +353,6 @@ def unauth_hamburger_mobile() -> rx.Component:
         display=["block", "block", "block", "none", "none"],
     )
 
-
-def alert_modal() -> rx.Component:
-    return rx.alert_dialog.root(
-        rx.alert_dialog.content(
-            rx.alert_dialog.title("Message"),
-            rx.alert_dialog.description(NavbarState.alert_message),
-            rx.flex(
-                rx.alert_dialog.action(
-                    rx.button(
-                        "OK",
-                        size="3",
-                        radius="full",
-                        on_click=NavbarState.set_alert_message(""),
-                    )
-                ),
-                margin_top="16px",
-                justify="end",
-            ),
-        ),
-        open=NavbarState.show_alert_message,
-    )
-
-
 def feedback_modal() -> rx.Component:
     return rx.dialog.root(
         rx.dialog.content(
@@ -409,9 +386,9 @@ def feedback_modal() -> rx.Component:
                 ),
                 spacer(height="4px"),
                 rx.cond(
-                    NavbarState.error_feedback_message,
+                    NavbarState.error_message,
                     rx.callout(
-                        NavbarState.error_feedback_message,
+                        NavbarState.error_message,
                         icon="triangle_alert",
                         color_scheme="red",
                         role="alert",

@@ -12,7 +12,10 @@ import reflex as rx
 @rx.page(
     route="/onboard",
     title="Nurse Reports",
-    on_load=BaseState.event_state_standard_flow("login"),
+    on_load=[
+        BaseState.event_state_auth_flow,
+        BaseState.event_state_access_flow("login")
+    ]
 )
 @login_protected
 def onboard_page() -> rx.Component:

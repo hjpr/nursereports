@@ -842,7 +842,7 @@ class ReportState(PageState):
         report = {
             "report_id": self.report_id,
             "hospital_id": self.hospital_id,
-            "user_id": self.user_claims["payload"]["sub"],
+            "user_id": self.user_claims_id,
             "license": self.user_info["license"],
             "license_state": self.user_info["license_state"],
             "trust": self.user_info["trust"],
@@ -908,7 +908,6 @@ class ReportState(PageState):
             "staffing_select_support_available": self.staffing_select_support_available,
             "staffing_input_comments": self.staffing_input_comments,
             "staffing_select_overall": self.staffing_select_overall,
-            "is_test": self.is_test,
         }
         return report
 
@@ -916,12 +915,22 @@ class ReportState(PageState):
         """
         Pop the following values out of the report as erroneous to report state.
         """
-        report.pop("hospital_id", None)
-        report.pop("user_id", None)
-        report.pop("license", None)
-        report.pop("license_state", None)
+        # Pop keys out of the report.
+        report.pop("user_id")
+        report.pop("license")
+        report.pop("license_state")
         report.pop("trust")
         report.pop("created_at")
+        report.pop("modified_at")
+        report.pop("comp_input_comments_flag")
+        report.pop("assign_input_comments_flag")
+        report.pop("staffing_input_comments_flag")
+        report.pop("assign_input_unit_name_flag")
+        report.pop("assign_input_area_flag")
+        report.pop("is_test")
+        report.pop("likes")
+
+        # Set the rest of the keys to the state.
         for key, value in report.items():
             setattr(self, f"{key}", value)
 

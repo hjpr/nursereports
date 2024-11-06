@@ -39,7 +39,8 @@ class BaseState(rx.State):
         same_site="strict",
         secure=True,
     )
-    user_info: dict[str, any] = {}
+    user_info: dict[str, str | list | None] = {}
+    user_reports: list[dict[str, str]] = []
     saved_hospitals: list[dict[str, str]] = []
 
     @rx.var
@@ -50,7 +51,7 @@ class BaseState(rx.State):
     def reason_for_logout(self) -> str:
         return self.router.page.params.get("logout_reason")
 
-    @rx.var
+    @rx.var(cache=True)
     def user_claims(self) -> dict[str, str]:
         """
         Pull claims from JWT if valid, authenticated, and not expired.
@@ -73,30 +74,23 @@ class BaseState(rx.State):
 
     @rx.var(cache=True)
     def user_claims_id(self) -> str | None:
-        return self.user_claims.get("sub", None)
+        return self.user_claims.get("sub")
 
     @rx.var(cache=True)
     def user_claims_email(self) -> str | None:
-        return self.user_claims.get("email", None)
+        return self.user_claims.get("email")
 
     @rx.var(cache=True)
     def user_claims_issued_by(self) -> str | None:
-        return self.user_claims.get("iss", None)
+        return self.user_claims.get("iss")
 
     @rx.var(cache=True)
     def user_claims_issued_at(self) -> int | None:
-        return self.user_claims.get("iat", None)
+        return self.user_claims.get("iat")
 
     @rx.var(cache=True)
-    def user_claims_expires_at(self) -> int:
-        return self.user_claims.get("exp", int(time.time()))
-
-    @rx.var
-    def user_claims_expiring(self) -> bool:
-        current_time = int(time.time)
-        expires_at = self.user_claims_expires_at
-        seconds_to_expiration = expires_at - current_time
-        return True if seconds_to_expiration <= 900 else False
+    def user_claims_expires_at(self) -> int | None:
+        return self.user_claims.get("exp")
 
     @rx.var(cache=True)
     def user_claims_authenticated(self) -> bool:
@@ -104,9 +98,20 @@ class BaseState(rx.State):
 
     @rx.var(cache=True)
     def user_has_reported(self) -> bool:
-        return self.user_info.get("needs_onboard", False)
+        reports_submitted = len(self.user_info.get("submitted_reports", []))
+        return True if reports_submitted > 0 else False
+    
+    @rx.var(cache=True)
+    def user_claims_expiring(self) -> bool:
+        if self.user_claims_authenticated:
+            current_time = int(time.time())
+            expires_at = self.user_claims_expires_at
+            seconds_to_expiration = expires_at - current_time
+            logger.debug(f"User has {seconds_to_expiration} seconds until credentials expire.")
+            return True if seconds_to_expiration <= 900 else False
+        return False
 
-    def event_state_standard_flow(self) -> Iterable[Callable]:
+    def event_state_auth_flow(self) -> Iterable[Callable]:
         """
         Simple standard login flow. Runs on_load prior to every page.
         """
@@ -118,7 +123,7 @@ class BaseState(rx.State):
 
             # Ensure user data is present and current.
             if not (self.user_info and self.local_user_data_synced_with_remote()):
-                yield from self.reset_user_info()
+                yield self.refresh_user_info()
 
         # If user is not authenticated.
         if not self.user_claims_authenticated:
@@ -137,6 +142,20 @@ class BaseState(rx.State):
                 self.access_token = fragment.split("&")[0].split("=")[1]
                 self.refresh_token = fragment.split("&")[4].split("=")[1]
                 yield rx.redirect("/dashboard")
+
+    def event_state_access_flow(self, required_status: str) -> Iterable[Callable]:
+        """
+        Restricts page access based on page requirements. Pass "login" to require
+        user to be logged in, or pass "report" to require user to have submitted
+        a report.
+        """
+        if required_status == "login" and not self.user_claims_authenticated:
+            yield rx.redirect("/")
+            yield rx.toast.error("Please login to access that page.")
+
+        if required_status == "report" and not self.user_has_reported:
+            yield rx.redirect("/onboard")
+            yield rx.toast.error("Please submit a report to access that page.")
 
     def refresh_access_token(self) -> None:
         """
@@ -161,10 +180,10 @@ class BaseState(rx.State):
             if remote_modified_at_timestamp == local_modified_at_timestamp
             else False
         )
-
-    def reset_user_info(self) -> Iterable[Callable]:
+        
+    def refresh_user_info(self) -> Iterable[Callable]:
         """
-        Resets exising user's info, or creates new user if user info missing.
+        Refreshes exising user's info in state, or creates new user if user info missing.
         """
         try:
             # Set user info to state or create new user
@@ -205,7 +224,7 @@ class BaseState(rx.State):
         except Exception as e:
             logger.critical(e)
             yield rx.redirect("/")
-            yield rx.toast.error("Unable to reset user info.")
+            yield rx.toast.error("Unable to reset/populate user info.")
 
     def create_new_user(self) -> Iterable[Callable]:
         """
@@ -235,28 +254,45 @@ class BaseState(rx.State):
             yield rx.toast.error("Unable to perform requested update.")
 
     def event_state_add_hospital(self, hosp_id: str) -> Iterable[Callable]:
+        """
+        Add a user selected hospital to user's saved hospital list.
+        """
         try:
+            # Limit saved hospital list length to 30 items.
             if len(self.user_info["saved_hospitals"]) >= 30:
                 yield rx.toast.error("Maximum number of saved hospitals reached. (30)")
+            
+            # If not duplicate, and not present in list, add to list.
             elif hosp_id not in self.user_info["saved_hospitals"]:
                 new_user_info = self.user_info["saved_hospitals"] + [hosp_id]
                 user_info = {"saved_hospitals": new_user_info}
                 yield from self.update_user_info_and_sync_locally(user_info)
                 yield rx.toast.success("Hospital saved to 'My Hospitals'.")
+
+            # Notify user that hospital is already present.
             else:
-                yield rx.toast.warning("Hospital is already added to your list.")
+                yield rx.toast.warning("This hospital has already been saved to your list.")
+
         except RequestFailed as e:
             yield rx.toast.error(str(e), timeout=5000)
         except Exception as e:
             logger.critical(str(e))
 
     def event_state_remove_hospital(self, hosp_id: str) -> Iterable[Callable]:
+        """
+        Removes a selected hospital from user's saved hospital list.
+        """
         try:
+            # Make a new list not including selected hospital.
             new_user_info = [
                 h for h in self.user_info["saved_hospitals"] if h != hosp_id
             ]
+
+            # Upload new list to cloud database.
             user_info = {"saved_hospitals": new_user_info}
             self.update_user_info_and_sync_locally(user_info)
+
+            # 
             new_saved_hospitals = [
                 h for h in self.saved_hospitals if h.get("hosp_id") != hosp_id
             ]
@@ -279,6 +315,7 @@ class BaseState(rx.State):
             logger.critical(str(e))
 
     def redirect_user_to_login(self) -> Iterable[Callable]:
+
         from .navbar_state import NavbarState
 
         yield rx.redirect("/")
@@ -298,8 +335,10 @@ class BaseState(rx.State):
 
     def redirect_user_to_onboard_or_dashboard(self) -> Callable:
         if self.user_has_reported:
+            logger.debug("Sending user to dashboard.")
             return rx.redirect("/dashboard")
         else:
+            logger.debug("Sending user to onboard.")
             return rx.redirect("/onboard")
 
     def event_state_logout(self) -> Iterable[Callable]:

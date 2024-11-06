@@ -18,7 +18,8 @@ import reflex as rx
     route="/report/full-report/assignment",
     title="Nurse Reports",
     on_load=[
-        BaseState.event_state_standard_flow("login"),
+        BaseState.event_state_auth_flow,
+        BaseState.event_state_access_flow("login"),
         ReportState.event_state_report_flow
     ]
 )

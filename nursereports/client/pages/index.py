@@ -10,7 +10,7 @@ import reflex as rx
 @rx.page(
     route="/",
     title="Nurse Reports",
-    on_load=BaseState.event_state_standard_flow("none"),
+    on_load=BaseState.event_state_auth_flow,
 )
 def index_page() -> rx.Component:
     return rx.flex(

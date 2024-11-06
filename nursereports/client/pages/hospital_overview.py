@@ -13,7 +13,8 @@ import reflex as rx
     route="/hospital/[cms_id]",
     title="Nurse Reports",
     on_load=[
-        BaseState.event_state_standard_flow("report"),
+        BaseState.event_state_auth_flow,
+        BaseState.event_state_access_flow("report"),
         HospitalState.event_state_load_hospital_info,
         HospitalState.event_state_load_report_info,
         HospitalState.event_state_load_pay_info,

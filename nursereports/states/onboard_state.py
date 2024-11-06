@@ -50,12 +50,12 @@ class OnboardState(BaseState):
                 "needs_onboard": True if self.has_review == "Yes" else False,
             }
             updated_info = supabase_update_user_info(
-                self.access_token, self.user_claims["payload"]["sub"], data
+                self.access_token, self.user_claims_id, data
             )
             self.user_info.update(updated_info)
             if self.user_info["needs_onboard"]:
                 logger.debug("User will need to complete a report for site access.")
-                yield rx.redirect("/search/report")
+                yield rx.redirect("/search/hospital")
             else:
                 logger.debug("User doesn't have a report to capture.")
                 yield rx.redirect("/dashboard")

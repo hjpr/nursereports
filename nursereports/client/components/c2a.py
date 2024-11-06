@@ -5,7 +5,7 @@ import reflex as rx
 
 def c2a() -> rx.Component:
     return rx.cond(
-        BaseState.user_is_authenticated,
+        BaseState.user_claims_authenticated,
         rx.box(
             rx.hstack(
                 rx.center(

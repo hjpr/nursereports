@@ -131,9 +131,7 @@ def supabase_get_user_modified_at_timestamp(access_token: str) -> dict | None:
         content = json.loads(response.content)
         return content[0]
     else:
-        raise RequestFailed(
-            "Request failed pulling timestamp info to compare stored to state."
-        )
+        raise RequestFailed(f"{response.status_code} - {response.reason_phrase}")
 
 
 def supabase_update_user_info(
@@ -169,7 +167,7 @@ def supabase_update_user_info(
         logger.debug("Updated user info in public/users.")
         return data
     else:
-        raise RequestFailed("Failed to update user information.")
+        raise RequestFailed(f"{response.status_code} - {response.reason_phrase}")
 
 
 def supabase_get_user_reports(access_token: str, user_id: str) -> list[dict] | None:
@@ -208,7 +206,7 @@ def supabase_get_user_reports(access_token: str, user_id: str) -> list[dict] | N
         logger.debug(f"Pulled {len(content)} user report(s) successfully.")
         return content
     else:
-        raise RequestFailed("Failed request to retrieve user reports from database.")
+        raise RequestFailed(f"{response.status_code} - {response.reason_phrase}")
     
 def supabase_get_full_report_info(access_token: str, report_id: str) -> dict | None:
     """
@@ -236,7 +234,7 @@ def supabase_get_full_report_info(access_token: str, report_id: str) -> dict | N
         logger.debug(f"Pulled {len(content)} user report(s) successfully.")
         return content[0]
     else:
-        raise RequestFailed("Failed request to retrieve user reports from database.")
+        raise RequestFailed(f"{response.status_code} - {response.reason_phrase}")
     
 
 def supabase_delete_user_report(access_token: str, report_id: str) -> None:
@@ -260,7 +258,7 @@ def supabase_delete_user_report(access_token: str, report_id: str) -> None:
     if response.is_success:
         logger.warning(f"Removed report {report_id}")
     else:
-        raise RequestFailed("Failed request to report removal from database.")
+        raise RequestFailed(f"{response.status_code} - {response.reason_phrase}")
 
 
 def supabase_get_saved_hospitals(access_token: str, user_id: str) -> list | None:
@@ -295,8 +293,8 @@ def supabase_get_saved_hospitals(access_token: str, user_id: str) -> list | None
         else:
             logger.debug("User doesn't have any saved hospitals to retrieve.")
     else:
-        raise RequestFailed("Request failed retrieving saved hospitals.")
-    
+        raise RequestFailed(f"{response.status_code} - {response.reason_phrase}")
+
 
 def supabase_populate_saved_hospital_details(
     access_token: str, hosp_id: list
@@ -336,10 +334,10 @@ def supabase_populate_saved_hospital_details(
             return content
         else:
             raise ReadError(
-                "Expected to retrieve saved hospital details but response was empty."
+                f"{response.status_code} - {response.reason_phrase}"
             )
     else:
-        raise RequestFailed("Request failed retrieving saved hospital details.")
+        raise RequestFailed(f"{response.status_code} - {response.reason_phrase}")
 
 
 def get_current_utc_timestamp_as_str() -> str:
