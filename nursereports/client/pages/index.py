@@ -2,7 +2,7 @@ from ..components.custom import spacer
 from ..components.footer import footer
 from ..components.navbar import navbar
 from ...states.base_state import BaseState
-from ...states.navbar_state import NavbarState
+from ...states.login_state import LoginState
 
 import reflex as rx
 
@@ -70,7 +70,10 @@ def header() -> rx.Component:
                 rx.button(
                     "Get Started",
                     rx.icon("chevron-right"),
-                    on_click=NavbarState.event_state_c2a_main,
+                    on_click=[
+                        LoginState.set_current_tab("create_account"),
+                        rx.redirect("/login")
+                    ],
                     width=["100%", "100%", "auto", "auto", "auto"],
                     radius="full",
                     color_scheme="teal",

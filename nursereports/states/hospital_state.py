@@ -1,11 +1,10 @@
 import numpy as np
-import pandas as pd
 import polars as pl
 import re
 import reflex as rx
 import rich
 
-from .base_state import BaseState
+from ..states.base_state import BaseState
 from ..server.supabase.hospital_requests import (
     supabase_get_hospital_overview_info,
     supabase_get_hospital_report_data,
@@ -20,20 +19,9 @@ from typing import Any, Callable, Iterable
 
 
 class HospitalState(BaseState):
-    """
-    HOSPITAL INFO
-    """
-
     hospital_info: dict[str, Any]
-
-    """
-    REPORT INFO
-    """
     report_info: list[dict]
 
-    """
-    PAY INFO
-    """
     interpolated_ft_pay_hospital: dict
     interpolated_pt_pay_hospital: dict
     interpolated_prn_pay_hospital: dict
@@ -57,16 +45,10 @@ class HospitalState(BaseState):
     contract_pay_info_hospital_limited: bool
     contract_pay_info_state_limited: bool
 
-    """
-    UNITS INFO
-    """
     units_areas_roles_for_units: list[str]
     units_areas_roles_hospital_scores: list[dict]
     selected_unit: str
 
-    """
-    REVIEW INFO
-    """
     review_info: list[dict]
 
     units_areas_roles_for_reviews: list[str]
@@ -79,7 +61,9 @@ class HospitalState(BaseState):
 
     @rx.var(cache=True)
     def hosp_id(self) -> str:
-        """Returns hosp_id if page param hosp_id is a valid CMS ID format."""
+        """
+        Returns hosp_id if page param hosp_id is a valid CMS ID format.
+        """
         hosp_id = self.router.page.params.get("cms_id")
         cms_is_valid = False
         if hosp_id:
@@ -159,29 +143,39 @@ class HospitalState(BaseState):
 
     @rx.var(cache=True)
     def filtered_unit_info(self) -> dict[str, str]:
-        # Iterate to retrieve matched selection
+        """
+        Used to display all units if no filters are selected, or filtered units if
+        user has selected filters.
+        """
+        # Iterate to retrieve matched selection.
         for score_dict in self.units_areas_roles_hospital_scores:
             if score_dict["units_areas_roles"] == self.selected_unit:
                 return score_dict
-        # If no match, retrieve hospital overall
+            
+        # If no match user hasn't filtered so retrieve hospital overall.
         for score_dict in self.units_areas_roles_hospital_scores:
             if score_dict["units_areas_roles"] == "hospital":
                 return score_dict
-        # Something bad happened if we make it to here
-        return {}
 
     @rx.var(cache=True)
     def filtered_review_info(self) -> list[dict]:
+        """
+        Used to display all reviews if no filters are selected, or filtered reviews
+        if user has selected filters.
+        """
+        # Load all reviews to show if no filters selected.
         filtered_review_items = self.review_info
 
-        if self.review_filter_units_areas_roles and filtered_review_items:
+        # Populate filtered_review_items with unit and area_role present.
+        if self.review_filter_units_areas_roles and self.review_info:
             filtered_review_items = [
                 review
-                for review in filtered_review_items
+                for review in self.review_info
                 if self.review_filter_units_areas_roles == review.get("unit", "")
                 or self.review_filter_units_areas_roles == review.get("area_role", "")
             ]
 
+        # Filter for "Most Recent" and/or "Most Helpful" if user has selected filters.
         if self.review_sorted and self.review_info:
             if self.review_sorted == "Most Recent":
                 filtered_review_items = sorted(
@@ -200,10 +194,16 @@ class HospitalState(BaseState):
 
     @staticmethod
     def letter_to_number(letter: str) -> int:
+        """
+        Convert stored letter grades to numbers.
+        """
         return {"a": 4, "b": 3, "c": 2, "d": 1, "f": 0}.get(letter)
 
     @staticmethod
     def number_to_letter(number: int | float) -> str:
+        """
+        Convert number grades back to formatted letter grades for display.
+        """
         return {4: "A", 3: "B", 2: "C", 1: "D", 0: "F"}.get(round(number))
 
     def set_slider(self, value) -> None:

@@ -1,16 +1,17 @@
 from ..components.custom import spacer
 from reflex.style import toggle_color_mode
-from ...states import BaseState
-from ...states import NavbarState
+from ...states import (
+    BaseState,
+    LoginState,
+    NavbarState
+)
 
 import reflex as rx
 
 
 def navbar() -> rx.Component:
     return rx.flex(
-        alert_modal(),
         feedback_modal(),
-        login_modal(),
         rx.flex(
             rx.flex(
                 rx.image(
@@ -53,7 +54,11 @@ def navbar() -> rx.Component:
 
 
 def links() -> rx.Component:
-    return rx.cond(BaseState.user_claims_authenticated, auth_links(), unauth_links())
+    return rx.cond(
+        BaseState.user_claims_authenticated,
+        auth_links(),
+        unauth_links()
+    )
 
 
 def unauth_links() -> rx.Component:
@@ -93,15 +98,22 @@ def auth_links() -> rx.Component:
 
 
 def sign_in_or_menu() -> rx.Component:
-    return rx.cond(BaseState.user_claims_authenticated, menu(), signin())
+    return rx.cond(
+        BaseState.user_claims_authenticated,
+        menu(),
+        login()
+    )
 
 
-def signin() -> rx.Component:
+def login() -> rx.Component:
     return rx.box(
         rx.link(
-            "Sign In",
-            on_click=NavbarState.event_state_navbar_pressed_sign_in,
-            cursor="pointer",
+            "Login",
+            class_name="cursor-pointer",
+            on_click=[
+                LoginState.set_current_tab("login"),
+                rx.redirect("/login"),
+            ]
         ),
         display=["none", "none", "none", "inline", "inline"],
         margin="0 0 0 60px",
@@ -228,7 +240,8 @@ def auth_report_hamburger_mobile() -> rx.Component:
                             ),
                             rx.divider(),
                             rx.link(
-                                "Logout", href=f"{BaseState.host_address}/logout/user"
+                                "Logout",
+                                on_click=BaseState.event_state_logout
                             ),
                             flex_direction="column",
                             width="100%",
@@ -330,8 +343,11 @@ def unauth_hamburger_mobile() -> rx.Component:
                             ),
                             rx.divider(),
                             rx.link(
-                                "Sign In",
-                                on_click=NavbarState.event_state_navbar_pressed_sign_in,
+                                "Login",
+                                on_click=[
+                                    LoginState.set_current_tab("login"),
+                                    rx.redirect("/login"),
+                                ]
                             ),
                             flex_direction="column",
                             width="100%",
@@ -399,260 +415,4 @@ def feedback_modal() -> rx.Component:
             ),
         ),
         open=NavbarState.show_feedback,
-    )
-
-
-def login_modal() -> rx.Component:
-    return rx.dialog.root(
-        rx.dialog.content(
-            rx.dialog.title(
-                rx.flex(
-                    rx.button(
-                        rx.icon(tag="x"),
-                        size="1",
-                        variant="ghost",
-                        on_click=NavbarState.event_state_toggle_login,
-                    ),
-                    justify="end",
-                    width="100%",
-                )
-            ),
-            rx.form(
-                rx.flex(
-                    rx.tabs.root(
-                        rx.center(
-                            rx.tabs.list(
-                                rx.tabs.trigger(
-                                    "Login",
-                                    value="login",
-                                    on_click=NavbarState.set_login_tab("login"),
-                                ),
-                                rx.tabs.trigger(
-                                    "Create Account",
-                                    value="create_account",
-                                    on_click=NavbarState.set_login_tab(
-                                        "create_account"
-                                    ),
-                                ),
-                                size="2",
-                            ),
-                            width="100%",
-                        ),
-                        rx.tabs.content(
-                            login_tab_login(),
-                            value="login",
-                        ),
-                        rx.tabs.content(login_tab_account(), value="create_account"),
-                        value=NavbarState.login_tab,
-                        width="100%",
-                    ),
-                    justify="center",
-                ),
-                on_submit=NavbarState.event_state_login_modal_submit,
-            ),
-            max_width="400px",
-            on_escape_key_down=NavbarState.set_show_login(False),
-        ),
-        open=NavbarState.show_login,
-    )
-
-
-def login_tab_login() -> rx.Component:
-    return rx.flex(
-        spacer(),
-        rx.heading(
-            "Login to your account", size="6", text_align="center", width="100%"
-        ),
-        rx.flex(
-            rx.flex(
-                rx.text("Email", size="2", padding="0 0 0 12px"),
-                rx.input(
-                    placeholder="Enter email",
-                    name="login_email",
-                    width="100%",
-                    size="3",
-                    radius="full",
-                    required=True,
-                ),
-                flex_direction="column",
-                width="100%",
-            ),
-            rx.flex(
-                rx.text("Password", size="2", padding="0 0 0 12px"),
-                rx.input(
-                    placeholder="Enter password",
-                    name="login_password",
-                    type="password",
-                    width="100%",
-                    size="3",
-                    radius="full",
-                    required=True,
-                ),
-                flex_direction="column",
-                width="100%",
-            ),
-            login_callout(),
-            rx.button(
-                "Login",
-                width="100%",
-                type="submit",
-                size="3",
-                radius="full",
-                margin="20px 0 0 0",
-            ),
-            flex_direction="column",
-            gap="24px",
-            width="100%",
-            justify_content="center",
-            padding="0 48px 0 48px",
-        ),
-        rx.hstack(
-            rx.divider(),
-            rx.text("OR", size="2", padding="6px", white_space="nowrap"),
-            rx.divider(),
-            align="center",
-            width="100%",
-            padding="12px 0 0 0",
-        ),
-        rx.hstack(
-            rx.image(
-                src="/sso/google_sso.png",
-                height="44px",
-                cursor="pointer",
-                on_click=NavbarState.event_state_login_with_sso("google"),
-            ),
-            rx.image(
-                src="/sso/facebook_sso.png",
-                height="44px",
-                cursor="pointer",
-                on_click=NavbarState.event_state_login_with_sso("facebook"),
-            ),
-            rx.image(
-                src="/sso/linkedin_sso.png",
-                height="44px",
-                cursor="pointer",
-                on_click=NavbarState.event_state_login_with_sso("linkedin_oidc"),
-            ),
-            width="100%",
-            justify="center",
-            gap="48px",
-            padding="12px 0 12px 0",
-        ),
-        spacer(),
-        width="100%",
-        gap="24px",
-        flex_direction="column",
-    )
-
-
-def login_callout() -> rx.Component:
-    return rx.cond(
-        NavbarState.error_sign_in_message,
-        rx.callout(
-            NavbarState.error_sign_in_message,
-            icon="triangle_alert",
-            color_scheme="red",
-            role="alert",
-            margin="20px 0 0 0",
-        ),
-    )
-
-
-def login_tab_account() -> rx.Component:
-    return rx.flex(
-        spacer(),
-        rx.heading("Create new account", size="6", text_align="center", width="100%"),
-        rx.flex(
-            rx.flex(
-                rx.text("Email", size="2", padding="0 0 0 12px"),
-                rx.input(
-                    placeholder="Enter email",
-                    name="create_account_email",
-                    width="100%",
-                    radius="full",
-                    size="3",
-                    required=True,
-                ),
-                flex_direction="column",
-                width="100%",
-            ),
-            rx.flex(
-                rx.flex(
-                    rx.text("Password", size="2", padding="0 0 0 12px"),
-                    rx.input(
-                        placeholder="Enter password",
-                        name="create_account_password",
-                        type="password",
-                        width="100%",
-                        size="3",
-                        radius="full",
-                        required=True,
-                    ),
-                    flex_direction="column",
-                    width="100%",
-                ),
-                rx.flex(
-                    rx.text("Confirm password", size="2", padding="0 0 0 12px"),
-                    rx.input(
-                        placeholder="Re-enter password",
-                        name="create_account_password_confirm",
-                        type="password",
-                        width="100%",
-                        size="3",
-                        radius="full",
-                        required=True,
-                    ),
-                    flex_direction="column",
-                    width="100%",
-                ),
-                flex_direction="column",
-                gap="24px",
-            ),
-            create_account_callout(),
-            rx.center(
-                rx.button(
-                    "Create account",
-                    width="100%",
-                    type="submit",
-                    size="3",
-                    radius="full",
-                    margin="20px 0 0 0",
-                ),
-                width="100%",
-            ),
-            flex_direction="column",
-            width="100%",
-            gap="24px",
-            padding="0 48px 0 48px",
-        ),
-        spacer(),
-        rx.center(
-            rx.flex(
-                rx.link("Privacy Policy", size="2"),
-                rx.divider(orientation="vertical"),
-                rx.link("AI Policy", size="2"),
-                flex_direction="row",
-                width="100%",
-                gap="24px",
-                justify_content="center",
-            )
-        ),
-        spacer(),
-        spacer(),
-        width="100%",
-        gap="24px",
-        flex_direction="column",
-    )
-
-
-def create_account_callout() -> rx.Component:
-    return rx.cond(
-        NavbarState.error_create_account_message,
-        rx.callout(
-            NavbarState.error_create_account_message,
-            icon="triangle_alert",
-            color_scheme="red",
-            role="alert",
-            margin="20px 0 0 0",
-        ),
     )

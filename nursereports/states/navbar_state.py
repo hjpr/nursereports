@@ -1,5 +1,5 @@
 
-from ..server.supabase import supabase_submit_feedback,
+from ..server.supabase import supabase_submit_feedback
 from .base_state import BaseState
 
 from loguru import logger

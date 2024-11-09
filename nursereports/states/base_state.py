@@ -9,7 +9,7 @@ from ..server.exceptions import (
 from ..server.secrets import jwt_key
 from ..server.supabase import (
     supabase_create_initial_user_info,
-    supabase_delete_user_report,  # Uncomment when ready to use function.
+    supabase_delete_user_report,
     supabase_get_new_access_token,
     supabase_get_user_info,
     supabase_get_user_modified_at_timestamp,
@@ -25,7 +25,6 @@ from typing import Callable, Iterable
 import jwt
 import reflex as rx
 import time
-import rich
 
 
 class BaseState(rx.State):
@@ -46,10 +45,6 @@ class BaseState(rx.State):
     @rx.var
     def host_address(self) -> str:
         return self.router.page.host
-
-    @rx.var
-    def reason_for_logout(self) -> str:
-        return self.router.page.params.get("logout_reason")
 
     @rx.var(cache=True)
     def user_claims(self) -> dict[str, str]:
@@ -167,9 +162,24 @@ class BaseState(rx.State):
         self.access_token = tokens.get("access_token", "")
         self.refresh_token = tokens.get("refresh_token", "")
 
+    def update_user_info_and_sync_locally(
+        self, data: dict[str, any]
+    ) -> Iterable[Callable]:
+        """
+        Provide user info data to update to remote database, then save to local state.
+        """
+        try:
+            updated_data = supabase_update_user_info(
+                self.access_token, self.user_claims_id, data
+            )
+            self.user_info.update(updated_data)
+        except Exception as e:
+            logger.critical(e)
+            yield rx.toast.error("Unable to perform requested update.")
+
     def local_user_data_synced_with_remote(self) -> bool:
         """
-        Check modified_at timestamps to ensure user_info is in sync.
+        Check modified_at timestamps to ensure user_info is in sync locally -> supabase.
         """
         remote_modified_at_timestamp = supabase_get_user_modified_at_timestamp(
             self.access_token
@@ -209,12 +219,13 @@ class BaseState(rx.State):
                 self.access_token, self.user_claims_id
             )
 
-            # Format user report timestamps
+            # Format user report timestamps for display as YYYY-MM.
             if user_reports:
                 for hospital in user_reports:
-                    hospital["created_at"] = datetime.fromisoformat(
-                        hospital["created_at"]
-                    ).strftime("%Y - %B")
+                    if hospital["created_at"]:
+                        hospital["created_at"] = datetime.fromisoformat(
+                            hospital["created_at"]
+                        ).strftime("%Y - %B")
                     if hospital["modified_at"]:
                         hospital["modified_at"] = datetime.fromisoformat(
                             hospital["modified_at"]
@@ -237,21 +248,6 @@ class BaseState(rx.State):
         except Exception as e:
             logger.critical(e)
             yield rx.toast.error("Unable to perform new user creation.")
-
-    def update_user_info_and_sync_locally(
-        self, data: dict[str, any]
-    ) -> Iterable[Callable]:
-        """
-        Provide user info data to update to remote database, then save to local state.
-        """
-        try:
-            updated_data = supabase_update_user_info(
-                self.access_token, self.user_claims_id, data
-            )
-            self.user_info.update(updated_data)
-        except Exception as e:
-            logger.critical(e)
-            yield rx.toast.error("Unable to perform requested update.")
 
     def event_state_add_hospital(self, hosp_id: str) -> Iterable[Callable]:
         """
@@ -303,6 +299,9 @@ class BaseState(rx.State):
             logger.critical(str(e))
 
     def event_state_remove_report(self, report_id: str) -> Iterable[Callable]:
+        """
+        Removes own user's report from database.
+        """
         try:
             logger.critical(f"Attempting to remove {report_id}")
             # updated_user_reports= [h for h in self.user_reports if report_id != h["report_id"]]
@@ -314,26 +313,10 @@ class BaseState(rx.State):
         except Exception as e:
             logger.critical(str(e))
 
-    def redirect_user_to_login(self) -> Iterable[Callable]:
-
-        from .navbar_state import NavbarState
-
-        yield rx.redirect("/")
-        yield NavbarState.set_login_tab("login")
-        yield NavbarState.set_show_login(True)
-        yield NavbarState.set_error_sign_in_message(
-            "You must be logged in to access that content."
-        )
-
-    def redirect_user_to_onboard(self) -> Iterable[Callable]:
-        from .navbar_state import NavbarState
-
-        yield rx.redirect("/onboard")
-        yield NavbarState.set_alert_message(
-            "Please submit a report before accessing that content."
-        )
-
     def redirect_user_to_onboard_or_dashboard(self) -> Callable:
+        """
+        Used after login to push user to be onboarded, or to the dashboard.
+        """
         if self.user_has_reported:
             logger.debug("Sending user to dashboard.")
             return rx.redirect("/dashboard")
@@ -342,21 +325,8 @@ class BaseState(rx.State):
             return rx.redirect("/onboard")
 
     def event_state_logout(self) -> Iterable[Callable]:
-        from . import NavbarState
-
-        if self.reason_for_logout == "user":
-            self.reset()
-            yield NavbarState.set_alert_message("Successfully logged out.")
-        if self.reason_for_logout == "error":
-            self.reset()
-            yield NavbarState.set_alert_message(
-                """Encountered an error. If this message
-                persists, please contact support@nursereports.org."""
-            )
-        if self.reason_for_logout == "expired":
-            self.reset()
-            yield NavbarState.set_alert_message(
-                """For your security, you've been
-                logged out for inactivity."""
-            )
+        """
+        Send to root and reset all state vars.
+        """
         yield rx.redirect("/")
+        self.reset()
