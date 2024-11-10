@@ -118,7 +118,7 @@ class BaseState(rx.State):
 
             # Ensure user data is present and current.
             if not (self.user_info and self.local_user_data_synced_with_remote()):
-                yield self.refresh_user_info()
+                yield from self.refresh_user_info()
 
         # If user is not authenticated.
         if not self.user_claims_authenticated:
