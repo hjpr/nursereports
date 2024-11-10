@@ -9,6 +9,8 @@ from .index import index_page
 from .login import login_page
 from .logout import logout_page
 from .onboard import onboard_page
+from .policy_ai import ai_policy_page
+from .policy_privacy import privacy_policy_page
 from .report_assignment import assignment_page
 from .report_compensation import compensation_page
 from .report_complete import complete_page

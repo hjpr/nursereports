@@ -7,7 +7,7 @@ import reflex as rx
 def login_page() -> rx.Component:
     return rx.flex(
         content(),
-        class_name="flex-col bg-gradient-to-b from-teal-200 to-blue-100 items-center justify-center min-h-screen w-full",
+        class_name="flex-col bg-gradient-to-b from-teal-200 to-blue-100 items-center justify-center p-4 min-h-screen w-full",
     )
 
 
@@ -23,7 +23,11 @@ def content() -> rx.Component:
 def header() -> rx.Component:
     return rx.flex(
         rx.image(src="/vector/square-activity.svg", class_name="h-9 w-9 mb-0.5 mr-2"),
-        rx.text("Nurse Reports", class_name="text-4xl text-teal-700 pb-1 font-bold"),
+        rx.text(
+            "Nurse Reports", 
+            on_click=rx.redirect("/"),
+            class_name="text-4xl cursor-pointer text-teal-700 pb-1 font-bold"
+        ),
         class_name="flex-row items-center justify-center w-full",
     )
 
@@ -94,7 +98,7 @@ def login_tab() -> rx.Component:
                     size="3",
                     loading=~rx.State.is_hydrated,
                     class_name="w-full",
-                    on_click=rx.State.set_is_hydrated(False)
+                    on_click=rx.State.set_is_hydrated(False),
                 ),
                 class_name="flex-col pt-5 w-full",
             ),
@@ -108,43 +112,34 @@ def login_tab() -> rx.Component:
         ),
         rx.flex(
             rx.button(
-                rx.image(
-                    src="/sso/google_sso.png",
-                    class_name="h-16 w-16"
-                ),
+                rx.image(src="/sso/google_sso.png", class_name="h-16 w-16"),
                 variant="ghost",
                 loading=~rx.State.is_hydrated,
                 class_name="h-16 w-16 cursor-pointer",
                 on_click=[
                     rx.State.set_is_hydrated(False),
-                    LoginState.event_state_login_with_sso("google")
-                ]
+                    LoginState.event_state_login_with_sso("google"),
+                ],
             ),
             rx.button(
-                rx.image(
-                    src="/sso/facebook_sso.png",
-                    class_name="h-16 w-16"
-                ),
+                rx.image(src="/sso/facebook_sso.png", class_name="h-16 w-16"),
                 variant="ghost",
                 loading=~rx.State.is_hydrated,
                 class_name="h-16 w-16 cursor-pointer",
                 on_click=[
                     rx.State.set_is_hydrated(False),
-                    LoginState.event_state_login_with_sso("facebook")
-                ]
+                    LoginState.event_state_login_with_sso("facebook"),
+                ],
             ),
             rx.button(
-                rx.image(
-                    src="/sso/linkedin_sso.png",
-                    class_name="h-16 w-16"
-                ),
+                rx.image(src="/sso/linkedin_sso.png", class_name="h-16 w-16"),
                 variant="ghost",
                 loading=~rx.State.is_hydrated,
                 class_name="h-16 w-16 cursor-pointer",
                 on_click=[
                     rx.State.set_is_hydrated(False),
-                    LoginState.event_state_login_with_sso("linkedin_oidc")
-                ]
+                    LoginState.event_state_login_with_sso("linkedin_oidc"),
+                ],
             ),
             class_name="flex-row justify-center pt-3 pb-6 space-x-14 w-full",
         ),
@@ -219,13 +214,20 @@ def create_account_tab() -> rx.Component:
         rx.divider(),
         rx.center(
             rx.flex(
-                rx.link("Privacy Policy", size="2"),
+                rx.link(
+                    "Privacy Policy",
+                    size="2",
+                    on_click=rx.redirect("/policy/privacy"),
+                    class_name="cursor-pointer"
+                ),
                 rx.divider(orientation="vertical"),
-                rx.link("AI Policy", size="2"),
-                flex_direction="row",
-                width="100%",
-                gap="24px",
-                justify_content="center",
+                rx.link(
+                    "AI Policy",
+                    size="2",
+                    on_click=rx.redirect("/policy/ai"),
+                    class_name="cursor-pointer"
+                ),
+                class_name="flex-row items-center justify-center p-2 mb-1 space-x-8 w-full"
             )
         ),
         class_name="flex-col items-center space-y-8 w-full",
