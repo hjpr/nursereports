@@ -1,4 +1,4 @@
-from ...states.base_state import BaseState
+from ...states import BaseState
 
 import functools
 import reflex as rx

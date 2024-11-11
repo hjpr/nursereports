@@ -146,7 +146,7 @@ def contact_us() -> rx.Component:
             "If you have any questions about this AI Policy, please contact us using the button below."
         ),
         rx.flex(
-            rx.button("Contact Us", size="3", class_name="w-full"),
+            rx.button("Contact Us", size="3", on_click=rx.redirect("/contact-us"), class_name="w-full"),
             class_name="pt-8 pb-4 w-full"
         ),
         class_name="flex-col space-y-2 w-full"

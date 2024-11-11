@@ -1,5 +1,5 @@
 from .loading import loading_page
-from ...states.base_state import BaseState
+from ...states import BaseState
 
 import reflex as rx
 

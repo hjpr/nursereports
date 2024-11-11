@@ -680,3 +680,6 @@ class HospitalState(BaseState):
 
         except RequestFailed:
             rx.toast.error("Error providing review feedback.")
+
+    def redirect_to_hospital_overview(self, hosp_id: str) -> Iterable[Callable]:
+        return rx.redirect(f"/hospital/{hosp_id}")

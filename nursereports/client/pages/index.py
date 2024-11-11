@@ -1,8 +1,8 @@
 from ..components.custom import spacer
 from ..components.footer import footer
 from ..components.navbar import navbar
-from ...states.base_state import BaseState
-from ...states.login_state import LoginState
+from ...states import BaseState, LoginState
+
 
 import reflex as rx
 
@@ -18,7 +18,6 @@ def index_page() -> rx.Component:
         navbar(),
         content(),
         footer(),
-        background="linear-gradient(ghostwhite, honeydew)",
         flex_direction="column",
         align_items="center",
         min_height="100vh",

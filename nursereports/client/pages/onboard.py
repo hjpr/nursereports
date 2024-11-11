@@ -2,9 +2,7 @@ from ..components.c2a import c2a
 from ..components.custom import spacer, login_protected
 from ..components.footer import footer
 from ..components.navbar import navbar
-from ...states.base_state import BaseState
-from ...states.onboard_state import OnboardState
-from ...states.search_state import SearchState
+from ...states import BaseState, OnboardState, SearchState
 
 import reflex as rx
 

@@ -1067,3 +1067,6 @@ class ReportState(PageState):
                 f"""User report {report['report_id']} seems ok. No entries found requiring moderation."""
             )
             return
+
+    def redirect_to_red_flag_report(self, hosp_id: str) -> Iterable[Callable]:
+        return rx.redirect(f"/report/red-flag-report/{hosp_id}/overview")      

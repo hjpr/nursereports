@@ -16,9 +16,7 @@ def navbar() -> rx.Component:
             rx.flex(
                 rx.image(
                     src="/vector/square-activity.svg",
-                    height="22px",
-                    width="22px",
-                    margin="4px 0 0 0",
+                    class_name="h-5.5 w-5.5 mb-0.5 mr-1"
                 ),
                 rx.heading(
                     "Nurse Reports",
@@ -27,9 +25,7 @@ def navbar() -> rx.Component:
                     size="6",
                     cursor="pointer",
                 ),
-                flex_direction="row",
-                gap="6px",
-                justify_content="center",
+                class_name="flex-row justify-center"
             ),
             links(),
             hamburger_mobile(),

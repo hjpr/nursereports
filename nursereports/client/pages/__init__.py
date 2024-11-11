@@ -1,4 +1,5 @@
 
+from .contact_us import contact_page
 from .dashboard import dashboard_page
 from .edit_report_assignment import edit_assignment_page
 from .edit_report_compensation import edit_compensation_page
