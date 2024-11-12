@@ -6,6 +6,7 @@ from ..server.exceptions import (
     TokenRefreshFailed,
     UserMissingReport,
 )
+from ..server.mailgun import mailgun_send_email
 from ..server.secrets import jwt_key
 from ..server.supabase import (
     supabase_create_initial_user_info,
@@ -15,6 +16,7 @@ from ..server.supabase import (
     supabase_get_user_modified_at_timestamp,
     supabase_get_user_reports,
     supabase_populate_saved_hospital_details,
+    supabase_recover_password,
     supabase_update_user_info,
 )
 
@@ -41,6 +43,8 @@ class BaseState(rx.State):
     user_info: dict[str, str | list | None] = {}
     user_reports: list[dict[str, str]] = []
     saved_hospitals: list[dict[str, str]] = []
+
+    is_loading: bool = False
 
     @rx.var
     def host_address(self) -> str:
@@ -312,6 +316,39 @@ class BaseState(rx.State):
             yield rx.toast.error(str(e))
         except Exception as e:
             logger.critical(str(e))
+
+    def event_state_contact_us_submit(self, contact_dict: dict) -> Iterable[Callable]:
+        """
+        Submits info to email via contact us page.
+        """
+        try:
+            subject = contact_dict.get("subject")
+            text = contact_dict.get("text")
+            
+            if subject and text:
+                yield mailgun_send_email("support@nursereports.org","jeremy.f.medlin@gmail.com", subject, text)
+                yield rx.toast.success("Thanks for reaching out!")
+            else:
+                yield rx.toast.error("Some or all required fields are empty.")
+
+        except Exception as e:
+            logger.error(e)
+
+    def event_state_recover_password(self, recover_dict: dict) -> Iterable[Callable]:
+        """
+        Recovers password via password recovery page.
+        """
+        try:
+            logger.info(recover_dict)
+            email = recover_dict.get("email")
+            if email:
+                yield supabase_recover_password(email)
+                yield rx.toast.success("Check your email for recovery link.")
+            else:
+                raise Exception("Enter a valid email address")
+        except Exception as e:
+            logger.error(e)
+            yield rx.toast.error(e)
 
     def redirect_user_to_onboard_or_dashboard(self) -> Callable:
         """

@@ -106,10 +106,7 @@ def login() -> rx.Component:
         rx.link(
             "Login",
             class_name="cursor-pointer",
-            on_click=[
-                LoginState.set_current_tab("login"),
-                rx.redirect("/login"),
-            ]
+            on_click=rx.redirect("/login"),
         ),
         display=["none", "none", "none", "inline", "inline"],
         margin="0 0 0 60px",
@@ -340,10 +337,7 @@ def unauth_hamburger_mobile() -> rx.Component:
                             rx.divider(),
                             rx.link(
                                 "Login",
-                                on_click=[
-                                    LoginState.set_current_tab("login"),
-                                    rx.redirect("/login"),
-                                ]
+                                on_click=rx.redirect("/login"),
                             ),
                             flex_direction="column",
                             width="100%",

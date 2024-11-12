@@ -5,7 +5,6 @@ from loguru import logger
 
 import httpx
 import json
-import rich
 
 def supabase_login_with_email(email: str, password: str) -> dict:
     """
@@ -44,9 +43,8 @@ def supabase_login_with_email(email: str, password: str) -> dict:
             "access_token": payload.get("access_token"),
         }
     else:
-        logger.critical("Failed to login using email.")
-        error_message = json.loads(response.text)
-        raise LoginCredentialsInvalid(error_message["error_description"])
+        error = json.loads(response.text)
+        raise LoginCredentialsInvalid(error.get("msg"))
 
 
 def supabase_create_account_with_email(
@@ -77,7 +75,6 @@ def supabase_create_account_with_email(
     if response.is_success:
         logger.debug("Successfully created account with email.")
     else:
-        logger.critical("Unable to create account using email.")
         error_message = json.loads(response.text)["msg"]
         raise CreateUserFailed(error_message)
 
@@ -118,5 +115,29 @@ def supabase_get_new_access_token(
             "refresh_token": response.json().get("refresh_token"),
         }
     else:
-        logger.warning("Unable to refresh access token.")
         raise TokenRefreshFailed("Unable to refresh access token.")
+    
+def supabase_recover_password(email: str) -> None:
+    """
+    Sends recovery email to a user's email account.
+
+    Args:
+        email: str - email of user to recover password for
+
+    Returns:
+        None
+    """
+    url = f"{api_url}/auth/v1/recover"
+    headers = {
+        "apikey": api_key,
+        "Content-Type": "application/json"
+    }
+    data = {
+        "email": email
+    }
+    response = httpx.post(url=url, headers=headers, data=json.dumps(data))
+    if response.is_success:
+        logger.debug(f"Sent password recovery email to {email}")
+    else:
+        error = json.loads(response.text)
+        raise Exception(error.get("msg"))

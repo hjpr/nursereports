@@ -35,25 +35,31 @@ def header() -> rx.Component:
     )
 
 def form() -> rx.Component:
-    return rx.flex(
+    return rx.form(
         rx.flex(
-            rx.text("Subject:", class_name="text-md"),
-            rx.input(
-                max_length=50
+            rx.flex(
+                rx.text("Subject:", class_name="text-md"),
+                rx.input(
+                    max_length=50,
+                    name="subject"
+                ),
+                class_name="flex-col space-y-1 w-full"
             ),
-            class_name="flex-col space-y-1 w-full"
-        ),
-        rx.flex(
-            rx.text("Message:", class_name="text-md"),
-            rx.text_area(
-                max_length=1000,
-                class_name="h-36"
+            rx.flex(
+                rx.text("Message:", class_name="text-md"),
+                rx.text_area(
+                    max_length=1000,
+                    name="text",
+                    class_name="h-36"
+                ),
+                class_name="flex-col space-y-1 w-full"
             ),
-            class_name="flex-col space-y-1 w-full"
+            rx.flex(
+                rx.button("Submit", type="submit", class_name="w-full"),
+                class_name="pt-4 w-full"
+            ),
+            class_name="flex-col items-center p-8 mb-4 space-y-4 w-full"
         ),
-        rx.flex(
-            rx.button("Submit", class_name="w-full"),
-            class_name="pt-4 w-full"
-        ),
-        class_name="flex-col items-center p-8 mb-4 space-y-4 w-full"
+        on_submit=BaseState.event_state_contact_us_submit,
+        reset_on_submit=True
     )

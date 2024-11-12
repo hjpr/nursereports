@@ -1,11 +1,9 @@
 from ..components.custom import spacer
 from ..components.footer import footer
 from ..components.navbar import navbar
-from ...states import BaseState, LoginState
-
+from ...states import BaseState
 
 import reflex as rx
-
 
 @rx.page(
     route="/",
@@ -69,10 +67,7 @@ def header() -> rx.Component:
                 rx.button(
                     "Get Started",
                     rx.icon("chevron-right"),
-                    on_click=[
-                        LoginState.set_current_tab("create_account"),
-                        rx.redirect("/login")
-                    ],
+                    on_click=rx.redirect("/create-account"),
                     width=["100%", "100%", "auto", "auto", "auto"],
                     radius="full",
                     color_scheme="teal",
@@ -139,7 +134,13 @@ def sponsors() -> rx.Component:
             line_height=["1.5", "1.5", "2", "2", "2"],
             color_scheme="gray",
         ),
-        rx.button("Contact Us", size="4", radius="full", variant="soft"),
+        rx.button(
+            "Contact Us",
+            size="4",
+            radius="full",
+            variant="soft",
+            on_click=rx.redirect("/contact-us")
+        ),
         spacer(),
         flex_direction="column",
         width="100%",

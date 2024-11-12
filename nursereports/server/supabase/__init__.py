@@ -2,6 +2,7 @@ from .auth_requests import (
     supabase_create_account_with_email,
     supabase_get_new_access_token,
     supabase_login_with_email,
+    supabase_recover_password
 )
 from .feedback_requests import supabase_submit_feedback
 from .hospital_requests import (
