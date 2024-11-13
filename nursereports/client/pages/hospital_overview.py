@@ -41,14 +41,7 @@ def content() -> rx.Component:
             pay(),
             units(),
             reviews(),
-            class_name="space-y-3 divide-y",
-            width="100%",
-            max_width="1100px",
-            align="center",
-            flex_direction="column",
-            flex_basis="auto",
-            flex_grow="1",
-            flex_shrink="0",
+            class_name="flex-col items-center space-y-3 divide-y w-full max-w-lg",
         ),
         rx.flex(
             rx.spinner(),
@@ -131,8 +124,7 @@ def pay_content() -> rx.Component:
                     rx.match(
                         HospitalState.selected_employment_type,
                         ("Full-time", full_time_hospital_pay_card()),
-                        ("Part-time", part_time_hospital_pay()),
-                        ("PRN", prn_hospital_pay())
+                        ("Part-time", part_time_hospital_pay())
                     ),
                     class_name="flex-col items-center w-full"
                 ),
@@ -141,8 +133,7 @@ def pay_content() -> rx.Component:
                     rx.match(
                         HospitalState.selected_employment_type,
                         ("Full-time", full_time_state_pay_card()),
-                        ("Part-time", part_time_state_pay()),
-                        ("PRN", prn_state_pay())
+                        ("Part-time", part_time_state_pay())
                     ),
                     class_name="flex-col items-center w-full"
                 ),
@@ -175,7 +166,7 @@ def full_time_hospital_pay_card() -> rx.Component:
         ),
         rx.flex(
             rx.cond(
-                HospitalState.interpolated_ft_pay_hospital,
+                HospitalState.extrapolated_ft_pay_hospital,
                 rx.flex(
                     rx.text(
                         HospitalState.ft_pay_hospital_formatted["hourly"],
@@ -195,7 +186,7 @@ def full_time_hospital_pay_card() -> rx.Component:
             rx.badge(HospitalState.selected_employment_type, size="3"),
             rx.flex(
                 rx.cond(
-                    HospitalState.ft_pay_hospital_info_limited & HospitalState.interpolated_ft_pay_hospital,
+                    HospitalState.ft_pay_hospital_info_limited & HospitalState.extrapolated_ft_pay_hospital,
                     rx.callout(
                         "Limited pay data",
                         icon="triangle_alert",
@@ -206,7 +197,7 @@ def full_time_hospital_pay_card() -> rx.Component:
                     ),
                 ),
                 rx.cond(
-                    ~HospitalState.interpolated_ft_pay_hospital,
+                    ~HospitalState.extrapolated_ft_pay_hospital,
                     rx.callout(
                         "No pay data",
                         icon="octagon_alert",
@@ -236,7 +227,7 @@ def full_time_state_pay_card() -> rx.Component:
         # STATE PAY INFO
         rx.flex(
             rx.cond(
-                HospitalState.interpolated_ft_pay_state,
+                HospitalState.extrapolated_ft_pay_state,
                 rx.flex(
                     rx.text(
                         HospitalState.ft_pay_state_formatted,
@@ -253,7 +244,7 @@ def full_time_state_pay_card() -> rx.Component:
             # Callouts
             rx.flex(
                 rx.cond(
-                    HospitalState.ft_pay_state_info_limited & HospitalState.interpolated_ft_pay_state,
+                    HospitalState.ft_pay_state_info_limited & HospitalState.extrapolated_ft_pay_state,
                     rx.callout(
                         "Limited pay data",
                         icon="triangle_alert",
@@ -264,7 +255,7 @@ def full_time_state_pay_card() -> rx.Component:
                     ),
                 ),
                 rx.cond(
-                    ~HospitalState.interpolated_ft_pay_state,
+                    ~HospitalState.extrapolated_ft_pay_state,
                     rx.callout(
                         "No pay data",
                         icon="octagon_alert",
@@ -292,7 +283,7 @@ def part_time_hospital_pay() -> rx.Component:
         ),
         rx.flex(
             rx.cond(
-                HospitalState.interpolated_pt_pay_hospital,
+                HospitalState.extrapolated_pt_pay_hospital,
                 rx.flex(
                     rx.text(
                         HospitalState.pt_pay_hospital_formatted,
@@ -308,7 +299,7 @@ def part_time_hospital_pay() -> rx.Component:
             rx.badge(HospitalState.selected_employment_type, size="3"),
             rx.flex(
                 rx.cond(
-                    HospitalState.ft_pay_hospital_info_limited & HospitalState.interpolated_pt_pay_hospital,
+                    HospitalState.ft_pay_hospital_info_limited & HospitalState.extrapolated_pt_pay_hospital,
                     rx.callout(
                         "Limited pay data",
                         icon="triangle_alert",
@@ -319,7 +310,7 @@ def part_time_hospital_pay() -> rx.Component:
                     ),
                 ),
                 rx.cond(
-                    ~HospitalState.interpolated_pt_pay_hospital,
+                    ~HospitalState.extrapolated_pt_pay_hospital,
                     rx.callout(
                         "No pay data",
                         icon="octagon_alert",
@@ -348,7 +339,7 @@ def part_time_state_pay() -> rx.Component:
         ),
         rx.flex(
             rx.cond(
-                HospitalState.interpolated_pt_pay_state,
+                HospitalState.extrapolated_pt_pay_state,
                 rx.flex(
                     rx.text(
                         HospitalState.pt_pay_state_formatted,
@@ -364,7 +355,7 @@ def part_time_state_pay() -> rx.Component:
             rx.badge(HospitalState.selected_employment_type, size="3"),
             rx.flex(
                 rx.cond(
-                    HospitalState.pt_pay_state_info_limited & HospitalState.interpolated_pt_pay_state,
+                    HospitalState.pt_pay_state_info_limited & HospitalState.extrapolated_pt_pay_state,
                     rx.callout(
                         "Limited pay data",
                         icon="triangle_alert",
@@ -375,7 +366,7 @@ def part_time_state_pay() -> rx.Component:
                     ),
                 ),
                 rx.cond(
-                    ~HospitalState.interpolated_pt_pay_state,
+                    ~HospitalState.extrapolated_pt_pay_state,
                     rx.callout(
                         "No pay data",
                         icon="octagon_alert",
@@ -392,115 +383,6 @@ def part_time_state_pay() -> rx.Component:
         class_name="flex-col items-center divide-y w-full"
     )
 
-def prn_hospital_pay() -> rx.Component:
-    return rx.flex(
-        rx.flex(
-            rx.text(
-                "Hospital Average",
-                class_name="text-xl"
-            ),
-            class_name="flex-col bg-teal-100 items-center p-2 w-full"
-        ),
-        rx.flex(
-            rx.cond(
-                HospitalState.interpolated_prn_pay_hospital,
-                rx.flex(
-                    rx.text(
-                        HospitalState.prn_pay_hospital_formatted,
-                        class_name="text-4xl font-bold"
-                    ),
-                    class_name="flex-col items-center justify-center h-14 w-full"
-                ),
-                rx.flex(
-                    rx.icon("ban", color="lightgrey", size=40),
-                    class_name="flex-col items-center justify-center h-14 w-full"
-                )
-            ),
-            rx.badge(HospitalState.selected_employment_type, size="3"),
-            rx.flex(
-                rx.cond(
-                    HospitalState.prn_pay_hospital_info_limited & HospitalState.interpolated_prn_pay_hospital,
-                    rx.callout(
-                        "Limited pay data",
-                        icon="triangle_alert",
-                        color_scheme="orange",
-                        variant="surface",
-                        size="1",
-                        class_name="w-auto"
-                    ),
-                ),
-                rx.cond(
-                    ~HospitalState.interpolated_prn_pay_hospital,
-                    rx.callout(
-                        "No pay data",
-                        icon="octagon_alert",
-                        color_scheme="ruby",
-                        variant="surface",
-                        size="1",
-                        class_name="w-auto"
-                    ),
-                ),
-                class_name="flex-col items-center w-full"
-            ),
-            class_name="flex-col items-center p-6 space-y-6 w-full"
-        ),
-        class_name="flex-col items-center divide-y w-full"
-    )
-
-def prn_state_pay() -> rx.Component:
-    return rx.flex(
-        rx.flex(
-            rx.text(
-                "State Average",
-                class_name="text-xl"
-            ),
-            class_name="flex-col bg-teal-100 items-center p-2 w-full"
-        ),
-        rx.flex(
-            rx.cond(
-                HospitalState.interpolated_prn_pay_state,
-                rx.flex(
-                    rx.text(
-                        HospitalState.prn_pay_state_formatted,
-                        class_name="text-4xl font-bold"
-                    ),
-                    class_name="flex-col items-center justify-center h-14 w-full"
-                ),
-                rx.flex(
-                    rx.icon("ban", color="lightgrey", size=40),
-                    class_name="flex-col items-center justify-center h-14 w-full"
-                )
-            ),
-            rx.badge(HospitalState.selected_employment_type, size="3"),
-            rx.flex(
-                rx.cond(
-                    HospitalState.prn_pay_state_info_limited & HospitalState.interpolated_prn_pay_state,
-                    rx.callout(
-                        "Limited pay data",
-                        icon="triangle_alert",
-                        color_scheme="orange",
-                        variant="surface",
-                        size="1",
-                        class_name="w-auto"
-                    ),
-                ),
-                rx.cond(
-                    ~HospitalState.interpolated_prn_pay_state,
-                    rx.callout(
-                        "No pay data",
-                        icon="octagon_alert",
-                        color_scheme="ruby",
-                        variant="surface",
-                        size="1",
-                        class_name="w-auto"
-                    ),
-                ),
-                class_name="flex-col items-center w-full"
-            ),
-            class_name="flex-col items-center p-6 space-y-6 w-full"
-        ),
-        class_name="flex-col items-center divide-y w-full"
-    )
 
 def contract_hospital_pay() -> rx.Component:
     return rx.flex()
@@ -549,7 +431,7 @@ def staff_employment_type_selection() -> rx.Component:
         ),
         rx.flex(
             rx.radio(
-                ["Full-time", "Part-time", "PRN"],
+                ["Full-time", "Part-time"],
                 direction="row",
                 size="3",
                 spacing="3",

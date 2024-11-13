@@ -1,8 +1,6 @@
 from ..components.custom import spacer
-from reflex.style import toggle_color_mode
 from ...states import (
     BaseState,
-    LoginState,
     NavbarState
 )
 
@@ -13,164 +11,165 @@ def navbar() -> rx.Component:
     return rx.flex(
         feedback_modal(),
         rx.flex(
+            logo(),
             rx.flex(
-                rx.image(
-                    src="/vector/square-activity.svg",
-                    class_name="h-5.5 w-5.5 mb-0.5 mr-1"
-                ),
-                rx.heading(
-                    "Nurse Reports",
-                    on_click=rx.redirect("/"),
-                    color_scheme="teal",
-                    size="6",
-                    cursor="pointer",
-                ),
-                class_name="flex-row justify-center"
+                login_or_menu(),
+                hamburger_mobile(),
+                class_name="flex-row items-center space-x-2"
             ),
-            links(),
-            hamburger_mobile(),
-            sign_in_or_menu(),
-            flex_direction="row",
-            align_items="center",
-            justify_content="space-between",
-            width="100%",
-            max_width="1000px",
-            padding="0px 36px 0px 36px",
+            class_name="flex-row items-center justify-between p-4 w-full max-w-screen-xl"
         ),
-        bg="white",
-        width="100%",
-        align_items="center",
-        justify_content="center",
-        height="64px",
-        border_bottom="1px solid #E2E8F0",
-        position="sticky",
-        top="0px",
-        z_index="5",
+        class_name="flex-col items-center border justify-center sticky top-0 z-10 bg-white border-b-zinc-300 h-16 w-full"
+    )
+
+def logo() -> rx.Component:
+    return rx.flex(
+        rx.flex(
+            rx.image(
+                src="/vector/square-activity.svg",
+                class_name="h-9 md:h-7 w-9 md:w-7"
+            ),
+            rx.flex(
+                rx.text(
+                    "Nurse",
+                    on_click=rx.redirect("/"),
+                    class_name="hidden md:flex text-2xl font-bold text-teal-700 cursor-pointer"
+                ),
+                rx.text(
+                    "N",
+                    class_name="flex md:hidden text-3xl font-bold text-teal-700 cursor-pointer"
+                ),
+                rx.text(
+                    "Reports",
+                    on_click=rx.redirect("/"),
+                    class_name="hidden md:flex text-2xl font-bold text-zinc-700 cursor-pointer"
+                ),
+                rx.text(
+                    "R",
+                    on_click=rx.redirect("/"),
+                    class_name="flex md:hidden text-3xl font-bold text-zinc-700 cursor-pointer"
+                )
+            ),
+            class_name="flex-row items-center"
+        ),
+        links(),
+        class_name="flex-row items-center space-x-8 justify-center"
     )
 
 
 def links() -> rx.Component:
     return rx.cond(
         BaseState.user_claims_authenticated,
-        auth_links(),
-        unauth_links()
-    )
+        
+        # Displayed if user is authenticated.
+        rx.flex(),
 
-
-def unauth_links() -> rx.Component:
-    return rx.flex(
-        rx.link(
-            "Staff", href="https://blog.nursereports.org/for-staff", cursor="pointer"
-        ),
-        rx.link(
-            "Travelers",
-            href="https://blog.nursereports.org/for-travelers",
-            cursor="pointer",
-        ),
-        rx.link(
-            "Students",
-            href="https://blog.nursereports.org/for-students",
-            cursor="pointer",
-        ),
+        # Displayed if user not authenticated.
         rx.flex(
             rx.link(
-                "Donate", href=f"{BaseState.host_address}/donate", cursor="pointer"
+                "Staff",
+                href="https://blog.nursereports.org/for-staff",
+                class_name="cursor-pointer text-zinc-700"
             ),
-            rx.icon("hand-coins", color="teal", size=18),
-            flex_direction="row",
-            gap="8px",
-            align_items="center",
-            justify_content="center",
-            cursor="pointer",
-        ),
-        flex_direction="row",
-        gap="24px",
-        display=["none", "none", "none", "flex", "flex"],
+            rx.link(
+                "Travelers",
+                href="https://blog.nursereports.org/for-travelers",
+                class_name="cursor-pointer text-zinc-700"
+            ),
+            rx.link(
+                "Students",
+                href="https://blog.nursereports.org/for-students",
+                class_name="cursor-pointer text-zinc-700"
+            ),
+            rx.flex(
+                rx.link(
+                    "Donate",
+                    href=f"{BaseState.host_address}/donate",
+                    class_name="cursor-pointer text-teal-700"
+                ),
+                class_name="flex-row items-center space-x-2 cursor-pointer"
+            ),
+            class_name="flex-row space-x-8 hidden lg:flex"
+        )
     )
 
 
-def auth_links() -> rx.Component:
-    return rx.flex()
-
-
-def sign_in_or_menu() -> rx.Component:
+def login_or_menu() -> rx.Component:
     return rx.cond(
         BaseState.user_claims_authenticated,
-        menu(),
-        login()
-    )
 
-
-def login() -> rx.Component:
-    return rx.box(
-        rx.link(
-            "Login",
-            class_name="cursor-pointer",
-            on_click=rx.redirect("/login"),
-        ),
-        display=["none", "none", "none", "inline", "inline"],
-        margin="0 0 0 60px",
-    )
-
-
-def menu() -> rx.Component:
-    return rx.box(
-        rx.cond(
-            BaseState.user_has_reported,
-            rx.box(
-                rx.menu.root(
-                    rx.menu.trigger(rx.icon("menu", color="teal")),
-                    rx.menu.content(
-                        rx.menu.item(
-                            "Search by Hospital",
-                            on_click=rx.redirect(
-                                f"{BaseState.host_address}/search/hospital"
+        # Show menu if user is logged in.
+        rx.box(
+            rx.cond(
+                BaseState.user_has_reported,
+                rx.box(
+                    rx.menu.root(
+                        rx.menu.trigger(
+                            rx.button(
+                                rx.icon("menu"),
+                                class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 shadow-lg"
+                            )
+                        ),
+                        rx.menu.content(
+                            rx.menu.item(
+                                "Search by Hospital",
+                                on_click=rx.redirect(
+                                    f"{BaseState.host_address}/search/hospital"
+                                ),
                             ),
-                        ),
-                        rx.menu.item(
-                            "Search by State",
-                            on_click=rx.redirect(
-                                f"{BaseState.host_address}/search/state"
+                            rx.menu.item(
+                                "Search by State",
+                                on_click=rx.redirect(
+                                    f"{BaseState.host_address}/search/state"
+                                ),
                             ),
-                        ),
-                        rx.menu.separator(),
-                        rx.menu.item(
-                            "Dashboard",
-                            on_click=rx.redirect(f"{BaseState.host_address}/dashboard"),
-                        ),
-                        rx.menu.separator(),
-                        rx.menu.item(
-                            "Donate",
-                            on_click=rx.redirect(f"{BaseState.host_address}/donate"),
-                        ),
-                        rx.menu.separator(),
-                        rx.menu.item(
-                            "Logout",
-                            on_click=rx.redirect(
-                                f"{BaseState.host_address}/logout/user"
+                            rx.menu.separator(),
+                            rx.menu.item(
+                                "Dashboard",
+                                on_click=rx.redirect(f"{BaseState.host_address}/dashboard"),
+                            ),
+                            rx.menu.separator(),
+                            rx.menu.item(
+                                "Donate",
+                                on_click=rx.redirect(f"{BaseState.host_address}/donate"),
+                            ),
+                            rx.menu.separator(),
+                            rx.menu.item(
+                                "Logout",
+                                on_click=rx.redirect(
+                                    f"{BaseState.host_address}/logout/user"
+                                ),
                             ),
                         ),
                     ),
+                    cursor="pointer",
                 ),
-                cursor="pointer",
-            ),
-            rx.box(
-                rx.menu.root(
-                    rx.menu.trigger(rx.icon("menu", color="teal")),
-                    rx.menu.content(
-                        rx.menu.item(
-                            "Logout",
-                            on_click=rx.redirect(
-                                f"{BaseState.host_address}/logout/user"
-                            ),
-                        )
+                rx.box(
+                    rx.menu.root(
+                        rx.menu.trigger(rx.icon("menu", color="teal")),
+                        rx.menu.content(
+                            rx.menu.item(
+                                "Logout",
+                                on_click=rx.redirect(
+                                    f"{BaseState.host_address}/logout/user"
+                                ),
+                            )
+                        ),
                     ),
+                    cursor="pointer",
                 ),
-                cursor="pointer",
             ),
+            class_name="hidden md:flex"
         ),
-        display=["none", "none", "none", "inline", "inline"],
-        margin="0 0 0 60px",
+
+        # Show login button if user not logged in.
+        rx.box(
+            rx.button(
+                "Login",
+                on_click=rx.redirect("/login"),
+                class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 shadow-lg cursor-pointer",
+            ),
+        )
     )
 
 
@@ -189,7 +188,12 @@ def hamburger_mobile() -> rx.Component:
 def auth_report_hamburger_mobile() -> rx.Component:
     return rx.box(
         rx.drawer.root(
-            rx.drawer.trigger(rx.icon("menu", color="teal", cursor="pointer")),
+            rx.drawer.trigger(
+                rx.button(
+                    rx.icon("menu"),
+                    class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 shadow-lg"
+                )
+            ),
             rx.drawer.overlay(),
             rx.drawer.portal(
                 rx.drawer.content(
@@ -253,14 +257,19 @@ def auth_report_hamburger_mobile() -> rx.Component:
             ),
             direction="top",
         ),
-        display=["block", "block", "block", "none", "none"],
+        class_name="flex md:hidden"
     )
 
 
 def auth_no_report_hamburger_mobile() -> rx.Component:
     return rx.box(
         rx.drawer.root(
-            rx.drawer.trigger(rx.icon("menu", color="teal", cursor="pointer")),
+            rx.drawer.trigger(
+                rx.button(
+                    rx.icon("menu"),
+                    class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 shadow-lg"
+                )
+            ),
             rx.drawer.overlay(),
             rx.drawer.portal(
                 rx.drawer.content(
@@ -292,7 +301,12 @@ def auth_no_report_hamburger_mobile() -> rx.Component:
 def unauth_hamburger_mobile() -> rx.Component:
     return rx.box(
         rx.drawer.root(
-            rx.drawer.trigger(rx.icon("menu", color="teal", cursor="pointer")),
+            rx.drawer.trigger(
+                rx.button(
+                    rx.icon("menu", class_name="h-5 w-5"),
+                    class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 shadow-lg"
+                )
+            ),
             rx.drawer.overlay(),
             rx.drawer.portal(
                 rx.drawer.content(
@@ -356,7 +370,7 @@ def unauth_hamburger_mobile() -> rx.Component:
             ),
             direction="top",
         ),
-        display=["block", "block", "block", "none", "none"],
+        class_name="flex lg:hidden"
     )
 
 def feedback_modal() -> rx.Component:

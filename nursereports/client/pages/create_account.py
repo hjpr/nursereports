@@ -7,7 +7,7 @@ import reflex as rx
 def create_account_page() -> rx.Component:
     return rx.flex(
         content(),
-        class_name="flex-col bg-gradient-to-b from-teal-200 to-blue-100 items-center justify-center p-4 min-h-screen w-full",
+        class_name="flex-col bg-gradient-to-b from-teal-100 to-cyan-100 items-center justify-center p-4 min-h-screen w-full",
     )
 
 
@@ -26,11 +26,16 @@ def content() -> rx.Component:
 
 def header() -> rx.Component:
     return rx.flex(
-        rx.image(src="/vector/square-activity.svg", class_name="h-9 w-9 mb-0.5 mr-2"),
+        rx.image(src="/vector/square-activity.svg", class_name="h-9 w-9 mb-1"),
         rx.text(
-            "Nurse Reports", 
+            "Nurse", 
             on_click=rx.redirect("/"),
             class_name="text-4xl cursor-pointer text-teal-700 pb-1 font-bold"
+        ),
+        rx.text(
+            "Reports", 
+            on_click=rx.redirect("/"),
+            class_name="text-4xl cursor-pointer text-zinc-700 pb-1 font-bold"
         ),
         class_name="flex-row items-center justify-center w-full",
     )
@@ -43,7 +48,7 @@ def login() -> rx.Component:
             on_click=rx.redirect("/login"),
             class_name="cursor-pointer"
             ),
-        class_name="flex-col border rounded bg-teal-100 items-center p-2 w-full"
+        class_name="flex-col border rounded bg-zinc-50 items-center p-2 w-full"
     )
 
 

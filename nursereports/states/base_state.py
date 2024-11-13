@@ -343,7 +343,7 @@ class BaseState(rx.State):
             email = recover_dict.get("email")
             if email:
                 yield supabase_recover_password(email)
-                yield rx.toast.success("Check your email for recovery link.")
+                yield rx.redirect("/login/forgot-password/confirmation", replace=True)
             else:
                 raise Exception("Enter a valid email address")
         except Exception as e:

@@ -7,6 +7,7 @@ from .edit_report_compensation import edit_compensation_page
 from .edit_report_complete import edit_complete_page
 from .edit_report_staffing import edit_staffing_page
 from .forgot_password import forgot_password_page
+from .forgot_password_confirmation import forgot_password_confirmation_page
 from .hospital_overview import hospital_overview
 from .index import index_page
 from .login import login_page

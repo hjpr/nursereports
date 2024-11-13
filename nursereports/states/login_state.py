@@ -1,12 +1,5 @@
 
 from ..states.base_state import BaseState
-from ..server.exceptions import (
-    CreateUserFailed,
-    DuplicateUserError,
-    LoginCredentialsInvalid,
-    ReadError,
-    RequestFailed,
-)
 from ..server.secrets import api_url
 from ..server.supabase import (
     supabase_create_account_with_email,
@@ -78,7 +71,7 @@ class LoginState(rx.State):
 
                 # Check if passwords match
                 if password != password_confirm:
-                    raise LoginCredentialsInvalid("Passwords do not match")
+                    raise Exception("Passwords do not match")
                 
                 # Create account from auth data.
                 supabase_create_account_with_email(email, password)
@@ -93,7 +86,7 @@ class LoginState(rx.State):
 
         except Exception as e:
             logger.error(e)
-            yield rx.toast.error(e, close_button=True, duration=10000)
+            yield rx.toast.error(e, close_button=True)
             yield BaseState.set_is_loading(False)
 
     def event_state_login_with_sso(self, provider: str) -> Iterable[Callable]:

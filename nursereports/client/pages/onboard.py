@@ -21,14 +21,8 @@ def onboard_page() -> rx.Component:
         c2a(),
         navbar(),
         content(),
-        spacer(height="56px"),
         footer(),
-        width="100%",
-        background="linear-gradient(ghostwhite, honeydew)",
-        flex_direction="column",
-        align_items="center",
-        justify_content="center",
-        min_height="100vh",
+        class_name="flex-col items-center bg-gradient-to-b from-white to-teal-200 min-h-svh"
     )
 
 
@@ -37,60 +31,48 @@ def content() -> rx.Component:
         greeting(),
         questions(),
         button(),
-        gap="48px",
-        flex_direction="column",
-        padding_x="20px",
-        width=["100%", "480px", "480px", "480px", "480px"],
-        align="center",
-        flex_basis="auto",
-        flex_grow="1",
-        flex_shrink="0",
+        class_name="flex-col items-center space-y-10 px-4 py-24 w-full md:max-w-screen-sm"
     )
 
 
 def greeting() -> rx.Component:
     return rx.flex(
-        spacer(height="56px"),
         rx.text(
             """Welcome to the community!""",
-            font_size=["36px", "36px", "56px", "56px", "56px"],
-            font_weight="bold",
-            line_height=["1.1", "1.1", "1.2", "1.2", "1.2"],
-            color_scheme="teal",
-            text_align="center",
+            class_name="font-bold text-center md:text-6xl text-4xl text-zinc-700"
         ),
-        rx.text(
-            """
-            Hey! I'm Jeremy. I'm an ICU nurse still working bedside
-            on the East Coast. I built this tool to help nurses
-            share hospital information across the US.
-            """,
-            text_align="center",
-            line_height=["1.5", "1.5", "2", "2", "2"],
-            color_scheme="gray",
+        rx.flex(
+            rx.text(
+                """
+                Hey! I'm Jeremy. I'm an ICU nurse still working bedside
+                on the East Coast. I built this tool to help nurses
+                share hospital information across the US.
+                """,
+                class_name="text-center text-zinc-700"
+            ),
+            rx.text(
+                """
+                This community will always be free to access, I simply
+                ask that you share a report first if you are currently
+                working in a hospital.
+                """,
+                class_name="text-center text-zinc-700"
+            ),
+            class_name="flex-col items-center space-y-6 w-full"
         ),
-        rx.text(
-            """
-            This community will always be free to access, I simply
-            ask that you share a report first if you are currently
-            working in a hospital.
-            """,
-            text_align="center",
-            line_height=["1.5", "1.5", "2", "2", "2"],
-            color_scheme="gray",
-        ),
-        flex_direction="column",
-        gap="24px",
-        width="100%",
-        max_width=["480px", "480px", "640px", "640px", "640px"],
-        padding="0px 12px",
+        class_name="flex-col space-y-10 pb-4 w-full max-w-screen-sm"
     )
 
 
 def questions() -> rx.Component:
-    return rx.card(
+    return rx.flex(
         rx.flex(
-            rx.vstack(
+            rx.flex(
+                rx.text("Onboarding Questions", class_name="text-xl font-bold"),
+                rx.divider(),
+                class_name="flex-col space-y-2 w-full"
+            ),
+            rx.flex(
                 rx.text("Are you licensed?"),
                 rx.select(
                     [
@@ -105,17 +87,16 @@ def questions() -> rx.Component:
                     on_change=OnboardState.set_license,
                     required=True,
                     size="3",
-                    radius="full",
                     width="100%",
                 ),
-                width="100%",
+                class_name="flex-col space-y-1 w-full"
             ),
             rx.cond(
                 OnboardState.license,
                 rx.cond(
                     ~OnboardState.is_student,
                     rx.flex(
-                        rx.vstack(
+                        rx.flex(
                             rx.text("What state are you licensed in?"),
                             rx.select(
                                 SearchState.state_options,
@@ -124,12 +105,11 @@ def questions() -> rx.Component:
                                 on_change=OnboardState.set_license_state,
                                 required=True,
                                 size="3",
-                                radius="full",
                                 width="100%",
                             ),
-                            width="100%",
+                            class_name="flex-col space-y-1 w-full"
                         ),
-                        rx.vstack(
+                        rx.flex(
                             rx.text(
                                 """Have you worked in a hospital in some
                                 nursing role within the past year?
@@ -142,24 +122,19 @@ def questions() -> rx.Component:
                                 on_change=OnboardState.set_has_review,
                                 required=True,
                                 size="3",
-                                radius="full",
                                 width="100%",
                             ),
-                            width="100%",
+                            class_name="flex-col space-y-1 w-full"
                         ),
-                        flex_direction="column",
-                        gap="24px",
-                        width="100%",
-                    ),
-                ),
+                        class_name="flex-col space-y-4 w-full"
+                    )
+                )
             ),
             rx.cond(~OnboardState.can_give_review, callout_review()),
             callout_error(),
-            flex_direction="column",
-            gap="24px",
-            width="100%",
+            class_name="flex-col space-y-4 w-full"
         ),
-        width="100%",
+        class_name="flex-col border rounded-lg bg-white p-4 w-full"
     )
 
 
@@ -169,8 +144,6 @@ def button() -> rx.Component:
             "Let's go!",
             rx.icon("chevron-right"),
             size="4",
-            radius="full",
-            border="4px solid gainsboro",
             on_click=OnboardState.event_state_submit_onboard,
         ),
         width="100%",
@@ -179,13 +152,16 @@ def button() -> rx.Component:
 
 
 def callout_review() -> rx.Component:
-    return rx.callout(
-        """Submit a review when you get hired (within the year)
-        to maintain access. You won't be required to submit a
-        report right now.
-        """,
-        icon="info",
-        width="100%",
+    return rx.flex(
+        rx.callout(
+            """Submit a review when you get hired (within the year)
+            to maintain access. You won't be required to submit a
+            report right now.
+            """,
+            icon="info",
+            class_name="text-zinc-700 w-full"
+        ),
+        class_name="pt-2 w-full"
     )
 
 

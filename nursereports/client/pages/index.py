@@ -1,4 +1,4 @@
-from ..components.custom import spacer
+
 from ..components.footer import footer
 from ..components.navbar import navbar
 from ...states import BaseState
@@ -16,42 +16,27 @@ def index_page() -> rx.Component:
         navbar(),
         content(),
         footer(),
-        flex_direction="column",
-        align_items="center",
-        min_height="100vh",
+        class_name="flex-col items-center bg-gradient-to-b from-white to-teal-200 min-h-svh"
     )
 
 
 def content() -> rx.Component:
     return rx.flex(
         header(),
-        spacer(height="36px"),
         header_image(),
-        spacer(height="48px"),
         sponsors(),
-        spacer(height="24px"),
         info_header(),
         info_cards(),
-        width="100%",
-        align="center",
-        flex_direction="column",
-        flex_basis="auto",
-        flex_grow="1",
-        flex_shrink="0",
+        class_name="flex-col items-center w-full"
     )
 
 
 def header() -> rx.Component:
-    return rx.center(
+    return rx.flex(
         rx.flex(
-            spacer(height="56px"),
             rx.text(
                 """Hospital reviews for nurses, by nurses.""",
-                font_size=["36px", "36px", "56px", "56px", "56px"],
-                font_weight="bold",
-                line_height=["1.1", "1.1", "1.2", "1.2", "1.2"],
-                color_scheme="teal",
-                text_align="center",
+                class_name="font-bold text-center md:text-6xl text-4xl text-zinc-700"
             ),
             rx.text(
                 """
@@ -59,130 +44,85 @@ def header() -> rx.Component:
                 across the US. Share information on pay, benefits, unit
                 culture, and staffing ratios.
                 """,
-                text_align="center",
-                line_height=["1.5", "1.5", "2", "2", "2"],
-                color_scheme="gray",
+                class_name="text-center text-zinc-700"
             ),
             rx.flex(
                 rx.button(
                     "Get Started",
                     rx.icon("chevron-right"),
-                    on_click=rx.redirect("/create-account"),
-                    width=["100%", "100%", "auto", "auto", "auto"],
-                    radius="full",
-                    color_scheme="teal",
                     size="4",
-                    border="4px solid gainsboro",
+                    on_click=rx.redirect("/create-account"),
+                    class_name="bg-teal-600 w-full md:w-auto"
                 ),
                 rx.button(
                     "Learn More",
                     rx.icon("chevron-right"),
-                    on_click=rx.redirect("https://blog.nursereports.org/about-us"),
-                    width=["100%", "100%", "auto", "auto", "auto"],
-                    radius="full",
-                    color_scheme="teal",
-                    variant="ghost",
                     size="4",
+                    on_click=rx.redirect("https://blog.nursereports.org/about-us"),
+                    class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 w-full md:w-auto cursor-pointer"
                 ),
-                flex_direction=["column", "column", "row", "row", "row"],
-                width="100%",
-                gap=["20px", "20px", "36px", "36px", "36px"],
-                align_items="center",
-                justify_content="center",
-                margin="8px 0px 0px 0px",
-                padding="0 48px 0 48px",
+                class_name="flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4 w-full"
             ),
-            flex_direction="column",
-            gap="24px",
-            max_width=["480px", "480px", "640px", "640px", "640px"],
-            padding="0px 12px",
+            class_name="flex-col space-y-10 w-full md:max-w-screen-sm"
         ),
-        padding="24px",
-        width="100%",
+        class_name="flex-col items-center px-4 py-24 w-full"
     )
 
 
 def header_image() -> rx.Component:
     return rx.flex(
-        rx.card(
-            rx.flex(
-                rx.text("PLACEHOLDER", font_size="10px"),
-                height="100%",
-                width="100%",
-                align_items="center",
-                justify_content="center",
+        rx.flex(
+            rx.image(
+                src="",
+                class_name="rounded-lg h-auto w-auto"
             ),
-            width="100%",
-            border="10px solid whitesmoke",
+            class_name="flex items-center justify-center border rounded-lg bg-white shadow-lg aspect-video justify-center h-full w-full"
         ),
-        width="100%",
-        max_width="1100px",
-        padding_x="24px",
-        aspect_ratio="16 / 9",
+        class_name="flex p-4 w-full max-w-screen-lg"
     )
 
 
 def sponsors() -> rx.Component:
     return rx.flex(
-        spacer(),
         rx.text(
             """
             Are you looking to sponsor grassroots nursing
             empowerment?
             """,
-            text_align="center",
-            line_height=["1.5", "1.5", "2", "2", "2"],
-            color_scheme="gray",
+            class_name="text-center text-zinc-700"
         ),
         rx.button(
             "Contact Us",
-            size="4",
-            radius="full",
-            variant="soft",
+            size="3",
+            variant="outline",
             on_click=rx.redirect("/contact-us")
         ),
-        spacer(),
-        flex_direction="column",
-        width="100%",
-        max_width="640px",
-        gap="48px",
-        align_items="center",
-        justify_content="center",
-        padding="0 48px 0 48px",
+        class_name="flex-col items-center justify-center px-4 py-24 space-y-6 w-full max-w-screen-sm"
     )
 
 
 def info_header() -> rx.Component:
     return rx.flex(
         rx.flex(
-            rx.icon("messages-square", size=36, color="grey"),
-            rx.text(
-                """
-                No more guessing about your current or future
-                assignments.
-                """,
-                font_size=["32px", "32px", "36px", "36px", "36px"],
-                font_weight="bold",
-                line_height=["1.1", "1.1", "1.2", "1.2", "1.2"],
-                color_scheme="teal",
-                text_align="center",
+            rx.icon("messages-square", class_name="stroke-teal-700 h-10 w-10"),
+            rx.flex(
+                rx.text(
+                    "Read unfiltered and anonymous reviews from everywhere",
+                    class_name="text-2xl font-bold text-zinc-700 text-center"
+                ),
+                rx.text(
+                    """
+                    No more guessing about your current or future assignments.
+                    Smartly summarized data built for career progression, and
+                    workplace transparency.
+                    """,
+                    class_name="text-center text-zinc-700"
+                ),
+                class_name="flex-col items-center justify-center space-y-4 w-full"
             ),
-            rx.text(
-                "Read unfiltered and anonymous reviews from everywhere.",
-                text_align="center",
-                color="grey",
-            ),
-            flex_direction="column",
-            width="100%",
-            gap="24px",
-            align_items="center",
-            justify_content="center",
-            max_width="768px",
+            class_name="flex-col items-center justify-center space-y-10 w-full max-w-screen-sm"
         ),
-        bg="white",
-        width="100%",
-        justify_content="center",
-        padding="128px 48px 64px 48px",
+        class_name="flex-col items-center bg-white px-4 py-24 w-full"
     )
 
 
