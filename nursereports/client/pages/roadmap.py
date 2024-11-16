@@ -3,8 +3,8 @@ from ...states import BaseState
 
 import reflex as rx
 
-@rx.page(route="/donate", title="Nurse Reports", on_load=BaseState.event_state_auth_flow)
-def donate_page() -> rx.Component:
+@rx.page(route="/roadmap", title="Nurse Reports", on_load=BaseState.event_state_auth_flow)
+def roadmap_page() -> rx.Component:
     return rx.flex(
         content(),
         class_name="flex-col bg-gradient-to-b from-teal-100 to-cyan-100 items-center justify-center p-4 min-h-screen w-full",

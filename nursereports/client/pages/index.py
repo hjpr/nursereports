@@ -12,7 +12,6 @@ import reflex as rx
 )
 def index_page() -> rx.Component:
     return rx.flex(
-        rx.theme_panel(default_open=False),
         navbar(),
         content(),
         footer(),
@@ -52,13 +51,13 @@ def header() -> rx.Component:
                     rx.icon("chevron-right"),
                     size="4",
                     on_click=rx.redirect("/create-account"),
-                    class_name="bg-teal-600 w-full md:w-auto"
+                    class_name="bg-teal-600 w-full md:w-auto cursor-pointer"
                 ),
                 rx.button(
                     "Learn More",
                     rx.icon("chevron-right"),
                     size="4",
-                    on_click=rx.redirect("https://blog.nursereports.org/about-us"),
+                    on_click=rx.redirect("/about-us"),
                     class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 w-full md:w-auto cursor-pointer"
                 ),
                 class_name="flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4 w-full"
@@ -76,7 +75,7 @@ def header_image() -> rx.Component:
                 src="",
                 class_name="rounded-lg h-auto w-auto"
             ),
-            class_name="flex items-center justify-center border rounded-lg bg-white shadow-lg aspect-video justify-center h-full w-full"
+            class_name="flex items-center justify-center border rounded-lg bg-white shadow-lg aspect-square md:aspect-video justify-center h-full w-full"
         ),
         class_name="flex p-4 w-full max-w-screen-lg"
     )
@@ -93,11 +92,12 @@ def sponsors() -> rx.Component:
         ),
         rx.button(
             "Contact Us",
-            size="3",
-            variant="outline",
-            on_click=rx.redirect("/contact-us")
+            rx.icon("chevron-right"),
+            size="4",
+            on_click=rx.redirect("/contact-us"),
+            class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 cursor-pointer"
         ),
-        class_name="flex-col items-center justify-center px-4 py-24 space-y-6 w-full max-w-screen-sm"
+        class_name="flex-col items-center justify-center px-4 py-24 space-y-8 w-full max-w-screen-sm"
     )
 
 
@@ -107,7 +107,7 @@ def info_header() -> rx.Component:
             rx.icon("messages-square", class_name="stroke-teal-700 h-10 w-10"),
             rx.flex(
                 rx.text(
-                    "Read unfiltered and anonymous reviews from everywhere",
+                    "Read unfiltered and anonymous reviews from everywhere.",
                     class_name="text-2xl font-bold text-zinc-700 text-center"
                 ),
                 rx.text(

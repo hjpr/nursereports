@@ -4,8 +4,7 @@ from ..components import (
     footer,
     hospital_item_search,
     login_protected,
-    navbar,
-    spacer
+    navbar
 )
 from ...states import BaseState, SearchState
 
@@ -25,14 +24,9 @@ def search_page() -> rx.Component:
     return rx.flex(
         c2a(),
         navbar(),
-        spacer(height="56px"),
         content(),
-        spacer(height="40px"),
         footer(),
-        background="linear-gradient(ghostwhite, honeydew)",
-        flex_direction="column",
-        align="center",
-        min_height="100vh",
+        class_name="flex-col items-center bg-teal-50"
     )
 
 
@@ -41,21 +35,17 @@ def content() -> rx.Component:
         header(),
         search_dropdowns(),
         search_results(),
-        padding_x="20px",
-        width="100%",
-        max_width="768px",
-        gap="24px",
-        align="center",
-        flex_direction="column",
-        flex_basis="auto",
-        flex_grow="1",
-        flex_shrink="0",
+        class_name="flex-col items-center px-4 py-12 w-full max-w-screen-md"
     )
 
 
 def header() -> rx.Component:
     return rx.flex(
-        rx.heading("Find your hospital", color="grey"), width="100%", justify="center"
+        rx.text(
+            "Find your hospital",
+            class_name="text-2xl font-bold text-zinc-700"
+        ),
+        class_name="flex-col items-center w-full"
     )
 
 
@@ -66,21 +56,18 @@ def search_dropdowns() -> rx.Component:
                 SearchState.state_options,
                 value=SearchState.selected_state,
                 placeholder="- Select state -",
-                size="3",
-                radius="full",
                 position="popper",
                 on_change=SearchState.event_state_state_selected,
-                width=["100%", "40%", "40%", "40%", "40%"],
+                width=["100%", "100%", "30%", "30%", "30%"]
             ),
             rx.select(
                 SearchState.city_options,
                 placeholder="- Select city -",
                 value=SearchState.selected_city,
-                size="3",
-                radius="full",
                 position="popper",
+                disabled=~SearchState.selected_state,
                 on_change=SearchState.event_state_city_selected,
-                width=["100%", "40%", "40%", "40%", "40%"],
+                width=["100%", "100%", "30%", "30%", "30%"]
             ),
             rx.button(
                 "Search",
@@ -90,19 +77,21 @@ def search_dropdowns() -> rx.Component:
                     SearchState.event_state_search,
                     SearchState.set_search_is_loading(False),
                 ],
-                size="3",
-                radius="full",
-                loading=SearchState.search_is_loading
+                loading=SearchState.search_is_loading,
+                class_name="bg-teal-600 w-full md:w-auto"
             ),
-            flex_direction=["column", "row", "row", "row", "row"],
-            gap=["12px", "8px", "8px", "8px", "8px"],
-            width="100%",
-            justify_content="center",
+            rx.button(
+                "Clear",
+                on_click=[
+                    SearchState.set_selected_state(""),
+                    SearchState.set_selected_city(""),
+                    SearchState.set_search_results([])
+                ],
+                class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 w-full md:w-auto cursor-pointer",
+            ),
+            class_name="flex-col md:flex-row items-center justify-center md:space-x-4 space-y-4 md:space-y-0 p-8 w-full",
         ),
-        rx.divider(),
-        width="100%",
-        flex_direction="column",
-        gap="24px",
+        class_name="flex-col items-center space-y-4 w-full"
     )
 
 
@@ -110,24 +99,22 @@ def search_results() -> rx.Component:
     return rx.flex(
         rx.cond(
             SearchState.search_results,
+
+            # Search results present.
             rx.flex(
                 rx.foreach(SearchState.search_results, hospital_item_search),
-                flex_direction="column",
-                width="100%",
-                spacing="4",
+                class_name="flex-col divide-y w-full"
             ),
+
+            # No search results present.
             rx.flex(
                 rx.cond(
                     SearchState.search_is_loading,
-                    rx.chakra.spinner(),
-                    rx.icon("search", color="teal"),
+                    rx.spinner(),
+                    rx.icon("search", class_name="text-zinc-700"),
                 ),
-                width="100%",
-                align_items="center",
-                justify_content="center",
+                class_name="flex-col items-center justify-center w-full"
             ),
         ),
-        min_height="300px",
-        width="100%",
-        flex_grow="1",
+        class_name="flex basis-80 grow w-full",
     )

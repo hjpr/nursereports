@@ -1,4 +1,4 @@
-from .custom import spacer
+
 from ...states import BaseState, NavbarState
 
 import reflex as rx
@@ -6,146 +6,102 @@ import reflex as rx
 
 def footer() -> rx.Component:
     return rx.flex(
-        spacer(height="120px"),
         rx.flex(
             rx.flex(
                 rx.flex(
                     rx.flex(
-                        rx.image(
-                            src="/vector/square-activity.svg",
-                            height="22px",
-                            width="22px",
-                            margin="4px 0 0 0",
+                        rx.image(src="/vector/square-activity.svg", class_name="h-7 w-7 mb-1"),
+                        rx.text(
+                            "Nurse", 
+                            on_click=rx.redirect("/"),
+                            class_name="text-2xl cursor-pointer text-teal-700 pb-1 font-bold"
                         ),
-                        rx.heading("Nurse Reports", color="grey", padding="0 0 48px 0"),
-                        flex_direction="row",
-                        gap="6px",
-                        justify_content="center",
+                        rx.text(
+                            "Reports", 
+                            on_click=rx.redirect("/"),
+                            class_name="text-2xl cursor-pointer text-zinc-700 pb-1 font-bold"
+                        ),
+                        class_name="flex-row items-center w-full",
                     ),
                     rx.flex(
                         rx.icon("instagram", color="grey", cursor="pointer"),
-                        rx.divider(orientation="vertical"),
                         rx.icon("facebook", color="grey", cursor="pointer"),
-                        rx.divider(orientation="vertical"),
                         rx.icon("linkedin", color="grey", cursor="pointer"),
-                        flex_direction="row",
-                        gap="20px",
+                        class_name="flex-row space-x-14"
                     ),
-                    flex_direction="column",
-                    width="100%",
-                    align_items="start",
-                    justify_content="space-between",
-                    padding=[
-                        "0 0 48px 0",
-                        "0 0 48px 0",
-                        "0 0 0 0",
-                        "0 0 0 0",
-                        "0 0 0 0",
-                    ],
+                    class_name="flex-col justify-between mb-16 w-full min-h-24 md:min-h-32"
                 ),
                 rx.flex(
                     rx.flex(
                         rx.link(
                             "Staff",
-                            href="https://blog.nursereports.org/for-staff",
+                            href=f"{BaseState.host_address}/for-staff",
                             size="2",
                             cursor="pointer",
                         ),
                         rx.link(
                             "Travelers",
-                            href="https://blog.nursereports.org/for-travelers",
+                            href=f"{BaseState.host_address}/for-travelers",
                             size="2",
                             cursor="pointer",
                         ),
                         rx.link(
                             "Students",
-                            href="https://blog.nursereports.org/for-students",
+                            href=f"{BaseState.host_address}/for-students",
                             size="2",
                             cursor="pointer",
                         ),
-                        rx.flex(
-                            rx.link(
-                                "Donate",
-                                href="https://nursereports.org/donate",
-                                size="2",
-                                cursor="pointer"
-                                ),
-                            rx.icon("hand-coins", color="teal", size=14),
-                            gap="8px",
-                            align_items="center",
+                        rx.link(
+                            "Donate",
+                            href=f"{BaseState.host_address}/donate",
+                            size="2",
+                            cursor="pointer"
                         ),
-                        flex_direction="column",
-                        gap="12px",
-                        width="100%",
+                        class_name="flex-col space-y-4 w-full"
                     ),
                     rx.flex(
                         rx.link(
                             "About Us",
-                            href="https://blog.nursereports.org/about-us",
+                            href=f"{BaseState.host_address}/about-us",
                             size="2",
                             cursor="pointer"
                         ),
-                        feedback(),
+                        rx.cond(
+                            BaseState.user_claims_authenticated,
+                            rx.link(
+                                "Feedback",
+                                size="2",
+                                cursor="pointer",
+                                on_click=NavbarState.set_show_feedback(True)
+                            ),
+                        ),
                         rx.link(
-                            "Contact",
-                            href="https://nursereports.org/contact",
+                            "Contact Us",
+                            href=f"{BaseState.host_address}/contact-us",
                             size="2",
                             cursor="pointer"
                             ),
                         rx.link(
                             "Roadmap",
-                            href="https://blog.nursereports.org/roadmap",
+                            href=f"{BaseState.host_address}/roadmap",
                             size="2",
                             cursor="pointer"
                         ),
-                        flex_direction="column",
-                        gap="12px",
-                        width="100%",
-                        padding="0 0 0 48px",
+                        class_name="flex-col space-y-4 w-full"
                     ),
-                    flex_direction="row",
-                    width="100%",
+                    class_name="flex-row w-full"
                 ),
-                flex_direction=["column", "column", "row", "row", "row"],
-                width="100%",
+                class_name="flex-col md:flex-row p-8 w-full min-h-32"
             ),
-            rx.divider(),
             rx.flex(
                 rx.flex(
-                    rx.icon("copyright", size=14, color="grey"),
-                    rx.text("2024 Nurse Reports", size="2", color="grey"),
-                    flex_direction="row",
-                    gap="8px",
-                    align_items="center",
+                    rx.icon("copyright", class_name="h-4 w-4"),
+                    rx.text("2024 Nurse Reports", class_name="text-sm pl-4"),
+                    class_name="flex-row items-center text-zinc-400"
                 ),
-                width="100%",
-                justify_content="center",
+                class_name="flex-col items-center w-full"
             ),
-            flex_direction="column",
-            width="100%",
-            max_width="768px",
-            gap="64px",
-            padding="0 36px 0 36px",
+            class_name="flex-col space-y-8 w-full max-w-screen-md"
         ),
-        spacer(height="100px"),
-        bg="white",
-        min_height="260px",
-        flex_direction="column",
-        flex_basis="auto",
-        flex_grow="0",
-        flex_shrink="0",
-        width="100%",
-        justify_content="center",
-        align_items="center",
-    )
-
-def feedback() -> rx.Component:
-    return rx.cond(
-        BaseState.user_claims_authenticated,
-        rx.link(
-            "Feedback",
-            size="2",
-            cursor="pointer",
-            on_click=NavbarState.set_show_feedback(True)
-            ),
+        class_name="flex-col bg-white items-center justify-center py-32 w-full"
     )

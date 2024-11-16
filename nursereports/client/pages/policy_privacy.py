@@ -11,7 +11,7 @@ import reflex as rx
 def privacy_policy_page() -> rx.Component:
     return rx.flex(
         content(),
-        class_name="flex-col bg-gradient-to-b from-teal-200 to-blue-100 items-center justify-center p-4 min-h-screen w-full",
+        class_name="flex-col bg-gradient-to-b from-teal-100 to-cyan-100 items-center justify-center p-4 min-h-screen w-full",
     )
 
 

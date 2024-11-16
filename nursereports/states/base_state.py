@@ -26,6 +26,7 @@ from typing import Callable, Iterable
 
 import jwt
 import reflex as rx
+import rich
 import time
 
 
@@ -122,7 +123,7 @@ class BaseState(rx.State):
 
             # Ensure user data is present and current.
             if not (self.user_info and self.local_user_data_synced_with_remote()):
-                yield from self.refresh_user_info()
+                yield from self.get_user_info()
 
         # If user is not authenticated.
         if not self.user_claims_authenticated:
@@ -195,7 +196,7 @@ class BaseState(rx.State):
             else False
         )
         
-    def refresh_user_info(self) -> Iterable[Callable]:
+    def get_user_info(self) -> Iterable[Callable]:
         """
         Refreshes exising user's info in state, or creates new user if user info missing.
         """

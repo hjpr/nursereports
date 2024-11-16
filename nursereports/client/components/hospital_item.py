@@ -8,49 +8,26 @@ def hospital_item_search(hospital: dict[str, str]) -> rx.Component:
     return rx.flex(
         rx.flex(
             rx.flex(
-                rx.flex(
-                    rx.text(
-                        f"{hospital['hosp_name']}",
-                        font_weight="bold",
-                        font_size=["18px", "18px", "22px", "22px", "22px"],
-                        line_height="1em"
-                        ),
-                    rx.text(
-                        f"{hospital['hosp_city']}, {hospital['hosp_state']}",
-                        font_size=["14px", "14px", "16px", "16px", "16px"],
-                        font_style="italic",
-                        ),
-                    flex_direction="column",
-                    gap=["4px", "4px", "12px", "12px", "12px"]
+                rx.text(
+                    f"{hospital['hosp_name']}",
+                    class_name="text-md md:text-xl font-bold text-zinc-700"
                 ),
-                align="center",
-                margin=["12px", "12px", "24px", "24px", "24px"]
+                rx.text(
+                    f"{hospital['hosp_city']}, {hospital['hosp_state']}",
+                    class_name="text-md md:text-lg italic text-zinc-600"
+                ),
+                class_name="flex-col space-y-2 p-4 w-full"
             ),
             rx.spacer(),
             rx.flex(
-                hospital_item_search_dropdown(hospital),
-                align="center",
-                justify="center",
-                height="100%",
-                min_height="100px",
-                width="100px",
-                min_width="100px"
+                rx.flex(
+                    hospital_item_search_arrow(hospital),
+                    class_name="flex-col items-center justify-center p-4"
+                ),
             ),
-            rx.flex(
-                hospital_item_search_arrow(hospital),
-                align="center",
-                justify="center",
-                height="100%",
-                min_height="100px",
-                width="100px",
-                min_width="100px",
-                border_left="1px solid var(--chakra-colors-chakra-border-color)"
-            ),
-            flex_direction="row",
-            width="100%"
+            class_name="flex-row w-full"
         ),
-        min_height="100px",
-        width="100%"
+        class_name="w-full min-w-36"
     )
 
 
@@ -107,18 +84,15 @@ def hospital_item_search_arrow(hospital: dict[str, str]) -> rx.Component:
         BaseState.user_has_reported,
         rx.box(
             rx.button(
-                rx.icon("arrow-right"),
-                variant="ghost",
-                cursor="pointer",
+                rx.text("Go"),
+                rx.icon("arrow-right", class_name="h-4 w-4"),
                 on_click=HospitalState.redirect_to_hospital_overview(hospital['hosp_id']),
+                class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 cursor-pointer",
             )
         ),
         rx.box(
             rx.button(
                 rx.icon("arrow-right"),
-                size="2",
-                variant="ghost",
-                cursor="pointer",
                 on_click=ReportState.event_state_create_full_report(hospital['hosp_id']),
             )
         )

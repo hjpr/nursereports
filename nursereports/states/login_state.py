@@ -32,8 +32,10 @@ class LoginState(rx.State):
 
                 # Get JWT using provided auth data.
                 tokens = supabase_login_with_email(email, password)
-                rich.inspect(tokens)
                 yield BaseState.set_access_token(tokens.get("access_token"))
+
+                # Get user data.
+                yield BaseState.get_user_info
 
                 # Send to proper page.
                 yield BaseState.redirect_user_to_onboard_or_dashboard

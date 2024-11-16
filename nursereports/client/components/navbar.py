@@ -1,4 +1,4 @@
-from ..components.custom import spacer
+
 from ...states import (
     BaseState,
     NavbarState
@@ -6,21 +6,60 @@ from ...states import (
 
 import reflex as rx
 
-
 def navbar() -> rx.Component:
     return rx.flex(
-        feedback_modal(),
-        rx.flex(
-            logo(),
+        feedback(),
             rx.flex(
-                login_or_menu(),
-                hamburger_mobile(),
-                class_name="flex-row items-center space-x-2"
+                logo(),
+                links(),
+                rx.spacer(),
+                rx.flex(
+                    search(),
+                    login_or_account(),
+                    mobile_menu(),
+                    class_name="flex-row space-x-2"
+                ),
+                class_name="flex-row items-center justify-between p-4 w-full max-w-screen-xl",
             ),
-            class_name="flex-row items-center justify-between p-4 w-full max-w-screen-xl"
-        ),
-        class_name="flex-col items-center border justify-center sticky top-0 z-10 bg-white border-b-zinc-300 h-16 w-full"
+        class_name="flex-col border items-center justify-center sticky top-0 z-10 bg-white border-b-zinc-300 h-16 w-full"
     )
+
+def feedback() -> rx.Component:
+    return rx.dialog.root(
+        rx.dialog.content(
+            rx.dialog.title("Provide feedback."),
+            rx.form(
+                rx.dialog.description(
+                    rx.text_area(
+                        name="feedback",
+                        placeholder="Suggestions, improvements, or kudos?",
+                        height="150px",
+                        max_length=500,
+                    )
+                ),
+                rx.flex(
+                    rx.dialog.close(
+                        rx.button(
+                            "Cancel",
+                            type="button",
+                            variant="soft",
+                            size="3",
+                            radius="full",
+                            on_click=NavbarState.set_show_feedback(False),
+                        )
+                    ),
+                    rx.dialog.close(
+                        rx.button("Submit", type="submit", size="3", radius="full")
+                    ),
+                    spacing="3",
+                    justify="end",
+                ),
+                on_submit=NavbarState.event_state_submit_feedback,
+            ),
+        ),
+        open=NavbarState.show_feedback,
+    )
+
 
 def logo() -> rx.Component:
     return rx.flex(
@@ -52,7 +91,6 @@ def logo() -> rx.Component:
             ),
             class_name="flex-row items-center"
         ),
-        links(),
         class_name="flex-row items-center space-x-8 justify-center"
     )
 
@@ -61,24 +99,24 @@ def links() -> rx.Component:
     return rx.cond(
         BaseState.user_claims_authenticated,
         
-        # Displayed if user is authenticated.
+        # Nothing displayed if user is authenticated.
         rx.flex(),
 
-        # Displayed if user not authenticated.
+        # Links displayed if user not authenticated.
         rx.flex(
             rx.link(
                 "Staff",
-                href="https://blog.nursereports.org/for-staff",
+                href=f"{BaseState.host_address}/for-staff",
                 class_name="cursor-pointer text-zinc-700"
             ),
             rx.link(
                 "Travelers",
-                href="https://blog.nursereports.org/for-travelers",
+                href=f"{BaseState.host_address}/for-travelers",
                 class_name="cursor-pointer text-zinc-700"
             ),
             rx.link(
                 "Students",
-                href="https://blog.nursereports.org/for-students",
+                href=f"{BaseState.host_address}/for-students",
                 class_name="cursor-pointer text-zinc-700"
             ),
             rx.flex(
@@ -89,81 +127,43 @@ def links() -> rx.Component:
                 ),
                 class_name="flex-row items-center space-x-2 cursor-pointer"
             ),
-            class_name="flex-row space-x-8 hidden lg:flex"
+            class_name="flex-row space-x-8 hidden md:flex ml-8"
         )
     )
 
-
-def login_or_menu() -> rx.Component:
+def search() -> rx.Component:
     return rx.cond(
         BaseState.user_claims_authenticated,
 
-        # Show menu if user is logged in.
-        rx.box(
-            rx.cond(
-                BaseState.user_has_reported,
-                rx.box(
-                    rx.menu.root(
-                        rx.menu.trigger(
-                            rx.button(
-                                rx.icon("menu"),
-                                class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 shadow-lg"
-                            )
-                        ),
-                        rx.menu.content(
-                            rx.menu.item(
-                                "Search by Hospital",
-                                on_click=rx.redirect(
-                                    f"{BaseState.host_address}/search/hospital"
-                                ),
-                            ),
-                            rx.menu.item(
-                                "Search by State",
-                                on_click=rx.redirect(
-                                    f"{BaseState.host_address}/search/state"
-                                ),
-                            ),
-                            rx.menu.separator(),
-                            rx.menu.item(
-                                "Dashboard",
-                                on_click=rx.redirect(f"{BaseState.host_address}/dashboard"),
-                            ),
-                            rx.menu.separator(),
-                            rx.menu.item(
-                                "Donate",
-                                on_click=rx.redirect(f"{BaseState.host_address}/donate"),
-                            ),
-                            rx.menu.separator(),
-                            rx.menu.item(
-                                "Logout",
-                                on_click=rx.redirect(
-                                    f"{BaseState.host_address}/logout/user"
-                                ),
-                            ),
-                        ),
-                    ),
-                    cursor="pointer",
-                ),
-                rx.box(
-                    rx.menu.root(
-                        rx.menu.trigger(rx.icon("menu", color="teal")),
-                        rx.menu.content(
-                            rx.menu.item(
-                                "Logout",
-                                on_click=rx.redirect(
-                                    f"{BaseState.host_address}/logout/user"
-                                ),
-                            )
-                        ),
-                    ),
-                    cursor="pointer",
-                ),
-            ),
-            class_name="hidden md:flex"
+        # Shows search if user is logged in
+        rx.flex(
+            rx.button(
+                rx.icon("search", class_name="h-5 w-5"),
+                rx.text("Search", class_name="hidden md:flex"),
+                class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 shadow-lg cursor-pointer",
+                on_click=rx.redirect("/search/hospital")
+            )
         ),
 
-        # Show login button if user not logged in.
-        rx.box(
+        # Hides search if user not logged in.
+        rx.flex()
+    )
+
+def login_or_account() -> rx.Component:
+    return rx.cond(
+        BaseState.user_claims_authenticated,
+
+        # Show account if user is logged in.
+        rx.flex(
+            rx.button(
+                rx.icon("circle-user-round", class_name="h-5 w-5"),
+                on_click=rx.redirect("/my-account"),
+                class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 shadow-lg cursor-pointer",
+            ),
+        ),
+
+        # Show login if user not logged in.
+        rx.flex(
             rx.button(
                 "Login",
                 on_click=rx.redirect("/login"),
@@ -172,251 +172,198 @@ def login_or_menu() -> rx.Component:
         )
     )
 
-
-def hamburger_mobile() -> rx.Component:
+def mobile_menu() -> rx.Component:
     return rx.cond(
         BaseState.user_claims_authenticated,
+
+        # Show mobile menu for logged in users.
         rx.cond(
             BaseState.user_has_reported,
-            auth_report_hamburger_mobile(),
-            auth_no_report_hamburger_mobile(),
-        ),
-        unauth_hamburger_mobile(),
-    )
 
-
-def auth_report_hamburger_mobile() -> rx.Component:
-    return rx.box(
-        rx.drawer.root(
-            rx.drawer.trigger(
-                rx.button(
-                    rx.icon("menu"),
-                    class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 shadow-lg"
-                )
+            # Show menu for logged in and onboarded users.
+            rx.flex(
+                rx.drawer.root(
+                    rx.drawer.trigger(
+                        rx.button(
+                            rx.icon("menu", class_name="h-5 w-5"),
+                            class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 shadow-lg"
+                        )
+                    ),
+                    rx.drawer.overlay(),
+                    rx.drawer.portal(
+                        rx.drawer.content(
+                            rx.flex(
+                                rx.flex(
+                                    rx.heading("NurseReports"),
+                                    rx.spacer(),
+                                    rx.drawer.close(rx.icon("X", cursor="pointer")),
+                                    class_name="flex-row justify-center p-8 w-full"
+                                ),
+                                rx.flex(
+                                    rx.link(
+                                        "Hospital Search",
+                                        href=f"{BaseState.host_address}/search/hospital",
+                                        class_name="text-zinc-700 cursor-pointer"
+                                    ),
+                                    class_name="flex p-8 w-full"
+                                ),
+                                rx.flex(
+                                    rx.link(
+                                        "State Summary",
+                                        href=f"{BaseState.host_address}/search/state",
+                                        class_name="text-zinc-700 cursor-pointer"
+                                    ),
+                                    class_name="flex p-8 w-full"
+                                ),
+                                rx.flex(
+                                    rx.link(
+                                        "Dashboard",
+                                        href=f"{BaseState.host_address}/dashboard",
+                                        class_name="text-zinc-700 cursor-pointer"
+                                    ),
+                                    class_name="flex p-8 w-full"
+                                ),
+                                rx.flex(
+                                    rx.link(
+                                        "Donate",
+                                        href=f"{BaseState.host_address}/donate",
+                                        class_name="text-zinc-700 cursor-pointer"
+                                    ),
+                                    class_name="flex p-8 w-full"
+                                ),
+                                rx.flex(
+                                    rx.flex(
+                                        rx.link(
+                                            "Logout",
+                                            class_name="text-zinc-700 cursor-pointer",
+                                            on_click=BaseState.event_state_logout
+                                        ),
+                                        rx.icon("log-out", class_name="h-5 w-5 text-zinc-700"),
+                                        class_name="flex-row items-center space-x-4"
+                                    ),
+                                    class_name="flex-row p-8 w-full"
+                                ),
+                                class_name="flex-col divide-y w-full"
+                            ),
+                            class_name="h-full w-full bg-white"
+                        )
+                    ),
+                    direction="top",
+                ),
+                class_name="flex md:hidden cursor-pointer"
             ),
-            rx.drawer.overlay(),
-            rx.drawer.portal(
-                rx.drawer.content(
-                    rx.flex(
+
+            # Show menu for logged in but not onboarded users.
+            rx.flex(
+                rx.drawer.root(
+                    rx.drawer.trigger(
+                        rx.button(
+                            rx.icon("menu", class_name="h-5 w-5"),
+                            class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 shadow-lg"
+                        )
+                    ),
+                    rx.drawer.overlay(),
+                    rx.drawer.portal(
+                        rx.drawer.content(
+                            rx.flex(
+                                rx.flex(
+                                    rx.heading("NurseReports"),
+                                    rx.spacer(),
+                                    rx.drawer.close(rx.icon("X", cursor="pointer")),
+                                    class_name="flex-row justify-center p-8 w-full"
+                                ),
+                                rx.flex(
+                                    rx.flex(
+                                        rx.link(
+                                            "Logout",
+                                            class_name="text-zinc-700 cursor-pointer",
+                                            on_click=BaseState.event_state_logout
+                                        ),
+                                        rx.icon("log-out", class_name="text-zinc-700"),
+                                        class_name="space-x-4"
+                                    ),
+                                    class_name="flex-row p-8 w-full"
+                                ),
+                                class_name="flex-col divide-y bg-white"
+                            )
+                        )
+                    ),
+                    direction="top"
+                ),
+                class_name="flex md:hidden cursor-pointer",
+            )
+        ),
+
+        # Show menu for users not logged in.
+        rx.flex(
+            rx.drawer.root(
+                rx.drawer.trigger(
+                    rx.button(
+                        rx.icon("menu", class_name="h-5 w-5"),
+                        class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 shadow-lg focus:outline-none"
+                    )
+                ),
+                rx.drawer.overlay(),
+                rx.drawer.portal(
+                    rx.drawer.content(
                         rx.flex(
-                            rx.heading("Nurse Reports"),
-                            rx.drawer.close(rx.icon("X", cursor="pointer")),
-                            width="100%",
-                            padding="30px 36px 30px 36px",
-                            align_items="center",
-                            justify_content="space-between",
-                        ),
-                        rx.flex(
-                            rx.link(
-                                "Search by Hospital",
-                                href=f"{BaseState.host_address}/search/hospital",
-                                cursor="pointer",
+                            rx.flex(
+                                rx.heading("NurseReports"),
+                                rx.spacer(),
+                                rx.drawer.close(rx.icon("X", cursor="pointer")),
+                                class_name="flex-row justify-center p-8 w-full"
                             ),
-                            rx.divider(),
-                            rx.link(
-                                "Search by State",
-                                href=f"{BaseState.host_address}/search/state",
-                                cursor="pointer",
+                            rx.flex(
+                                rx.link(
+                                    "Staff",
+                                    href=f"{BaseState.host_address}/for-staff",
+                                    class_name="text-zinc-700 cursor-pointer"
+                                ),
+                                class_name="flex p-8 w-full"
                             ),
-                            rx.divider(),
-                            rx.link(
-                                "Dashboard",
-                                href=f"{BaseState.host_address}/dashboard",
-                                cursor="pointer",
+                            rx.flex(
+                                rx.link(
+                                    "Travelers",
+                                    href=f"{BaseState.host_address}/for-travelers",
+                                    class_name="text-zinc-700 cursor-pointer"
+                                ),
+                                class_name="flex p-8 w-full"
                             ),
-                            rx.divider(),
+                            rx.flex(
+                                rx.link(
+                                    "Students",
+                                    href=f"{BaseState.host_address}/for-students",
+                                    class_name="text-zinc-700 cursor-pointer"
+                                ),
+                                class_name="flex p-8 w-full"
+                            ),
                             rx.flex(
                                 rx.link(
                                     "Donate",
                                     href=f"{BaseState.host_address}/donate",
-                                    cursor="pointer",
+                                    class_name="text-zinc-700 cursor-pointer"
                                 ),
-                                rx.icon("hand-coins", color="teal", size=18),
-                                gap="12px",
-                                align_items="center",
+                                class_name="flex p-8 w-full"
                             ),
-                            rx.divider(),
-                            rx.link(
-                                "Logout",
-                                on_click=BaseState.event_state_logout
-                            ),
-                            flex_direction="column",
-                            width="100%",
-                            gap="24px",
-                            padding="30px 36px 30px 36px",
-                            align_items="start",
-                        ),
-                        width="100%",
-                        flex_direction="column",
-                    ),
-                    height="100%",
-                    width="100%",
-                    gap="36px",
-                    background_color="#FFF",
-                )
-            ),
-            direction="top",
-        ),
-        class_name="flex md:hidden"
-    )
-
-
-def auth_no_report_hamburger_mobile() -> rx.Component:
-    return rx.box(
-        rx.drawer.root(
-            rx.drawer.trigger(
-                rx.button(
-                    rx.icon("menu"),
-                    class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 shadow-lg"
-                )
-            ),
-            rx.drawer.overlay(),
-            rx.drawer.portal(
-                rx.drawer.content(
-                    rx.flex(
-                        rx.flex(
-                            rx.heading("Nurse Reports"),
-                            rx.drawer.close(rx.icon("X", cursor="pointer")),
-                            width="100%",
-                            padding="30px 36px 30px 36px",
-                            align_items="center",
-                            justify_content="space-between",
-                        ),
-                        rx.flex(
-                            rx.link(
-                                "Log out",
-                                href=f"{BaseState.host_address}/logout/user",
-                                cursor="pointer",
-                            ),
-                        ),
-                    )
-                )
-            ),
-            direction="top",
-        ),
-        display=["block", "block", "block", "none", "none"],
-    )
-
-
-def unauth_hamburger_mobile() -> rx.Component:
-    return rx.box(
-        rx.drawer.root(
-            rx.drawer.trigger(
-                rx.button(
-                    rx.icon("menu", class_name="h-5 w-5"),
-                    class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 shadow-lg"
-                )
-            ),
-            rx.drawer.overlay(),
-            rx.drawer.portal(
-                rx.drawer.content(
-                    rx.flex(
-                        rx.flex(
-                            rx.heading("Nurse Reports"),
-                            rx.drawer.close(rx.icon("X", cursor="pointer")),
-                            width="100%",
-                            padding="30px 36px 30px 36px",
-                            align_items="center",
-                            justify_content="space-between",
-                        ),
-                        rx.flex(
-                            rx.link(
-                                "Staff",
-                                href="https://blog.nursereports.org/for-staff",
-                                cursor="pointer",
-                            ),
-                            rx.divider(),
-                            rx.link(
-                                "Travelers",
-                                href="https://blog.nursereports.org/for-travelers",
-                                cursor="pointer",
-                            ),
-                            rx.divider(),
-                            rx.link(
-                                "Students",
-                                href="https://blog.nursereports.org/for-students",
-                                cursor="pointer",
-                            ),
-                            rx.divider(),
                             rx.flex(
-                                rx.link(
-                                    "Donate",
-                                    href="https://nursereports.org/donate",
-                                    cursor="pointer",
+                                rx.flex(
+                                    rx.link(
+                                        "Login",
+                                        on_click=rx.redirect("/login"),
+                                        class_name="text-zinc-700 cursor-pointer"
+                                    ),
+                                    rx.icon("log-in", class_name="h-5 w-5 text-zinc-700"),
+                                    class_name="flex-row items-center space-x-4"
                                 ),
-                                rx.icon("sparkles", color="teal", size=18),
-                                gap="12px",
-                                align_items="center",
+                                class_name="flex p-8 w-full"
                             ),
-                            rx.divider(),
-                            rx.link(
-                                "Login",
-                                on_click=rx.redirect("/login"),
-                            ),
-                            flex_direction="column",
-                            width="100%",
-                            gap="24px",
-                            padding="30px 36px 30px 36px",
-                            align_items="start",
+                            class_name="flex-col divide-y w-full"
                         ),
-                        width="100%",
-                        flex_direction="column",
-                    ),
-                    height="100%",
-                    width="100%",
-                    gap="36px",
-                    background_color="#FFF",
-                )
-            ),
-            direction="top",
-        ),
-        class_name="flex lg:hidden"
-    )
-
-def feedback_modal() -> rx.Component:
-    return rx.dialog.root(
-        rx.dialog.content(
-            rx.dialog.title("Provide feedback."),
-            rx.form(
-                rx.dialog.description(
-                    rx.text_area(
-                        name="feedback",
-                        placeholder="What can we improve?",
-                        height="150px",
-                        max_length=500,
+                        class_name="h-full w-full bg-white"
                     )
                 ),
-                spacer(height="16px"),
-                rx.flex(
-                    rx.dialog.close(
-                        rx.button(
-                            "Cancel",
-                            type="button",
-                            variant="soft",
-                            size="3",
-                            radius="full",
-                            on_click=NavbarState.set_show_feedback(False),
-                        )
-                    ),
-                    rx.dialog.close(
-                        rx.button("Submit", type="submit", size="3", radius="full")
-                    ),
-                    spacing="3",
-                    justify="end",
-                ),
-                spacer(height="4px"),
-                rx.cond(
-                    NavbarState.error_message,
-                    rx.callout(
-                        NavbarState.error_message,
-                        icon="triangle_alert",
-                        color_scheme="red",
-                        role="alert",
-                        margin_top="12px",
-                    ),
-                ),
-                on_submit=NavbarState.event_state_submit_feedback,
+                direction="top",
             ),
-        ),
-        open=NavbarState.show_feedback,
+            class_name="flex md:hidden cursor-pointer"
+        )
     )

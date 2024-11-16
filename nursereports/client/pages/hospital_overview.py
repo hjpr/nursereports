@@ -30,7 +30,7 @@ def hospital_overview() -> rx.Component:
         navbar(),
         content(),
         footer(),
-        class_name="flex-col items-center bg-teal-50 min-h-screen"
+        class_name="flex-col items-center bg-teal-50"
     ) 
 
 def content() -> rx.Component:
@@ -41,7 +41,7 @@ def content() -> rx.Component:
             pay(),
             units(),
             reviews(),
-            class_name="flex-col items-center space-y-3 divide-y w-full max-w-lg",
+            class_name="flex-col items-center space-y-3 divide-y w-full max-w-screen-lg",
         ),
         rx.flex(
             rx.spinner(),
