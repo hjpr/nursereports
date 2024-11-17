@@ -15,6 +15,7 @@ def navbar() -> rx.Component:
                 rx.spacer(),
                 rx.flex(
                     search(),
+                    dashboard(),
                     login_or_account(),
                     mobile_menu(),
                     class_name="flex-row space-x-2"
@@ -71,21 +72,38 @@ def logo() -> rx.Component:
             rx.flex(
                 rx.text(
                     "Nurse",
-                    on_click=rx.redirect("/"),
+                    on_click=rx.cond(
+                        BaseState.user_claims_authenticated,
+                        rx.redirect("/dashboard"),
+                        rx.redirect("/")
+                    ),
                     class_name="hidden md:flex text-2xl font-bold text-teal-700 cursor-pointer"
                 ),
                 rx.text(
                     "N",
+                    on_click=rx.cond(
+                        BaseState.user_claims_authenticated,
+                        rx.redirect("/dashboard"),
+                        rx.redirect("/")
+                    ),
                     class_name="flex md:hidden text-3xl font-bold text-teal-700 cursor-pointer"
                 ),
                 rx.text(
                     "Reports",
-                    on_click=rx.redirect("/"),
+                    on_click=rx.cond(
+                        BaseState.user_claims_authenticated,
+                        rx.redirect("/dashboard"),
+                        rx.redirect("/")
+                    ),
                     class_name="hidden md:flex text-2xl font-bold text-zinc-700 cursor-pointer"
                 ),
                 rx.text(
                     "R",
-                    on_click=rx.redirect("/"),
+                    on_click=rx.cond(
+                        BaseState.user_claims_authenticated,
+                        rx.redirect("/dashboard"),
+                        rx.redirect("/")
+                    ),
                     class_name="flex md:hidden text-3xl font-bold text-zinc-700 cursor-pointer"
                 )
             ),
@@ -139,7 +157,7 @@ def search() -> rx.Component:
         rx.flex(
             rx.button(
                 rx.icon("search", class_name="h-5 w-5"),
-                rx.text("Search", class_name="hidden md:flex"),
+                rx.text("Search"),
                 class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 shadow-lg cursor-pointer",
                 on_click=rx.redirect("/search/hospital")
             )
@@ -149,17 +167,41 @@ def search() -> rx.Component:
         rx.flex()
     )
 
+def dashboard() -> rx.Component:
+    return rx.cond(
+        BaseState.user_claims_authenticated,
+
+        # Show dashboard if user is logged in.
+        rx.flex(
+            rx.tooltip(
+                rx.button(
+                    rx.icon("layout-dashboard", class_name="h-5 w-5"),
+                    on_click=rx.redirect("/dashboard"),
+                    class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 shadow-lg cursor-pointer",
+                ),
+                content="Dashboard",
+                delay_duration=300
+            ),
+            class_name="hidden md:flex"
+        ),
+    )
+
 def login_or_account() -> rx.Component:
     return rx.cond(
         BaseState.user_claims_authenticated,
 
         # Show account if user is logged in.
         rx.flex(
-            rx.button(
-                rx.icon("circle-user-round", class_name="h-5 w-5"),
-                on_click=rx.redirect("/my-account"),
-                class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 shadow-lg cursor-pointer",
+            rx.tooltip(
+                rx.button(
+                    rx.icon("circle-user-round", class_name="h-5 w-5"),
+                    on_click=rx.redirect("/my-account"),
+                    class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 shadow-lg cursor-pointer",
+                ),
+                content="My Account",
+                delay_duration=300
             ),
+            class_name="hidden md:flex"
         ),
 
         # Show login if user not logged in.

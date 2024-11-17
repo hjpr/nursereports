@@ -1,9 +1,9 @@
-
 from ..components.footer import footer
 from ..components.navbar import navbar
 from ...states import BaseState
 
 import reflex as rx
+
 
 @rx.page(
     route="/",
@@ -15,7 +15,7 @@ def index_page() -> rx.Component:
         navbar(),
         content(),
         footer(),
-        class_name="flex-col items-center bg-gradient-to-b from-white to-teal-200 min-h-svh"
+        class_name="flex-col items-center bg-gradient-to-b from-white to-teal-200 w-full min-h-svh",
     )
 
 
@@ -26,7 +26,7 @@ def content() -> rx.Component:
         sponsors(),
         info_header(),
         info_cards(),
-        class_name="flex-col items-center w-full"
+        class_name="flex-col items-center w-full",
     )
 
 
@@ -35,7 +35,7 @@ def header() -> rx.Component:
         rx.flex(
             rx.text(
                 """Hospital reviews for nurses, by nurses.""",
-                class_name="font-bold text-center md:text-6xl text-4xl text-zinc-700"
+                class_name="font-bold text-center md:text-6xl text-4xl text-zinc-700",
             ),
             rx.text(
                 """
@@ -43,7 +43,7 @@ def header() -> rx.Component:
                 across the US. Share information on pay, benefits, unit
                 culture, and staffing ratios.
                 """,
-                class_name="text-center text-zinc-700"
+                class_name="text-center text-zinc-700",
             ),
             rx.flex(
                 rx.button(
@@ -51,33 +51,30 @@ def header() -> rx.Component:
                     rx.icon("chevron-right"),
                     size="4",
                     on_click=rx.redirect("/create-account"),
-                    class_name="bg-teal-600 w-full md:w-auto cursor-pointer"
+                    class_name="bg-teal-600 w-full md:w-auto cursor-pointer",
                 ),
                 rx.button(
                     "Learn More",
                     rx.icon("chevron-right"),
                     size="4",
                     on_click=rx.redirect("/about-us"),
-                    class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 w-full md:w-auto cursor-pointer"
+                    class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 w-full md:w-auto cursor-pointer",
                 ),
-                class_name="flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4 w-full"
+                class_name="flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-4 w-full",
             ),
-            class_name="flex-col space-y-10 w-full md:max-w-screen-sm"
+            class_name="flex-col space-y-10 w-full md:max-w-screen-sm",
         ),
-        class_name="flex-col items-center px-4 py-24 w-full"
+        class_name="flex-col items-center px-4 py-24 w-full",
     )
 
 
 def header_image() -> rx.Component:
     return rx.flex(
         rx.flex(
-            rx.image(
-                src="",
-                class_name="rounded-lg h-auto w-auto"
-            ),
-            class_name="flex items-center justify-center border rounded-lg bg-white shadow-lg aspect-square md:aspect-video justify-center h-full w-full"
+            rx.image(src="", class_name="rounded-lg h-auto w-auto"),
+            class_name="flex items-center justify-center border rounded-lg bg-white shadow-lg aspect-square md:aspect-video justify-center h-full w-full",
         ),
-        class_name="flex p-4 w-full max-w-screen-lg"
+        class_name="flex p-4 w-full max-w-screen-lg",
     )
 
 
@@ -88,16 +85,16 @@ def sponsors() -> rx.Component:
             Are you looking to sponsor grassroots nursing
             empowerment?
             """,
-            class_name="text-center text-zinc-700"
+            class_name="text-center text-zinc-700",
         ),
         rx.button(
             "Contact Us",
             rx.icon("chevron-right"),
             size="4",
             on_click=rx.redirect("/contact-us"),
-            class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 cursor-pointer"
+            class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 cursor-pointer",
         ),
-        class_name="flex-col items-center justify-center px-4 py-24 space-y-8 w-full max-w-screen-sm"
+        class_name="flex-col items-center justify-center px-4 py-24 space-y-8 w-full max-w-screen-sm",
     )
 
 
@@ -108,7 +105,7 @@ def info_header() -> rx.Component:
             rx.flex(
                 rx.text(
                     "Read unfiltered and anonymous reviews from everywhere.",
-                    class_name="text-2xl font-bold text-zinc-700 text-center"
+                    class_name="text-2xl font-bold text-zinc-700 text-center",
                 ),
                 rx.text(
                     """
@@ -116,24 +113,19 @@ def info_header() -> rx.Component:
                     Smartly summarized data built for career progression, and
                     workplace transparency.
                     """,
-                    class_name="text-center text-zinc-700"
+                    class_name="text-center text-zinc-700",
                 ),
-                class_name="flex-col items-center justify-center space-y-4 w-full"
+                class_name="flex-col items-center justify-center space-y-4 w-full",
             ),
-            class_name="flex-col items-center justify-center space-y-10 w-full max-w-screen-sm"
+            class_name="flex-col items-center justify-center space-y-10 w-full max-w-screen-sm",
         ),
-        class_name="flex-col items-center bg-white px-4 py-24 w-full"
+        class_name="flex-col items-center bg-white px-4 py-24 w-full",
     )
 
 
 def info_cards() -> rx.Component:
     return rx.flex(
-        info_cards_top(),
-        info_cards_bottom(),
-        flex_direction="column",
-        width="100%",
-        gap="8px",
-        bg="white",
+        info_cards_top(), info_cards_bottom(), class_name="flex-col bg-white w-full"
     )
 
 
@@ -144,106 +136,50 @@ def info_cards_top() -> rx.Component:
                 rx.flex(
                     rx.flex(
                         rx.flex(
-                            rx.card(
-                                rx.flex(
-                                    rx.text("PLACEHOLDER", font_size="10px"),
-                                    width="100%",
-                                    height="100%",
-                                    align_items="center",
-                                    justify_content="center",
-                                ),
-                                height="100%",
-                                width="100%",
-                                aspect_ratio="16 / 9",
-                            ),
-                            rx.text("Pay and Benefits", text_align="center"),
-                            rx.text(
-                                """
-                                Know what you'll make, and compare
-                                compensation between hospitals.
-                                """,
-                                font_size="13px",
-                                text_align="center",
-                                color="grey",
-                            ),
-                            flex_direction="column",
-                            width="100%",
-                            gap="8px",
-                            padding="8px",
+                            rx.text("PLACEHOLDER", font_size="10px"),
+                            class_name="flex-col items-center justify-center bg-white h-full w-full",
                         ),
-                        flex_direction="column",
-                        width="100%",
+                        class_name="rounded aspect-video h-full w-full",
                     ),
-                    bg="rgb(249 250 251)",
-                    width="100%",
-                    border_radius=[
-                        "12px",
-                        "48px 12px 12px 12px",
-                        "48px 12px 12px 12px",
-                        "48px 12px 12px 12px",
-                        "48px 12px 12px 12px",
-                    ],
-                    padding="24px",
+                    rx.text(
+                        "Pay and Benefits", class_name="text-lg font-bold text-zinc-700"
+                    ),
+                    rx.text(
+                        """
+                        Know what you'll make, and compare
+                        compensation between hospitals.
+                        """,
+                        class_name="text-sm text-center text-zinc-700",
+                    ),
+                    class_name="flex-col items-center p-4 space-y-4 w-full",
                 ),
+                class_name="flex-col border rounded-lg rounded-t-[48px] md:rounded-tr-lg bg-zinc-50 p-6 w-full",
+            ),
+            rx.flex(
                 rx.flex(
                     rx.flex(
                         rx.flex(
-                            rx.card(
-                                rx.flex(
-                                    rx.text("PLACEHOLDER", font_size="10px"),
-                                    width="100%",
-                                    height="100%",
-                                    align_items="center",
-                                    justify_content="center",
-                                ),
-                                height="100%",
-                                width="100%",
-                                aspect_ratio="16 / 9",
-                            ),
-                            rx.text("Culture", text_align="center"),
-                            rx.text(
-                                """
-                                Gone are the days of having to dig
-                                up the inside scoop across social
-                                media.
-                                """,
-                                font_size="13px",
-                                text_align="center",
-                                color="grey",
-                            ),
-                            flex_direction="column",
-                            width="100%",
-                            gap="8px",
-                            padding="8px",
+                            rx.text("PLACEHOLDER", font_size="10px"),
+                            class_name="flex-col items-center justify-center bg-white h-full w-full",
                         ),
-                        flex_direction="column",
-                        width="100%",
+                        class_name="rounded aspect-video h-full w-full",
                     ),
-                    bg="rgb(249 250 251)",
-                    width="100%",
-                    border_radius=[
-                        "12px",
-                        "12px 48px 12px 12px",
-                        "12px 48px 12px 12px",
-                        "12px 48px 12px 12px",
-                        "12px 48px 12px 12px",
-                    ],
-                    padding="24px",
+                    rx.text("Culture", class_name="text-lg font-bold text-zinc-700"),
+                    rx.text(
+                        """
+                        Gone are the days of having to dig
+                        up the inside scoop across social
+                        media.
+                        """,
+                        class_name="text-sm text-center text-zinc-700",
+                    ),
+                    class_name="flex-col items-center p-4 space-y-4 w-full",
                 ),
-                flex_direction=["column", "row", "row", "row", "row"],
-                width="100%",
-                max_width="900px",
-                gap="8px",
-                padding_x=["24px", "24px", "0px", "0px", "0px"],
+                class_name="flex-col border rounded-lg md:rounded-tr-[48px] bg-zinc-50 p-6 w-full",
             ),
-            flex_direction="column",
-            width="100%",
-            align_items="center",
+            class_name="flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 w-full max-w-screen-lg",
         ),
-        flex_direction="column",
-        bg="white",
-        align_items="center",
-        width="100%",
+        class_name="flex-col items-center px-4 py-2 w-full",
     )
 
 
@@ -254,104 +190,46 @@ def info_cards_bottom() -> rx.Component:
                 rx.flex(
                     rx.flex(
                         rx.flex(
-                            rx.card(
-                                rx.flex(
-                                    rx.text("PLACEHOLDER", font_size="10px"),
-                                    width="100%",
-                                    height="100%",
-                                    align_items="center",
-                                    justify_content="center",
-                                ),
-                                height="100%",
-                                width="100%",
-                                aspect_ratio="16 / 9",
-                            ),
-                            rx.text("Ratios", text_align="center"),
-                            rx.text(
-                                """
-                                Find out about unit ratios, and get a
-                                sense for workloads in each area.
-                                """,
-                                font_size="13px",
-                                text_align="center",
-                                color="grey",
-                            ),
-                            flex_direction="column",
-                            width="100%",
-                            gap="8px",
-                            padding="8px",
+                            rx.text("PLACEHOLDER", font_size="10px"),
+                            class_name="flex-col items-center justify-center bg-white h-full w-full",
                         ),
-                        flex_direction="column",
-                        width="100%",
+                        class_name="rounded aspect-video h-full w-full",
                     ),
-                    bg="rgb(249 250 251)",
-                    width="100%",
-                    border_radius=[
-                        "12px",
-                        "12px 12px 12px 48px",
-                        "12px 12px 12px 48px",
-                        "12px 12px 12px 48px",
-                        "12px 12px 12px 48px",
-                    ],
-                    padding="24px",
+                    rx.text("Ratios", class_name="text-lg font-bold text-zinc-700"),
+                    rx.text(
+                        """
+                        Find out about unit ratios, and get a
+                        sense for workloads in each area.
+                        """,
+                        class_name="text-sm text-center text-zinc-700",
+                    ),
+                    class_name="flex-col items-center p-4 space-y-4 w-full",
                 ),
+                class_name="flex-col border rounded-lg md:rounded-bl-[48px] bg-zinc-50 p-6 w-full",
+            ),
+            rx.flex(
                 rx.flex(
                     rx.flex(
                         rx.flex(
-                            rx.card(
-                                rx.flex(
-                                    rx.text("PLACEHOLDER", font_size="10px"),
-                                    width="100%",
-                                    height="100%",
-                                    align_items="center",
-                                    justify_content="center",
-                                ),
-                                height="100%",
-                                width="100%",
-                                aspect_ratio="16 / 9",
-                            ),
-                            rx.text("Rankings", text_align="center"),
-                            rx.text(
-                                """
-                                Analyze pay and workplace ratings by
-                                hospital, or take a wider view and 
-                                explore rankings by state.
-                                """,
-                                font_size="13px",
-                                text_align="center",
-                                color="grey",
-                            ),
-                            flex_direction="column",
-                            width="100%",
-                            gap="8px",
-                            padding="8px",
+                            rx.text("PLACEHOLDER", font_size="10px"),
+                            class_name="flex-col items-center justify-center bg-white h-full w-full",
                         ),
-                        flex_direction="column",
-                        width="100%",
+                        class_name="rounded aspect-video h-full w-full",
                     ),
-                    bg="rgb(249 250 251)",
-                    width="100%",
-                    border_radius=[
-                        "12px",
-                        "12px 12px 48px 12px",
-                        "12px 12px 48px 12px",
-                        "12px 12px 48px 12px",
-                        "12px 12px 48px 12px",
-                    ],
-                    padding="24px",
+                    rx.text("Rankings", class_name="text-lg font-bold text-zinc-700"),
+                    rx.text(
+                        """
+                        Analyze pay and workplace ratings by
+                        hospital, or take a wider view and 
+                        explore rankings by state.
+                        """,
+                        class_name="text-sm text-center text-zinc-700",
+                    ),
+                    class_name="flex-col items-center p-4 space-y-4 w-full",
                 ),
-                flex_direction=["column", "row", "row", "row", "row"],
-                width="100%",
-                max_width="900px",
-                gap="8px",
-                padding_x=["24px", "24px", "0px", "0px", "0px"],
+                class_name="flex-col border rounded-lg rounded-b-[48px] md:rounded-br-[48px] md:rounded-bl-lg bg-zinc-50 p-6 w-full",
             ),
-            flex_direction="column",
-            width="100%",
-            align_items="center",
+            class_name="flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 w-full max-w-screen-lg",
         ),
-        flex_direction="column",
-        bg="white",
-        align_items="center",
-        width="100%",
+        class_name="flex-col items-center px-4 py-2 w-full",
     )

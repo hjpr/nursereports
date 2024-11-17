@@ -264,20 +264,20 @@ class HospitalState(BaseState):
                     f = interpolate.interp1d(
                         x, y, kind="quadratic", fill_value="extrapolate"
                     )
-                    x_interpolated = np.arange(0, 27)
-                    y_interpolated = f(x_interpolated)
+                    x_extrapolated = np.arange(0, 27)
+                    y_extrapolated = f(x_extrapolated)
                     filtered_ft_pay_hospital_df = pl.DataFrame(
                         {
-                            "years_experience": x_interpolated,
-                            "interpolated_pay": y_interpolated,
+                            "years_experience": x_extrapolated,
+                            "interpolated_pay": y_extrapolated,
                         }
                     )
-                    interpolated_ft_pay_hospital = (
+                    extrapolated_ft_pay_hospital = (
                         filtered_ft_pay_hospital_df.to_dicts()
                     )
-                    self.interpolated_ft_pay_hospital = {
+                    self.extrapolated_ft_pay_hospital = {
                         item["years_experience"]: item["interpolated_pay"]
-                        for item in interpolated_ft_pay_hospital
+                        for item in extrapolated_ft_pay_hospital
                     }
 
                 # Part time pay data and interpolation.
@@ -301,18 +301,18 @@ class HospitalState(BaseState):
                     f = interpolate.interp1d(
                         x, y, kind="quadratic", fill_value="extrapolate"
                     )
-                    x_interpolated = np.arange(0, 27)
-                    y_interpolated = f(x_interpolated)
+                    x_extrapolated = np.arange(0, 27)
+                    y_extrapolated = f(x_extrapolated)
                     filtered_pt_df = pl.DataFrame(
                         {
-                            "years_experience": x_interpolated,
-                            "interpolated_pay": y_interpolated,
+                            "years_experience": x_extrapolated,
+                            "interpolated_pay": y_extrapolated,
                         }
                     )
-                    interpolated_pt_pay_hospital = filtered_pt_df.to_dict()
-                    self.interpolated_pt_pay_hospital = {
+                    extrapolated_pt_pay_hospital = filtered_pt_df.to_dict()
+                    self.extrapolated_pt_pay_hospital = {
                         item["years_experience"]: item["interpolated_pay"]
-                        for item in interpolated_pt_pay_hospital
+                        for item in extrapolated_pt_pay_hospital
                     }
 
                 # Contract pay data and averaged pay.

@@ -37,7 +37,7 @@ def header() -> rx.Component:
         rx.icon("cookie", class_name="h-12 w-12 mt-4 mb-8"),
         rx.text("Privacy Policy", class_name="text-3xl font-bold"),
         rx.text("Last Updated - 10/9/2024", class_name="text-l italic"),
-        class_name="flex-col items-center p-4 space-y-2 w-full"
+        class_name="flex-col items-center p-4 space-y-2 text-zinc-700 w-full"
     )
 
 
