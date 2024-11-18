@@ -1,5 +1,4 @@
-
-from ...states import DashboardState, ReportState
+from ...states import ReportState
 
 import reflex as rx
 
@@ -8,107 +7,93 @@ def report_item_dashboard(report: dict[str, str]) -> rx.Component:
     return rx.flex(
         rx.flex(
             rx.flex(
-                rx.flex(
+                rx.cond(
+                    report["assign_select_unit"],
+                    # Report is from a unit
                     rx.cond(
-                        report["assign_select_unit"],
-                        rx.cond(
-                            report["assign_select_unit"] == "I don't see my unit",
-                            rx.text(
-                                f"{report['assign_input_unit_name']}",
-                                font_weight="bold",
-                                font_size=["16px", "16px", "18px", "18px", "18px"],
-                                line_height="1em",
-                            ),
-                            rx.text(
-                                f"{report['assign_select_unit']}",
-                                font_weight="bold",
-                                font_size=["16px", "16px", "18px", "18px", "18px"],
-                                line_height="1em",
-                            ),
+                        report["assign_select_unit"] == "I don't see my unit",
+                        # Report unit was entered manually.
+                        rx.text(
+                            f"{report['assign_input_unit_name']}",
+                            class_name="text-xl font-bold text-zinc-700",
                         ),
-                        rx.cond(
-                            report['assign_select_area']
-                            == "I don't see my area or role",
-                            rx.text(
-                                f"{report['assign_input_area']}",
-                                font_weight="bold",
-                                font_size=["16px", "16px", "18px", "18px", "18px"],
-                                line_height="1em",
-                            ),
-                            rx.text(
-                                f"{report['assign_select_area']}",
-                                font_weight="bold",
-                                font_size=["16px", "16px", "18px", "18px", "18px"],
-                                line_height="1em",
-                            ),
+                        # Report unit was selected from list.
+                        rx.text(
+                            f"{report['assign_select_unit']}",
+                            class_name="text-xl font-bold text-zinc-700",
                         ),
                     ),
+                    # Report is from an area/role
                     rx.cond(
-                        report["modified_at"],
+                        report["assign_select_area"]
+                        == "I don't see my area or role",
+                        # Report area/role was entered manually.
                         rx.text(
-                            f"Edited {report['modified_at']}",
-                            font_size="14px",
-                            font_style="italic",
+                            f"{report['assign_input_area']}",
+                            class_name="text-lg font-bold text-zinc-700",
                         ),
+                        # Report area/role was selected from list.
                         rx.text(
-                            f"Submitted {report['created_at']}",
-                            font_size="14px",
-                            font_style="italic",
+                            f"{report['assign_select_area']}",
+                            class_name="text-lg font-bold text-zinc-700",
                         ),
                     ),
-                    width="100%",
-                    flex_direction="column",
-                    gap=["4px", "4px", "12px", "12px", "12px"],
                 ),
-                align="center",
-                margin="24px",
+                rx.cond(
+                    report["modified_at"],
+                    # Date displayed if user has made modification.
+                    rx.text(
+                        f"Edited {report['modified_at']}",
+                        class_name="text-md italic text-zinc-700"
+                    ),
+                    # Date displayed if user hasn't made modifications.
+                    rx.text(
+                        f"Submitted {report['created_at']}",
+                        class_name="text-md italic text-zinc-700"
+                    ),
+                ),
+                class_name="flex-col w-full"
             ),
             rx.spacer(),
             rx.flex(
-                report_item_dashboard_ellipsis(report),
-                align="center",
-                justify="center",
-                height="100%",
-                min_height="100px",
-                width="100px",
-                min_width="100px",
-            ),
-            rx.flex(
+                report_item_dashboard_remove_report(report),
                 report_item_dashboard_edit(report),
-                align="center",
-                justify="center",
-                height="100%",
-                min_height="100px",
-                width="100px",
-                min_width="100px",
-                border_left="1px solid var(--chakra-colors-chakra-border-color)",
+                class_name="space-x-2"
             ),
-            flex_direction="row",
-            width="100%",
+            class_name="flex-row items-center space-x-4 w-full"
         ),
-        min_height="100px",
-        width="100%"
+        class_name="p-4 w-full"
     )
 
 
-def report_item_dashboard_ellipsis(report: dict[str, str]) -> rx.Component:
-    return rx.menu.root(
-        rx.menu.trigger(
-            rx.button(
-                rx.icon("ellipsis-vertical"),
-                height="36px",
-                width="36px",
-                variant="ghost",
-                cursor="pointer"
+def report_item_dashboard_remove_report(report: dict[str, str]) -> rx.Component:
+    return rx.popover.root(
+        rx.popover.trigger(
+            rx.flex(
+                rx.button(
+                    rx.icon("trash-2", class_name="h-5 w-5"),
+                    class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 cursor-pointer",
+                )
             )
         ),
-        rx.menu.content(
-            rx.menu.item(
-                "Delete Report",
-                on_click=[
-                    DashboardState.set_report_to_remove(report['report_id']),
-                    DashboardState.set_remove_report_confirmation_open(True)
-                ]
+        rx.popover.content(
+            rx.flex(
+                rx.text("Are you sure?"),
+                rx.popover.close(
+                    rx.flex(
+                        rx.button(
+                            "Delete",
+                            color_scheme="ruby",
+                            class_name="w-full cursor-pointer"
+                        ),
+                        rx.button(
+                            "Cancel",
+                            class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 cursor-pointer",
+                        ),
+                        class_name="flex-col space-y-4 w-full"
+                    )
+                ),
+                class_name="flex-col items-center space-y-4"
             )
         )
     )
@@ -117,11 +102,9 @@ def report_item_dashboard_ellipsis(report: dict[str, str]) -> rx.Component:
 def report_item_dashboard_edit(report: dict[str, str]) -> rx.Component:
     return rx.flex(
         rx.button(
-            rx.icon("pencil"),
-            height="36px",
-            width="36px",
-            variant="ghost",
-            cursor="pointer",
-            on_click=ReportState.event_state_edit_user_report(report['report_id'])
+            rx.icon("pencil", class_name="stroke-zinc-700 h-5 w-5"),
+            rx.text("Edit"),
+            on_click=ReportState.event_state_edit_user_report(report["report_id"]),
+            class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 cursor-pointer"
         )
     )

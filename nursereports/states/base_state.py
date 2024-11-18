@@ -177,7 +177,9 @@ class BaseState(rx.State):
             updated_data = supabase_update_user_info(
                 self.access_token, self.user_claims_id, data
             )
+            logger.debug(self.user_info)
             self.user_info.update(updated_data)
+            logger.debug(self.user_info)
         except Exception as e:
             logger.critical(e)
             yield rx.toast.error("Unable to perform requested update.")
@@ -208,17 +210,38 @@ class BaseState(rx.State):
             else:
                 yield from self.create_new_user()
 
-            # Set saved hospitals to state.
-            saved_hospitals = supabase_populate_saved_hospital_details(
-                self.access_token, self.user_info.get("saved_hospitals", None)
-            )
+            # Get all users saved hospital information.
+            yield from self.get_user_saved_hospitals()
 
-            # Format hospital names from all caps to .title case.
-            if saved_hospitals:
+            # Get all user reports.
+            yield from self.get_user_reports()
+
+        except Exception as e:
+            logger.critical(e)
+            yield rx.redirect("/")
+            yield rx.toast.error("Unable to reset/populate user info.")
+
+    def get_user_saved_hospitals(self) -> Iterable[Callable]:
+        """Get or refresh saved hospitals."""
+        try:
+            if self.user_info.get("saved_hospitals"):
+                saved_hospitals = supabase_populate_saved_hospital_details(
+                    self.access_token, self.user_info.get("saved_hospitals")
+                )
+
+                # Format hospital cities from all caps to 'title' case.
                 for hospital in saved_hospitals:
                     hospital["hosp_city"] = hospital["hosp_city"].title()
                 self.saved_hospitals = saved_hospitals
+            else:
+                self.saved_hospitals = []
+        except Exception as e:
+            logger.critical(e)
+            yield rx.toast.error("Unable to get saved hospitals.")
 
+    def get_user_reports(self) -> Iterable[Callable]:
+        """Get or refresh user reports."""
+        try:
             # Set user reports to state.
             user_reports = supabase_get_user_reports(
                 self.access_token, self.user_claims_id
@@ -236,11 +259,9 @@ class BaseState(rx.State):
                             hospital["modified_at"]
                         ).strftime("%Y - %B")
             self.user_reports = user_reports
-
         except Exception as e:
             logger.critical(e)
-            yield rx.redirect("/")
-            yield rx.toast.error("Unable to reset/populate user info.")
+            yield rx.toast.error("Unable to get user reports.")
 
     def create_new_user(self) -> Iterable[Callable]:
         """
@@ -268,7 +289,7 @@ class BaseState(rx.State):
                 new_user_info = self.user_info["saved_hospitals"] + [hosp_id]
                 user_info = {"saved_hospitals": new_user_info}
                 yield from self.update_user_info_and_sync_locally(user_info)
-                yield rx.toast.success("Hospital saved to 'My Hospitals'.")
+                yield rx.toast.success("Hospital added to 'Saved Hospitals'.")
 
             # Notify user that hospital is already present.
             else:
@@ -285,19 +306,16 @@ class BaseState(rx.State):
         """
         try:
             # Make a new list not including selected hospital.
-            new_user_info = [
+            new_saved_hospitals = [
                 h for h in self.user_info["saved_hospitals"] if h != hosp_id
             ]
 
             # Upload new list to cloud database.
-            user_info = {"saved_hospitals": new_user_info}
-            self.update_user_info_and_sync_locally(user_info)
+            user_info = {"saved_hospitals": new_saved_hospitals}
+            yield from self.update_user_info_and_sync_locally(user_info)
+            yield from self.get_user_saved_hospitals()
+            yield rx.toast.success("Hospital removed from 'Saved Hospitals'")
 
-            # 
-            new_saved_hospitals = [
-                h for h in self.saved_hospitals if h.get("hosp_id") != hosp_id
-            ]
-            self.saved_hospitals = new_saved_hospitals
         except RequestFailed as e:
             yield rx.toast.error(str(e))
         except Exception as e:

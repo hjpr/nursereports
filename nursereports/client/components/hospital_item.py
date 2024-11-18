@@ -10,76 +10,40 @@ def hospital_item_search(hospital: dict[str, str]) -> rx.Component:
             rx.flex(
                 rx.text(
                     f"{hospital['hosp_name']}",
-                    class_name="text-md md:text-xl font-bold text-zinc-700"
+                    class_name="text-md md:text-lg font-bold text-zinc-700"
                 ),
                 rx.text(
                     f"{hospital['hosp_city']}, {hospital['hosp_state']}",
-                    class_name="text-md md:text-lg italic text-zinc-600"
+                    class_name="text-sm md:text-md italic text-zinc-600"
                 ),
-                class_name="flex-col space-y-2 p-4 w-full"
+                class_name="flex-col space-y-2 w-full"
             ),
             rx.spacer(),
             rx.flex(
-                rx.flex(
-                    hospital_item_search_arrow(hospital),
-                    class_name="flex-col items-center justify-center p-4"
-                ),
+                save_hospital(hospital),
+                go_to_report(hospital),
+                class_name="space-x-2"
             ),
-            class_name="flex-row w-full"
+            class_name="flex-row items-center w-full"
         ),
-        class_name="w-full min-w-36"
+        class_name="p-4 w-full"
     )
 
 
-def hospital_item_dashboard(hospital: dict[str, str]) -> rx.Component:
+def save_hospital(hospital: dict[str, str]) -> rx.Component:
     return rx.flex(
-        rx.flex(
-            rx.flex(
-                rx.text(
-                    f"{hospital['hosp_name']}",
-                    font_weight="bold",
-                    font_size=["16px", "16px", "18px", "18px", "18px"],
-                    line_height="1em"
-                ),
-                rx.text(
-                    f"{hospital['hosp_city']}, {hospital['hosp_state']}",
-                    font_size="14px",
-                    font_style="italic",
-                ),
-                height="100%",
-                width="100%",
-                flex_direction="column",
-                justify="center",
-                gap=["4px", "4px", "12px", "12px", "12px"],
-                padding="12px"
+        rx.tooltip(
+            rx.button(
+                rx.icon("list-plus"),
+                on_click=BaseState.event_state_add_hospital(hospital['hosp_id']),
+                class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 cursor-pointer",
             ),
-            rx.spacer(),
-            rx.flex(
-                hospital_item_dashboard_trash(hospital),
-                align="center",
-                justify="center",
-                height="100%",
-                min_height="100px",
-                min_width=["50px", "50px", "100px", "100px", "100px"],
-            ),
-            rx.flex(
-                hospital_item_dashboard_arrow(hospital),
-                align="center",
-                justify="center",
-                height="100%",
-                min_height="100px",
-                min_width=["50px", "50px", "100px", "100px", "100px"],
-                border_left="1px solid var(--chakra-colors-chakra-border-color)"
-            ),
-            flex_direction="row",
-            width="100%",
-        ),
-        min_height="100px",
-        width="100%",
+            content="Add to Saved Hospitals"
+        )
     )
 
 
-def hospital_item_search_arrow(hospital: dict[str, str]) -> rx.Component:
+def go_to_report(hospital: dict[str, str]) -> rx.Component:
     return rx.cond(
         BaseState.user_has_reported,
         rx.box(
@@ -92,87 +56,81 @@ def hospital_item_search_arrow(hospital: dict[str, str]) -> rx.Component:
         ),
         rx.box(
             rx.button(
-                rx.icon("arrow-right"),
+                rx.text("Go"),
+                rx.icon("arrow-right", class_name="h-4 w-4"),
                 on_click=ReportState.event_state_create_full_report(hospital['hosp_id']),
+                class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 cursor-pointer",
             )
         )
     )
 
 
-def hospital_item_search_dropdown(hospital: dict[str, str]) -> rx.Component:
-    return rx.cond(
-        BaseState.user_has_reported,
-        rx.box(
-            rx.menu.root(
-                rx.menu.trigger(
-                    rx.button(
-                        rx.icon("ellipsis-vertical"),
-                        variant="ghost",
-                        cursor="pointer"
-                    )
+def hospital_item_dashboard(hospital: dict[str, str]) -> rx.Component:
+    return rx.flex(
+        rx.flex(
+            rx.flex(
+                rx.text(
+                    f"{hospital['hosp_name']}",
+                    class_name="text-lg font-bold text-zinc-700"
                 ),
-                rx.menu.content(
-                    rx.menu.item(
-                        "Save to My Hospitals",
-                        on_click=BaseState.event_state_add_hospital(hospital['hosp_id'])
-                        ),
-                    rx.menu.separator(),
-                    rx.menu.item(
-                        "Submit Full Report",
-                        on_click=ReportState.event_state_create_full_report(hospital['hosp_id'])
-                    ),
-                    rx.menu.item(
-                        "Submit Red Flag Report",
-                        on_click=ReportState.redirect_to_red_flag_report(hospital['hosp_id'])
-                    )
-                )
-            )
-        )
+                rx.text(
+                    f"{hospital['hosp_city']}, {hospital['hosp_state']}",
+                    class_name="text-md italic"
+                ),
+                class_name="flex-col"
+            ),
+            rx.spacer(),
+            rx.flex(
+                dashboard_trash(hospital),
+                dashboard_arrow(hospital),
+                class_name="space-x-2"
+            ),
+            class_name="flex-row items-center space-x-4 w-full"
+        ),
+        class_name="p-4 w-full"
     )
 
 
-def hospital_item_dashboard_arrow(hospital: dict[str, str]) -> rx.Component:
-    return rx.button(
-        rx.icon("arrow-right"),
-        variant="ghost",
-        cursor="pointer",
-        on_click=HospitalState.redirect_to_hospital_overview(hospital['hosp_id'])
-    )
-
-
-def hospital_item_dashboard_trash(hospital: dict[str, str]) -> rx.Component:
+def dashboard_trash(hospital: dict[str, str]) -> rx.Component:
     return rx.popover.root(
         rx.popover.trigger(
-            rx.button(
-                rx.icon("trash-2"),
-                variant="ghost",
-                cursor="pointer"
+            rx.flex(
+                rx.button(
+                    rx.icon("trash-2", class_name="h-5 w-5"),
+                    class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 cursor-pointer",
+                )
             )
         ),
         rx.popover.content(
             rx.flex(
                 rx.text("Are you sure?"),
                 rx.popover.close(
-                    rx.vstack(
+                    rx.flex(
                         rx.button(
                             "Delete",
-                            width="100%",
-                            size="3",
                             color_scheme="ruby",
+                            class_name="w-full cursor-pointer",
                             on_click=BaseState.event_state_remove_hospital(hospital['hosp_id'])
                         ),
                         rx.button(
                             "Cancel",
-                            width="100%",
-                            size="3",
-                            variant="ghost"
-                        )
+                            class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 cursor-pointer",
+                        ),
+                        class_name="flex-col space-y-4 w-full"
                     )
                 ),
-                flex_direction="column",
-                align="center",
-                justify="center",
-                spacing="3"
+                class_name="flex-col items-center space-y-4"
             )
+        )
+    )
+
+
+def dashboard_arrow(hospital: dict[str, str]) -> rx.Component:
+    return rx.flex(
+        rx.button(
+            rx.text("Go"),
+            rx.icon("arrow-right", class_name="h-5 w-5"),
+            on_click=HospitalState.redirect_to_hospital_overview(hospital['hosp_id']),
+            class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 cursor-pointer"
         )
     )

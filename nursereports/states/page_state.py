@@ -1,9 +1,7 @@
 
-from .base_state import BaseState
-
 import reflex as rx
 
-class PageState(BaseState):
+class PageState(rx.State):
     
     @rx.var
     def search_param(self) -> str:

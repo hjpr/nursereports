@@ -3,18 +3,10 @@ from ..components import (
     footer,
     hospital_item_dashboard,
     navbar,
-    spacer,
     report_item_dashboard,
     report_protected,
 )
-from ..components.modals import (
-    info_modal,
-    my_pay_modal_content,
-    my_reports_modal_content,
-    remove_report_modal,
-    saved_hospitals_modal_content,
-)
-from ...states import BaseState, DashboardState
+from ...states import BaseState
 
 import reflex as rx
 
@@ -24,201 +16,117 @@ import reflex as rx
     title="Nurse Reports",
     on_load=[
         BaseState.event_state_auth_flow,
-        BaseState.event_state_access_flow("report")
+        BaseState.event_state_access_flow("report"),
+        BaseState.get_user_info,
     ],
 )
 @report_protected
 def dashboard_page() -> rx.Component:
     return rx.flex(
-        c2a(),
-        navbar(),
-        content(),
-        footer(),
-        background="linear-gradient(ghostwhite, honeydew)",
-        flex_direction="column",
-        align_items="center",
-        min_height="100vh",
+        c2a(), navbar(), content(), footer(), class_name="flex-col items-center w-full"
     )
 
 
 def content() -> rx.Component:
     return rx.flex(
-        spacer(height="12px"),
-        rx.heading("Dashboard", size="8"),
-        spacer(height="24px"),
+        heading(),
         saved_hospitals(),
-        saved_hospitals_info_modal(),
         my_pay(),
-        my_pay_info_modal(),
         my_reports(),
-        my_reports_info_modal(),
-        my_reports_remove_modal(),
-        width="100%",
-        max_width="1100px",
-        padding="24px",
-        align="center",
-        spacing="5",
-        flex_direction="column",
-        flex_basis="auto",
-        flex_grow="1",
-        flex_shrink="0",
+        class_name="flex-col items-center p-4 pt-8 space-y-8 w-full max-w-screen-md",
+    )
+
+
+def heading() -> rx.Component:
+    return rx.flex(
+        rx.flex(
+            rx.icon("layout-dashboard", class_name="h-6 w-6 stroke-teal-800"),
+            rx.text("Dashboard", class_name="text-2xl font-bold text-teal-800"),
+            class_name="flex-row items-center space-x-2",
+        ),
+        class_name="flex-col items-center border-double border-4 border-teal-300 rounded bg-teal-100 p-4 w-full",
     )
 
 
 def saved_hospitals() -> rx.Component:
-    return rx.card(
-        rx.cond(
-            BaseState.saved_hospitals,
-            rx.vstack(
+    return rx.flex(
+        rx.flex(
+            rx.flex(
                 rx.flex(
-                    rx.icon("hospital"),
-                    rx.heading("Saved Hospitals", padding="0px 12px"),
-                    rx.spacer(),
-                    rx.icon(
-                        "info",
-                        cursor="pointer",
-                        on_click=DashboardState.set_saved_hospitals_info_open(True),
-                    ),
-                    width="100%",
-                    flex_direction="row",
-                    align="center",
+                    rx.icon("hospital", class_name="h-5 w-5"),
+                    rx.text("Saved Hospitals", class_name="text-xl font-bold"),
+                    class_name="flex-row items-center text-zinc-700 space-x-2",
                 ),
-                rx.separator(),
+                class_name="flex-row items-center bg-zinc-100 p-2 w-full",
+            ),
+            rx.cond(
+                BaseState.saved_hospitals,
+                # User has saved hospitals.
                 rx.scroll_area(
                     rx.flex(
                         rx.foreach(BaseState.saved_hospitals, hospital_item_dashboard),
-                        max_height=["300px", "300px", "400px", "400px", "400px"],
-                        width="100%",
-                        direction="column",
-                        spacing="4",
+                        class_name="flex-col divide-y w-full",
                     )
                 ),
-                width="100%",
-                spacing="4",
-            ),
-            rx.flex(
-                rx.vstack(
-                    rx.heading("My Hospitals"),
-                    rx.separator(),
-                    rx.flex(
-                        rx.button(
-                            rx.icon("search"),
-                            "Find hospitals to add...",
-                            variant="ghost",
-                            size="3",
-                            cursor="pointer",
-                            on_click=rx.redirect("/search/hospital"),
-                        ),
-                        min_height="100px",
-                        width="100%",
-                        align="center",
-                        justify="center",
+                # User doesn't have saved hospitals.
+                rx.flex(
+                    rx.button(
+                        rx.icon("search", class_name="h-5 w-5"),
+                        "Find hospitals to add...",
+                        on_click=rx.redirect("/search/hospital"),
+                        class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 cursor-pointer",
                     ),
-                    width="100%",
+                    class_name="flex-col items-center justify-center w-full min-h-[92px]",
                 ),
-                width="100%",
             ),
+            class_name="flex-col divide-y w-full",
         ),
-        height="100%",
-        width="100%",
-        padding="24px",
-    )
-
-
-def saved_hospitals_info_modal() -> rx.Component:
-    return rx.dialog.root(
-        info_modal("Saved Hospitals", saved_hospitals_modal_content()),
-        open=DashboardState.saved_hospitals_info_open,
+        class_name="border rounded bg-white w-full",
     )
 
 
 def my_pay() -> rx.Component:
-    return rx.card(
-        rx.vstack(
+    return rx.flex(
+        rx.flex(
             rx.flex(
-                rx.icon("piggy-bank"),
-                rx.heading("My Pay", padding="0px 12px"),
-                rx.spacer(),
-                rx.icon(
-                    "info",
-                    cursor="pointer",
-                    on_click=DashboardState.set_my_pay_info_open(True)
-                    ),
-                width="100%",
-                flex_direction="row",
-                align="center",
+                rx.icon("piggy-bank", class_name="h-5 w-5 stroke-zinc-700"),
+                rx.text("My Pay", class_name="text-xl font-bold text-zinc-700"),
+                class_name="flex-row items-center bg-zinc-100 space-x-2 p-2 w-full",
             ),
-            rx.separator(),
             rx.flex(
-                rx.flex(bg="snow", height="100%", width="100%"),
-                rx.separator(orientation="vertical", margin="0 24px"),
-                rx.flex(bg="snow", height="100%", width="100%"),
-                height="100%",
-                width="100%",
-                justify="center",
+                rx.text("PLACEHOLDER", class_name="text-sm"),
+                class_name="flex-col items-center justify-center w-full min-h-[300px]",
             ),
-            height="100%",
-            width="100%",
-            spacing="4",
+            class_name="flex-col divide-y w-full",
         ),
-        height="500px",
-        width="100%",
-        padding="24px",
-    )
-
-
-def my_pay_info_modal() -> rx.Component:
-    return rx.dialog.root(
-        info_modal("My Pay", my_pay_modal_content()),
-        open=DashboardState.my_pay_info_open,
+        class_name="border rounded bg-white w-full",
     )
 
 
 def my_reports() -> rx.Component:
-    return rx.card(
-        rx.vstack(
+    return rx.flex(
+        rx.flex(
             rx.flex(
-                rx.icon("file-text"),
-                rx.heading("My Reports", padding="0px 12px"),
-                rx.spacer(),
-                rx.icon(
-                    "info",
-                    cursor="pointer",
-                    on_click=DashboardState.set_my_reports_info_open(True)
+                rx.icon("file-text", class_name="h-5 w-5 stroke-zinc-700"),
+                rx.text("My Reports", class_name="text-xl font-bold text-zinc-700"),
+                class_name="flex-row items-center bg-zinc-100 space-x-2 p-2 w-full",
+            ),
+            rx.cond(
+                BaseState.user_reports,
+                # User has prior reports.
+                rx.scroll_area(
+                    rx.flex(
+                        rx.foreach(BaseState.user_reports, report_item_dashboard),
+                        class_name="flex-col divide-y w-full",
                     ),
-                width="100%",
-                flex_direction="row",
-                align="center",
-            ),
-            rx.separator(),
-            rx.scroll_area(
-                rx.flex(
-                    rx.foreach(BaseState.user_reports, report_item_dashboard),
-                    max_height=["300px", "300px", "400px", "400px", "400px"],
-                    width="100%",
-                    direction="column",
-                    spacing="4",
                 ),
-                width="100%",
+                # User doesn't have prior reports.
+                rx.flex(
+                    rx.text("You haven't made any reports yet."),
+                    class_name="flex-col items-center justify-center w-full",
+                ),
             ),
-            spacing="4",
+            class_name="flex-col divide-y w-full",
         ),
-        max_height=["300px", "300px", "400px", "400px", "400px"],
-        width="100%",
-        padding="24px",
-        margin="0px 0px 24px 0px",
-    )
-
-
-def my_reports_info_modal() -> rx.Component:
-    return rx.dialog.root(
-        info_modal("My Reports", my_reports_modal_content()),
-        open=DashboardState.my_reports_info_open,
-    )
-
-
-def my_reports_remove_modal() -> rx.Component:
-    return rx.dialog.root(
-        remove_report_modal(),
-        open=DashboardState.remove_report_confirmation_open
+        class_name="border rounded bg-white w-full",
     )

@@ -89,7 +89,7 @@ def search_dropdowns() -> rx.Component:
                 ],
                 class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 w-full md:w-auto cursor-pointer",
             ),
-            class_name="flex-col md:flex-row items-center justify-center md:space-x-4 space-y-4 md:space-y-0 p-8 w-full",
+            class_name="flex-col md:flex-row items-center justify-center md:space-x-2 space-y-4 md:space-y-0 p-8 w-full",
         ),
         class_name="flex-col items-center space-y-4 w-full"
     )
