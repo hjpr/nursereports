@@ -53,7 +53,7 @@ def report_item_dashboard(report: dict[str, str]) -> rx.Component:
                 ),
                 rx.skeleton(
                     rx.text(
-                        f"{report.get('hosp_city')} - {report.get('hosp_state')}",
+                        f"{report['hosp_city']} - {report['hosp_state']}",
                         class_name="text-sm italic text-zinc-700"
                     ),
                     loading=~rx.State.is_hydrated
