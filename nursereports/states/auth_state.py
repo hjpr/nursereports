@@ -44,12 +44,8 @@ class AuthState(rx.State):
             yield rx.toast.error("Unable to refresh credentials.")
 
     def clear_tokens(self) -> Iterable[Callable]:
-        try:
-            self.access_token = ""
-            self.refresh_token = ""
-        except Exception as e:
-            logger.critical(e)
-            yield rx.toast.error("Error while clearing cookies.")
+        self.access_token = ""
+        self.refresh_token = ""
 
     def event_state_logout(self) -> Iterable[Callable]:
         """

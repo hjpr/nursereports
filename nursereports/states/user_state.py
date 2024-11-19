@@ -114,10 +114,10 @@ class UserState(AuthState):
 
                 # Get JWT using provided auth data.
                 tokens = supabase_login_with_email(email, password)
-                self.set_access_token(tokens.get("access_token"))
+                self.access_token = tokens.get("access_token")
 
                 # Get user data.
-                yield from self.get_user_info()
+                self.get_user_info()
 
                 # Send to proper page.
                 yield from self.redirect_user_to_onboard_or_dashboard()
@@ -188,6 +188,74 @@ class UserState(AuthState):
             yield rx.toast.error(e)
             self.user_is_loading = False
 
+
+    def create_new_user(self) -> None:
+        """
+        Create new user in remote database and save to local state.
+        """
+        supabase_create_initial_user_info(self.access_token, self.user_claims_id)
+        user_info = supabase_get_user_info(self.access_token)
+        self.user_info = user_info
+
+
+    def get_user_info(self) -> None:
+        """
+        Refreshes exising user's info in state, or creates new user if user info missing.
+        """
+        # Set user info to state or create new user
+        user_info = supabase_get_user_info(self.access_token)
+        if user_info:
+            self.user_info = user_info
+        else:
+            self.create_new_user()
+
+        # Get all users saved hospital information.
+        self.get_user_saved_hospitals()
+
+        # Get all user reports.
+        self.get_user_reports()
+
+
+    def get_user_saved_hospitals(self) -> None:
+        """Get or refresh saved hospitals."""
+        if self.user_info.get("saved_hospitals"):
+            saved_hospitals = supabase_populate_saved_hospital_details(
+                self.access_token, self.user_info.get("saved_hospitals")
+            )
+
+            # Format hospital cities from all caps to 'title' case.
+            for hospital in saved_hospitals:
+                hospital["hosp_city"] = hospital["hosp_city"].title()
+            self.saved_hospitals = saved_hospitals
+        else:
+            self.saved_hospitals = []
+
+    def get_user_reports(self) -> None:
+        """Get or refresh user reports."""
+        user_reports = supabase_get_user_reports(
+            self.access_token, self.user_claims_id
+        )
+
+        if user_reports:
+            for hospital in user_reports:
+
+                # Get the city and state for each hospital.
+                hospital_data = supabase_get_hospital_info(self.access_token, hospital.get("hospital_id", ""))
+                hospital["hosp_city"] = hospital_data.get("hosp_city", "").title()
+                hospital["hosp_state"] = hospital_data.get("hosp_state", "")
+
+                # Format timestamps as YYYY-MM
+                if hospital["created_at"]:
+                    hospital["created_at"] = datetime.fromisoformat(
+                        hospital["created_at"]
+                    ).strftime("%B %Y")
+                if hospital["modified_at"]:
+                    hospital["modified_at"] = datetime.fromisoformat(
+                        hospital["modified_at"]
+                    ).strftime("%B %Y")
+
+        self.user_reports = user_reports
+
     def update_user_info_and_sync_locally(
         self, data: dict[str, any]
     ) -> Iterable[Callable]:
@@ -216,86 +284,6 @@ class UserState(AuthState):
             else False
         )
 
-    def get_user_info(self) -> Iterable[Callable]:
-        """
-        Refreshes exising user's info in state, or creates new user if user info missing.
-        """
-        try:
-            # Set user info to state or create new user
-            user_info = supabase_get_user_info(self.access_token)
-            if user_info:
-                self.user_info = user_info
-            else:
-                yield from self.create_new_user()
-
-            # Get all users saved hospital information.
-            yield from self.get_user_saved_hospitals()
-
-            # Get all user reports.
-            yield from self.get_user_reports()
-
-        except Exception as e:
-            logger.critical(e)
-            yield rx.redirect("/")
-            yield rx.toast.error("Unable to reset/populate user info.")
-
-    def get_user_saved_hospitals(self) -> Iterable[Callable]:
-        """Get or refresh saved hospitals."""
-        if self.user_info.get("saved_hospitals"):
-            saved_hospitals = supabase_populate_saved_hospital_details(
-                self.access_token, self.user_info.get("saved_hospitals")
-            )
-
-            # Format hospital cities from all caps to 'title' case.
-            for hospital in saved_hospitals:
-                hospital["hosp_city"] = hospital["hosp_city"].title()
-            self.saved_hospitals = saved_hospitals
-        else:
-            self.saved_hospitals = []
-
-    def get_user_reports(self) -> Iterable[Callable]:
-        """Get or refresh user reports."""
-        try:
-            # Set user reports to state.
-            user_reports = supabase_get_user_reports(
-                self.access_token, self.user_claims_id
-            )
-
-            if user_reports:
-                for hospital in user_reports:
-
-                    # Get the city and state for each hospital.
-                    hospital_data = supabase_get_hospital_info(self.access_token, hospital.get("hospital_id", ""))
-                    hospital["hosp_city"] = hospital_data.get("hosp_city", "").title()
-                    hospital["hosp_state"] = hospital_data.get("hosp_state", "")
-
-                    # Format timestamps as YYYY-MM
-                    if hospital["created_at"]:
-                        hospital["created_at"] = datetime.fromisoformat(
-                            hospital["created_at"]
-                        ).strftime("%B %Y")
-                    if hospital["modified_at"]:
-                        hospital["modified_at"] = datetime.fromisoformat(
-                            hospital["modified_at"]
-                        ).strftime("%B %Y")
-
-            self.user_reports = user_reports
-
-        except Exception as e:
-            logger.critical(e)
-            yield rx.toast.error("Unable to get user reports.")
-
-    def create_new_user(self) -> Iterable[Callable]:
-        """
-        Create new user in remote database and save to local state.
-        """
-        try:
-            supabase_create_initial_user_info(self.access_token, self.user_claims_id)
-            user_info = supabase_get_user_info(self.access_token)
-            self.user_info = user_info
-        except Exception as e:
-            logger.critical(e)
-            yield rx.toast.error("Unable to perform new user creation.")
 
     def event_state_add_hospital(self, hosp_id: str) -> Iterable[Callable]:
         """
@@ -310,7 +298,7 @@ class UserState(AuthState):
             elif hosp_id not in self.user_info["saved_hospitals"]:
                 new_user_info = self.user_info["saved_hospitals"] + [hosp_id]
                 user_info = {"saved_hospitals": new_user_info}
-                yield from self.update_user_info_and_sync_locally(user_info)
+                self.update_user_info_and_sync_locally(user_info)
                 yield rx.toast.success("Hospital added to 'Saved Hospitals'.")
 
             # Notify user that hospital is already present.
@@ -323,6 +311,7 @@ class UserState(AuthState):
             yield rx.toast.error(str(e), timeout=5000)
         except Exception as e:
             logger.critical(str(e))
+            yield rx.toast.error("Unable to save hospital to list.")
 
     def event_state_remove_hospital(self, hosp_id: str) -> Iterable[Callable]:
         """
@@ -338,10 +327,10 @@ class UserState(AuthState):
             user_info = {"saved_hospitals": new_saved_hospitals}
 
             # Uploads and syncs data locally from remote database.
-            yield from self.update_user_info_and_sync_locally(user_info)
+            self.update_user_info_and_sync_locally(user_info)
 
             # Repulls hospital info to update list.
-            yield from self.get_user_saved_hospitals()
+            self.get_user_saved_hospitals()
 
             yield rx.toast.success("Hospital removed from 'Saved Hospitals'")
 

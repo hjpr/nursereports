@@ -214,9 +214,7 @@ class HospitalState(UserState):
         """
         try:
             # Reset all our hospital state variables for a clean slate.
-            logger.debug(self.access_token)
             self.reset()
-            logger.debug(self.access_token)
 
             # As long as CMS ID appears to be valid, try to get hospital info.
             if self.hosp_id:
