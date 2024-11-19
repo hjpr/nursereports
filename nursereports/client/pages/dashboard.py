@@ -69,7 +69,8 @@ def saved_hospitals() -> rx.Component:
                     rx.flex(
                         rx.foreach(BaseState.saved_hospitals, hospital_item_dashboard),
                         class_name="flex-col divide-y w-full",
-                    )
+                    ),
+                    class_name="w-full max-h-screen-sm"
                 ),
                 # User doesn't have saved hospitals.
                 rx.flex(
