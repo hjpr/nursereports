@@ -1,4 +1,4 @@
-from ...states import BaseState, LoginState
+from ...states import BaseState, UserState
 
 import reflex as rx
 
@@ -14,10 +14,7 @@ def login_page() -> rx.Component:
 def content() -> rx.Component:
     return rx.flex(
         header(),
-        rx.flex(
-            rx.divider(),
-            class_name="pb-3 w-full"
-        ),
+        rx.flex(rx.divider(), class_name="pb-3 w-full"),
         create_account(),
         login(),
         class_name="flex-col items-center rounded shadow-lg bg-white p-8 space-y-4 w-full max-w-md",
@@ -28,17 +25,18 @@ def header() -> rx.Component:
     return rx.flex(
         rx.image(src="/vector/square-activity.svg", class_name="h-9 w-9 mb-1"),
         rx.text(
-            "Nurse", 
+            "Nurse",
             on_click=rx.redirect("/"),
-            class_name="text-4xl cursor-pointer text-teal-700 pb-1 font-bold"
+            class_name="text-4xl cursor-pointer text-teal-700 pb-1 font-bold",
         ),
         rx.text(
-            "Reports", 
+            "Reports",
             on_click=rx.redirect("/"),
-            class_name="text-4xl cursor-pointer text-zinc-700 pb-1 font-bold"
+            class_name="text-4xl cursor-pointer text-zinc-700 pb-1 font-bold",
         ),
         class_name="flex-row items-center justify-center w-full",
     )
+
 
 def create_account() -> rx.Component:
     return rx.flex(
@@ -46,16 +44,19 @@ def create_account() -> rx.Component:
         rx.link(
             "Create account here",
             on_click=rx.redirect("/create-account"),
-            class_name="text-teal-700 cursor-pointer"
-            ),
-        class_name="flex-col border bg-zinc-50 rounded items-center p-2 w-full"
+            class_name="text-teal-700 cursor-pointer",
+        ),
+        class_name="flex-col border bg-zinc-50 rounded items-center p-2 w-full",
     )
 
 
 def login() -> rx.Component:
     return rx.form(
         rx.flex(
-            rx.text("Login to your account", class_name="text-xl pt-8 font-bold"),
+            rx.text(
+                "Login to your account",
+                class_name="text-xl pt-8 font-bold text-zinc-700",
+            ),
             rx.flex(
                 rx.flex(
                     rx.text("Email", size="2", class_name="pb-1"),
@@ -83,13 +84,13 @@ def login() -> rx.Component:
                         "Login",
                         type="submit",
                         size="3",
-                        loading=BaseState.is_loading,
+                        loading=UserState.user_is_loading,
                         class_name="w-full",
                     ),
                     rx.link(
                         "Forgot your password?",
                         on_click=rx.redirect("/login/forgot-password"),
-                        class_name="text-sm cursor-pointer"
+                        class_name="text-sm cursor-pointer",
                     ),
                     class_name="flex-col items-center pt-5 space-y-6 w-full",
                 ),
@@ -105,28 +106,28 @@ def login() -> rx.Component:
                 rx.button(
                     rx.image(src="/sso/google_sso.png", class_name="h-16 w-16"),
                     variant="ghost",
-                    loading=BaseState.is_loading,
+                    loading=UserState.user_is_loading,
                     class_name="h-16 w-16 cursor-pointer",
-                    on_click=LoginState.event_state_login_with_sso("google"),
+                    on_click=UserState.event_state_login_with_sso("google"),
                 ),
                 rx.button(
                     rx.image(src="/sso/facebook_sso.png", class_name="h-16 w-16"),
                     variant="ghost",
-                    loading=BaseState.is_loading,
+                    loading=UserState.user_is_loading,
                     class_name="h-16 w-16 cursor-pointer",
-                    on_click=LoginState.event_state_login_with_sso("facebook"),
+                    on_click=UserState.event_state_login_with_sso("facebook"),
                 ),
                 rx.button(
                     rx.image(src="/sso/linkedin_sso.png", class_name="h-16 w-16"),
                     variant="ghost",
-                    loading=BaseState.is_loading,
+                    loading=UserState.user_is_loading,
                     class_name="h-16 w-16 cursor-pointer",
-                    on_click=LoginState.event_state_login_with_sso("linkedin_oidc"),
+                    on_click=UserState.event_state_login_with_sso("linkedin_oidc"),
                 ),
                 class_name="flex-row justify-center pt-3 pb-6 space-x-14 w-full",
             ),
             class_name="flex-col items-center space-y-8 w-full",
         ),
-        on_submit=LoginState.event_state_submit_login,
-        reset_on_submit=True
+        on_submit=UserState.event_state_submit_login,
+        reset_on_submit=True,
     )

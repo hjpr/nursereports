@@ -1,6 +1,8 @@
 
 from ...states import (
+    AuthState,
     BaseState,
+    UserState,
     NavbarState
 )
 
@@ -73,7 +75,7 @@ def logo() -> rx.Component:
                 rx.text(
                     "Nurse",
                     on_click=rx.cond(
-                        BaseState.user_claims_authenticated,
+                        UserState.user_claims_authenticated,
                         rx.redirect("/dashboard"),
                         rx.redirect("/")
                     ),
@@ -82,7 +84,7 @@ def logo() -> rx.Component:
                 rx.text(
                     "N",
                     on_click=rx.cond(
-                        BaseState.user_claims_authenticated,
+                        UserState.user_claims_authenticated,
                         rx.redirect("/dashboard"),
                         rx.redirect("/")
                     ),
@@ -91,7 +93,7 @@ def logo() -> rx.Component:
                 rx.text(
                     "Reports",
                     on_click=rx.cond(
-                        BaseState.user_claims_authenticated,
+                        UserState.user_claims_authenticated,
                         rx.redirect("/dashboard"),
                         rx.redirect("/")
                     ),
@@ -100,7 +102,7 @@ def logo() -> rx.Component:
                 rx.text(
                     "R",
                     on_click=rx.cond(
-                        BaseState.user_claims_authenticated,
+                        UserState.user_claims_authenticated,
                         rx.redirect("/dashboard"),
                         rx.redirect("/")
                     ),
@@ -115,7 +117,7 @@ def logo() -> rx.Component:
 
 def links() -> rx.Component:
     return rx.cond(
-        BaseState.user_claims_authenticated,
+        UserState.user_claims_authenticated,
         
         # Nothing displayed if user is authenticated.
         rx.flex(),
@@ -151,15 +153,16 @@ def links() -> rx.Component:
 
 def search() -> rx.Component:
     return rx.cond(
-        BaseState.user_claims_authenticated,
+        UserState.user_claims_authenticated,
 
         # Shows search if user is logged in
         rx.flex(
             rx.button(
                 rx.icon("search", class_name="h-5 w-5"),
                 rx.text("Search"),
-                class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 shadow-lg cursor-pointer",
-                on_click=rx.redirect("/search/hospital")
+                disabled=(BaseState.current_location == "/search/hospital"),
+                on_click=rx.redirect("/search/hospital"),
+                class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 shadow-lg cursor-pointer"
             )
         ),
 
@@ -169,13 +172,14 @@ def search() -> rx.Component:
 
 def dashboard() -> rx.Component:
     return rx.cond(
-        BaseState.user_claims_authenticated,
+        UserState.user_claims_authenticated,
 
         # Show dashboard if user is logged in.
         rx.flex(
             rx.tooltip(
                 rx.button(
                     rx.icon("layout-dashboard", class_name="h-5 w-5"),
+                    disabled=(BaseState.current_location == "/dashboard"),
                     on_click=rx.redirect("/dashboard"),
                     class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 shadow-lg cursor-pointer",
                 ),
@@ -188,7 +192,7 @@ def dashboard() -> rx.Component:
 
 def login_or_account() -> rx.Component:
     return rx.cond(
-        BaseState.user_claims_authenticated,
+        UserState.user_claims_authenticated,
 
         # Show account if user is logged in.
         rx.flex(
@@ -216,11 +220,11 @@ def login_or_account() -> rx.Component:
 
 def mobile_menu() -> rx.Component:
     return rx.cond(
-        BaseState.user_claims_authenticated,
+        UserState.user_claims_authenticated,
 
         # Show mobile menu for logged in users.
         rx.cond(
-            BaseState.user_has_reported,
+            UserState.user_has_reported,
 
             # Show menu for logged in and onboarded users.
             rx.flex(
@@ -319,7 +323,7 @@ def mobile_menu() -> rx.Component:
                                         rx.link(
                                             "Logout",
                                             class_name="text-zinc-700 cursor-pointer",
-                                            on_click=BaseState.event_state_logout
+                                            on_click=AuthState.event_state_logout
                                         ),
                                         rx.icon("log-out", class_name="text-zinc-700"),
                                         class_name="space-x-4"

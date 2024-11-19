@@ -29,7 +29,6 @@ def supabase_get_hospital_overview_info(access_token: str, hosp_id: str) -> dict
     Exceptions:
         RequestFailed: request to pull info failed.
     """
-    rich.inspect(access_token)
     url = f"{api_url}/rest/v1/hospitals?hosp_id=eq.{hosp_id}&select=*"
     headers = {
         "apikey": api_key,

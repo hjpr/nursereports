@@ -6,7 +6,7 @@ from ..components import (
     navbar,
     progress,
     spacer,
-    unit_specialties
+    unit_specialties,
 )
 from reflex_motion import motion
 from ...states import BaseState, ReportState
@@ -20,8 +20,8 @@ import reflex as rx
     on_load=[
         BaseState.event_state_auth_flow,
         BaseState.event_state_access_flow("login"),
-        ReportState.event_state_report_flow
-    ]
+        ReportState.event_state_report_flow,
+    ],
 )
 @login_protected
 def assignment_page() -> rx.Component:

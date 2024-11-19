@@ -1,5 +1,5 @@
 
-from ...states import BaseState, NavbarState
+from ...states import BaseState, NavbarState, UserState
 
 import reflex as rx
 
@@ -67,7 +67,7 @@ def footer() -> rx.Component:
                             cursor="pointer"
                         ),
                         rx.cond(
-                            BaseState.user_claims_authenticated,
+                            UserState.user_claims_authenticated,
                             rx.link(
                                 "Feedback",
                                 size="2",

@@ -1,5 +1,5 @@
 
-from ...states import BaseState, HospitalState, ReportState
+from ...states import HospitalState, ReportState, UserState
 
 import reflex as rx
 
@@ -8,15 +8,21 @@ def hospital_item_search(hospital: dict[str, str]) -> rx.Component:
     return rx.flex(
         rx.flex(
             rx.flex(
-                rx.text(
-                    f"{hospital['hosp_name']}",
-                    class_name="text-md md:text-lg font-bold text-zinc-700"
+                rx.skeleton(
+                    rx.text(
+                        f"{hospital['hosp_name']}",
+                        class_name="text-md md:text-lg font-bold text-zinc-700"
+                    ),
+                    loading=~rx.State.is_hydrated
                 ),
-                rx.text(
-                    f"{hospital['hosp_city']}, {hospital['hosp_state']}",
-                    class_name="text-sm md:text-md italic text-zinc-600"
+                rx.skeleton(
+                    rx.text(
+                        f"{hospital['hosp_city']}, {hospital['hosp_state']}",
+                        class_name="text-sm italic text-zinc-600"
+                    ),
+                    loading=~rx.State.is_hydrated
                 ),
-                class_name="flex-col space-y-2 w-full"
+                class_name="flex-col space-y-1"
             ),
             rx.spacer(),
             rx.flex(
@@ -33,10 +39,13 @@ def hospital_item_search(hospital: dict[str, str]) -> rx.Component:
 def save_hospital(hospital: dict[str, str]) -> rx.Component:
     return rx.flex(
         rx.tooltip(
-            rx.button(
-                rx.icon("list-plus"),
-                on_click=BaseState.event_state_add_hospital(hospital['hosp_id']),
-                class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 cursor-pointer",
+            rx.skeleton(
+                rx.button(
+                    rx.icon("list-plus"),
+                    on_click=UserState.event_state_add_hospital(hospital['hosp_id']),
+                    class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 cursor-pointer",
+                ),
+                loading=~rx.State.is_hydrated
             ),
             content="Add to Saved Hospitals"
         )
@@ -45,21 +54,29 @@ def save_hospital(hospital: dict[str, str]) -> rx.Component:
 
 def go_to_report(hospital: dict[str, str]) -> rx.Component:
     return rx.cond(
-        BaseState.user_has_reported,
+        UserState.user_has_reported,
         rx.box(
-            rx.button(
-                rx.text("Go"),
-                rx.icon("arrow-right", class_name="h-4 w-4"),
-                on_click=HospitalState.redirect_to_hospital_overview(hospital['hosp_id']),
-                class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 cursor-pointer",
+            rx.skeleton(
+                rx.button(
+                    rx.text("Go"),
+                    rx.icon("arrow-right", class_name="h-4 w-4"),
+                    disabled=~rx.State.is_hydrated,
+                    on_click=HospitalState.redirect_to_hospital_overview(hospital['hosp_id']),
+                    class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 cursor-pointer",
+                ),
+                loading=~rx.State.is_hydrated
             )
         ),
         rx.box(
-            rx.button(
-                rx.text("Go"),
-                rx.icon("arrow-right", class_name="h-4 w-4"),
-                on_click=ReportState.event_state_create_full_report(hospital['hosp_id']),
-                class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 cursor-pointer",
+            rx.skeleton(
+                rx.button(
+                    rx.text("Go"),
+                    rx.icon("arrow-right", class_name="h-4 w-4"),
+                    disabled=~rx.State.is_hydrated,
+                    on_click=ReportState.event_state_create_full_report(hospital['hosp_id']),
+                    class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 cursor-pointer",
+                ),
+                loading=~rx.State.is_hydrated
             )
         )
     )
@@ -69,15 +86,21 @@ def hospital_item_dashboard(hospital: dict[str, str]) -> rx.Component:
     return rx.flex(
         rx.flex(
             rx.flex(
-                rx.text(
-                    f"{hospital['hosp_name']}",
-                    class_name="text-lg font-bold text-zinc-700"
+                rx.skeleton(
+                    rx.text(
+                        f"{hospital['hosp_name']}",
+                        class_name="text-md md:text-lg font-bold text-zinc-700"
+                    ),
+                    loading=~rx.State.is_hydrated
                 ),
-                rx.text(
-                    f"{hospital['hosp_city']}, {hospital['hosp_state']}",
-                    class_name="text-md italic"
+                rx.skeleton(
+                    rx.text(
+                        f"{hospital['hosp_city']}, {hospital['hosp_state']}",
+                        class_name="text-sm italic"
+                    ),
+                    loading=~rx.State.is_hydrated
                 ),
-                class_name="flex-col"
+                class_name="flex-col space-y-1"
             ),
             rx.spacer(),
             rx.flex(
@@ -95,9 +118,13 @@ def dashboard_trash(hospital: dict[str, str]) -> rx.Component:
     return rx.popover.root(
         rx.popover.trigger(
             rx.flex(
-                rx.button(
-                    rx.icon("trash-2", class_name="h-5 w-5"),
-                    class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 cursor-pointer",
+                rx.skeleton(
+                    rx.button(
+                        rx.icon("trash-2", class_name="h-5 w-5"),
+                        disabled=~rx.State.is_hydrated,
+                        class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 cursor-pointer",
+                    ),
+                    loading=~rx.State.is_hydrated
                 )
             )
         ),
@@ -110,7 +137,7 @@ def dashboard_trash(hospital: dict[str, str]) -> rx.Component:
                             "Delete",
                             color_scheme="ruby",
                             class_name="w-full cursor-pointer",
-                            on_click=BaseState.event_state_remove_hospital(hospital['hosp_id'])
+                            on_click=UserState.event_state_remove_hospital(hospital['hosp_id'])
                         ),
                         rx.button(
                             "Cancel",
@@ -127,10 +154,14 @@ def dashboard_trash(hospital: dict[str, str]) -> rx.Component:
 
 def dashboard_arrow(hospital: dict[str, str]) -> rx.Component:
     return rx.flex(
-        rx.button(
-            rx.text("Go"),
-            rx.icon("arrow-right", class_name="h-5 w-5"),
-            on_click=HospitalState.redirect_to_hospital_overview(hospital['hosp_id']),
-            class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 cursor-pointer"
+        rx.skeleton(
+            rx.button(
+                rx.text("Go"),
+                rx.icon("arrow-right", class_name="h-5 w-5"),
+                disabled=~rx.State.is_hydrated,
+                on_click=HospitalState.redirect_to_hospital_overview(hospital['hosp_id']),
+                class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 cursor-pointer"
+            ),
+            loading=~rx.State.is_hydrated
         )
     )

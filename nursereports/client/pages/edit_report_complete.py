@@ -9,7 +9,7 @@ import reflex as rx
     title="Nurse Reports",
     on_load=[
         BaseState.event_state_auth_flow,
-        BaseState.event_state_access_flow("report")
+        BaseState.event_state_access_flow("report"),
     ],
 )
 @login_protected
@@ -69,7 +69,7 @@ def header() -> rx.Component:
                     on_click=rx.redirect(
                         "https://www.facebook.com/sharer/sharer.php?u=https://nursereports.org&amp;src=sdkpreparse",
                         external=True,
-                    )
+                    ),
                 ),
                 rx.button(
                     rx.icon("twitter", size=28),
@@ -79,7 +79,7 @@ def header() -> rx.Component:
                     on_click=rx.redirect(
                         "https://twitter.com/intent/post?text=Nationwide hospital reporting built by nurses for nurses.&url=https%3A%2F%2Fnursereports.org",
                         external=True,
-                    )
+                    ),
                 ),
                 rx.button(
                     rx.icon("linkedin", size=28),
@@ -89,12 +89,12 @@ def header() -> rx.Component:
                     on_click=rx.redirect(
                         "https://www.linkedin.com/sharing/share-offsite/?url=https://nursereports.org",
                         external=True,
-                    )
+                    ),
                 ),
                 width="100%",
                 padding="48px 24px",
                 align="center",
-                justify="between"
+                justify="between",
             ),
             width="100%",
         ),

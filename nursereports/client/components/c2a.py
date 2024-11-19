@@ -1,11 +1,11 @@
-from ...states import BaseState, NavbarState
+from ...states import NavbarState, UserState
 
 import reflex as rx
 
 
 def c2a() -> rx.Component:
     return rx.cond(
-        BaseState.user_claims_authenticated,
+        UserState.user_claims_authenticated,
         rx.flex(
             rx.button(
                 "In Beta. Click here to submit issue or feedback.",

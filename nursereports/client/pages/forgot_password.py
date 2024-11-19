@@ -1,9 +1,13 @@
-from ...states import BaseState
+from ...states import BaseState, UserState
 
 import reflex as rx
 
 
-@rx.page(route="/login/forgot-password", title="Nurse Reports", on_load=BaseState.event_state_auth_flow)
+@rx.page(
+    route="/login/forgot-password",
+    title="Nurse Reports",
+    on_load=BaseState.event_state_auth_flow,
+)
 def forgot_password_page() -> rx.Component:
     return rx.flex(
         content(),
@@ -14,10 +18,7 @@ def forgot_password_page() -> rx.Component:
 def content() -> rx.Component:
     return rx.flex(
         header(),
-        rx.flex(
-            rx.divider(),
-            class_name="w-full"
-        ),
+        rx.flex(rx.divider(), class_name="w-full"),
         forgot_password(),
         nav_back(),
         class_name="flex-col items-center rounded shadow-lg bg-white p-8 space-y-4 w-full max-w-md",
@@ -28,14 +29,14 @@ def header() -> rx.Component:
     return rx.flex(
         rx.image(src="/vector/square-activity.svg", class_name="h-9 w-9 mb-1"),
         rx.text(
-            "Nurse", 
+            "Nurse",
             on_click=rx.redirect("/"),
-            class_name="text-4xl cursor-pointer text-teal-700 pb-1 font-bold"
+            class_name="text-4xl cursor-pointer text-teal-700 pb-1 font-bold",
         ),
         rx.text(
-            "Reports", 
+            "Reports",
             on_click=rx.redirect("/"),
-            class_name="text-4xl cursor-pointer text-zinc-700 pb-1 font-bold"
+            class_name="text-4xl cursor-pointer text-zinc-700 pb-1 font-bold",
         ),
         class_name="flex-row items-center justify-center w-full",
     )
@@ -61,18 +62,19 @@ def forgot_password() -> rx.Component:
                         "Recover Password",
                         type="submit",
                         size="3",
-                        loading=BaseState.is_loading,
+                        loading=UserState.user_is_loading,
                         class_name="w-full",
                     ),
                     class_name="flex-col items-center pt-5 w-full",
                 ),
                 class_name="flex-col items-center space-y-6 w-full",
             ),
-            class_name="flex-col items-center space-y-6 w-full"
+            class_name="flex-col items-center space-y-6 w-full",
         ),
         on_submit=BaseState.event_state_recover_password,
-        reset_on_submit=True
+        reset_on_submit=True,
     )
+
 
 def nav_back() -> rx.Component:
     return rx.flex(
@@ -80,10 +82,10 @@ def nav_back() -> rx.Component:
             rx.icon("arrow-left"),
             "Go to Login",
             size="3",
-            loading=BaseState.is_loading,
+            loading=UserState.user_is_loading,
             variant="outline",
             on_click=rx.redirect("/login", replace=True),
-            class_name="w-full"
+            class_name="w-full",
         ),
-        class_name="w-full"
+        class_name="w-full",
     )

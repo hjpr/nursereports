@@ -37,17 +37,8 @@ def supabase_get_hospital_search_results(
         headers=headers
     )
     if response.is_success:
-        logger.debug(f"Retrieved search results for {city}, {state} from /hospitals")
-        return {
-            'success': True,
-            'status': None,
-            'payload': json.loads(response.content)
-            }
+        response = json.loads(response.content)
+        return response
     else:
-        logger.critical(f"Failed to get results for {city}, {state} from /hospitals")
-        return {
-            'success': False,
-            'status': f"{response.status_code} - {response.reason_phrase}",
-            'payload': None
-        }
+        raise Exception("Failed to retrieve search results.")
     

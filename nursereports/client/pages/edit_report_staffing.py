@@ -16,7 +16,7 @@ import reflex as rx
     title="Nurse Reports",
     on_load=[
         BaseState.event_state_auth_flow,
-        BaseState.event_state_access_flow("report")
+        BaseState.event_state_access_flow("report"),
     ],
 )
 @login_protected

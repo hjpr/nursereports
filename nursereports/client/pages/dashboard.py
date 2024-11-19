@@ -17,13 +17,16 @@ import reflex as rx
     on_load=[
         BaseState.event_state_auth_flow,
         BaseState.event_state_access_flow("report"),
-        BaseState.get_user_info,
     ],
 )
 @report_protected
 def dashboard_page() -> rx.Component:
     return rx.flex(
-        c2a(), navbar(), content(), footer(), class_name="flex-col items-center w-full"
+        c2a(),
+        navbar(),
+        content(),
+        footer(),
+        class_name="flex-col items-center bg-teal-50 w-full",
     )
 
 
@@ -33,7 +36,7 @@ def content() -> rx.Component:
         saved_hospitals(),
         my_pay(),
         my_reports(),
-        class_name="flex-col items-center p-4 pt-8 space-y-8 w-full max-w-screen-md",
+        class_name="flex-col items-center p-4 pt-8 pb-8 space-y-8 w-full max-w-screen-md",
     )
 
 
@@ -41,10 +44,10 @@ def heading() -> rx.Component:
     return rx.flex(
         rx.flex(
             rx.icon("layout-dashboard", class_name="h-6 w-6 stroke-teal-800"),
-            rx.text("Dashboard", class_name="text-2xl font-bold text-teal-800"),
+            rx.text("Dashboard", class_name="text-2xl font-bold text-zinc-800"),
             class_name="flex-row items-center space-x-2",
         ),
-        class_name="flex-col items-center border-double border-4 border-teal-300 rounded bg-teal-100 p-4 w-full",
+        class_name="flex-col items-center border rounded bg-zinc-100 p-4 w-full",
     )
 
 
@@ -85,6 +88,10 @@ def saved_hospitals() -> rx.Component:
     )
 
 
+def skeleton_hospitals(hospital: dict) -> rx.Component:
+    return rx.flex(rx.skeleton(), class_name="w-full h-[96px]")
+
+
 def my_pay() -> rx.Component:
     return rx.flex(
         rx.flex(
@@ -122,8 +129,13 @@ def my_reports() -> rx.Component:
                 ),
                 # User doesn't have prior reports.
                 rx.flex(
-                    rx.text("You haven't made any reports yet."),
-                    class_name="flex-col items-center justify-center w-full",
+                    rx.button(
+                        rx.icon("search", class_name="h-5 w-5"),
+                        "Make a report...",
+                        on_click=rx.redirect("/search/hospital"),
+                        class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 cursor-pointer",
+                    ),
+                    class_name="flex-col items-center justify-center w-full min-h-[92px]",
                 ),
             ),
             class_name="flex-col divide-y w-full",

@@ -31,9 +31,16 @@ class ReportState(PageState):
     groups of the report; compensation, staffing, and assignment.
     """
 
+    # CMS ID pulled from URL parameters.
     hospital_id: str
+
+    # Dict of hospital data pulled from /hospital.
     hospital_info: dict[str, str | int | list]
+
+    # Are we in "edit" or "new".
     mode: str
+
+    # Generated uuid for the current report.
     report_id: str
 
     def event_state_report_flow(self) -> Iterable[Callable]:

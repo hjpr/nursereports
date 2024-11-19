@@ -13,8 +13,8 @@ import reflex as rx
     on_load=[
         BaseState.event_state_auth_flow,
         BaseState.event_state_access_flow("login"),
-        ReportState.event_state_report_flow
-    ]
+        ReportState.event_state_report_flow,
+    ],
 )
 @login_protected
 def complete_page() -> rx.Component:
@@ -186,6 +186,6 @@ def fireworks() -> rx.Component:
                 );
                 }, 250);
                 """
-            )
+            ),
         )
     )

@@ -3,7 +3,11 @@ from ...states import BaseState
 import reflex as rx
 
 
-@rx.page(route="/login/forgot-password/confirmation", title="Nurse Reports", on_load=BaseState.event_state_auth_flow)
+@rx.page(
+    route="/login/forgot-password/confirmation",
+    title="Nurse Reports",
+    on_load=BaseState.event_state_auth_flow,
+)
 def forgot_password_confirmation_page() -> rx.Component:
     return rx.flex(
         content(),
@@ -14,10 +18,7 @@ def forgot_password_confirmation_page() -> rx.Component:
 def content() -> rx.Component:
     return rx.flex(
         header(),
-        rx.flex(
-            rx.divider(),
-            class_name="pb-3 w-full"
-        ),
+        rx.flex(rx.divider(), class_name="pb-3 w-full"),
         confirmation(),
         rx.flex(
             rx.button(
@@ -25,9 +26,9 @@ def content() -> rx.Component:
                 "Go to Login",
                 size="3",
                 on_click=rx.redirect("/login", replace=True),
-                class_name="w-full"
+                class_name="w-full",
             ),
-            class_name="pt-4 pb-2 w-full"
+            class_name="pt-4 pb-2 w-full",
         ),
         class_name="flex-col items-center rounded shadow-lg bg-white p-8 space-y-4 w-full max-w-md",
     )
@@ -37,23 +38,24 @@ def header() -> rx.Component:
     return rx.flex(
         rx.image(src="/vector/square-activity.svg", class_name="h-9 w-9 mb-1"),
         rx.text(
-            "Nurse", 
+            "Nurse",
             on_click=rx.redirect("/"),
-            class_name="text-4xl cursor-pointer text-teal-700 pb-1 font-bold"
+            class_name="text-4xl cursor-pointer text-teal-700 pb-1 font-bold",
         ),
         rx.text(
-            "Reports", 
+            "Reports",
             on_click=rx.redirect("/"),
-            class_name="text-4xl cursor-pointer text-zinc-700 pb-1 font-bold"
+            class_name="text-4xl cursor-pointer text-zinc-700 pb-1 font-bold",
         ),
         class_name="flex-row items-center justify-center w-full",
     )
 
+
 def confirmation() -> rx.Component:
     return rx.flex(
+        rx.text("We just sent you an email link for a one-time login."),
         rx.text(
-            "We just sent you an email link for a one-time login."
+            "You can access your account options to change your password after login."
         ),
-        rx.text("You can access your account options to change your password after login."),
-        class_name="flex-col space-y-4 w-full"
+        class_name="flex-col space-y-4 w-full",
     )

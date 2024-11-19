@@ -1,5 +1,5 @@
 from ..components.c2a import c2a
-from ..components.custom import spacer, login_protected
+from ..components.custom import login_protected
 from ..components.footer import footer
 from ..components.navbar import navbar
 from ...states import BaseState, OnboardState, SearchState
@@ -12,8 +12,8 @@ import reflex as rx
     title="Nurse Reports",
     on_load=[
         BaseState.event_state_auth_flow,
-        BaseState.event_state_access_flow("login")
-    ]
+        BaseState.event_state_access_flow("login"),
+    ],
 )
 @login_protected
 def onboard_page() -> rx.Component:
@@ -22,7 +22,7 @@ def onboard_page() -> rx.Component:
         navbar(),
         content(),
         footer(),
-        class_name="flex-col items-center bg-gradient-to-b from-white to-teal-200 min-h-svh"
+        class_name="flex-col items-center bg-gradient-to-b from-white to-teal-200 min-h-svh",
     )
 
 
@@ -31,7 +31,7 @@ def content() -> rx.Component:
         greeting(),
         questions(),
         button(),
-        class_name="flex-col items-center space-y-10 px-4 py-24 w-full md:max-w-screen-sm"
+        class_name="flex-col items-center space-y-10 px-4 py-24 w-full md:max-w-screen-sm",
     )
 
 
@@ -39,7 +39,7 @@ def greeting() -> rx.Component:
     return rx.flex(
         rx.text(
             """Welcome to the community!""",
-            class_name="font-bold text-center md:text-6xl text-4xl text-zinc-700"
+            class_name="font-bold text-center md:text-6xl text-4xl text-zinc-700",
         ),
         rx.flex(
             rx.text(
@@ -48,7 +48,7 @@ def greeting() -> rx.Component:
                 on the East Coast. I built this tool to help nurses
                 share hospital information across the US.
                 """,
-                class_name="text-center text-zinc-700"
+                class_name="text-center text-zinc-700",
             ),
             rx.text(
                 """
@@ -56,11 +56,11 @@ def greeting() -> rx.Component:
                 ask that you share a report first if you are currently
                 working in a hospital.
                 """,
-                class_name="text-center text-zinc-700"
+                class_name="text-center text-zinc-700",
             ),
-            class_name="flex-col items-center space-y-6 w-full"
+            class_name="flex-col items-center space-y-6 w-full",
         ),
-        class_name="flex-col space-y-10 pb-4 w-full max-w-screen-sm"
+        class_name="flex-col space-y-10 pb-4 w-full max-w-screen-sm",
     )
 
 
@@ -70,7 +70,7 @@ def questions() -> rx.Component:
             rx.flex(
                 rx.text("Onboarding Questions", class_name="text-xl font-bold"),
                 rx.divider(),
-                class_name="flex-col space-y-2 w-full"
+                class_name="flex-col space-y-2 w-full",
             ),
             rx.flex(
                 rx.text("Are you licensed?"),
@@ -89,7 +89,7 @@ def questions() -> rx.Component:
                     size="3",
                     width="100%",
                 ),
-                class_name="flex-col space-y-1 w-full"
+                class_name="flex-col space-y-1 w-full",
             ),
             rx.cond(
                 OnboardState.license,
@@ -107,7 +107,7 @@ def questions() -> rx.Component:
                                 size="3",
                                 width="100%",
                             ),
-                            class_name="flex-col space-y-1 w-full"
+                            class_name="flex-col space-y-1 w-full",
                         ),
                         rx.flex(
                             rx.text(
@@ -124,17 +124,17 @@ def questions() -> rx.Component:
                                 size="3",
                                 width="100%",
                             ),
-                            class_name="flex-col space-y-1 w-full"
+                            class_name="flex-col space-y-1 w-full",
                         ),
-                        class_name="flex-col space-y-4 w-full"
-                    )
-                )
+                        class_name="flex-col space-y-4 w-full",
+                    ),
+                ),
             ),
             rx.cond(~OnboardState.can_give_review, callout_review()),
             callout_error(),
-            class_name="flex-col space-y-4 w-full"
+            class_name="flex-col space-y-4 w-full",
         ),
-        class_name="flex-col border rounded-lg bg-white p-4 w-full"
+        class_name="flex-col border rounded-lg bg-white p-4 w-full",
     )
 
 
@@ -159,9 +159,9 @@ def callout_review() -> rx.Component:
             report right now.
             """,
             icon="info",
-            class_name="text-zinc-700 w-full"
+            class_name="text-zinc-700 w-full",
         ),
-        class_name="pt-2 w-full"
+        class_name="pt-2 w-full",
     )
 
 

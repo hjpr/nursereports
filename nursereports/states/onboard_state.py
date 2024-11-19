@@ -1,13 +1,13 @@
-from . import BaseState
+from .user_state import UserState
 from ..server.exceptions import InvalidError, RequestFailed
-from ..server.supabase import supabase_update_user_info
+
 from loguru import logger
 from typing import Callable, Iterable
 
 import reflex as rx
 
 
-class OnboardState(BaseState):
+class OnboardState(UserState):
     has_review: str
     license: str
     license_state: str
@@ -30,7 +30,7 @@ class OnboardState(BaseState):
             return False
         else:
             return True
-        
+
     def set_license(self, license: str) -> None:
         if license == "Nursing Student":
             self.license_state = "Student"
@@ -42,23 +42,26 @@ class OnboardState(BaseState):
 
     def event_state_submit_onboard(self) -> Iterable[Callable]:
         try:
+            # Check if required fields were completed.
             if not self.license or not self.license_state or not self.has_review:
                 raise InvalidError("Please complete all fields before continuing.")
-            data = {
+
+            # Update remote database with onboard data.
+            user_info = {
                 "license": self.license,
                 "license_state": self.license_state,
                 "needs_onboard": True if self.has_review == "Yes" else False,
             }
-            updated_info = supabase_update_user_info(
-                self.access_token, self.user_claims_id, data
-            )
-            self.user_info.update(updated_info)
+            yield from self.update_user_info_and_sync_locally(user_info)
+
+            # Decide if user either needs to submit report, or is okay to proceed.
             if self.user_info["needs_onboard"]:
                 logger.debug("User will need to complete a report for site access.")
                 yield rx.redirect("/search/hospital")
             else:
                 logger.debug("User doesn't have a report to capture.")
                 yield rx.redirect("/dashboard")
+
         except InvalidError as e:
             error_message = str(e)
             self.onboard_error_message = error_message

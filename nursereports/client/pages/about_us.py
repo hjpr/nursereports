@@ -51,16 +51,16 @@ def text() -> rx.Component:
     return rx.flex(
         rx.text(
             "I'm J, an ICU nurse. I've worked bedside for the past 5 years through quite a transformational period in the nursing profession. I cut my teeth in the COVID ICU for a couple years, traveled, then pivoted to an ICU float position to try to round out my knowledge-base.",
-        class_name="leading-relaxed"
+            class_name="leading-relaxed pt-4",
         ),
         rx.text(
             "I started this project in 2021 convinced that by creating open and freely accessible lines of communication we could create a powerful career tool for the benefit of millions of nurses nationwide. I'm still here in 2024 after a long development road, to release this tool and continue working towards shifting the power dynamic back to the people who form the foundations of our entire national healthcare apparatus.",
-        class_name="leading-relaxed"
+            class_name="leading-relaxed",
         ),
         rx.text(
             "I've worked on this project solo for almost 4 years, but I use 'us' to describe just how many people have guided and shaped this project. So too will I rely on you - the bedside nurse - to help me build an ecosystem through data, where nurses can get real-time info on pay, unit culture, staffing, and much more.",
-        class_name="leading-relaxed"
+            class_name="leading-relaxed",
         ),
-        rx.text("JM"),
+        rx.text("JM", class_name="pt-8"),
         class_name="flex-col space-y-6 px-8 pb-12 text-zinc-700 w-full max-w-[700px]",
     )

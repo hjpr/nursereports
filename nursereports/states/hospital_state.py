@@ -4,7 +4,7 @@ import re
 import reflex as rx
 import rich
 
-from ..states.base_state import BaseState
+from ..states.user_state import UserState
 from ..server.supabase.hospital_requests import (
     supabase_get_hospital_overview_info,
     supabase_get_hospital_report_data,
@@ -18,7 +18,7 @@ from scipy import interpolate
 from typing import Any, Callable, Iterable
 
 
-class HospitalState(BaseState):
+class HospitalState(UserState):
     # Full hospital info.
     hospital_info: dict[str, Any]
 
@@ -213,13 +213,27 @@ class HospitalState(BaseState):
         Load hospital data into state from supabase.
         """
         try:
+            # Reset all our hospital state variables for a clean slate.
+            logger.debug(self.access_token)
             self.reset()
-            self.hospital_info = supabase_get_hospital_overview_info(
-                self.access_token, self.hosp_id
-            )
+            logger.debug(self.access_token)
+
+            # As long as CMS ID appears to be valid, try to get hospital info.
+            if self.hosp_id:
+                self.hospital_info = supabase_get_hospital_overview_info(
+                    self.access_token, self.hosp_id
+                )
+
+            # Otherwise send user back to dashboard.
+            else:
+                yield rx.redirect("/dashboard")
+
         except RequestFailed as e:
             logger.error(e)
             yield rx.toast.error("Failed to retrieve report data from backend.")
+        except Exception as e:
+            logger.error(e)
+            yield rx.toast.error("Unexpected behavior while loading hospital info.")
 
     def event_state_load_report_info(self) -> Iterable[Callable]:
         """
@@ -232,6 +246,10 @@ class HospitalState(BaseState):
         except RequestFailed as e:
             logger.critical(e)
             yield rx.toast.error("Failed to retrieve review data from backend.")
+        except Exception as e:
+            logger.error(e)
+            yield rx.toast.error("Unexpected behavior while loading report info.")
+        
 
     def event_state_load_pay_info(self) -> Iterable[Callable]:
         """
@@ -534,6 +552,7 @@ class HospitalState(BaseState):
         except Exception as e:
             logger.critical(e)
 
+
     def event_state_load_review_info(self) -> Iterable[Callable]:
         try:
             if self.report_info:
@@ -636,6 +655,7 @@ class HospitalState(BaseState):
         except Exception as e:
             logger.critical(e)
             yield rx.toast.error("Whoops! Couldn't save reviews to state.")
+
 
     def event_state_like_unlike_review(
         self, review_to_edit: dict[str, str | list | bool]

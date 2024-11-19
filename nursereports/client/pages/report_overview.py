@@ -77,7 +77,7 @@ def hospital_info() -> rx.Component:
             ),
         ),
         variant="ghost",
-        padding="12px 0 0 0"
+        padding="12px 0 0 0",
     )
 
 
@@ -99,11 +99,11 @@ def section_anonymous() -> rx.Component:
                     align_items="center",
                     justify_content="center",
                 ),
-                width="100%"
+                width="100%",
             ),
-            width="100%"
+            width="100%",
         ),
-        width="100%"
+        width="100%",
     )
 
 

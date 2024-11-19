@@ -1,9 +1,13 @@
-from ...states import BaseState, LoginState
+from ...states import BaseState, UserState
 
 import reflex as rx
 
 
-@rx.page(route="/create-account", title="Nurse Reports", on_load=BaseState.event_state_auth_flow)
+@rx.page(
+    route="/create-account",
+    title="Nurse Reports",
+    on_load=BaseState.event_state_auth_flow,
+)
 def create_account_page() -> rx.Component:
     return rx.flex(
         content(),
@@ -14,10 +18,7 @@ def create_account_page() -> rx.Component:
 def content() -> rx.Component:
     return rx.flex(
         header(),
-        rx.flex(
-            rx.divider(),
-            class_name="pb-3 w-full"
-        ),
+        rx.flex(rx.divider(), class_name="pb-3 w-full"),
         login(),
         create_account(),
         class_name="flex-col items-center rounded shadow-lg bg-white p-8 space-y-4 w-full max-w-md",
@@ -28,34 +29,35 @@ def header() -> rx.Component:
     return rx.flex(
         rx.image(src="/vector/square-activity.svg", class_name="h-9 w-9 mb-1"),
         rx.text(
-            "Nurse", 
+            "Nurse",
             on_click=rx.redirect("/"),
-            class_name="text-4xl cursor-pointer text-teal-700 pb-1 font-bold"
+            class_name="text-4xl cursor-pointer text-teal-700 pb-1 font-bold",
         ),
         rx.text(
-            "Reports", 
+            "Reports",
             on_click=rx.redirect("/"),
-            class_name="text-4xl cursor-pointer text-zinc-700 pb-1 font-bold"
+            class_name="text-4xl cursor-pointer text-zinc-700 pb-1 font-bold",
         ),
         class_name="flex-row items-center justify-center w-full",
     )
+
 
 def login() -> rx.Component:
     return rx.flex(
         rx.text("Already have an account?"),
         rx.link(
-            "Go to login",
-            on_click=rx.redirect("/login"),
-            class_name="cursor-pointer"
-            ),
-        class_name="flex-col border rounded bg-zinc-50 items-center p-2 w-full"
+            "Go to login", on_click=rx.redirect("/login"), class_name="cursor-pointer"
+        ),
+        class_name="flex-col border rounded bg-zinc-50 items-center p-2 w-full",
     )
 
 
 def create_account() -> rx.Component:
     return rx.form(
         rx.flex(
-            rx.text("Create new account", class_name="text-xl pt-8 font-bold"),
+            rx.text(
+                "Create new account", class_name="text-xl pt-8 font-bold text-zinc-700"
+            ),
             rx.flex(
                 rx.flex(
                     rx.text("Email", size="2", class_name="pb-1"),
@@ -93,9 +95,9 @@ def create_account() -> rx.Component:
                     rx.flex(
                         rx.text(
                             "Passwords should be at least 8 characters long and contain numbers + letters",
-                            class_name="text-sm text-center"
+                            class_name="text-sm text-center",
                         ),
-                        class_name="w-full"
+                        class_name="w-full",
                     ),
                     class_name="flex-col space-y-6 w-full",
                 ),
@@ -105,7 +107,7 @@ def create_account() -> rx.Component:
                         type="submit",
                         size="3",
                         class_name="w-full",
-                        loading=BaseState.is_loading
+                        loading=UserState.user_is_loading,
                     ),
                     class_name="flex-col pt-5 pb-6 w-full",
                 ),
@@ -118,20 +120,20 @@ def create_account() -> rx.Component:
                         "Privacy Policy",
                         size="2",
                         on_click=rx.redirect("/policy/privacy"),
-                        class_name="cursor-pointer"
+                        class_name="cursor-pointer",
                     ),
                     rx.divider(orientation="vertical"),
                     rx.link(
                         "AI Policy",
                         size="2",
                         on_click=rx.redirect("/policy/ai"),
-                        class_name="cursor-pointer"
+                        class_name="cursor-pointer",
                     ),
-                    class_name="flex-row items-center justify-center p-2 mb-1 space-x-8 w-full"
+                    class_name="flex-row items-center justify-center p-2 mb-1 space-x-8 w-full",
                 )
             ),
             class_name="flex-col items-center space-y-8 w-full",
         ),
-        on_submit=LoginState.event_state_create_account,
-        reset_on_submit=True
+        on_submit=UserState.event_state_create_account,
+        reset_on_submit=True,
     )
