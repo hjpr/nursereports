@@ -65,12 +65,9 @@ def saved_hospitals() -> rx.Component:
             rx.cond(
                 BaseState.saved_hospitals,
                 # User has saved hospitals.
-                rx.scroll_area(
-                    rx.flex(
-                        rx.foreach(BaseState.saved_hospitals, hospital_item_dashboard),
-                        class_name="flex-col divide-y w-full",
-                    ),
-                    class_name="w-full max-h-screen-sm"
+                rx.flex(
+                    rx.foreach(BaseState.saved_hospitals, hospital_item_dashboard),
+                    class_name="flex-col divide-y w-full",
                 ),
                 # User doesn't have saved hospitals.
                 rx.flex(
@@ -122,11 +119,9 @@ def my_reports() -> rx.Component:
             rx.cond(
                 BaseState.user_reports,
                 # User has prior reports.
-                rx.scroll_area(
-                    rx.flex(
-                        rx.foreach(BaseState.user_reports, report_item_dashboard),
-                        class_name="flex-col divide-y w-full",
-                    ),
+                rx.flex(
+                    rx.foreach(BaseState.user_reports, report_item_dashboard),
+                    class_name="flex-col divide-y w-full",
                 ),
                 # User doesn't have prior reports.
                 rx.flex(

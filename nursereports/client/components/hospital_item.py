@@ -24,7 +24,7 @@ def hospital_item_search(hospital: dict[str, str]) -> rx.Component:
                 ),
                 class_name="flex-col space-y-1"
             ),
-            rx.flex(class_name="w-full"),
+            rx.spacer(),
             rx.flex(
                 save_hospital(hospital),
                 go_to_report(hospital),
@@ -102,7 +102,7 @@ def hospital_item_dashboard(hospital: dict[str, str]) -> rx.Component:
                 ),
                 class_name="flex-col space-y-1"
             ),
-            rx.flex(class_name="w-full"),
+            rx.spacer(),
             rx.flex(
                 dashboard_trash(hospital),
                 dashboard_arrow(hospital),
