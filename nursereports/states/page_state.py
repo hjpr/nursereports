@@ -1,10 +1,11 @@
+from .user_state import UserState
 
 import reflex as rx
 
-class PageState(rx.State):
+class PageState(UserState):
     
     @rx.var
-    def search_param(self) -> str:
+    def search_param(self) -> str | None:
         return self.router.page.params.get('context')
 
     @rx.var

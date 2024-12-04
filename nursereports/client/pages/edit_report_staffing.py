@@ -4,6 +4,7 @@ from ..components import (
     login_protected,
     navbar,
     spacer,
+    solid_button
 )
 from reflex_motion import motion
 from ...states import BaseState, ReportState
@@ -590,16 +591,12 @@ def overall() -> rx.Component:
 def button() -> rx.Component:
     return rx.card(
         rx.flex(
-            rx.button(
-                rx.cond(
-                    ReportState.is_hydrated,
-                    rx.spinner(),
-                    rx.text("Submit Report"),
-                ),
+            solid_button(
+                "Submit Edited Report",
                 rx.icon("arrow-big-right"),
                 on_click=ReportState.handle_edit_staffing,
-                variant="ghost",
                 size="3",
+                loading=~rx.State.is_hydrated
             ),
             align_items="center",
             justify_content="center",

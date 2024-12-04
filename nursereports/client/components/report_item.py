@@ -1,12 +1,18 @@
+from .tailwind import (
+    flex,
+    outline_button,
+    text
+)
+
 from ...states import ReportState
 
 import reflex as rx
 
 
 def report_item_dashboard(report: dict[str, str]) -> rx.Component:
-    return rx.flex(
-        rx.flex(
-            rx.flex(
+    return flex(
+        flex(
+            flex(
                 rx.cond(
                     report["assign_select_unit"],
                     # Report is from a unit
@@ -14,17 +20,17 @@ def report_item_dashboard(report: dict[str, str]) -> rx.Component:
                         report["assign_select_unit"] == "I don't see my unit",
                         # Report unit was entered manually.
                         rx.skeleton(
-                            rx.text(
+                            text(
                                 f"{report['assign_input_unit_name']}",
-                                class_name="text-xl font-bold text-zinc-700",
+                                class_name="text-xl font-bold",
                             ),
                             loading=~rx.State.is_hydrated
                         ),
                         # Report unit was selected from list.
                         rx.skeleton(
-                            rx.text(
+                            text(
                                 f"{report['assign_select_unit']}",
-                                class_name="text-xl font-bold text-zinc-700",
+                                class_name="text-xl font-bold",
                             ),
                             loading=~rx.State.is_hydrated
                         )
@@ -35,9 +41,9 @@ def report_item_dashboard(report: dict[str, str]) -> rx.Component:
                         == "I don't see my area or role",
                         # Report area/role was entered manually.
                         rx.skeleton(
-                            rx.text(
+                            text(
                                 f"{report['assign_input_area']}",
-                                class_name="text-md md:text-lg font-bold text-zinc-700",
+                                class_name="text-md md:text-lg font-bold",
                             ),
                             loading=~rx.State.is_hydrated
                         ),
@@ -52,9 +58,9 @@ def report_item_dashboard(report: dict[str, str]) -> rx.Component:
                     ),
                 ),
                 rx.skeleton(
-                    rx.text(
+                    text(
                         f"{report['hosp_city']} - {report['hosp_state']}",
-                        class_name="text-sm italic text-zinc-700"
+                        class_name="text-sm italic"
                     ),
                     loading=~rx.State.is_hydrated
                 ),
@@ -62,17 +68,17 @@ def report_item_dashboard(report: dict[str, str]) -> rx.Component:
                     report["modified_at"],
                     # Date displayed if user has made modification.
                     rx.skeleton(
-                        rx.text(
+                        text(
                             f"Edited {report['modified_at']}",
-                            class_name="text-sm italic text-zinc-700"
+                            class_name="text-sm italic"
                         ),
                         loading=~rx.State.is_hydrated
                     ),
                     # Date displayed if user hasn't made modifications.
                     rx.skeleton(
-                        rx.text(
+                        text(
                             f"Submitted {report['created_at']}",
-                            class_name="text-sm italic text-zinc-700"
+                            class_name="text-sm italic"
                         ),
                         loading=~rx.State.is_hydrated
                     )
@@ -80,7 +86,7 @@ def report_item_dashboard(report: dict[str, str]) -> rx.Component:
                 class_name="flex-col space-y-1 w-full"
             ),
             rx.spacer(),
-            rx.flex(
+            flex(
                 report_item_dashboard_remove_report(report),
                 report_item_dashboard_edit(report),
                 class_name="space-x-2"
@@ -94,29 +100,27 @@ def report_item_dashboard(report: dict[str, str]) -> rx.Component:
 def report_item_dashboard_remove_report(report: dict[str, str]) -> rx.Component:
     return rx.popover.root(
         rx.popover.trigger(
-            rx.flex(
+            flex(
                 rx.skeleton(
-                    rx.button(
+                    outline_button(
                         rx.icon("trash-2", class_name="h-5 w-5"),
-                        class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 cursor-pointer",
                     ),
                     loading=~rx.State.is_hydrated
                 )
             )
         ),
         rx.popover.content(
-            rx.flex(
+            flex(
                 rx.text("Are you sure?"),
                 rx.popover.close(
-                    rx.flex(
+                    flex(
                         rx.button(
                             "Delete",
                             color_scheme="ruby",
                             class_name="w-full cursor-pointer"
                         ),
-                        rx.button(
+                        outline_button(
                             "Cancel",
-                            class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 cursor-pointer",
                         ),
                         class_name="flex-col space-y-4 w-full"
                     )
@@ -128,13 +132,12 @@ def report_item_dashboard_remove_report(report: dict[str, str]) -> rx.Component:
 
 
 def report_item_dashboard_edit(report: dict[str, str]) -> rx.Component:
-    return rx.flex(
+    return flex(
         rx.skeleton(
-            rx.button(
-                rx.icon("pencil", class_name="stroke-zinc-700 h-5 w-5"),
+            outline_button(
+                rx.icon("pencil", class_name="h-5 w-5"),
                 rx.text("Edit"),
                 on_click=ReportState.event_state_edit_user_report(report["report_id"]),
-                class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 cursor-pointer"
             ),
             loading=~rx.State.is_hydrated
         )

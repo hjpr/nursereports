@@ -3,6 +3,7 @@ from reflex_motion import motion
 from ...states import BaseState, ReportState
 
 import reflex as rx
+import reflex_chakra as chakra
 
 
 @rx.page(
@@ -125,12 +126,15 @@ def pay() -> rx.Component:
                             rx.text("week? ", display="inline", font_weight="bold"),
                             rx.text("(in $)", display="inline"),
                         ),
-                        rx.chakra.number_input(
-                            value=ReportState.comp_input_pay_amount,
-                            input_mode="numeric",
-                            on_change=ReportState.set_comp_input_pay_amount,
-                            is_required=True,
-                            width="100%",
+                        rx.flex(
+                            chakra.number_input(
+                                value=ReportState.comp_input_pay_amount,
+                                input_mode="numeric",
+                                on_change=ReportState.set_comp_input_pay_amount,
+                                is_required=True,
+                                class_name="w-full"
+                            ),
+                            class_name="h-8 w-full"
                         ),
                         rx.cond(
                             ReportState.is_pay_invalid,
@@ -150,12 +154,12 @@ def pay() -> rx.Component:
                             rx.text("hour? ", display="inline", font_weight="bold"),
                             rx.text("(in $)", display="inline"),
                         ),
-                        rx.chakra.number_input(
+                        chakra.number_input(
                             value=ReportState.comp_input_pay_amount,
                             input_mode="numeric",
                             on_change=ReportState.set_comp_input_pay_amount,
                             is_required=True,
-                            width="100%",
+                            class_name="h-4 w-full"
                         ),
                         rx.cond(
                             ReportState.is_pay_invalid,
@@ -193,7 +197,7 @@ def pay() -> rx.Component:
                             rx.text("nights? ", display="inline", font_weight="bold"),
                             rx.text("(in $)", display="inline"),
                         ),
-                        rx.chakra.number_input(
+                        chakra.number_input(
                             value=ReportState.comp_input_diff_nights,
                             on_change=ReportState.set_comp_input_diff_nights,
                             max=100,
@@ -211,7 +215,7 @@ def pay() -> rx.Component:
                             ),
                             rx.text("(in $)", display="inline"),
                         ),
-                        rx.chakra.number_input(
+                        chakra.number_input(
                             value=ReportState.comp_input_diff_weekends,
                             on_change=ReportState.set_comp_input_diff_weekends,
                             max=100,
@@ -243,7 +247,7 @@ def pay() -> rx.Component:
                 ReportState.gets_incentive,
                 rx.vstack(
                     rx.text("(Optional) Extra per hour for incentive? (in $)"),
-                    rx.chakra.number_input(
+                    chakra.number_input(
                         value=ReportState.comp_input_incentive_amount,
                         on_change=ReportState.set_comp_input_incentive_amount,
                         max_=200,

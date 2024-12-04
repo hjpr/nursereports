@@ -4,8 +4,6 @@ from .client.pages import *
 
 import reflex as rx
 
-app = rx.App(
-    theme=rx.theme(
-        accent_color="teal"
-    )
-)
+
+
+app = rx.App()

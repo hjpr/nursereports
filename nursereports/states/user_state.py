@@ -33,9 +33,16 @@ class UserState(AuthState):
     user_reports: list[dict[str, str]] = []
 
     # Stored list of user information from /public
-    saved_hospitals: list[dict[str, str]] = []
+    user_saved_hospitals: list[dict[str, str]] = []
 
+    # Used to display loading wheel for user UI events.
     user_is_loading: bool = False
+
+    # Limit the rate at which a user can send contact.
+    user_contact_email_time: int = 0
+
+    # Limit rate at which user can send password recovery.
+    user_recovery_email_time: int = 0
 
     @rx.var(cache=True)
     def user_claims(self) -> dict[str, str]:
@@ -226,9 +233,9 @@ class UserState(AuthState):
             # Format hospital cities from all caps to 'title' case.
             for hospital in saved_hospitals:
                 hospital["hosp_city"] = hospital["hosp_city"].title()
-            self.saved_hospitals = saved_hospitals
+            self.user_saved_hospitals = saved_hospitals
         else:
-            self.saved_hospitals = []
+            self.user_saved_hospitals = []
 
     def get_user_reports(self) -> None:
         """Get or refresh user reports."""
@@ -364,38 +371,61 @@ class UserState(AuthState):
 
     def event_state_contact_us_submit(self, contact_dict: dict) -> Iterable[Callable]:
         """
-        Submits info to email via contact us page.
+        Submits info to email via contact us page. User must wait 5 min between submissions.
         """
         try:
             subject = contact_dict.get("subject")
             text = contact_dict.get("text")
+            current_time = int(time.time())
+            wait_interval = 300
+            wait_time = int(current_time - wait_interval) - self.user_contact_email_time
 
-            if subject and text:
-                yield mailgun_send_email(
-                    "support@nursereports.org",
-                    "jeremy.f.medlin@gmail.com",
-                    subject,
-                    text,
-                )
-                yield rx.toast.success("Thanks for reaching out!")
+            # Check that wait interval isn't sooner than 5 min.
+            if wait_time >= 0:
+
+                if subject and text:
+                    yield mailgun_send_email(
+                        "support@nursereports.org",
+                        "jeremy.f.medlin@gmail.com",
+                        subject,
+                        text,
+                    )
+                    self.user_contact_email_time = current_time
+                    yield rx.toast.success("Thanks for reaching out!")
+                else:
+                    yield rx.toast.error("Some or all required fields are empty.")
+
             else:
-                yield rx.toast.error("Some or all required fields are empty.")
+                yield rx.toast.error(f"You must wait {abs(wait_time)} second(s) to submit a message.")
+
 
         except Exception as e:
             logger.error(e)
+            yield rx.toast.error(e)
 
     def event_state_recover_password(self, recover_dict: dict) -> Iterable[Callable]:
         """
-        Recovers password via password recovery page.
+        Recovers password via password recovery page. User must wait 1 min between submissions.
         """
         try:
-            logger.info(recover_dict)
+            current_time = int(time.time())
+            wait_interval = 120
+            wait_time = int(current_time - wait_interval) - self.user_recovery_email_time
             email = recover_dict.get("email")
-            if email:
-                yield supabase_recover_password(email)
-                yield rx.redirect("/login/forgot-password/confirmation", replace=True)
+
+            # Check that wait interval isn't sooner than 1 min.
+            if wait_time >= 0:
+
+                if email:
+                    yield supabase_recover_password(email)
+                    yield rx.redirect("/login/forgot-password/confirmation", replace=True)
+                    self.user_recovery_email_time = current_time
+                else:
+                    raise Exception("Enter a valid email address")
+                
             else:
-                raise Exception("Enter a valid email address")
+                yield rx.toast.error(f"You must wait {abs(wait_time)} second(s) to make another recovery attempt.")
+
         except Exception as e:
             logger.error(e)
             yield rx.toast.error(e)

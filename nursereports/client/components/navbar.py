@@ -1,3 +1,8 @@
+from .tailwind import (
+    flex,
+    link,
+    outline_button
+)
 
 from ...states import (
     AuthState,
@@ -9,22 +14,22 @@ from ...states import (
 import reflex as rx
 
 def navbar() -> rx.Component:
-    return rx.flex(
+    return flex(
         feedback(),
-            rx.flex(
+            flex(
                 logo(),
                 links(),
                 rx.spacer(),
-                rx.flex(
+                flex(
                     search(),
                     dashboard(),
                     login_or_account(),
                     mobile_menu(),
                     class_name="flex-row space-x-2"
                 ),
-                class_name="flex-row items-center justify-between p-4 w-full max-w-screen-xl",
+                class_name="flex-row items-center justify-between p-3 w-full max-w-screen-xl",
             ),
-        class_name="flex-col border items-center justify-center sticky top-0 z-10 bg-white border-b-zinc-300 h-16 w-full"
+        class_name="flex-col border border-zinc-100 dark:border-zinc-900 border-b-zinc-200 dark:border-b-zinc-500 items-center justify-center sticky top-0 z-10 h-16 w-full"
     )
 
 def feedback() -> rx.Component:
@@ -40,7 +45,7 @@ def feedback() -> rx.Component:
                         max_length=500,
                     )
                 ),
-                rx.flex(
+                flex(
                     rx.dialog.close(
                         rx.button(
                             "Cancel",
@@ -65,13 +70,13 @@ def feedback() -> rx.Component:
 
 
 def logo() -> rx.Component:
-    return rx.flex(
-        rx.flex(
+    return flex(
+        flex(
             rx.image(
                 src="/vector/square-activity.svg",
                 class_name="h-9 md:h-7 w-9 md:w-7"
             ),
-            rx.flex(
+            flex(
                 rx.text(
                     "Nurse",
                     on_click=rx.cond(
@@ -79,7 +84,7 @@ def logo() -> rx.Component:
                         rx.redirect("/dashboard"),
                         rx.redirect("/")
                     ),
-                    class_name="hidden md:flex text-2xl font-bold text-teal-700 cursor-pointer"
+                    class_name="hidden md:flex text-2xl font-bold text-teal-700 dark:text-zinc-200 cursor-pointer"
                 ),
                 rx.text(
                     "N",
@@ -88,7 +93,7 @@ def logo() -> rx.Component:
                         rx.redirect("/dashboard"),
                         rx.redirect("/")
                     ),
-                    class_name="flex md:hidden text-3xl font-bold text-teal-700 cursor-pointer"
+                    class_name="flex md:hidden text-3xl font-bold text-teal-700 dark:text-zinc-200 cursor-pointer"
                 ),
                 rx.text(
                     "Reports",
@@ -97,7 +102,7 @@ def logo() -> rx.Component:
                         rx.redirect("/dashboard"),
                         rx.redirect("/")
                     ),
-                    class_name="hidden md:flex text-2xl font-bold text-zinc-700 cursor-pointer"
+                    class_name="hidden md:flex text-2xl font-bold text-zinc-700m dark:text-zinc-200 cursor-pointer"
                 ),
                 rx.text(
                     "R",
@@ -106,7 +111,7 @@ def logo() -> rx.Component:
                         rx.redirect("/dashboard"),
                         rx.redirect("/")
                     ),
-                    class_name="flex md:hidden text-3xl font-bold text-zinc-700 cursor-pointer"
+                    class_name="flex md:hidden text-3xl font-bold text-zinc-700 dark:text-zinc-200 cursor-pointer"
                 )
             ),
             class_name="flex-row items-center"
@@ -120,30 +125,27 @@ def links() -> rx.Component:
         UserState.user_claims_authenticated,
         
         # Nothing displayed if user is authenticated.
-        rx.flex(),
+        flex(),
 
         # Links displayed if user not authenticated.
-        rx.flex(
-            rx.link(
+        flex(
+            link(
                 "Staff",
                 href=f"{BaseState.host_address}/for-staff",
-                class_name="cursor-pointer text-zinc-700"
             ),
-            rx.link(
+            link(
                 "Travelers",
                 href=f"{BaseState.host_address}/for-travelers",
-                class_name="cursor-pointer text-zinc-700"
             ),
-            rx.link(
+            link(
                 "Students",
                 href=f"{BaseState.host_address}/for-students",
-                class_name="cursor-pointer text-zinc-700"
             ),
-            rx.flex(
+            flex(
                 rx.link(
                     "Donate",
                     href=f"{BaseState.host_address}/donate",
-                    class_name="cursor-pointer text-teal-700"
+                    class_name="text-teal-700 dark:text-zinc-200 cursor-pointer"
                 ),
                 class_name="flex-row items-center space-x-2 cursor-pointer"
             ),
@@ -156,18 +158,18 @@ def search() -> rx.Component:
         UserState.user_claims_authenticated,
 
         # Shows search if user is logged in
-        rx.flex(
-            rx.button(
+        flex(
+            outline_button(
                 rx.icon("search", class_name="h-5 w-5"),
                 rx.text("Search"),
                 disabled=(BaseState.current_location == "/search/hospital"),
                 on_click=rx.redirect("/search/hospital"),
-                class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 shadow-lg cursor-pointer"
+                class_name="shadow-lg"
             )
         ),
 
         # Hides search if user not logged in.
-        rx.flex()
+        flex()
     )
 
 def dashboard() -> rx.Component:
@@ -175,13 +177,13 @@ def dashboard() -> rx.Component:
         UserState.user_claims_authenticated,
 
         # Show dashboard if user is logged in.
-        rx.flex(
+        flex(
             rx.tooltip(
-                rx.button(
+                outline_button(
                     rx.icon("layout-dashboard", class_name="h-5 w-5"),
                     disabled=(BaseState.current_location == "/dashboard"),
                     on_click=rx.redirect("/dashboard"),
-                    class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 shadow-lg cursor-pointer",
+                    class_name="shadow-lg focus:outline-none",
                 ),
                 content="Dashboard",
                 delay_duration=300
@@ -195,12 +197,12 @@ def login_or_account() -> rx.Component:
         UserState.user_claims_authenticated,
 
         # Show account if user is logged in.
-        rx.flex(
+        flex(
             rx.tooltip(
-                rx.button(
+                outline_button(
                     rx.icon("circle-user-round", class_name="h-5 w-5"),
                     on_click=rx.redirect("/my-account"),
-                    class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 shadow-lg cursor-pointer",
+                    class_name="shadow-lg focus:outline-none"
                 ),
                 content="My Account",
                 delay_duration=300
@@ -209,11 +211,11 @@ def login_or_account() -> rx.Component:
         ),
 
         # Show login if user not logged in.
-        rx.flex(
-            rx.button(
+        flex(
+            outline_button(
                 "Login",
                 on_click=rx.redirect("/login"),
-                class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 shadow-lg cursor-pointer",
+                class_name="shadow-lg"
             ),
         )
     )
@@ -227,59 +229,59 @@ def mobile_menu() -> rx.Component:
             UserState.user_has_reported,
 
             # Show menu for logged in and onboarded users.
-            rx.flex(
+            flex(
                 rx.drawer.root(
                     rx.drawer.trigger(
-                        rx.button(
+                        outline_button(
                             rx.icon("menu", class_name="h-5 w-5"),
-                            class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 shadow-lg"
+                            class_name="shadow-lg focus:outline-none"
                         )
                     ),
                     rx.drawer.overlay(),
                     rx.drawer.portal(
                         rx.drawer.content(
-                            rx.flex(
-                                rx.flex(
+                            flex(
+                                flex(
                                     rx.heading("NurseReports"),
                                     rx.spacer(),
                                     rx.drawer.close(rx.icon("X", cursor="pointer")),
                                     class_name="flex-row justify-center p-8 w-full"
                                 ),
-                                rx.flex(
-                                    rx.link(
+                                flex(
+                                    link(
                                         "Hospital Search",
                                         href=f"{BaseState.host_address}/search/hospital",
                                         class_name="text-zinc-700 cursor-pointer"
                                     ),
                                     class_name="flex p-8 w-full"
                                 ),
-                                rx.flex(
-                                    rx.link(
+                                flex(
+                                    link(
                                         "State Summary",
                                         href=f"{BaseState.host_address}/search/state",
                                         class_name="text-zinc-700 cursor-pointer"
                                     ),
                                     class_name="flex p-8 w-full"
                                 ),
-                                rx.flex(
-                                    rx.link(
+                                flex(
+                                    link(
                                         "Dashboard",
                                         href=f"{BaseState.host_address}/dashboard",
                                         class_name="text-zinc-700 cursor-pointer"
                                     ),
                                     class_name="flex p-8 w-full"
                                 ),
-                                rx.flex(
-                                    rx.link(
+                                flex(
+                                    link(
                                         "Donate",
                                         href=f"{BaseState.host_address}/donate",
                                         class_name="text-zinc-700 cursor-pointer"
                                     ),
                                     class_name="flex p-8 w-full"
                                 ),
-                                rx.flex(
-                                    rx.flex(
-                                        rx.link(
+                                flex(
+                                    flex(
+                                        link(
                                             "Logout",
                                             class_name="text-zinc-700 cursor-pointer",
                                             on_click=BaseState.event_state_logout
@@ -289,9 +291,9 @@ def mobile_menu() -> rx.Component:
                                     ),
                                     class_name="flex-row p-8 w-full"
                                 ),
-                                class_name="flex-col divide-y w-full"
+                                class_name="flex-col divide-y divide-zinc-500 w-full"
                             ),
-                            class_name="h-full w-full bg-white"
+                            class_name="h-full w-full"
                         )
                     ),
                     direction="top",
@@ -300,27 +302,27 @@ def mobile_menu() -> rx.Component:
             ),
 
             # Show menu for logged in but not onboarded users.
-            rx.flex(
+            flex(
                 rx.drawer.root(
                     rx.drawer.trigger(
-                        rx.button(
+                        outline_button(
                             rx.icon("menu", class_name="h-5 w-5"),
-                            class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 shadow-lg"
+                            class_name="shadow-lg"
                         )
                     ),
                     rx.drawer.overlay(),
                     rx.drawer.portal(
                         rx.drawer.content(
-                            rx.flex(
-                                rx.flex(
+                            flex(
+                                flex(
                                     rx.heading("NurseReports"),
                                     rx.spacer(),
                                     rx.drawer.close(rx.icon("X", cursor="pointer")),
                                     class_name="flex-row justify-center p-8 w-full"
                                 ),
-                                rx.flex(
-                                    rx.flex(
-                                        rx.link(
+                                flex(
+                                    flex(
+                                        link(
                                             "Logout",
                                             class_name="text-zinc-700 cursor-pointer",
                                             on_click=AuthState.event_state_logout
@@ -330,7 +332,7 @@ def mobile_menu() -> rx.Component:
                                     ),
                                     class_name="flex-row p-8 w-full"
                                 ),
-                                class_name="flex-col divide-y bg-white"
+                                class_name="flex-col divide-y divide-zinc-500"
                             )
                         )
                     ),
@@ -341,59 +343,59 @@ def mobile_menu() -> rx.Component:
         ),
 
         # Show menu for users not logged in.
-        rx.flex(
+        flex(
             rx.drawer.root(
                 rx.drawer.trigger(
-                    rx.button(
+                    outline_button(
                         rx.icon("menu", class_name="h-5 w-5"),
-                        class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 shadow-lg focus:outline-none"
+                        class_name="shadow-lg focus:outline-none"
                     )
                 ),
                 rx.drawer.overlay(),
                 rx.drawer.portal(
                     rx.drawer.content(
-                        rx.flex(
-                            rx.flex(
+                        flex(
+                            flex(
                                 rx.heading("NurseReports"),
                                 rx.spacer(),
                                 rx.drawer.close(rx.icon("X", cursor="pointer")),
                                 class_name="flex-row justify-center p-8 w-full"
                             ),
-                            rx.flex(
-                                rx.link(
+                            flex(
+                                link(
                                     "Staff",
                                     href=f"{BaseState.host_address}/for-staff",
                                     class_name="text-zinc-700 cursor-pointer"
                                 ),
                                 class_name="flex p-8 w-full"
                             ),
-                            rx.flex(
-                                rx.link(
+                            flex(
+                                link(
                                     "Travelers",
                                     href=f"{BaseState.host_address}/for-travelers",
                                     class_name="text-zinc-700 cursor-pointer"
                                 ),
                                 class_name="flex p-8 w-full"
                             ),
-                            rx.flex(
-                                rx.link(
+                            flex(
+                                link(
                                     "Students",
                                     href=f"{BaseState.host_address}/for-students",
                                     class_name="text-zinc-700 cursor-pointer"
                                 ),
                                 class_name="flex p-8 w-full"
                             ),
-                            rx.flex(
-                                rx.link(
+                            flex(
+                                link(
                                     "Donate",
                                     href=f"{BaseState.host_address}/donate",
                                     class_name="text-zinc-700 cursor-pointer"
                                 ),
                                 class_name="flex p-8 w-full"
                             ),
-                            rx.flex(
-                                rx.flex(
-                                    rx.link(
+                            flex(
+                                flex(
+                                    link(
                                         "Login",
                                         on_click=rx.redirect("/login"),
                                         class_name="text-zinc-700 cursor-pointer"
@@ -403,9 +405,9 @@ def mobile_menu() -> rx.Component:
                                 ),
                                 class_name="flex p-8 w-full"
                             ),
-                            class_name="flex-col divide-y w-full"
+                            class_name="flex-col divide-y divide-zinc-500 w-full"
                         ),
-                        class_name="h-full w-full bg-white"
+                        class_name="h-full w-full"
                     )
                 ),
                 direction="top",

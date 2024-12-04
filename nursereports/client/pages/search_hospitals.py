@@ -1,4 +1,14 @@
-from ..components import c2a, footer, hospital_item_search, login_protected, navbar
+from ..components import (
+    c2a,
+    flex,
+    footer,
+    hospital_item_search,
+    login_protected,
+    navbar,
+    solid_button,
+    text
+    )
+
 from ...states import BaseState, SearchState
 
 import reflex as rx
@@ -14,7 +24,7 @@ import reflex as rx
 )
 @login_protected
 def search_page() -> rx.Component:
-    return rx.flex(
+    return flex(
         c2a(),
         navbar(),
         content(),
@@ -24,7 +34,7 @@ def search_page() -> rx.Component:
 
 
 def content() -> rx.Component:
-    return rx.flex(
+    return flex(
         header(),
         search_dropdowns(),
         search_results(),
@@ -33,15 +43,15 @@ def content() -> rx.Component:
 
 
 def header() -> rx.Component:
-    return rx.flex(
-        rx.text("Find your hospital", class_name="text-2xl font-bold text-zinc-700"),
+    return flex(
+        text("Find your hospital", class_name="text-2xl font-bold text-zinc-700"),
         class_name="flex-col items-center w-full",
     )
 
 
 def search_dropdowns() -> rx.Component:
-    return rx.flex(
-        rx.flex(
+    return flex(
+        flex(
             rx.select(
                 SearchState.state_options,
                 value=SearchState.selected_state,
@@ -59,14 +69,14 @@ def search_dropdowns() -> rx.Component:
                 on_change=SearchState.event_state_city_selected,
                 width=["100%", "100%", "30%", "30%", "30%"],
             ),
-            rx.button(
+            solid_button(
                 "Search",
                 on_click=SearchState.event_state_search,
                 loading=SearchState.search_is_loading,
                 disabled=~(SearchState.selected_city & SearchState.selected_state),
-                class_name="bg-teal-600 disabled:bg-zinc-300 text-white w-full md:w-auto cursor-pointer disabled:cursor-not-allowed",
+                class_name="w-full md:w-auto disabled:cursor-not-allowed",
             ),
-            rx.button(
+            solid_button(
                 "Clear",
                 disabled=~(SearchState.selected_state | SearchState.selected_city),
                 on_click=[
@@ -74,7 +84,7 @@ def search_dropdowns() -> rx.Component:
                     SearchState.set_selected_city(""),
                     SearchState.set_search_results([]),
                 ],
-                class_name="bg-transparent disabled:bg-zinc-300 text-zinc-700 disabled:text-white border border-solid border-zinc-300 w-full md:w-auto cursor-pointer disabled:cursor-not-allowed",
+                class_name="w-full md:w-auto disabled:cursor-not-allowed",
             ),
             class_name="flex-col md:flex-row items-center justify-center md:space-x-2 space-y-4 md:space-y-0 p-8 w-full",
         ),
@@ -83,16 +93,16 @@ def search_dropdowns() -> rx.Component:
 
 
 def search_results() -> rx.Component:
-    return rx.flex(
+    return flex(
         rx.cond(
             SearchState.search_results,
             # Search results present.
-            rx.flex(
+            flex(
                 rx.foreach(SearchState.search_results, hospital_item_search),
-                class_name="flex-col divide-y w-full",
+                class_name="flex-col divide-y dark:divide-zinc-500 w-full",
             ),
             # No search results present.
-            rx.flex(
+            flex(
                 rx.cond(
                     SearchState.search_is_loading,
                     rx.icon("loader-circle", class_name="animate-spin text-zinc-700"),

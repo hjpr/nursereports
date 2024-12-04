@@ -1,3 +1,10 @@
+from ..components import(
+    flex,
+    text,
+    input,
+    link,
+    solid_button
+)
 from ...states import BaseState, UserState
 
 import reflex as rx
@@ -9,16 +16,16 @@ import reflex as rx
     on_load=BaseState.event_state_auth_flow,
 )
 def create_account_page() -> rx.Component:
-    return rx.flex(
+    return flex(
         content(),
-        class_name="flex-col bg-gradient-to-b from-teal-100 to-cyan-100 items-center justify-center p-4 min-h-screen w-full",
+        class_name="flex-col bg-gradient-to-b from-teal-100 to-cyan-100 dark:from-zinc-800 dark:to-zinc-950 items-center justify-center p-4 min-h-screen w-full",
     )
 
 
 def content() -> rx.Component:
-    return rx.flex(
+    return flex(
         header(),
-        rx.flex(rx.divider(), class_name="pb-3 w-full"),
+        flex(rx.divider(), class_name="pb-3 w-full"),
         login(),
         create_account(),
         class_name="flex-col items-center rounded shadow-lg bg-white p-8 space-y-4 w-full max-w-md",
@@ -26,17 +33,17 @@ def content() -> rx.Component:
 
 
 def header() -> rx.Component:
-    return rx.flex(
+    return flex(
         rx.image(src="/vector/square-activity.svg", class_name="h-9 w-9 mb-1"),
         rx.text(
             "Nurse",
             on_click=rx.redirect("/"),
-            class_name="text-4xl cursor-pointer text-teal-700 pb-1 font-bold",
+            class_name="text-4xl cursor-pointer text-teal-700 dark:text-zinc-200 pb-1 font-bold",
         ),
         rx.text(
             "Reports",
             on_click=rx.redirect("/"),
-            class_name="text-4xl cursor-pointer text-zinc-700 pb-1 font-bold",
+            class_name="text-4xl cursor-pointer text-zinc-700 dark:text-zinc-200 pb-1 font-bold",
         ),
         class_name="flex-row items-center justify-center w-full",
     )
@@ -44,56 +51,59 @@ def header() -> rx.Component:
 
 def login() -> rx.Component:
     return rx.flex(
-        rx.text("Already have an account?"),
+        text("Already have an account?"),
         rx.link(
-            "Go to login", on_click=rx.redirect("/login"), class_name="cursor-pointer"
+            "Go to login", on_click=rx.redirect("/login"), class_name="text-teal-700 cursor-pointer"
         ),
-        class_name="flex-col border rounded bg-zinc-50 items-center p-2 w-full",
+        class_name="flex-col bg-zinc-100 dark:bg-zinc-800 border border-solid border-zinc-300 dark:border-zinc-500 rounded items-center p-2 w-full",
     )
 
 
 def create_account() -> rx.Component:
     return rx.form(
-        rx.flex(
-            rx.text(
+        flex(
+            text(
                 "Create new account", class_name="text-xl pt-8 font-bold text-zinc-700"
             ),
-            rx.flex(
-                rx.flex(
-                    rx.text("Email", size="2", class_name="pb-1"),
-                    rx.input(
+            flex(
+                flex(
+                    text("Email", size="2", class_name="pb-1"),
+                    input(
                         placeholder="Enter email",
                         name="create_account_email",
                         size="3",
                         class_name="w-full",
+                        color_scheme="teal"
                     ),
                     class_name="flex-col w-full",
                 ),
-                rx.flex(
-                    rx.flex(
-                        rx.text("Password", size="2", class_name="pb-1"),
-                        rx.input(
+                flex(
+                    flex(
+                        text("Password", size="2", class_name="pb-1"),
+                        input(
                             placeholder="Enter password",
                             name="create_account_password",
                             type="password",
                             size="3",
                             class_name="w-full",
+                            color_scheme="teal"
                         ),
                         class_name="flex-col w-full",
                     ),
-                    rx.flex(
-                        rx.text("Confirm password", size="2", class_name="pb-1"),
-                        rx.input(
+                    flex(
+                        text("Confirm password", size="2", class_name="pb-1"),
+                        input(
                             placeholder="Re-enter password",
                             name="create_account_password_confirm",
                             type="password",
                             size="3",
                             class_name="w-full",
+                            color_scheme="teal"
                         ),
                         class_name="flex-col w-full",
                     ),
-                    rx.flex(
-                        rx.text(
+                    flex(
+                        text(
                             "Passwords should be at least 8 characters long and contain numbers + letters",
                             class_name="text-sm text-center",
                         ),
@@ -101,8 +111,8 @@ def create_account() -> rx.Component:
                     ),
                     class_name="flex-col space-y-6 w-full",
                 ),
-                rx.flex(
-                    rx.button(
+                flex(
+                    solid_button(
                         "Create account",
                         type="submit",
                         size="3",
@@ -115,15 +125,15 @@ def create_account() -> rx.Component:
             ),
             rx.divider(),
             rx.center(
-                rx.flex(
-                    rx.link(
+                flex(
+                    link(
                         "Privacy Policy",
                         size="2",
                         on_click=rx.redirect("/policy/privacy"),
                         class_name="cursor-pointer",
                     ),
                     rx.divider(orientation="vertical"),
-                    rx.link(
+                    link(
                         "AI Policy",
                         size="2",
                         on_click=rx.redirect("/policy/ai"),

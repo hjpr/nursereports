@@ -65,7 +65,7 @@ class HospitalState(UserState):
         return True if len(self.report_info) > 0 else False
 
     @rx.var(cache=True)
-    def hosp_id(self) -> str:
+    def hosp_id(self) -> str | None:
         """
         Returns hosp_id if page param hosp_id is a valid CMS ID format.
         """
