@@ -1,5 +1,4 @@
 from ..components import (
-    c2a,
     flex,
     footer,
     hospital_item_search,
@@ -25,7 +24,6 @@ import reflex as rx
 @login_protected
 def search_page() -> rx.Component:
     return flex(
-        c2a(),
         navbar(),
         content(),
         footer(),

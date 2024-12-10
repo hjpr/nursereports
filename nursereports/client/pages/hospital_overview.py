@@ -1,5 +1,4 @@
 from ..components import (
-    c2a,
     flex,
     footer,
     report_protected,
@@ -33,7 +32,6 @@ import reflex as rx
 @report_protected
 def hospital_overview() -> rx.Component:
     return flex(
-        c2a(),
         navbar(),
         content(),
         footer(),
@@ -44,10 +42,11 @@ def hospital_overview() -> rx.Component:
 def content() -> rx.Component:
     return flex(
             heading(),
-            pay(),
+            staff_pay(),
+            travel_pay(),
             units(),
             reviews(),
-            class_name="flex-col items-center space-y-8 px-4 py-8 w-full max-w-screen-md",
+            class_name="flex-col items-center space-y-12 px-4 py-8 w-full max-w-screen-md",
     )
 
 
@@ -77,15 +76,15 @@ def heading_content() -> rx.Component:
     return flex(
         flex(
             rx.skeleton(
-                rx.text(HospitalState.hospital_info["hosp_name"], class_name="font-bold text-center text-2xl"),
+                text(HospitalState.hospital_info["hosp_name"], class_name="font-bold text-center text-2xl"),
                 loading=~rx.State.is_hydrated
             ),
             rx.skeleton(
-                rx.text(HospitalState.hospital_info["hosp_addr"], class_name="italic text-sm"),
+                text(HospitalState.hospital_info["hosp_addr"], class_name="italic text-sm"),
                 loading=~rx.State.is_hydrated
                 ),
             rx.skeleton(
-                rx.text(
+                text(
                     f'{HospitalState.hospital_info["hosp_city"]}, {HospitalState.hospital_info["hosp_state"]} {HospitalState.hospital_info["hosp_zip"]}',
                     class_name="italic text-sm"
                 ),
@@ -116,344 +115,341 @@ def heading_buttons() -> rx.Component:
     )
 
 
-def pay() -> rx.Component:
+def staff_pay() -> rx.Component:
     return flex(
         rx.flex(
             rx.flex(
                 rx.icon("banknote", class_name="stroke-zinc-700 dark:stroke-teal-800 h-6 w-6"),
-                text("Pay", class_name="font-bold text-2xl"),
+                text("Staff Pay", class_name="font-bold text-2xl"),
+                class_name="flex-row items-center space-x-2",
+            ),
+        class_name="flex-col items-start bg-zinc-100 dark:bg-zinc-800 p-2 w-full"
+        ),
+        hospital_average(),
+        state_average(),
+        experience_slider(),
+        class_name="flex-col items-center border rounded divide-y dark:divide-zinc-500 w-full"
+    )
+
+def hospital_average() -> rx.Component:
+    return flex(
+        flex(
+            text("Hospital Average", class_name="text-xl font-bold"),
+            rx.spacer(),
+            rx.segmented_control.root(
+                rx.segmented_control.item("Full-time", value="Full-time"),
+                rx.segmented_control.item("Part-time", value="Part-time"),
+                on_change=HospitalState.setvar("selected_hospital_average"),
+                value=HospitalState.selected_hospital_average
+            ),
+            class_name="flex-col md:flex-row items-center px-6 py-2 space-y-1 md:space-y-0 w-full"
+        ),
+        flex(
+            # Displays hourly pay.
+            rx.match(
+                HospitalState.selected_hospital_average,
+               ("Full-time",
+                    flex(
+                        rx.cond(
+                            HospitalState.extrapolated_ft_pay_hospital,
+                            rx.skeleton(
+                                text(HospitalState.ft_pay_hospital_formatted['hourly'], class_name="text-xl"),
+                                loading=~rx.State.is_hydrated
+                            ),
+                            rx.skeleton(
+                                rx.icon("ban", class_name="h-7 w-7 stroke-zinc-200"),
+                                loading=~rx.State.is_hydrated
+                            )
+                        ),
+                        text("HOURLY", class_name="text-xs"),
+                        class_name="flex-col items-center p-2 w-full"
+                    )
+               ),
+               ("Part-time", 
+                    flex(
+                        rx.cond(
+                            HospitalState.extrapolated_pt_pay_hospital,
+                            rx.skeleton(
+                                text(HospitalState.pt_pay_hospital_formatted['hourly'], class_name="text-xl"),
+                                loading=~rx.State.is_hydrated
+                            ),
+                            rx.skeleton(
+                                rx.icon("ban", class_name="h-7 w-7 stroke-zinc-200"),
+                                loading=~rx.State.is_hydrated
+                            )
+                        ),
+                        text("HOURLY", class_name="text-xs"),
+                        class_name="flex-col items-center p-2 w-full"
+                    )
+                ),
+            ),
+            # Displays yearly pay.
+            rx.match(
+                HospitalState.selected_hospital_average,
+               ("Full-time",
+                    flex(
+                        rx.cond(
+                            HospitalState.extrapolated_ft_pay_hospital,
+                            rx.skeleton(
+                                text(HospitalState.ft_pay_hospital_formatted["yearly"], class_name="text-xl"),
+                                loading=~rx.State.is_hydrated
+                            ),
+                            rx.skeleton(
+                                rx.icon("ban", class_name="h-7 w-7 stroke-zinc-200"),
+                                loading=~rx.State.is_hydrated
+                            )
+                        ),
+                        text("YEARLY", class_name="text-xs"),
+                        class_name="flex-col items-center p-2 w-full"
+                    ),
+                ),
+               ("Part-time",
+                    flex(
+                        rx.cond(
+                            HospitalState.extrapolated_pt_pay_hospital,
+                            rx.skeleton(
+                                text(HospitalState.pt_pay_hospital_formatted["yearly"], class_name="text-xl"),
+                                loading=~rx.State.is_hydrated
+                            ),
+                            rx.skeleton(
+                                rx.icon("ban", class_name="h-7 w-7 stroke-zinc-200"),
+                                loading=~rx.State.is_hydrated
+                            )
+                        ),
+                        text("YEARLY", class_name="text-xs"),
+                        class_name="flex-col items-center p-2 w-full"
+                    ),
+                )
+            ),
+            class_name="flex-row divide-x w-full"
+        ),
+
+        # Callouts
+        rx.cond(
+            (HospitalState.selected_hospital_average == "Full-time") &
+            (HospitalState.ft_pay_hospital_info_limited) &
+            (HospitalState.extrapolated_ft_pay_hospital),
+            flex(
+                rx.icon("triangle-alert", class_name="h-4 w-4 stroke-orange-500"),
+                rx.text("Data limited. Values may be inaccurate.", class_name="text-orange-500"),
+                class_name="flex-row items-center justify-center p-1 space-x-2 w-full"
+            )
+        ),
+        rx.cond(
+            (HospitalState.selected_hospital_average == "Part-time") &
+            (HospitalState.pt_pay_hospital_info_limited) &
+            (HospitalState.extrapolated_pt_pay_hospital),
+            flex(
+                rx.icon("triangle-alert", class_name="h-4 w-4 stroke-orange-500"),
+                rx.text("Data limited. Values may be inaccurate.", class_name="text-orange-500"),
+                class_name="flex-row items-center justify-center p-1 space-x-2 w-full"
+            )
+        ),
+        rx.cond(
+            (HospitalState.selected_hospital_average == "Full-time") & (~HospitalState.extrapolated_ft_pay_hospital),
+            rx.flex(
+                rx.icon("ban", class_name="h-4 w-4 stroke-rose-500"),
+                rx.text("No pay data available yet.", class_name="text-rose-500"),
+                class_name="flex-row items-center justify-center p-1 space-x-2 w-full"
+            )
+        ),
+        rx.cond(
+            (HospitalState.selected_hospital_average == "Part-time") & (~HospitalState.extrapolated_pt_pay_hospital),
+            flex(
+                rx.icon("ban", class_name="h-4 w-4 stroke-rose-500"),
+                rx.text("No pay data available yet.", class_name="text-rose-500"),
+                class_name="flex-row items-center justify-center p-1 space-x-2 w-full"
+            )
+        ),
+        class_name="flex-col items-center divide-y w-full"
+    )
+
+
+def state_average() -> rx.Component:
+    return flex(
+        flex(
+            text("State Average", class_name="text-xl font-bold"),
+            rx.spacer(),
+            rx.segmented_control.root(
+                rx.segmented_control.item("Full-time", value="Full-time"),
+                rx.segmented_control.item("Part-time", value="Part-time"),
+                on_change=HospitalState.setvar("selected_state_average"),
+                value=HospitalState.selected_state_average
+            ),
+            class_name="flex-col md:flex-row items-center px-6 py-2 space-y-1 md:space-y-0 w-full"
+        ),
+        flex(
+            # Displays hourly pay.
+            rx.match(
+                HospitalState.selected_state_average,
+               ("Full-time",
+                    flex(
+                        rx.cond(
+                            HospitalState.extrapolated_ft_pay_state,
+                            rx.skeleton(
+                                text(HospitalState.ft_pay_state_formatted['hourly'], class_name="text-xl"),
+                                loading=~rx.State.is_hydrated
+                            ),
+                            rx.skeleton(
+                                rx.icon("ban", class_name="h-7 w-7 stroke-zinc-200"),
+                                loading=~rx.State.is_hydrated
+                            )
+                        ),
+                        text("HOURLY", class_name="text-xs"),
+                        class_name="flex-col items-center p-2 w-full"
+                    )
+               ),
+               ("Part-time", 
+                    flex(
+                        rx.cond(
+                            HospitalState.extrapolated_pt_pay_state,
+                            rx.skeleton(
+                                text(HospitalState.pt_pay_state_formatted['hourly'], class_name="text-xl"),
+                                loading=~rx.State.is_hydrated
+                            ),
+                            rx.skeleton(
+                                rx.icon("ban", class_name="h-7 w-7 stroke-zinc-200"),
+                                loading=~rx.State.is_hydrated
+                            )
+                        ),
+                        text("HOURLY", class_name="text-xs"),
+                        class_name="flex-col items-center p-2 w-full"
+                    )
+                ),
+            ),
+            # Displays yearly pay.
+            rx.match(
+                HospitalState.selected_state_average,
+               ("Full-time",
+                    flex(
+                        rx.cond(
+                            HospitalState.extrapolated_ft_pay_state,
+                            rx.skeleton(
+                                text(HospitalState.ft_pay_state_formatted["yearly"], class_name="text-xl"),
+                                loading=~rx.State.is_hydrated
+                            ),
+                            rx.skeleton(
+                                rx.icon("ban", class_name="h-7 w-7 stroke-zinc-200"),
+                                loading=~rx.State.is_hydrated
+                            )
+                        ),
+                        text("YEARLY", class_name="text-xs"),
+                        class_name="flex-col items-center p-2 w-full"
+                    ),
+                ),
+               ("Part-time",
+                    flex(
+                        rx.cond(
+                            HospitalState.extrapolated_pt_pay_state,
+                            rx.skeleton(
+                                text(HospitalState.pt_pay_state_formatted["yearly"], class_name="text-xl"),
+                                loading=~rx.State.is_hydrated
+                            ),
+                            rx.skeleton(
+                                rx.icon("ban", class_name="h-7 w-7 stroke-zinc-200"),
+                                loading=~rx.State.is_hydrated
+                            )
+                        ),
+                        text("YEARLY", class_name="text-xs"),
+                        class_name="flex-col items-center p-2 w-full"
+                    ),
+                ),
+            ),
+            class_name="flex-row divide-x w-full"
+        ),
+        # Callouts
+        rx.cond(
+            (HospitalState.selected_state_average == "Full-time") &
+            (HospitalState.ft_pay_state_info_limited) &
+            (HospitalState.extrapolated_ft_pay_state),
+            flex(
+                rx.icon("triangle-alert", class_name="h-4 w-4 stroke-orange-500"),
+                rx.text("Data limited. Values may be inaccurate.", class_name="text-orange-500"),
+                class_name="flex-row items-center justify-center p-1 space-x-2 w-full"
+            )
+        ),
+        rx.cond(
+            (HospitalState.selected_state_average == "Full-time") &
+            (HospitalState.ft_pay_state_info_limited) &
+            (HospitalState.extrapolated_ft_pay_state),
+            flex(
+                rx.icon("triangle-alert", class_name="h-4 w-4 stroke-orange-500"),
+                rx.text("Data limited. Values may be inaccurate.", class_name="text-orange-500"),
+                class_name="flex-row items-center justify-center p-1 space-x-2 w-full"
+            )
+        ),
+        rx.cond(
+            (HospitalState.selected_state_average == "Full-time") & (~HospitalState.extrapolated_ft_pay_state),
+            flex(
+                rx.icon("ban", class_name="h-4 w-4 stroke-rose-500"),
+                rx.text("No pay data available yet.", class_name="text-rose-500"),
+                class_name="flex-row items-center justify-center p-1 space-x-2 w-full"
+            )
+        ),
+        rx.cond(
+            (HospitalState.selected_state_average == "Part-time") & (~HospitalState.extrapolated_pt_pay_state),
+            flex(
+                rx.icon("ban", class_name="h-4 w-4 stroke-rose-500"),
+                rx.text("No pay data available yet.", class_name="text-rose-500"),
+                class_name="flex-row items-center justify-center p-1 space-x-2 w-full"
+            )
+        ),
+        class_name="flex-col items-center divide-y w-full"
+    )
+
+def experience_slider() -> rx.Component:
+    return flex(
+        flex(
+            text("Experience", class_name="text-xl font-bold"),
+            class_name="flex-col md:flex-row items-center px-6 py-2 w-full"
+        ),
+        flex(
+            rx.cond(
+                HospitalState.selected_experience <= 25,
+                text(
+                    f"{HospitalState.selected_experience} year(s)",
+                    class_name="text-lg text-nowrap p-2"
+                ),
+                text(
+                    "More than 25 years",
+                    class_name="text-lg text-nowrap p-2"
+                )
+            ),
+            class_name="flex-col items-center w-full"
+        ),
+        flex(
+            text("New Grad", class_name="pr-4 text-nowrap"),
+            rx.slider(
+                default_value=HospitalState.selected_experience,
+                min=0,
+                max=26,
+                color_scheme="teal",
+                on_change=HospitalState.set_slider,
+                class_name="w-full",
+            ),
+            text("> 25 years", class_name="pl-4 text-nowrap"),
+            class_name="flex-row items-center p-5 w-full"
+        ),
+        class_name="flex-col items-center divide-y w-full"
+    )
+
+
+
+def travel_pay() -> rx.Component:
+    return flex(
+        rx.flex(
+            rx.flex(
+                rx.icon("banknote", class_name="stroke-zinc-700 dark:stroke-teal-800 h-6 w-6"),
+                text("Travel Pay", class_name="font-bold text-2xl"),
                 class_name="flex-row items-center space-x-2",
             ),
         class_name="flex-col items-start bg-zinc-100 dark:bg-zinc-800 p-2 w-full"
         ),
         flex(
-            rx.segmented_control.root(
-                rx.segmented_control.item("Staff", value="staff"),
-                rx.segmented_control.item("Travelers", value="contract"),
-                size="2",
-                on_change=HospitalState.setvar("selected_pay_tab"),
-                value=HospitalState.selected_pay_tab,
-            ),
-            pay_content(),
-            class_name="flex-col items-center p-4 space-y-4 w-full",
+            text("PLACEHOLDER", class_name="text-xs"),
+            class_name="flex-col items-center p-4 w-full",
         ),
         class_name="flex-col items-center border rounded divide-y dark:divide-zinc-500 w-full"
-    )
-
-
-def pay_content() -> rx.Component:
-    return rx.cond(
-        HospitalState.selected_pay_tab == "staff",
-        # STAFF INFORMATION
-        flex(
-            flex(
-                flex(
-                    rx.match(
-                        HospitalState.selected_employment_type,
-                        ("Full-time", full_time_hospital_pay_card()),
-                        ("Part-time", part_time_hospital_pay()),
-                    ),
-                    class_name="flex-col items-center w-full",
-                ),
-                # STATE AVERAGE
-                flex(
-                    rx.match(
-                        HospitalState.selected_employment_type,
-                        ("Full-time", full_time_state_pay_card()),
-                        ("Part-time", part_time_state_pay()),
-                    ),
-                    class_name="flex-col items-center w-full",
-                ),
-                class_name="flex-col md:flex-row justify-center divide-y md:divide-y-0 md:divide-x w-full",
-            ),
-            staff_experience_control_slider(),
-            staff_employment_type_selection(),
-            class_name="flex-col border rounded divide-y w-full",
-        ),
-        # TRAVELER INFORMATION
-        flex(
-            rx.card(rx.text("Hospital Travel Pay")),
-            rx.card(rx.text("State Travel Pay")),
-            class_name="flex-col md:flex-row w-full",
-        ),
-    )
-
-
-def full_time_hospital_pay_card() -> rx.Component:
-    return flex(
-        flex(
-            rx.text("Hospital Average", class_name="text-xl font-bold"),
-            class_name="flex-col bg-teal-100 items-center p-2 w-full",
-        ),
-        flex(
-            rx.cond(
-                HospitalState.extrapolated_ft_pay_hospital,
-                flex(
-                    rx.text(
-                        HospitalState.ft_pay_hospital_formatted["hourly"],
-                        class_name="text-3xl font-bold",
-                    ),
-                    rx.text(
-                        HospitalState.ft_pay_hospital_formatted["yearly"],
-                        class_name="text-lg",
-                    ),
-                    class_name="flex-col items-center justify-center h-14 w-full",
-                ),
-                flex(
-                    rx.icon("ban", color="lightgrey", size=40),
-                    class_name="flex-col items-center justify-center h-14 w-full",
-                ),
-            ),
-            rx.badge(HospitalState.selected_employment_type, size="3"),
-            flex(
-                rx.cond(
-                    HospitalState.ft_pay_hospital_info_limited
-                    & HospitalState.extrapolated_ft_pay_hospital,
-                    rx.callout(
-                        "Limited pay data",
-                        icon="triangle_alert",
-                        color_scheme="orange",
-                        variant="surface",
-                        size="1",
-                        class_name="w-auto",
-                    ),
-                ),
-                rx.cond(
-                    ~HospitalState.extrapolated_ft_pay_hospital,
-                    rx.callout(
-                        "No pay data",
-                        icon="octagon_alert",
-                        color_scheme="ruby",
-                        variant="surface",
-                        size="1",
-                        class_name="w-auto",
-                    ),
-                ),
-                class_name="flex-col items-center w-full",
-            ),
-            class_name="flex-col items-center p-6 space-y-6 w-full",
-        ),
-        class_name="flex-col items-center divide-y w-full",
-    )
-
-
-def full_time_state_pay_card() -> rx.Component:
-    return flex(
-        # HEADER
-        flex(
-            rx.text("State Average", class_name="text-xl font-bold"),
-            class_name="flex-col bg-teal-100 items-center p-2 w-full",
-        ),
-        # STATE PAY INFO
-        flex(
-            rx.cond(
-                HospitalState.extrapolated_ft_pay_state,
-                flex(
-                    rx.text(
-                        HospitalState.ft_pay_state_formatted,
-                        class_name="text-4xl font-bold",
-                    ),
-                    class_name="flex-col items-center justify-center h-14 w-full",
-                ),
-                flex(
-                    rx.icon("ban", color="lightgrey", size=40),
-                    class_name="flex-col items-center justify-center h-14 w-full",
-                ),
-            ),
-            rx.badge(HospitalState.selected_employment_type, size="3"),
-            # Callouts
-            flex(
-                rx.cond(
-                    HospitalState.ft_pay_state_info_limited
-                    & HospitalState.extrapolated_ft_pay_state,
-                    rx.callout(
-                        "Limited pay data",
-                        icon="triangle_alert",
-                        color_scheme="orange",
-                        variant="surface",
-                        size="1",
-                        class_name="w-auto",
-                    ),
-                ),
-                rx.cond(
-                    ~HospitalState.extrapolated_ft_pay_state,
-                    rx.callout(
-                        "No pay data",
-                        icon="octagon_alert",
-                        color_scheme="ruby",
-                        variant="surface",
-                        size="1",
-                        class_name="w-auto",
-                    ),
-                ),
-                class_name="flex-col items-center w-full",
-            ),
-            class_name="flex-col items-center p-6 space-y-6 w-full",
-        ),
-        class_name="flex-col items-center divide-y w-full",
-    )
-
-
-def part_time_hospital_pay() -> rx.Component:
-    return flex(
-        flex(
-            rx.text("Hospital Average", class_name="text-xl font-bold"),
-            class_name="flex-col bg-teal-100 items-center p-2 w-full",
-        ),
-        flex(
-            rx.cond(
-                HospitalState.extrapolated_pt_pay_hospital,
-                flex(
-                    rx.text(
-                        HospitalState.pt_pay_hospital_formatted,
-                        class_name="text-4xl font-bold",
-                    ),
-                    class_name="flex-col items-center justify-center h-14 w-full",
-                ),
-                flex(
-                    rx.icon("ban", color="lightgrey", size=40),
-                    class_name="flex-col items-center justify-center h-14 w-full",
-                ),
-            ),
-            rx.badge(HospitalState.selected_employment_type, size="3"),
-            flex(
-                rx.cond(
-                    HospitalState.ft_pay_hospital_info_limited
-                    & HospitalState.extrapolated_pt_pay_hospital,
-                    rx.callout(
-                        "Limited pay data",
-                        icon="triangle_alert",
-                        color_scheme="orange",
-                        variant="surface",
-                        size="1",
-                        class_name="w-auto",
-                    ),
-                ),
-                rx.cond(
-                    ~HospitalState.extrapolated_pt_pay_hospital,
-                    rx.callout(
-                        "No pay data",
-                        icon="octagon_alert",
-                        color_scheme="ruby",
-                        variant="surface",
-                        size="1",
-                        class_name="w-auto",
-                    ),
-                ),
-                class_name="flex-col items-center w-full",
-            ),
-            class_name="flex-col items-center p-6 space-y-6 w-full",
-        ),
-        class_name="flex-col items-center divide-y w-full",
-    )
-
-
-def part_time_state_pay() -> rx.Component:
-    return flex(
-        flex(
-            rx.text("State Average", class_name="text-xl font-bold"),
-            class_name="flex-col bg-teal-100 items-center p-2 w-full",
-        ),
-        flex(
-            rx.cond(
-                HospitalState.extrapolated_pt_pay_state,
-                flex(
-                    rx.text(
-                        HospitalState.pt_pay_state_formatted,
-                        class_name="text-4xl font-bold",
-                    ),
-                    class_name="flex-col items-center justify-center h-14 w-full",
-                ),
-                flex(
-                    rx.icon("ban", color="lightgrey", size=40),
-                    class_name="flex-col items-center justify-center h-14 w-full",
-                ),
-            ),
-            rx.badge(HospitalState.selected_employment_type, size="3"),
-            flex(
-                rx.cond(
-                    HospitalState.pt_pay_state_info_limited
-                    & HospitalState.extrapolated_pt_pay_state,
-                    rx.callout(
-                        "Limited pay data",
-                        icon="triangle_alert",
-                        color_scheme="orange",
-                        variant="surface",
-                        size="1",
-                        class_name="w-auto",
-                    ),
-                ),
-                rx.cond(
-                    ~HospitalState.extrapolated_pt_pay_state,
-                    rx.callout(
-                        "No pay data",
-                        icon="octagon_alert",
-                        color_scheme="ruby",
-                        variant="surface",
-                        size="1",
-                        class_name="w-auto",
-                    ),
-                ),
-                class_name="flex-col items-center w-full",
-            ),
-            class_name="flex-col items-center p-6 space-y-6 w-full",
-        ),
-        class_name="flex-col items-center divide-y w-full",
-    )
-
-
-def contract_hospital_pay() -> rx.Component:
-    return flex()
-
-
-def contract_state_pay() -> rx.Component:
-    return flex()
-
-
-def staff_experience_control_slider() -> rx.Component:
-    return flex(
-        flex(
-            rx.text("Experience", class_name="text-xl"),
-            class_name="flex-col bg-teal-100 items-center p-2 w-full",
-        ),
-        flex(
-            rx.text(
-                f"{HospitalState.selected_experience} year(s)",
-                class_name="text-xl font-bold",
-            ),
-            rx.slider(
-                default_value=HospitalState.selected_experience,
-                min=0,
-                max=26,
-                on_change=HospitalState.set_slider,
-                class_name="p-4",
-            ),
-            rx.text("Set slider to view rates by experience", class_name="italic"),
-            class_name="flex-col items-center p-6 space-y-2 w-full",
-        ),
-        class_name="flex-col items-center divide-y w-full",
-    )
-
-
-def staff_employment_type_selection() -> rx.Component:
-    return flex(
-        flex(
-            rx.text("Employment Type", class_name="text-xl"),
-            class_name="flex-col bg-teal-100 items-center p-2 w-full",
-        ),
-        flex(
-            rx.radio(
-                ["Full-time", "Part-time"],
-                direction="row",
-                size="3",
-                spacing="3",
-                value=HospitalState.selected_employment_type,
-                on_change=HospitalState.setvar("selected_employment_type"),
-            ),
-            rx.text("Select to view pay for that employment type", class_name="italic"),
-            class_name="flex-col items-center space-y-4 p-6 w-full",
-        ),
-        class_name="flex-col items-center divide-y w-full",
     )
 
 
@@ -467,32 +463,15 @@ def units() -> rx.Component:
             ),
         class_name="flex-col items-start bg-zinc-100 dark:bg-zinc-800 p-2 w-full"
         ),
-        flex(
-            units_content(),
-            class_name="flex-col items-center p-4 space-y-4 w-full",
-        ),
-        class_name="flex-col items-center border rounded divide-y dark:divide-zinc-500 w-full"
-    )
 
-
-def units_content() -> rx.Component:
-    return rx.cond(
-        HospitalState.units_areas_roles_for_units,
+        # Units subheader and unit selector.
         flex(
-            unit_area_role_hospital_scores(),
-            unit_area_role_rankings(),
-            class_name="flex-col items-center space-y-6 divide-y w-full",
-        ),
-        flex(
-            rx.text("Nothing yet, check back later!"),
-            class_name="flex-col items-center p-6 w-full",
-        ),
-    )
-
-
-def unit_area_role_hospital_scores() -> rx.Component:
-    return flex(
-        flex(
+            rx.cond(
+                HospitalState.selected_unit,
+                text(HospitalState.selected_unit, class_name="text-xl font-bold"),
+                text("Hospital Overall", class_name="text-xl font-bold")
+            ),
+            rx.spacer(),
             flex(
                 rx.select(
                     HospitalState.units_areas_roles_for_units,
@@ -501,52 +480,51 @@ def unit_area_role_hospital_scores() -> rx.Component:
                     label="Units/Areas/Roles",
                     on_change=HospitalState.set_selected_unit,
                 ),
-                rx.button(
-                    "Clear selection", on_click=HospitalState.set_selected_unit("")
+                solid_button(
+                    "Reset", on_click=HospitalState.set_selected_unit("")
                 ),
                 class_name="flex-row space-x-2",
             ),
-            class_name="flex-col items-center justify-items-center w-full",
+            class_name="flex-col md:flex-row items-center px-6 py-2 space-y-1 md:space-y-0 w-full"
         ),
-        flex(
-            rx.cond(
-                HospitalState.selected_unit,
-                rx.heading(HospitalState.selected_unit),
-                rx.heading("Hospital Overall"),
-            ),
-            class_name="flex-col items-center p-6 w-full",
-        ),
-        flex(
-            flex(
-                rx.text(HospitalState.filtered_unit_info["comp_mean"]),
-                rx.text("Compensation"),
-                class_name="flex-col items-center w-full",
-            ),
-            flex(
-                rx.text(HospitalState.filtered_unit_info["assign_mean"]),
-                rx.text("Assignment"),
-                class_name="flex-col items-center w-full",
-            ),
-            flex(
-                rx.text(HospitalState.filtered_unit_info["staffing_mean"]),
-                rx.text("Staffing"),
-                class_name="flex-col items-center w-full",
-            ),
-            flex(
-                rx.text(HospitalState.filtered_unit_info["overall_mean"]),
-                rx.text("Overall"),
-                class_name="flex-col items-center w-full",
-            ),
-            class_name="flex-row items-center justify-between w-full",
-        ),
-        class_name="flex-col items-center w-full",
-    )
 
-
-def unit_area_role_rankings() -> rx.Component:
-    return flex(
-        rx.text("Unit ratings placeholder"),
-        class_name="flex-col items-center pt-6 w-full",
+        # Units grades.
+        rx.cond(
+            HospitalState.units_areas_roles_for_units,
+            # If there are units to select.
+            flex(
+                flex(
+                    rx.text(HospitalState.filtered_unit_info["comp_mean"], class_name="text-4xl"),
+                    rx.spacer(),
+                    rx.text("Compensation"),
+                    class_name="flex-row-reverse md:flex-col items-center justify-center px-6 py-2 md:space-y-1 w-full",
+                ),
+                flex(
+                    rx.text(HospitalState.filtered_unit_info["assign_mean"], class_name="text-4xl"),
+                    rx.spacer(),
+                    rx.text("Assignment"),
+                    class_name="flex-row-reverse md:flex-col items-center justify-center px-6 py-2 md:space-y-1 w-full",
+                ),
+                flex(
+                    rx.text(HospitalState.filtered_unit_info["staffing_mean"], class_name="text-4xl"),
+                    rx.spacer(),
+                    rx.text("Staffing"),
+                    class_name="flex-row-reverse md:flex-col items-center justify-center px-6 py-2 md:space-y-1 w-full",
+                ),
+                flex(
+                    rx.text(HospitalState.filtered_unit_info["overall_mean"], class_name="text-4xl font-bold"),
+                    rx.spacer(),
+                    rx.text("Overall", class_name="font-bold"),
+                    class_name="flex-row-reverse md:flex-col items-center justify-center px-6 py-2 md:space-y-1 w-full",
+                ),
+                class_name="flex-col md:flex-row items-center justify-between divide-y md:divide-y-0 md:divide-x w-full",
+            ),
+            flex(
+                rx.text("Nothing yet, check back later!"),
+                class_name="flex-col items-center p-6 w-full",
+            ),
+        ),
+        class_name="flex-col items-center border rounded divide-y w-full"
     )
 
 

@@ -56,7 +56,8 @@ class HospitalState(UserState):
     selected_unit: str
     selected_pay_tab: str = "staff"
     selected_experience: int = 4
-    selected_employment_type: str = "Full-time"
+    selected_hospital_average: str = "Full-time"
+    selected_state_average: str = "Full-time"
     review_filter_units_areas_roles: str
     review_sorted: str = "Most Recent"
 
@@ -91,53 +92,68 @@ class HospitalState(UserState):
             rounded_yearly = round(rounded_hourly * 36 * 52)
             formatted_yearly = "{:,}".format(rounded_yearly)
             return {
-                "hourly": f"${formatted_hourly} /hr",
-                "yearly": f"(${formatted_yearly} /yr)",
+                "hourly": f"${formatted_hourly}",
+                "yearly": f"${formatted_yearly}",
             }
         else:
-            return False
+            return {}
 
     @rx.var(cache=True)
-    def ft_pay_state_formatted(self) -> str:
+    def ft_pay_state_formatted(self) -> dict:
         """
         Round and format extrapolated full-time state hospital pay data to $XX.XX
         """
         if self.extrapolated_ft_pay_state:
-            rounded = round(
+            rounded_hourly = round(
                 self.extrapolated_ft_pay_state.get(self.selected_experience), 2
             )
-            formatted = "{:.2f}".format(rounded)
-            return f"${formatted}/hr"
+            formatted_hourly = "{:.2f}".format(rounded_hourly)
+            rounded_yearly = round(rounded_hourly * 36 * 52)
+            formatted_yearly = "{:,}".format(rounded_yearly)
+            return {
+                "hourly": f"${formatted_hourly}",
+                "yearly": f"${formatted_yearly}",
+            }
         else:
-            return False
+            return {}
 
     @rx.var(cache=True)
-    def pt_pay_hospital_formatted(self) -> str:
+    def pt_pay_hospital_formatted(self) -> dict:
         """
         Round and format extrapolated part-time hospital pay data to $XX.XX
         """
         if self.extrapolated_pt_pay_hospital:
-            rounded = round(
+            rounded_hourly = round(
                 self.extrapolated_pt_pay_hospital.get(self.selected_experience), 2
             )
-            formatted = "{:.2f}".format(rounded)
-            return f"${formatted}/hr"
+            formatted_hourly = "{:.2f}".format(rounded_hourly)
+            rounded_yearly = round(rounded_hourly * 36 * 52)
+            formatted_yearly = "{:,}".format(rounded_yearly)
+            return {
+                "hourly": f"${formatted_hourly}",
+                "yearly": f"${formatted_yearly}",
+            }
         else:
-            return False
+            return {}
 
     @rx.var(cache=True)
-    def pt_pay_state_formatted(self) -> str:
+    def pt_pay_state_formatted(self) -> dict:
         """
         Round and format extrapolated part-time state pay data to $XX.XX
         """
         if self.extrapolated_ft_pay_state:
-            rounded = round(
+            rounded_hourly = round(
                 self.extrapolated_ft_pay_state.get(self.selected_experience), 2
             )
-            formatted = "{:.2f}".format(rounded)
-            return f"${formatted}/hr"
+            formatted_hourly = "{:.2f}".format(rounded_hourly)
+            rounded_yearly = round(rounded_hourly * 36 * 52)
+            formatted_yearly = "{:,}".format(rounded_yearly)
+            return {
+                "hourly": f"${formatted_hourly}",
+                "yearly": f"${formatted_yearly}",
+            }
         else:
-            return False
+            return {}
 
 
     @rx.var(cache=True)
@@ -373,6 +389,7 @@ class HospitalState(UserState):
                         )
                         .otherwise(None)
                         .alias("unit"),
+
                         pl.when(
                             pl.col("assign_select_specific_unit").str.contains("No")
                         )
@@ -412,9 +429,11 @@ class HospitalState(UserState):
                     .to_list()
                 )
 
-                self.units_areas_roles_for_units = (
+                units_areas_roles_for_units = (
                     units_for_units + areas_roles_for_unit
                 )
+
+                self.units_areas_roles_for_units = [unit for unit in units_areas_roles_for_units if unit != "I don't see my area or role" and unit != "I don't see my unit"]
 
                 unit_score_df = (
                     units_df.with_columns(
@@ -664,7 +683,6 @@ class HospitalState(UserState):
         overview.
         """
         try:
-            rich.inspect(review_to_edit)
             if self.user_info["user_id"] in review_to_edit["likes"]:
                 review_to_edit["likes"].remove(self.user_info["user_id"])
             else:

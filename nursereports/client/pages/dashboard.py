@@ -38,7 +38,7 @@ def content() -> rx.Component:
         saved_hospitals(),
         my_pay(),
         my_reports(),
-        class_name="flex-col items-center p-4 pt-8 pb-8 space-y-8 w-full max-w-screen-md",
+        class_name="flex-col items-center p-4 pt-8 pb-8 space-y-12 w-full max-w-screen-md",
     )
 
 
