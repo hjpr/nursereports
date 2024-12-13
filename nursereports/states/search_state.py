@@ -1,4 +1,4 @@
-from ..client.components.lists import cities_by_state, state_abbr_dict
+from ..client.components.dicts import cities_by_state, state_to_abbr_dict
 from ..server.supabase.search_requests import supabase_get_hospital_search_results
 from ..states import AuthState
 
@@ -19,12 +19,12 @@ class SearchState(AuthState):
 
     @rx.var(cache=True)
     def state_options(self) -> list[str]:
-        return [state for state in state_abbr_dict.keys()]
+        return [state for state in state_to_abbr_dict.keys()]
 
     @rx.var(cache=True)
     def city_options(self) -> list[str]:
         if self.selected_state:
-            state_abbr = state_abbr_dict[self.selected_state]
+            state_abbr = state_to_abbr_dict[self.selected_state]
             return sorted(cities_by_state.get(state_abbr))
         else:
             return []
@@ -58,7 +58,7 @@ class SearchState(AuthState):
                 # Get results from database.
                 search_results = supabase_get_hospital_search_results(
                     self.access_token,
-                    state_abbr_dict[self.selected_state],
+                    state_to_abbr_dict[self.selected_state],
                     self.selected_city,
                 )
 

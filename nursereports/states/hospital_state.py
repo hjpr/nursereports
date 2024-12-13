@@ -3,8 +3,8 @@ import pandas as pd
 import polars as pl
 import re
 import reflex as rx
-import rich
 
+from ..client.components.dicts import abbr_to_state_dict
 from ..states.user_state import UserState
 from ..server.supabase.hospital_requests import (
     supabase_get_hospital_overview_info,
@@ -239,6 +239,8 @@ class HospitalState(UserState):
                 self.hospital_info = supabase_get_hospital_overview_info(
                     self.access_token, self.hosp_id
                 )
+                self.hospital_info["hosp_state_abbr"] = self.hospital_info["hosp_state"]
+                self.hospital_info["hosp_state"] = abbr_to_state_dict.get(self.hospital_info["hosp_state_abbr"])
 
             # Otherwise send user back to dashboard.
             else:
