@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import polars as pl
 import re
 import reflex as rx
@@ -51,6 +52,7 @@ class HospitalState(UserState):
     units_areas_roles_for_units: list[str]
     units_areas_roles_hospital_scores: list[dict]
     units_areas_roles_for_reviews: list[str]
+    units_areas_roles_for_rankings: pd.DataFrame
 
     # User selectable fields
     selected_unit: str
@@ -375,6 +377,7 @@ class HospitalState(UserState):
 
             if self.report_info:
 
+                # Create full dataframe and format.
                 units_df = (
                     pl.DataFrame(self.report_info.copy())
                     .with_columns(
@@ -413,6 +416,7 @@ class HospitalState(UserState):
                     )
                 )
 
+                # Get list of units/roles for filters.
                 units_for_units = sorted(
                     units_df.select("unit")
                     .filter(pl.col("unit").is_not_null())
@@ -420,7 +424,6 @@ class HospitalState(UserState):
                     .to_series()
                     .to_list()
                 )
-
                 areas_roles_for_unit = sorted(
                     units_df.select("area_role")
                     .filter(pl.col("area_role").is_not_null())
@@ -428,13 +431,11 @@ class HospitalState(UserState):
                     .to_series()
                     .to_list()
                 )
-
-                units_areas_roles_for_units = (
+                self.units_areas_roles_for_units = (
                     units_for_units + areas_roles_for_unit
                 )
 
-                self.units_areas_roles_for_units = [unit for unit in units_areas_roles_for_units if unit != "I don't see my area or role" and unit != "I don't see my unit"]
-
+                # Average scores for respective units.
                 unit_score_df = (
                     units_df.with_columns(
                         [
@@ -453,7 +454,9 @@ class HospitalState(UserState):
                         pl.mean_horizontal("comp_numeric", "assign_numeric", "staffing_numeric")
                         .alias("overall_numeric")
                     )
-                    .filter(pl.col("unit").is_not_null())
+                    .filter(
+                        pl.col("unit").is_not_null()
+                    )
                     .group_by("unit")
                     .agg(
                         [
@@ -477,6 +480,7 @@ class HospitalState(UserState):
                     )
                 )
 
+                # Average scores with respect to roles.
                 area_role_score_df = (
                     units_df.with_columns(
                         [
@@ -495,7 +499,9 @@ class HospitalState(UserState):
                         pl.mean_horizontal("comp_numeric", "assign_numeric", "staffing_numeric")
                         .alias("overall_numeric")
                     )
-                    .filter(pl.col("area_role").is_not_null())
+                    .filter(
+                        pl.col("area_role").is_not_null()
+                    )
                     .group_by("area_role")
                     .agg(
                         [
@@ -507,7 +513,7 @@ class HospitalState(UserState):
                             .mean()
                             .map_elements(self.number_to_letter, pl.Utf8)
                             .alias("assign_mean"),
-                            pl.col("staffing_select_overall")
+                            pl.col("staffing_numeric")
                             .mean()
                             .map_elements(self.number_to_letter, pl.Utf8)
                             .alias("staffing_mean"),
@@ -519,6 +525,7 @@ class HospitalState(UserState):
                     )
                 )
 
+                # Create an overall hospital score from all units/roles
                 hospital_score_df = (
                     units_df.with_columns(
                         [
@@ -560,11 +567,16 @@ class HospitalState(UserState):
                     )
                 )
 
+                # Combine and save to state
                 unit_score_df = unit_score_df.rename({"unit": "units_areas_roles"})
                 area_role_score_df = area_role_score_df.rename({"area_role": "units_areas_roles"})
                 hospital_score_df = hospital_score_df.rename({"unit": "units_areas_roles"})
                 units_areas_roles_df = pl.concat([unit_score_df, area_role_score_df, hospital_score_df], how="vertical")
                 self.units_areas_roles_hospital_scores = units_areas_roles_df.to_dicts()
+
+                # Pull dataframe for unit/role rankings.
+                rankings_df = pl.concat([unit_score_df, area_role_score_df], how="vertical")
+                self.units_areas_roles_for_rankings = rankings_df.to_pandas()
 
         except Exception as e:
             logger.critical(e)

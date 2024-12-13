@@ -134,7 +134,7 @@ def staff_pay() -> rx.Component:
 def hospital_average() -> rx.Component:
     return flex(
         flex(
-            text("Hospital Average", class_name="text-xl font-bold"),
+            text("Hospital Average", class_name="text-lg font-bold"),
             rx.spacer(),
             rx.segmented_control.root(
                 rx.segmented_control.item("Full-time", value="Full-time"),
@@ -230,8 +230,8 @@ def hospital_average() -> rx.Component:
             (HospitalState.ft_pay_hospital_info_limited) &
             (HospitalState.extrapolated_ft_pay_hospital),
             flex(
-                rx.icon("triangle-alert", class_name="h-4 w-4 stroke-orange-500"),
-                rx.text("Data limited. Values may be inaccurate.", class_name="text-orange-500"),
+                rx.icon("triangle-alert", class_name="h-3 w-3 stroke-orange-500"),
+                rx.text("LIMITED DATA. ESTIMATES MAY BE OFF.", class_name="text-xs text-orange-500"),
                 class_name="flex-row items-center justify-center p-1 space-x-2 w-full"
             )
         ),
@@ -240,24 +240,24 @@ def hospital_average() -> rx.Component:
             (HospitalState.pt_pay_hospital_info_limited) &
             (HospitalState.extrapolated_pt_pay_hospital),
             flex(
-                rx.icon("triangle-alert", class_name="h-4 w-4 stroke-orange-500"),
-                rx.text("Data limited. Values may be inaccurate.", class_name="text-orange-500"),
+                rx.icon("triangle-alert", class_name="h-3 w-3 stroke-orange-500"),
+                rx.text("LIMITED DATA. ESTIMATES MAY BE OFF.", class_name="text-xs text-orange-500"),
                 class_name="flex-row items-center justify-center p-1 space-x-2 w-full"
             )
         ),
         rx.cond(
             (HospitalState.selected_hospital_average == "Full-time") & (~HospitalState.extrapolated_ft_pay_hospital),
             rx.flex(
-                rx.icon("ban", class_name="h-4 w-4 stroke-rose-500"),
-                rx.text("No pay data available yet.", class_name="text-rose-500"),
+                rx.icon("ban", class_name="h-3 w-3 stroke-rose-500"),
+                rx.text("NO PAY DATA AVAILABLE YET.", class_name="text-xs text-rose-500"),
                 class_name="flex-row items-center justify-center p-1 space-x-2 w-full"
             )
         ),
         rx.cond(
             (HospitalState.selected_hospital_average == "Part-time") & (~HospitalState.extrapolated_pt_pay_hospital),
             flex(
-                rx.icon("ban", class_name="h-4 w-4 stroke-rose-500"),
-                rx.text("No pay data available yet.", class_name="text-rose-500"),
+                rx.icon("ban", class_name="h-3 w-3 stroke-rose-500"),
+                rx.text("NO PAY DATA AVAILABLE YET.", class_name="text-xs text-rose-500"),
                 class_name="flex-row items-center justify-center p-1 space-x-2 w-full"
             )
         ),
@@ -268,7 +268,7 @@ def hospital_average() -> rx.Component:
 def state_average() -> rx.Component:
     return flex(
         flex(
-            text("State Average", class_name="text-xl font-bold"),
+            text("State Average", class_name="text-lg font-bold"),
             rx.spacer(),
             rx.segmented_control.root(
                 rx.segmented_control.item("Full-time", value="Full-time"),
@@ -364,7 +364,7 @@ def state_average() -> rx.Component:
             (HospitalState.extrapolated_ft_pay_state),
             flex(
                 rx.icon("triangle-alert", class_name="h-4 w-4 stroke-orange-500"),
-                rx.text("Data limited. Values may be inaccurate.", class_name="text-orange-500"),
+                rx.text("LIMITED DATA. ESTIMATES MAY BE OFF.", class_name="text-xs text-orange-500"),
                 class_name="flex-row items-center justify-center p-1 space-x-2 w-full"
             )
         ),
@@ -373,24 +373,24 @@ def state_average() -> rx.Component:
             (HospitalState.ft_pay_state_info_limited) &
             (HospitalState.extrapolated_ft_pay_state),
             flex(
-                rx.icon("triangle-alert", class_name="h-4 w-4 stroke-orange-500"),
-                rx.text("Data limited. Values may be inaccurate.", class_name="text-orange-500"),
+                rx.icon("triangle-alert", class_name="h-3 w-3 stroke-orange-500"),
+                rx.text("LIMITED DATA. ESTIMATES MAY OFF.", class_name="text-xs text-orange-500"),
                 class_name="flex-row items-center justify-center p-1 space-x-2 w-full"
             )
         ),
         rx.cond(
             (HospitalState.selected_state_average == "Full-time") & (~HospitalState.extrapolated_ft_pay_state),
             flex(
-                rx.icon("ban", class_name="h-4 w-4 stroke-rose-500"),
-                rx.text("No pay data available yet.", class_name="text-rose-500"),
+                rx.icon("ban", class_name="h-3 w-3 stroke-rose-500"),
+                rx.text("NO PAY DATA AVAILABLE YET.", class_name="text-xs text-rose-500"),
                 class_name="flex-row items-center justify-center p-1 space-x-2 w-full"
             )
         ),
         rx.cond(
             (HospitalState.selected_state_average == "Part-time") & (~HospitalState.extrapolated_pt_pay_state),
             flex(
-                rx.icon("ban", class_name="h-4 w-4 stroke-rose-500"),
-                rx.text("No pay data available yet.", class_name="text-rose-500"),
+                rx.icon("ban", class_name="h-3 w-3 stroke-rose-500"),
+                rx.text("NO PAY DATA AVAILABLE YET.", class_name="text-xs text-rose-500"),
                 class_name="flex-row items-center justify-center p-1 space-x-2 w-full"
             )
         ),
@@ -400,7 +400,7 @@ def state_average() -> rx.Component:
 def experience_slider() -> rx.Component:
     return flex(
         flex(
-            text("Experience", class_name="text-xl font-bold"),
+            text("Experience", class_name="text-lg font-bold"),
             class_name="flex-col md:flex-row items-center px-6 py-2 w-full"
         ),
         flex(
@@ -408,17 +408,17 @@ def experience_slider() -> rx.Component:
                 HospitalState.selected_experience <= 25,
                 text(
                     f"{HospitalState.selected_experience} year(s)",
-                    class_name="text-lg text-nowrap p-2"
+                    class_name="text-lg text-nowrap p-1"
                 ),
                 text(
                     "More than 25 years",
-                    class_name="text-lg text-nowrap p-2"
+                    class_name="text-lg text-nowrap p-1"
                 )
             ),
             class_name="flex-col items-center w-full"
         ),
         flex(
-            text("New Grad", class_name="pr-4 text-nowrap"),
+            text("0 YEARS", class_name="text-xs pr-4 text-nowrap"),
             rx.slider(
                 default_value=HospitalState.selected_experience,
                 min=0,
@@ -427,7 +427,7 @@ def experience_slider() -> rx.Component:
                 on_change=HospitalState.set_slider,
                 class_name="w-full",
             ),
-            text("> 25 years", class_name="pl-4 text-nowrap"),
+            text("> 25 YEARS", class_name="text-xs pl-4 text-nowrap"),
             class_name="flex-row items-center p-5 w-full"
         ),
         class_name="flex-col items-center divide-y w-full"
@@ -458,7 +458,7 @@ def units() -> rx.Component:
         rx.flex(
             rx.flex(
                 rx.icon("stethoscope", class_name="stroke-zinc-700 dark:stroke-teal-800 h-6 w-6"),
-                rx.heading("Units", class_name="font-bold text-2xl"),
+                text("Units/Roles", class_name="font-bold text-2xl"),
                 class_name="flex-row items-center space-x-2",
             ),
         class_name="flex-col items-start bg-zinc-100 dark:bg-zinc-800 p-2 w-full"
@@ -523,6 +523,28 @@ def units() -> rx.Component:
                 rx.text("Nothing yet, check back later!"),
                 class_name="flex-col items-center p-6 w-full",
             ),
+        ),
+
+        # Unit rank subheader and filters.
+        flex(
+            text("Rankings", class_name="text-xl font-bold"),
+            class_name="flex-col md:flex-row items-center px-6 py-2 space-y-1 md:space-y-0 w-full"
+        ),
+        # Unit/Role rankings
+        rx.cond(
+            HospitalState.units_areas_roles_for_rankings,
+            flex(
+                rx.data_table(
+                    data=HospitalState.units_areas_roles_for_rankings,
+                    pagination=True,
+                    sort=True
+                ),
+                class_name="w-full"
+            ),
+            flex(
+                "Nah dogg.",
+                class_name="w-full"
+            )
         ),
         class_name="flex-col items-center border rounded divide-y w-full"
     )

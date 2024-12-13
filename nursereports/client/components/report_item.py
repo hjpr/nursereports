@@ -14,18 +14,12 @@ def report_item_dashboard(report: dict[str, str]) -> rx.Component:
         flex(
             flex(
                 rx.cond(
-                    report["assign_select_unit"],
+                    report["assign_select_specific_unit"] == "Yes",
+
                     # Report is from a unit
                     rx.cond(
-                        report["assign_select_unit"] == "I don't see my unit",
-                        # Report unit was entered manually.
-                        rx.skeleton(
-                            text(
-                                f"{report['assign_input_unit_name']}",
-                                class_name="text-xl font-bold",
-                            ),
-                            loading=~rx.State.is_hydrated
-                        ),
+                        report["assign_select_unit"],
+
                         # Report unit was selected from list.
                         rx.skeleton(
                             text(
@@ -33,20 +27,22 @@ def report_item_dashboard(report: dict[str, str]) -> rx.Component:
                                 class_name="text-xl font-bold",
                             ),
                             loading=~rx.State.is_hydrated
-                        )
-                    ),
-                    # Report is from an area/role
-                    rx.cond(
-                        report["assign_select_area"]
-                        == "I don't see my area or role",
-                        # Report area/role was entered manually.
+                        ),
+
+                        # Report unit was entered manually.
                         rx.skeleton(
                             text(
-                                f"{report['assign_input_area']}",
-                                class_name="text-md md:text-lg font-bold",
+                                f"{report['assign_input_unit_name']}",
+                                class_name="text-xl font-bold",
                             ),
                             loading=~rx.State.is_hydrated
-                        ),
+                        )
+                    ),
+
+                    # Report is from an area/role
+                    rx.cond(
+                        report["assign_select_area"],
+
                         # Report area/role was selected from list.
                         rx.skeleton(
                             rx.text(
@@ -54,8 +50,17 @@ def report_item_dashboard(report: dict[str, str]) -> rx.Component:
                                 class_name="text-md md:text-lg font-bold text-zinc-700",
                             ),
                             loading=~rx.State.is_hydrated
+                        ),
+
+                        # Report area/role was entered manually.
+                        rx.skeleton(
+                            text(
+                                f"{report['assign_input_area']}",
+                                class_name="text-md md:text-lg font-bold",
+                            ),
+                            loading=~rx.State.is_hydrated
                         )
-                    ),
+                    )
                 ),
                 rx.skeleton(
                     text(
