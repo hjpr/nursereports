@@ -468,8 +468,8 @@ def units() -> rx.Component:
         flex(
             rx.cond(
                 HospitalState.selected_unit,
-                text(HospitalState.selected_unit, class_name="text-xl"),
-                text("Hospital Overall", class_name="text-xl")
+                text(HospitalState.selected_unit, class_name="text-lg"),
+                text("Hospital Overall", class_name="text-lg")
             ),
             rx.spacer(),
             flex(
@@ -494,27 +494,27 @@ def units() -> rx.Component:
             # If there are units to select.
             flex(
                 flex(
-                    rx.text(HospitalState.filtered_unit_info["comp_mean"], class_name="text-4xl"),
+                    rx.text(HospitalState.filtered_unit_info["comp_mean"], class_name="text-2xl"),
                     rx.spacer(),
-                    rx.text("Compensation"),
+                    rx.text("COMPENSATION", class_name="text-sm"),
                     class_name="flex-row-reverse md:flex-col items-center justify-center px-6 py-2 md:space-y-1 w-full",
                 ),
                 flex(
-                    rx.text(HospitalState.filtered_unit_info["assign_mean"], class_name="text-4xl"),
+                    rx.text(HospitalState.filtered_unit_info["assign_mean"], class_name="text-2xl"),
                     rx.spacer(),
-                    rx.text("Assignment"),
+                    rx.text("ASSIGNMENT", class_name="text-sm"),
                     class_name="flex-row-reverse md:flex-col items-center justify-center px-6 py-2 md:space-y-1 w-full",
                 ),
                 flex(
-                    rx.text(HospitalState.filtered_unit_info["staffing_mean"], class_name="text-4xl"),
+                    rx.text(HospitalState.filtered_unit_info["staffing_mean"], class_name="text-2xl"),
                     rx.spacer(),
-                    rx.text("Staffing"),
+                    rx.text("STAFFING", class_name="text-sm"),
                     class_name="flex-row-reverse md:flex-col items-center justify-center px-6 py-2 md:space-y-1 w-full",
                 ),
                 flex(
-                    rx.text(HospitalState.filtered_unit_info["overall_mean"], class_name="text-4xl font-bold"),
+                    rx.text(HospitalState.filtered_unit_info["overall_mean"], class_name="text-2xl font-bold"),
                     rx.spacer(),
-                    rx.text("Overall", class_name="font-bold"),
+                    rx.text("OVERALL", class_name="text-sm font-bold"),
                     class_name="flex-row-reverse md:flex-col items-center justify-center px-6 py-2 md:space-y-1 w-full",
                 ),
                 class_name="flex-col md:flex-row items-center justify-between divide-y md:divide-y-0 md:divide-x w-full",
@@ -527,24 +527,13 @@ def units() -> rx.Component:
 
         # Unit rank subheader and filters.
         flex(
-            text("Rankings", class_name="text-xl font-bold"),
+            text("Rankings", class_name="text-lg"),
             class_name="flex-col md:flex-row items-center px-6 py-2 space-y-1 md:space-y-0 w-full"
         ),
         # Unit/Role rankings
-        rx.cond(
-            HospitalState.units_areas_roles_for_rankings,
-            flex(
-                rx.data_table(
-                    data=HospitalState.units_areas_roles_for_rankings,
-                    pagination=True,
-                    sort=True
-                ),
-                class_name="w-full"
-            ),
-            flex(
-                "Nah dogg.",
-                class_name="w-full"
-            )
+        flex(
+            text("PLACEHOLDER", class_name="text-xs"),
+            class_name="flex-col items-center p-4 w-full"
         ),
         class_name="flex-col items-center border rounded divide-y w-full"
     )
@@ -640,29 +629,29 @@ def response_card(review: dict[str, str]) -> rx.Component:
     """
     return flex(
         rx.vstack(
-            rx.hstack(
+            flex(
                 rx.cond(
                     review["unit"],
-                    rx.text(review["unit"], weight="bold"),
-                    rx.text(review["area_role"], weight="bold"),
+                    rx.text(review["unit"], class_name="text-lg"),
+                    rx.text(review["area_role"], class_name="text-lg"),
                 ),
                 rx.spacer(),
                 flex(
-                    rx.text(review["formatted_created_at"]),
+                    text(review["formatted_created_at"], class_name="text-xs uppercase"),
                 ),
-                width="100%",
+                class_name="flex-row items-center w-full"
             ),
             rx.cond(
                 review["comp_input_comments"],
-                flex(rx.text(review["comp_input_comments"]), width="100%"),
+                flex(text(review["comp_input_comments"]), width="100%"),
             ),
             rx.cond(
                 review["assign_input_comments"],
-                flex(rx.text(review["assign_input_comments"]), width="100%"),
+                flex(text(review["assign_input_comments"]), width="100%"),
             ),
             rx.cond(
                 review["staffing_input_comments"],
-                flex(rx.text(review["staffing_input_comments"]), width="100%"),
+                flex(text(review["staffing_input_comments"]), width="100%"),
             ),
             flex(
                 rx.cond(
@@ -670,8 +659,8 @@ def response_card(review: dict[str, str]) -> rx.Component:
                     # If user has liked the review
                     flex(
                         rx.button(
-                            rx.icon("thumbs-up", size=18),
-                            rx.text(review["likes_number"]),
+                            rx.icon("heart-off", class_name="h-5 w-5 stroke-rose-500"),
+                            rx.text(review["likes_number"], class_name="text-rose-500"),
                             variant="ghost",
                             cursor="pointer",
                             _hover={"bg": "none"},
@@ -679,16 +668,13 @@ def response_card(review: dict[str, str]) -> rx.Component:
                                 review
                             ),
                         ),
-                        rx.text(
-                            " - You upvoted.", class_name="text-sm text-teal-600 pl-1"
-                        ),
                         class_name="flex-row items-center",
                     ),
                     # If user hasn't liked review
                     flex(
                         rx.button(
-                            rx.icon("thumbs-up", size=18),
-                            rx.text(review["likes_number"]),
+                            rx.icon("heart", class_name="h-5 w-5 stroke-rose-500"),
+                            rx.text(review["likes_number"], class_name="text-rose-500"),
                             variant="ghost",
                             cursor="pointer",
                             _hover={"bg": "none"},
