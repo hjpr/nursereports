@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 import polars as pl
 import re
 import reflex as rx
@@ -17,6 +16,8 @@ from datetime import datetime
 from loguru import logger
 from scipy import interpolate
 from typing import Any, Callable, Iterable
+
+import rich
 
 
 class HospitalState(UserState):
@@ -52,7 +53,7 @@ class HospitalState(UserState):
     units_areas_roles_for_units: list[str]
     units_areas_roles_hospital_scores: list[dict]
     units_areas_roles_for_reviews: list[str]
-    units_areas_roles_for_rankings: pd.DataFrame
+    units_areas_roles_for_rankings: list[dict]
 
     # User selectable fields
     selected_unit: str
@@ -573,12 +574,14 @@ class HospitalState(UserState):
                 unit_score_df = unit_score_df.rename({"unit": "units_areas_roles"})
                 area_role_score_df = area_role_score_df.rename({"area_role": "units_areas_roles"})
                 hospital_score_df = hospital_score_df.rename({"unit": "units_areas_roles"})
+
+                # Combine for individual unit/role rating.
                 units_areas_roles_df = pl.concat([unit_score_df, area_role_score_df, hospital_score_df], how="vertical")
                 self.units_areas_roles_hospital_scores = units_areas_roles_df.to_dicts()
 
-                # Pull dataframe for unit/role rankings.
-                rankings_df = pl.concat([unit_score_df, area_role_score_df], how="vertical")
-                self.units_areas_roles_for_rankings = rankings_df.to_pandas()
+                # Pull dict for unit/role rankings.
+                rankings_df = pl.concat([unit_score_df, area_role_score_df], how="vertical").sort("overall_mean")
+                self.units_areas_roles_for_rankings = rankings_df.to_dicts()
 
         except Exception as e:
             logger.critical(e)
