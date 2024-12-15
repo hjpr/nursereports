@@ -270,7 +270,7 @@ def hospital_average() -> rx.Component:
 def state_average() -> rx.Component:
     return flex(
         flex(
-            text(f"{HospitalState.hospital_info["hosp_state"]} Average", class_name="text-lg"),
+            text(f"{HospitalState.hospital_info['hosp_state']} Average", class_name="text-lg"),
             rx.spacer(),
             rx.segmented_control.root(
                 rx.segmented_control.item("Full-time", value="Full-time"),
