@@ -103,5 +103,5 @@ def footer() -> rx.Component:
             ),
             class_name="flex-col space-y-8 w-full max-w-screen-md"
         ),
-        class_name="flex-col border border-solid border-zinc-100 border-t-zinc-200 dark:border-zinc-900 dark:border-t-zinc-500 items-center justify-center py-24 w-full"
+        class_name="flex-col items-center justify-start border border-solid border-zinc-100 border-t-zinc-200 dark:border-zinc-900 dark:border-t-zinc-500 py-20 w-full"
     )

@@ -27,27 +27,40 @@ def search_page() -> rx.Component:
         navbar(),
         content(),
         footer(),
-        class_name="flex-col items-center bg-teal-50",
+        class_name="flex-col items-center bg-teal-50 min-h-screen",
     )
 
 
 def content() -> rx.Component:
     return flex(
-        header(),
-        search_dropdowns(),
-        search_results(),
-        class_name="flex-col items-center px-4 py-12 w-full max-w-screen-md",
+        search(),
+        class_name="flex-col flex-grow items-center space-y-12 px-4 py-8 w-full max-w-screen-md h-full",
     )
 
 
-def header() -> rx.Component:
+def search() -> rx.Component:
     return flex(
-        text("Find your hospital", class_name="text-2xl font-bold text-zinc-700"),
-        class_name="flex-col items-center w-full",
+        rx.flex(
+            rx.flex(
+                rx.icon("search", class_name="h-6 w-6 stroke-zinc-700 dark:stroke-teal-800"),
+                text("Search for Hospital", class_name="text-2xl font-bold"),
+                class_name="flex-row items-center space-x-2"
+            ),
+            class_name="flex-col items-center bg-zinc-100 dark:bg-zinc-800 p-4 w-full"
+        ),
+        rx.flex(
+            search_content(),
+            class_name="w-full"
+        ),
+        rx.flex(
+            search_results(),
+            class_name="w-full"
+        ),
+        class_name="flex-col items-center border rounded divide-y dark:divide-zinc-500 w-full"
     )
 
 
-def search_dropdowns() -> rx.Component:
+def search_content() -> rx.Component:
     return flex(
         flex(
             rx.select(
@@ -72,7 +85,7 @@ def search_dropdowns() -> rx.Component:
                 on_click=SearchState.event_state_search,
                 loading=SearchState.search_is_loading,
                 disabled=~(SearchState.selected_city & SearchState.selected_state),
-                class_name="w-full md:w-auto disabled:cursor-not-allowed",
+                class_name="w-full md:w-auto disabled:cursor-not-allowed disabled:text-zinc-200",
             ),
             solid_button(
                 "Clear",
@@ -82,9 +95,9 @@ def search_dropdowns() -> rx.Component:
                     SearchState.set_selected_city(""),
                     SearchState.set_search_results([]),
                 ],
-                class_name="w-full md:w-auto disabled:cursor-not-allowed",
+                class_name="w-full md:w-auto disabled:cursor-not-allowed disabled:text-zinc-200",
             ),
-            class_name="flex-col md:flex-row items-center justify-center md:space-x-2 space-y-4 md:space-y-0 p-8 w-full",
+            class_name="flex-col md:flex-row items-center justify-center md:space-x-2 space-y-4 md:space-y-0 p-4 w-full",
         ),
         class_name="flex-col items-center space-y-4 w-full",
     )
@@ -104,10 +117,10 @@ def search_results() -> rx.Component:
                 rx.cond(
                     SearchState.search_is_loading,
                     rx.icon("loader-circle", class_name="animate-spin text-zinc-700"),
-                    rx.icon("search", class_name="text-zinc-700"),
+                    rx.icon("ellipsis-vertical", class_name="text-zinc-700"),
                 ),
-                class_name="flex-col items-center justify-center w-full",
+                class_name="flex-col items-center justify-center min-h-20 w-full",
             ),
         ),
-        class_name="flex basis-80 grow w-full",
+        class_name="flex w-full",
     )

@@ -579,8 +579,9 @@ class HospitalState(UserState):
                 units_areas_roles_df = pl.concat([unit_score_df, area_role_score_df, hospital_score_df], how="vertical")
                 self.units_areas_roles_hospital_scores = units_areas_roles_df.to_dicts()
 
-                # Pull dict for unit/role rankings.
+                # Pull dict for unit/role rankings and add ranking numbers.
                 rankings_df = pl.concat([unit_score_df, area_role_score_df], how="vertical").sort("overall_mean")
+                rankings_df = rankings_df.with_row_count("ranking", offset=1)
                 self.units_areas_roles_for_rankings = rankings_df.to_dicts()
 
         except Exception as e:

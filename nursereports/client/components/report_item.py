@@ -92,7 +92,6 @@ def report_item_dashboard(report: dict[str, str]) -> rx.Component:
             ),
             rx.spacer(),
             flex(
-                report_item_dashboard_remove_report(report),
                 report_item_dashboard_edit(report),
                 class_name="space-x-2"
             ),
