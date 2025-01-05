@@ -1,7 +1,12 @@
-from ..components.c2a import c2a
-from ..components.custom import spacer, login_protected
-from ..components.footer import footer
-from ..components.navbar import navbar
+from ..components import (
+    flex,
+    footer,
+    navbar,
+    login_protected,
+    outline_button,
+    solid_button,
+    text
+)
 from ...states import BaseState, ReportState
 
 import reflex as rx
@@ -18,154 +23,125 @@ import reflex as rx
 )
 @login_protected
 def overview_page() -> rx.Component:
-    return rx.flex(
-        c2a(),
+    return flex(
         navbar(),
-        spacer(height="40px"),
         content(),
-        spacer(height="80px"),
         footer(),
-        width="100%",
-        flex_direction="column",
-        align_items="center",
-        min_height="100vh",
+        class_name="flex-col items-center"
     )
 
 
 def content() -> rx.Component:
-    return rx.flex(
+    return flex(
+        header(),
         hospital_info(),
-        spacer(height="18px"),
-        section_anonymous(),
-        section_motivation(),
-        section_time(),
         buttons(),
-        gap="24px",
-        padding_x="20px",
-        width=["100%", "500px", "500px", "500px", "500px"],
-        flex_direction="column",
-        flex_basis="auto",
-        flex_grow="1",
-        flex_shrink="0",
+        class_name="flex-col items-center space-y-12 px-4 py-12 w-full max-w-screen-md"
+    )
+
+
+def header() -> rx.Component:
+    return rx.flex(
+            rx.flex(
+                text("Submit Full Report", class_name="text-2xl font-bold"),
+                class_name="flex-row items-center space-x-2"
+            ),
+            class_name="flex-col items-center border rounded bg-zinc-100 dark:bg-zinc-800 p-4 w-full"
     )
 
 
 def hospital_info() -> rx.Component:
-    return rx.card(
-        rx.cond(
-            rx.State.is_hydrated,
-            rx.flex(
-                rx.heading("You are submitting a report for...", size="4"),
-                spacer(height="36px"),
-                rx.heading(
-                    f"{ReportState.hospital_info['hosp_name']}", text_align="center"
+    return rx.flex(
+
+        # Hospital header
+        rx.flex(
+            rx.skeleton(
+                text(
+                    f"{ReportState.hospital_info['hosp_name']}",
+                    class_name="text-2xl font-bold text-center"
                 ),
-                rx.heading(
+                loading=~rx.State.is_hydrated
+            ),
+            rx.skeleton(
+                text(
                     f"{ReportState.hospital_info['hosp_addr']}, "
                     f"{ReportState.hospital_info['hosp_state']} "
                     f"{ReportState.hospital_info['hosp_zip']}",
-                    text_align="center",
+                    class_name="text-xl text-center"
                 ),
-                flex_direction="column",
-                gap="4px",
-                align_items="center",
-                justify_content="center",
-                width="100%",
+                loading=~rx.State.is_hydrated
             ),
+            class_name="flex-col justify-center items-center p-8 w-full"
+        ),
+
+        # Anonymous
+        rx.flex(
             rx.flex(
-                rx.chakra.spinner(), align_items="center", justify_content="center"
+                rx.flex(
+                    rx.icon("eye"),
+                    class_name="flex-col justify-center items-center h-8 w-8"
+                ),
+                text(
+                    """
+                    All reporting is anonymous. No personal details
+                    are attached to your report.
+                    """,
+                ),
+                class_name="flex-row justify-start items-center space-x-4 w-full"
             ),
+            class_name="flex-col p-4 w-full"
         ),
-        variant="ghost",
-        padding="12px 0 0 0",
-    )
 
-
-def section_anonymous() -> rx.Component:
-    return rx.card(
+        # Affiliations
         rx.flex(
-            rx.hstack(
-                rx.image(src="/raster/anonymous.png", height="100px", width="100px"),
+            rx.flex(
                 rx.flex(
-                    rx.text(
-                        """
-                        All reporting is anonymous. No personal details
-                        are attached to your report.
-                        """,
-                        padding_x="20px",
-                    ),
-                    height="100%",
-                    width="100%",
-                    align_items="center",
-                    justify_content="center",
+                    rx.icon("stethoscope"),
+                    class_name="flex-col justify-center items-center h-8 w-8"
                 ),
-                width="100%",
+                text(
+                    """
+                    I am not affiliated with hospital interests. These reports are gathered
+                    for the benefit of the nursing community across the US.
+                    """,
+                ),
+                class_name="flex-row justify-start items-center space-x-4 w-full"
             ),
-            width="100%",
+            class_name="flex-col p-4 w-full"
         ),
-        width="100%",
-    )
 
-
-def section_motivation() -> rx.Component:
-    return rx.card(
+        # Time
         rx.flex(
-            rx.hstack(
-                rx.image(
-                    src="/raster/people-talking.png", height="100px", width="100px"
-                ),
+            rx.flex(
                 rx.flex(
-                    rx.text(
-                        """
-                        This database is only for nursing interests.
-                        I am not affiliated with hospitals or
-                        corporations.
-                        """,
-                        padding_x="20px",
-                    ),
-                    height="100%",
-                    width="100%",
-                    align_items="center",
-                    justify_content="center",
+                    rx.icon("clock-1"),
+                    class_name="flex-col justify-center items-center h-8 w-8"
                 ),
-            )
-        )
-    )
-
-
-def section_time() -> rx.Component:
-    return rx.card(
-        rx.flex(
-            rx.hstack(
-                rx.image(src="/raster/time.png", height="100px", width="100px"),
-                rx.flex(
-                    rx.text(
-                        """
-                        Your time is valuable. This should only take
-                        about 5 minutes. 
-                        """,
-                        padding_x="20px",
-                    ),
-                    height="100%",
-                    width="100%",
-                    align_items="center",
-                    justify_content="center",
+                text(
+                    """
+                    Your time is valuable. This should only take
+                    about 5 minutes. 
+                    """,
                 ),
-            )
-        )
-    )
+                class_name="flex-row justify-start items-center space-x-4 w-full"
+            ),
+            class_name="flex-col p-4 w-full"
+        ),
 
+        class_name="flex-col items-center border rounded divide-y dark:divide-zinc-500 w-full"
+    ) 
 
 def buttons() -> rx.Component:
-    return rx.card(
-        rx.flex(
-            rx.button(
-                "Got it. Let's go!",
-                rx.icon("arrow-big-right"),
-                size="3",
-                variant="ghost",
-                on_click=rx.redirect("/report/full-report/outline"),
-            ),
-            justify_content="center",
-        )
+    return rx.flex(
+        outline_button(
+            rx.icon("arrow-big-left"),
+            "Go back",
+            on_click=rx.call_script("window.history.back()")
+        ),
+        solid_button(
+            "Let's go!",
+            rx.icon("arrow-big-right"),
+            on_click=rx.redirect("/report/full-report/compensation"),
+        ),
+        class_name="flex-row justify-center items-center border rounded space-x-4 p-4 w-full"
     )

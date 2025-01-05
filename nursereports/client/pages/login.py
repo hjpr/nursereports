@@ -137,6 +137,9 @@ def login() -> rx.Component:
             ),
             class_name="flex-col items-center space-y-8 w-full",
         ),
-        on_submit=UserState.event_state_submit_login,
+        on_submit=[
+            UserState.setvar("user_is_loading", True),
+            UserState.event_state_submit_login
+        ],
         reset_on_submit=True,
     )

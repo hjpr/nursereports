@@ -1,5 +1,4 @@
 from ..components import (
-    dicts,
     flex,
     footer,
     navbar,
@@ -37,7 +36,7 @@ def hospital_overview() -> rx.Component:
         navbar(),
         content(),
         footer(),
-        class_name="flex-col items-center bg-teal-300",
+        class_name="flex-col items-center",
     )
 
 
@@ -48,7 +47,7 @@ def content() -> rx.Component:
             travel_pay(),
             units_roles(),
             reviews(),
-            class_name="flex-col items-center space-y-12 px-4 py-8 w-full max-w-screen-md",
+            class_name="flex-col items-center space-y-12 px-4 py-12 w-full max-w-screen-md",
     )
 
 
@@ -477,7 +476,7 @@ def units_roles() -> rx.Component:
             flex(
                 rx.cond(
                     HospitalState.selected_unit,
-                    text(HospitalState.selected_unit, class_name="text-lg"),
+                    text(HospitalState.selected_unit, class_name="text-lg font-bold"),
                     text("Hospital Overall", class_name="text-lg")
                 ),
                 rx.spacer(),

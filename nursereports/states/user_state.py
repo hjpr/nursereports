@@ -112,7 +112,7 @@ class UserState(AuthState):
         """
         try:
             # Disable login attempts while request is out.
-            yield UserState.setvar("user_is_loading", True)
+            self.user_is_loading = True
 
             if auth_data.get("email") and auth_data.get("password"):
                 # Grab auth data from form submission.
