@@ -1,27 +1,25 @@
 from ...states.report_state import ReportState
+from .tailwind import flex
 
 import reflex as rx
 
 
 def progress() -> rx.Component:
-    return rx.flex(
+    return flex(
         rx.flex(
             rx.flex(
                 rx.chakra.circular_progress(
                     rx.chakra.circular_progress_label(ReportState.comp_progress),
                     value=ReportState.comp_progress,
                 ),
-                rx.heading(
+                rx.text(
                     "Compensation",
                     text_decoration=rx.cond(
                         ReportState.comp_is_active, "underline", ""
                     ),
-                    size="3",
+                    class_name="text-sm uppercase",
                 ),
-                flex_direction="column",
-                align_items="center",
-                justify_content="center",
-                width="30%",
+                class_name="flex-col justify-center items-center space-y-2 w-[30%]"
             ),
             rx.spacer(),
             rx.flex(
@@ -29,17 +27,12 @@ def progress() -> rx.Component:
                     rx.chakra.circular_progress_label(ReportState.assign_progress),
                     value=ReportState.assign_progress,
                 ),
-                rx.heading(
+                rx.text(
                     "Assignment",
-                    text_decoration=rx.cond(
-                        ReportState.assign_is_active, "underline", ""
-                    ),
-                    size="3",
+                    text_decoration=rx.cond(ReportState.assign_is_active, "underline", ""),
+                    class_name="text-sm uppercase",
                 ),
-                flex_direction="column",
-                align_items="center",
-                justify_content="center",
-                width="30%",
+                class_name="flex-col justify-center items-center space-y-2 w-[30%]"
             ),
             rx.spacer(),
             rx.flex(
@@ -47,27 +40,17 @@ def progress() -> rx.Component:
                     rx.chakra.circular_progress_label(ReportState.staffing_progress),
                     value=ReportState.staffing_progress,
                 ),
-                rx.heading(
+                rx.text(
                     "Staffing",
                     text_decoration=rx.cond(
                         ReportState.staffing_is_active, "underline", ""
                     ),
-                    size="3",
+                    class_name="text-sm uppercase",
                 ),
-                flex_direction="column",
-                align_items="center",
-                justify_content="center",
-                width="30%",
+                class_name="flex-col justify-center items-center space-y-2 w-[30%]"
             ),
             flex_direction="row",
             width="100%",
         ),
-        z_index="2",
-        background="white",
-        border_radius="5px",
-        box_shadow="0px 0px 10px 10px white",
-        padding_y="12px",
-        position="sticky",
-        top="64px",
-        width="100%",
+        class_name="flex-row z-10 rounded py-3 sticky top-16 w-full"
     )

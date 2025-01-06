@@ -147,11 +147,12 @@ class ReportState(PageState):
     comp_select_overall: str
     comp_error_message: str
 
-    def set_comp_input_pay_amount(self, pay: str) -> None:
-        if bool(re.match(r"^[0-9]+$", pay)):
-            self.comp_input_pay_amount = int(pay)
-        if pay == "":
-            self.comp_input_pay_amount = 0
+    def set_comp_input_pay_amount(self, pay) -> None:
+        logger.critical(pay)
+        # if bool(re.match(r"^[0-9]+$", pay)):
+        #     self.comp_input_pay_amount = int(pay)
+        # if pay == "":
+        #     self.comp_input_pay_amount = 0
 
     def set_comp_select_pay_type(self, type: str) -> None:
         self.comp_select_pay_type = type

@@ -5,7 +5,7 @@ from ..components import (
     login_protected,
     outline_button,
     solid_button,
-    text
+    text,
 )
 from ...states import BaseState, ReportState
 
@@ -23,12 +23,7 @@ import reflex as rx
 )
 @login_protected
 def overview_page() -> rx.Component:
-    return flex(
-        navbar(),
-        content(),
-        footer(),
-        class_name="flex-col items-center"
-    )
+    return flex(navbar(), content(), footer(), class_name="flex-col items-center")
 
 
 def content() -> rx.Component:
@@ -36,50 +31,53 @@ def content() -> rx.Component:
         header(),
         hospital_info(),
         buttons(),
-        class_name="flex-col items-center space-y-12 px-4 py-12 w-full max-w-screen-md"
+        class_name="flex-col items-center space-y-12 px-4 py-12 w-full max-w-screen-md",
     )
 
 
 def header() -> rx.Component:
     return rx.flex(
-            rx.flex(
-                text("Submit Full Report", class_name="text-2xl font-bold"),
-                class_name="flex-row items-center space-x-2"
-            ),
-            class_name="flex-col items-center border rounded bg-zinc-100 dark:bg-zinc-800 p-4 w-full"
+        rx.flex(
+            text("Submit Full Report", class_name="text-2xl font-bold"),
+            class_name="flex-row items-center space-x-2",
+        ),
+        class_name="flex-col items-center border rounded bg-zinc-100 dark:bg-zinc-800 p-4 w-full",
     )
 
 
 def hospital_info() -> rx.Component:
     return rx.flex(
-
         # Hospital header
         rx.flex(
-            rx.skeleton(
-                text(
-                    f"{ReportState.hospital_info['hosp_name']}",
-                    class_name="text-2xl font-bold text-center"
+            flex(
+                rx.skeleton(
+                    text(
+                        ReportState.hospital_info["hosp_name"],
+                        class_name="font-bold text-center text-2xl",
+                    ),
+                    loading=~rx.State.is_hydrated,
                 ),
-                loading=~rx.State.is_hydrated
-            ),
-            rx.skeleton(
-                text(
-                    f"{ReportState.hospital_info['hosp_addr']}, "
-                    f"{ReportState.hospital_info['hosp_state']} "
-                    f"{ReportState.hospital_info['hosp_zip']}",
-                    class_name="text-xl text-center"
+                rx.skeleton(
+                    text(ReportState.hospital_info["hosp_addr"], class_name="text-sm"),
+                    loading=~rx.State.is_hydrated,
                 ),
-                loading=~rx.State.is_hydrated
+                rx.skeleton(
+                    text(
+                        f'{ReportState.hospital_info["hosp_city"]}, {ReportState.hospital_info["hosp_state"]} {ReportState.hospital_info["hosp_zip"]}',
+                        class_name="text-sm",
+                    ),
+                    loading=~rx.State.is_hydrated,
+                ),
+                class_name="flex-col items-center space-y-1 w-full",
             ),
-            class_name="flex-col justify-center items-center p-8 w-full"
+            class_name="p-4 w-full",
         ),
-
         # Anonymous
         rx.flex(
             rx.flex(
                 rx.flex(
                     rx.icon("eye"),
-                    class_name="flex-col justify-center items-center h-8 w-8"
+                    class_name="flex-col justify-center items-center h-8 w-8",
                 ),
                 text(
                     """
@@ -87,17 +85,16 @@ def hospital_info() -> rx.Component:
                     are attached to your report.
                     """,
                 ),
-                class_name="flex-row justify-start items-center space-x-4 w-full"
+                class_name="flex-row justify-start items-center space-x-4 w-full",
             ),
-            class_name="flex-col p-4 w-full"
+            class_name="flex-col p-4 w-full",
         ),
-
         # Affiliations
         rx.flex(
             rx.flex(
                 rx.flex(
                     rx.icon("stethoscope"),
-                    class_name="flex-col justify-center items-center h-8 w-8"
+                    class_name="flex-col justify-center items-center h-8 w-8",
                 ),
                 text(
                     """
@@ -105,17 +102,16 @@ def hospital_info() -> rx.Component:
                     for the benefit of the nursing community across the US.
                     """,
                 ),
-                class_name="flex-row justify-start items-center space-x-4 w-full"
+                class_name="flex-row justify-start items-center space-x-4 w-full",
             ),
-            class_name="flex-col p-4 w-full"
+            class_name="flex-col p-4 w-full",
         ),
-
         # Time
         rx.flex(
             rx.flex(
                 rx.flex(
                     rx.icon("clock-1"),
-                    class_name="flex-col justify-center items-center h-8 w-8"
+                    class_name="flex-col justify-center items-center h-8 w-8",
                 ),
                 text(
                     """
@@ -123,25 +119,25 @@ def hospital_info() -> rx.Component:
                     about 5 minutes. 
                     """,
                 ),
-                class_name="flex-row justify-start items-center space-x-4 w-full"
+                class_name="flex-row justify-start items-center space-x-4 w-full",
             ),
-            class_name="flex-col p-4 w-full"
+            class_name="flex-col p-4 w-full",
         ),
+        class_name="flex-col items-center border rounded divide-y dark:divide-zinc-500 w-full",
+    )
 
-        class_name="flex-col items-center border rounded divide-y dark:divide-zinc-500 w-full"
-    ) 
 
 def buttons() -> rx.Component:
     return rx.flex(
         outline_button(
             rx.icon("arrow-big-left"),
             "Go back",
-            on_click=rx.call_script("window.history.back()")
+            on_click=rx.call_script("window.history.back()"),
         ),
         solid_button(
             "Let's go!",
             rx.icon("arrow-big-right"),
             on_click=rx.redirect("/report/full-report/compensation"),
         ),
-        class_name="flex-row justify-center items-center border rounded space-x-4 p-4 w-full"
+        class_name="flex-row justify-center items-center border rounded space-x-4 p-4 w-full",
     )

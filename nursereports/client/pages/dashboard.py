@@ -1,5 +1,4 @@
 from ..components import (
-    c2a,
     flex,
     footer,
     hospital_item_dashboard,
@@ -38,7 +37,7 @@ def content() -> rx.Component:
         saved_hospitals(),
         my_pay(),
         my_reports(),
-        class_name="flex-col items-center p-4 py-12 space-y-12 w-full max-w-screen-md",
+        class_name="flex-col items-center p-4 py-12 space-y-12 w-full max-w-screen-lg",
     )
 
 

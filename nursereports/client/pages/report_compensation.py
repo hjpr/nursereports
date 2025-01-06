@@ -1,8 +1,11 @@
-from ..components.c2a import c2a
-from ..components.custom import spacer, login_protected
-from ..components.footer import footer
-from ..components.lists import years_experience
-from ..components.navbar import navbar
+from ..components import (
+    flex,
+    footer,
+    login_protected,
+    navbar,
+    spacer,
+    years_experience
+)
 from ..components.report_progress import progress
 from reflex_motion import motion
 from ...states.base_state import BaseState
@@ -22,17 +25,13 @@ import reflex as rx
 )
 @login_protected
 def compensation_page() -> rx.Component:
-    return rx.flex(
-        c2a(),
+    return flex(
         navbar(),
         spacer(height="1em"),
         content(),
         spacer(height="1em"),
         footer(),
-        width="100%",
-        flex_direction="column",
-        align_items="center",
-        min_height="100vh",
+        class_name="flex-col items-center w-full"
     )
 
 
@@ -47,23 +46,17 @@ def content() -> rx.Component:
         comments(),
         callout(),
         button(),
-        spacer(height="48px"),
-        gap="24px",
-        padding_x="24px",
-        width=["100%", "480px", "480px", "480px", "480px"],
-        max_width="1200px",
-        flex_direction="column",
-        flex_basis="auto",
-        flex_grow="1",
-        flex_shrink="0",
+        class_name="flex-col space-y-8 p-4 w-full max-w-screen-sm"
     )
 
 
 def pay() -> rx.Component:
-    return rx.card(
-        rx.vstack(rx.heading("Pay"), rx.divider(), width="100%"),
-        spacer(height="24px"),
+    return rx.flex(
         rx.flex(
+            rx.text("Pay", class_name="text-xl font-bold"),
+            class_name="flex bg-zinc-100 dark:bg-zinc-800 p-4 w-full"
+        ),
+        flex(
             rx.vstack(
                 rx.text("What is your employment type?"),
                 rx.select(
@@ -98,14 +91,39 @@ def pay() -> rx.Component:
                         rx.text(
                             "Total rate per ",
                             rx.text("week? ", display="inline", font_weight="bold"),
-                            rx.text("(in $)", display="inline"),
                         ),
-                        rx.chakra.number_input(
-                            value=ReportState.comp_input_pay_amount,
-                            input_mode="numeric",
-                            on_change=ReportState.set_comp_input_pay_amount,
-                            is_required=True,
-                            width="100%",
+                        rx.flex(
+                            rx.flex(
+                                rx.text(
+                                    "$",
+                                    class_name="text-xl pr-1"
+                                ),
+                                rx.input(
+                                    id="weekly-digit-1",
+                                    size="3",
+                                    class_name="w-9",
+                                    on_change=rx.set_focus("weekly-digit-2")
+                                ),
+                                rx.input(
+                                    id="weekly-digit-2",
+                                    size="3",
+                                    class_name="w-9",
+                                    on_change=rx.set_focus("weekly-digit-3")
+                                ),
+                                rx.input(
+                                    id="weekly-digit-3",
+                                    size="3",
+                                    class_name="w-9",
+                                    on_change=rx.set_focus("weekly-digit-4")
+                                ),
+                                rx.input(
+                                    id="weekly-digit-4",
+                                    size="3",
+                                    class_name="w-9",
+                                ),
+                                class_name="flex-row items-center space-x-2"
+                            ),
+                            class_name="flex-row justify-center w-full"
                         ),
                         rx.cond(
                             ReportState.is_pay_invalid,
@@ -123,15 +141,62 @@ def pay() -> rx.Component:
                         rx.text(
                             " Base rate per ",
                             rx.text("hour? ", display="inline", font_weight="bold"),
-                            rx.text("(in $)", display="inline"),
                         ),
-                        rx.chakra.number_input(
-                            value=ReportState.comp_input_pay_amount,
-                            input_mode="numeric",
-                            on_change=ReportState.set_comp_input_pay_amount,
-                            is_required=True,
-                            width="100%",
+                        rx.flex(
+                            rx.flex(
+                                rx.text(
+                                    "$",
+                                    class_name="text-xl pr-1"
+                                ),
+                                rx.input(
+                                    id="hourly-digit-1",
+                                    size="3",
+                                    max_length=1,
+                                    class_name="w-9",
+                                    on_change=rx.set_focus("hourly-digit-2")
+                                ),
+                                rx.input(
+                                    id="hourly-digit-2",
+                                    size="3",
+                                    max_length=1,
+                                    class_name="w-9",
+                                    on_change=rx.set_focus("hourly-digit-3")
+                                ),
+                                rx.input(
+                                    id="hourly-digit-3",
+                                    size="3",
+                                    max_length=1,
+                                    class_name="w-9",
+                                    on_change=rx.set_focus("hourly-digit-4")
+                                ),
+                                rx.text(
+                                    ".",
+                                    class_name="text-lg pt-4"
+                                ),
+                                rx.input(
+                                    id="hourly-digit-4",
+                                    size="3",
+                                    max_length=1,
+                                    class_name="w-9",
+                                    on_change=rx.set_focus("hourly-digit-5")
+                                ),
+                                rx.input(
+                                    id="hourly-digit-5",
+                                    size="3",
+                                    max_length=1,
+                                    class_name="w-9",
+                                ),
+                                class_name="flex-row items-center space-x-2"
+                            ),
+                            class_name="flex-row justify-center w-full"
                         ),
+                        # rx.chakra.number_input(
+                        #     value=ReportState.comp_input_pay_amount,
+                        #     input_mode="numeric",
+                        #     on_change=ReportState.set_comp_input_pay_amount,
+                        #     is_required=True,
+                        #     width="100%",
+                        # ),
                         rx.cond(
                             ReportState.is_pay_invalid,
                             rx.callout(
@@ -242,11 +307,9 @@ def pay() -> rx.Component:
                 ),
                 width="100%",
             ),
-            flex_direction="column",
-            gap="24px",
-            width="100%",
+            class_name="flex-col dark:divide-zinc-500 space-y-2 p-4 w-full",
         ),
-        width="100%",
+        class_name="flex-col border rounded dark:border-zinc-500 bg-zinc-100 dark:bg-zinc-800 divide-y w-full",
     )
 
 

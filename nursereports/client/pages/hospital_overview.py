@@ -14,7 +14,6 @@ from ...states import (
 )
 
 import reflex as rx
-import rich
 
 
 @rx.page(
@@ -47,7 +46,7 @@ def content() -> rx.Component:
             travel_pay(),
             units_roles(),
             reviews(),
-            class_name="flex-col items-center space-y-12 px-4 py-12 w-full max-w-screen-md",
+            class_name="flex-col items-center space-y-12 px-4 py-12 w-full max-w-screen-lg",
     )
 
 
