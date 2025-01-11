@@ -415,32 +415,7 @@ def comments() -> rx.Component:
                     ),
                     debounce_timeout=1000,
                 ),
-                rx.cond(
-                    ReportState.comp_input_comments,
-                    rx.cond(
-                        ReportState.comp_comments_chars_over,
-                        rx.callout(
-                            "Please limit response to < 1000 characters!",
-                            width="100%",
-                            icon="triangle_alert",
-                            color_scheme="red",
-                            role="alert",
-                        ),
-                        rx.flex(
-                            rx.text(
-                                f"{ReportState.comp_comments_chars_left} chars left.",
-                                text_align="center",
-                            ),
-                            justify_content="center",
-                            width="100%",
-                        ),
-                    ),
-                    rx.flex(
-                        rx.text("1000 character limit.", text_align="center"),
-                        justify_content="center",
-                        width="100%",
-                    ),
-                ),
+
                 width="100%",
             ),
             width="100%",
@@ -589,17 +564,6 @@ def overall() -> rx.Component:
                     icon="triangle_alert",
                     color_scheme="red",
                     role="alert",
-                ),
-                rx.center(
-                    rx.heading(
-                        f"You graded: {ReportState.comp_select_overall.upper()} - {ReportState.comp_overall_description}",
-                        color="white",
-                        text_align="center",
-                    ),
-                    background=ReportState.comp_overall_background,
-                    border_radius="5px",
-                    height="3em",
-                    width="100%",
                 ),
             ),
             flex_direction="column",

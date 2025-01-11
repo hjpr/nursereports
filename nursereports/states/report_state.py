@@ -142,51 +142,17 @@ class ReportState(PageState):
     comp_check_benefit_tuition: bool = False
     comp_select_comp_adequate: str
     comp_input_comments: str
-    comp_select_overall: str
+    comp_select_overall: int
     comp_error_message: str
 
     def set_comp_select_hospital_experience(self, experience: str) -> None:
         self.comp_select_hospital_experience = experience
-        self.comp_select_total_experience = None
+        self.comp_select_total_experience = ""
 
     @rx.var
     def comp_comments_chars_left(self) -> int:
         if self.comp_input_comments:
             return 1000 - len(self.comp_input_comments)
-
-    @rx.var
-    def comp_comments_chars_over(self) -> bool:
-        if self.comp_comments_chars_left:
-            if self.comp_comments_chars_left < 0:
-                return True
-            else:
-                return False
-
-    @rx.var
-    def comp_overall_description(self) -> str:
-        if self.comp_select_overall == "a":
-            return "Great"
-        if self.comp_select_overall == "b":
-            return "Good"
-        if self.comp_select_overall == "c":
-            return "So-so"
-        if self.comp_select_overall == "d":
-            return "Bad"
-        if self.comp_select_overall == "f":
-            return "Terrible"
-
-    @rx.var
-    def comp_overall_background(self) -> str:
-        if self.comp_select_overall == "a":
-            return "rgb(95, 163, 217)"
-        if self.comp_select_overall == "b":
-            return "rgb(95, 154, 100)"
-        if self.comp_select_overall == "c":
-            return "rgb(237, 234, 95)"
-        if self.comp_select_overall == "d":
-            return "rgb(197, 116, 57)"
-        if self.comp_select_overall == "f":
-            return "rgb(185, 65, 55)"
 
     @rx.var
     def years_hospital_experience(self) -> list[str]:

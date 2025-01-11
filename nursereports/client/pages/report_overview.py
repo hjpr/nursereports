@@ -31,7 +31,7 @@ def content() -> rx.Component:
         header(),
         hospital_info(),
         buttons(),
-        class_name="flex-col items-center space-y-12 px-4 py-12 w-full max-w-screen-md",
+        class_name="flex-col items-center space-y-12 px-4 py-12 w-full max-w-screen-sm",
     )
 
 

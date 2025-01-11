@@ -3,10 +3,9 @@ from ..components import (
     footer,
     login_protected,
     navbar,
-    spacer,
+    solid_button,
     text
 )
-from reflex_motion import motion
 from ...states.base_state import BaseState
 from ...states.report_state import ReportState
 
@@ -26,9 +25,7 @@ import reflex as rx
 def compensation_page() -> rx.Component:
     return flex(
         navbar(),
-        spacer(height="1em"),
         content(),
-        spacer(height="1em"),
         footer(),
         class_name="flex-col items-center w-full"
     )
@@ -36,18 +33,12 @@ def compensation_page() -> rx.Component:
 
 def content() -> rx.Component:
     return rx.flex(
-        pay(),
-        benefits(),
         compensation(),
-        overall(),
-        comments(),
-        callout(),
-        button(),
         class_name="flex-col items-center space-y-12 px-4 py-12 w-full max-w-screen-sm",
     )
 
 
-def pay() -> rx.Component:
+def compensation() -> rx.Component:
     return rx.flex(
         rx.flex(
             text("Compensation", class_name="text-2xl font-bold"),
@@ -426,211 +417,168 @@ def pay() -> rx.Component:
                 id="comp_select_total_experience",
                 class_name="flex-col space-y-2 p-4 w-full"
             ),
-            class_name="flex-col dark:divide-zinc-500 space-y-2 divide-y w-full",
-        ),
-        class_name="flex-col border rounded dark:border-zinc-500 bg-zinc-100 dark:bg-zinc-800 divide-y w-full",
-    )
-
-def benefits() -> rx.Component:
-    return rx.card(
-        rx.vstack(
-            rx.heading(
-                "Benefits",
-            ),
-            rx.divider(),
-            width="100%",
-        ),
-        spacer(height="24px"),
-        rx.text(
-            """
-            Select all the benefits that are offered for your
-            position.
-            """,
-            text_align="center",
-        ),
-        spacer(height="24px"),
-        rx.flex(
-            motion(
-                rx.card(
-                    rx.flex(
-                        rx.checkbox(
-                            on_change=ReportState.set_comp_check_benefit_pto,
-                            checked=ReportState.comp_check_benefit_pto,
-                        ),
-                        rx.text("PTO"),
-                        gap="12px",
-                        align_items="center",
-                        justify_content="center",
-                    ),
-                    cursor="pointer",
-                    width="100%",
-                    on_click=ReportState.set_comp_check_benefit_pto(
-                        ~ReportState.comp_check_benefit_pto
-                    ),
-                ),
-                initial={"scale": 1},
-                while_tap={"scale": 0.95},
-            ),
-            motion(
-                rx.card(
-                    rx.flex(
-                        rx.checkbox(
-                            on_change=ReportState.set_comp_check_benefit_parental,
-                            checked=ReportState.comp_check_benefit_parental,
-                        ),
-                        rx.text("Parental Leave"),
-                        gap="12px",
-                        align_items="center",
-                        justify_content="center",
-                    ),
-                    cursor="pointer",
-                    width="100%",
-                    on_click=ReportState.set_comp_check_benefit_parental(
-                        ~ReportState.comp_check_benefit_parental
-                    ),
-                ),
-                initial={"scale": 1},
-                while_tap={"scale": 0.95},
-            ),
-            motion(
-                rx.card(
-                    rx.flex(
-                        rx.checkbox(
-                            on_change=ReportState.set_comp_check_benefit_insurance,
-                            checked=ReportState.comp_check_benefit_insurance,
-                        ),
-                        rx.text("Insurance"),
-                        gap="12px",
-                        align_items="center",
-                        justify_content="center",
-                    ),
-                    cursor="pointer",
-                    width="100%",
-                    on_click=ReportState.set_comp_check_benefit_insurance(
-                        ~ReportState.comp_check_benefit_insurance
-                    ),
-                ),
-                initial={"scale": 1},
-                while_tap={"scale": 0.95},
-            ),
-            motion(
-                rx.card(
-                    rx.flex(
-                        rx.checkbox(
-                            on_change=ReportState.set_comp_check_benefit_retirement,
-                            checked=ReportState.comp_check_benefit_retirement,
-                        ),
-                        rx.text("Retirement"),
-                        gap="12px",
-                        align_items="center",
-                        justify_content="center",
-                    ),
-                    cursor="pointer",
-                    width="100%",
-                    on_click=ReportState.set_comp_check_benefit_retirement(
-                        ~ReportState.comp_check_benefit_retirement
-                    ),
-                ),
-                initial={"scale": 1},
-                while_tap={"scale": 0.95},
-            ),
-            motion(
-                rx.card(
-                    rx.flex(
-                        rx.checkbox(
-                            on_change=ReportState.set_comp_check_benefit_tuition,
-                            checked=ReportState.comp_check_benefit_tuition,
-                        ),
-                        rx.text("Tuition Aid"),
-                        gap="12px",
-                        align_items="center",
-                        justify_content="center",
-                    ),
-                    cursor="pointer",
-                    width="100%",
-                    on_click=ReportState.set_comp_check_benefit_tuition(
-                        ~ReportState.comp_check_benefit_tuition
-                    ),
-                ),
-                initial={"scale": 1},
-                while_tap={"scale": 0.95},
-            ),
-            motion(
-                rx.card(
-                    rx.flex(
-                        rx.checkbox(
-                            on_change=ReportState.set_comp_check_benefit_pro_dev,
-                            checked=ReportState.comp_check_benefit_pro_dev,
-                        ),
-                        rx.text("Professional Development"),
-                        gap="12px",
-                        align_items="center",
-                        justify_content="center",
-                    ),
-                    cursor="pointer",
-                    width="100%",
-                    on_click=ReportState.set_comp_check_benefit_pro_dev(
-                        ~ReportState.comp_check_benefit_pro_dev
-                    ),
-                ),
-                initial={"scale": 1},
-                while_tap={"scale": 0.95},
-            ),
-            flex_direction="column",
-            gap="12px",
-            width="100%",
-        ),
-        width="100%",
-    )
-
-
-def compensation() -> rx.Component:
-    return rx.card(
-        rx.vstack(
-            rx.heading(
-                "Compensation",
-            ),
-            rx.divider(),
-            width="100%",
-        ),
-        spacer(height="24px"),
-        rx.vstack(
-            rx.vstack(
+            # Select benefits that are offered to you
+            rx.flex(
                 rx.text(
-                    """Is your overall pay and benefits package generally
-                    enough to keep you satisfied in your current role?""",
+                    "Select benefits that are offered to you. (Optional)",
                 ),
-                rx.select(
-                    ["Yes", "No"],
-                    placeholder="- Select -",
-                    value=ReportState.comp_select_comp_adequate,
-                    on_change=ReportState.set_comp_select_comp_adequate,
-                    required=True,
-                    size="3",
-                    width="100%",
+                rx.flex(
+                    rx.flex(
+                        rx.flex(
+                            rx.flex(
+                                rx.checkbox(
+                                    on_change=ReportState.set_comp_check_benefit_pto,
+                                    checked=ReportState.comp_check_benefit_pto,
+                                    class_name="cursor-pointer"
+                                ),
+                                rx.text("Paid Time Off"),
+                                on_click=ReportState.set_comp_check_benefit_pto(~ReportState.comp_check_benefit_pto),
+                                class_name="flex-row flex-nowrap items-center space-x-2 cursor-pointer"
+                            ),
+                            class_name="flex-row p-4"
+                        ),
+                        rx.flex(
+                            rx.flex(
+                                rx.checkbox(
+                                    on_change=ReportState.set_comp_check_benefit_parental,
+                                    checked=ReportState.comp_check_benefit_parental,
+                                    class_name="cursor-pointer"
+                                ),
+                                rx.text("Parental Leave"),
+                                on_click=ReportState.set_comp_check_benefit_parental(~ReportState.comp_check_benefit_parental),
+                                class_name="flex-row flex-nowrap items-center space-x-2 cursor-pointer"
+                            ),
+                            class_name="flex-row p-4"
+                        ),
+                        rx.flex(
+                            rx.flex(
+                                rx.checkbox(
+                                    on_change=ReportState.set_comp_check_benefit_insurance,
+                                    checked=ReportState.comp_check_benefit_insurance,
+                                    class_name="cursor-pointer"
+                                ),
+                                rx.text("Health Insurance"),
+                                on_click=ReportState.set_comp_check_benefit_insurance(~ReportState.comp_check_benefit_insurance),
+                                class_name="flex-row flex-nowrap items-center space-x-2 cursor-pointer"
+                            ),
+                            class_name="flex-row p-4"
+                        ),
+                        rx.flex(
+                            rx.flex(
+                                rx.checkbox(
+                                    on_change=ReportState.set_comp_check_benefit_retirement,
+                                    checked=ReportState.comp_check_benefit_retirement,
+                                    class_name="cursor-pointer"
+                                ),
+                                rx.text("401k/Retirement"),
+                                on_click=ReportState.set_comp_check_benefit_retirement(~ReportState.comp_check_benefit_retirement),
+                                class_name="flex-row flex-nowrap items-center space-x-2 cursor-pointer"
+                            ),
+                            class_name="flex-row p-4"
+                        ),
+                        rx.flex(
+                            rx.flex(
+                                rx.checkbox(
+                                    on_change=ReportState.set_comp_check_benefit_tuition,
+                                    checked=ReportState.comp_check_benefit_tuition,
+                                    class_name="cursor-pointer"
+                                ),
+                                rx.text("Tuition Assistance"),
+                                on_click=ReportState.set_comp_check_benefit_tuition(~ReportState.comp_check_benefit_tuition),
+                                class_name="flex-row flex-nowrap items-center space-x-2 cursor-pointer"
+                            ),
+                            class_name="flex-row p-4"
+                        ),
+                        rx.flex(
+                            rx.flex(
+                                rx.checkbox(
+                                    on_change=ReportState.set_comp_check_benefit_pro_dev,
+                                    checked=ReportState.comp_check_benefit_pro_dev,
+                                    class_name="cursor-pointer"
+                                ),
+                                rx.text("Certification Reimbursement"),
+                                on_click=ReportState.set_comp_check_benefit_pro_dev(~ReportState.comp_check_benefit_pro_dev),
+                                class_name="flex-row flex-nowrap items-center space-x-2 cursor-pointer"
+                            ),
+                            class_name="flex-row p-4"
+                        ),
+                        class_name="inline-flex flex-wrap justify-center"
+                    ),
+                    class_name="flex-col items-center"
                 ),
-                width="100%",
+                class_name="flex-col space-y-2 p-4 w-full"
             ),
-            width="100%",
-        ),
-        width="100%",
-    )
-
-
-def comments() -> rx.Component:
-    return rx.card(
-        rx.vstack(
-            rx.heading(
-                "Comments",
+            # How would you grade compensation overall?
+            rx.flex(
+                rx.flex(
+                    rx.text("How would you rate your pay and benefits overall?"),
+                    rx.cond(
+                        ReportState.comp_select_overall,
+                        rx.flex(
+                            rx.icon("circle-check-big", class_name="h-6 w-6 stroke-green-400"),
+                            class_name="pl-4"
+                        ),
+                        rx.flex(
+                            rx.icon("circle", class_name="h-6 w-6 stroke-zinc-200"),
+                            class_name="pl-4"
+                        )
+                    ),
+                    class_name="flex-row justify-between w-full"
+                ),
+                rx.flex(
+                    rx.flex(
+                        rx.cond(
+                            ReportState.comp_select_overall == 1,
+                            rx.icon("angry", class_name="h-10 w-10 fill-red-400"),
+                            rx.icon("angry", class_name="h-10 w-10 stroke-zinc-400"),
+                        ),
+                        on_click=ReportState.set_comp_select_overall(1),
+                        class_name="p-4 cursor-pointer"
+                    ),
+                    rx.flex(
+                        rx.cond(
+                            ReportState.comp_select_overall == 2,
+                            rx.icon("frown", class_name="h-10 w-10 fill-orange-400"),
+                            rx.icon("frown", class_name="h-10 w-10 stroke-zinc-400"),
+                        ),
+                        on_click=ReportState.set_comp_select_overall(2),
+                        class_name="p-4 cursor-pointer"
+                    ),
+                    rx.flex(
+                        rx.cond(
+                            ReportState.comp_select_overall == 3,
+                            rx.icon("meh", class_name="h-10 w-10 fill-yellow-300"),
+                            rx.icon("meh", class_name="h-10 w-10 stroke-zinc-400"),
+                        ),
+                        on_click=ReportState.set_comp_select_overall(3),
+                        class_name="p-4 cursor-pointer"
+                    ),
+                    rx.flex(
+                        rx.cond(
+                            ReportState.comp_select_overall == 4,
+                            rx.icon("smile", class_name="h-10 w-10 fill-green-400"),
+                            rx.icon("smile", class_name="h-10 w-10 stroke-zinc-400"),
+                        ),
+                        on_click=ReportState.set_comp_select_overall(4),
+                        class_name="p-4 cursor-pointer"
+                    ),
+                    rx.flex(
+                        rx.cond(
+                            ReportState.comp_select_overall == 5,
+                            rx.icon("laugh", class_name="h-10 w-10 fill-blue-300"),
+                            rx.icon("laugh", class_name="h-10 w-10 stroke-zinc-400"),
+                        ),
+                        on_click=ReportState.set_comp_select_overall(5),
+                        class_name="p-4 cursor-pointer"
+                    ),
+                    class_name="flex-row justify-around w-full"
+                ),
+                class_name="flex-col space-y-2 p-4 w-full"
             ),
-            rx.divider(),
-            width="100%",
-        ),
-        spacer(height="24px"),
-        rx.vstack(
-            rx.vstack(
+            # Comments for your nursing peers about pay or benefits?
+            rx.flex(
                 rx.text(
-                    "(Optional) Any comments for your nursing peers about pay or benefits?"
+                    "Additional info for your nursing peers about pay or benefits? (Optional)"
                 ),
                 rx.debounce_input(
                     rx.text_area(
@@ -647,7 +595,7 @@ def comments() -> rx.Component:
                 rx.cond(
                     ReportState.comp_input_comments,
                     rx.cond(
-                        ReportState.comp_comments_chars_over,
+                        ReportState.comp_comments_chars_left < 0,
                         rx.callout(
                             "Please limit response to < 1000 characters!",
                             width="100%",
@@ -670,193 +618,18 @@ def comments() -> rx.Component:
                         width="100%",
                     ),
                 ),
-                width="100%",
+                class_name="flex-col space-y-2 p-4 w-full"
             ),
-            width="100%",
-        ),
-        width="100%",
-    )
-
-
-def overall() -> rx.Component:
-    return rx.card(
-        rx.vstack(rx.heading("Grade"), rx.divider(), width="100%"),
-        spacer(height="24px"),
-        rx.flex(
-            rx.text("How would you grade compensation overall?", text_align="center"),
+            # Go to assignment button
             rx.flex(
-                motion(
-                    rx.image(
-                        src="/raster/icons/icon_rating_a.webp",
-                        height=[
-                            "65px",
-                            "65px",
-                            "75px",
-                            "75px",
-                            "75px",
-                        ],
-                        width=[
-                            "65px",
-                            "65px",
-                            "75px",
-                            "75px",
-                            "75px",
-                        ],
-                        border_radius="5px",
-                        cursor="pointer",
-                        on_click=ReportState.set_comp_select_overall("a"),
-                    ),
-                    initial={"scale": 1},
-                    while_tap={"scale": 0.95},
+                solid_button(
+                    "Go to Assignment",
+                    rx.icon("arrow-big-right"),
+                    on_click=ReportState.handle_submit_compensation,
                 ),
-                motion(
-                    rx.image(
-                        src="/raster/icons/icon_rating_b.webp",
-                        height=[
-                            "65px",
-                            "65px",
-                            "75px",
-                            "75px",
-                            "75px",
-                        ],
-                        width=[
-                            "65px",
-                            "65px",
-                            "75px",
-                            "75px",
-                            "75px",
-                        ],
-                        border_radius="5px",
-                        cursor="pointer",
-                        on_click=ReportState.set_comp_select_overall("b"),
-                    ),
-                    initial={"scale": 1},
-                    while_tap={"scale": 0.95},
-                ),
-                motion(
-                    rx.image(
-                        src="/raster/icons/icon_rating_c.webp",
-                        height=[
-                            "65px",
-                            "65px",
-                            "75px",
-                            "75px",
-                            "75px",
-                        ],
-                        width=[
-                            "65px",
-                            "65px",
-                            "75px",
-                            "75px",
-                            "75px",
-                        ],
-                        border_radius="5px",
-                        cursor="pointer",
-                        on_click=ReportState.set_comp_select_overall("c"),
-                    ),
-                    initial={"scale": 1},
-                    while_tap={"scale": 0.95},
-                ),
-                motion(
-                    rx.image(
-                        src="/raster/icons/icon_rating_d.webp",
-                        height=[
-                            "65px",
-                            "65px",
-                            "75px",
-                            "75px",
-                            "75px",
-                        ],
-                        width=[
-                            "65px",
-                            "65px",
-                            "75px",
-                            "75px",
-                            "75px",
-                        ],
-                        border_radius="5px",
-                        cursor="pointer",
-                        on_click=ReportState.set_comp_select_overall("d"),
-                    ),
-                    initial={"scale": 1},
-                    while_tap={"scale": 0.95},
-                ),
-                motion(
-                    rx.image(
-                        src="/raster/icons/icon_rating_f.webp",
-                        height=[
-                            "65px",
-                            "65px",
-                            "75px",
-                            "75px",
-                            "75px",
-                        ],
-                        width=[
-                            "65px",
-                            "65px",
-                            "75px",
-                            "75px",
-                            "75px",
-                        ],
-                        border_radius="5px",
-                        cursor="pointer",
-                        on_click=ReportState.set_comp_select_overall("f"),
-                    ),
-                    initial={"scale": 1},
-                    while_tap={"scale": 0.95},
-                ),
-                flex_direction="row",
-                justify_content="space-between",
-                width="100%",
+                class_name="flex-col justify-center items-center p-4 w-full"
             ),
-            rx.cond(
-                ~ReportState.comp_select_overall,
-                rx.callout(
-                    "Please make a selection.",
-                    width="100%",
-                    icon="triangle_alert",
-                    color_scheme="red",
-                    role="alert",
-                ),
-                rx.center(
-                    rx.heading(
-                        f"You graded: {ReportState.comp_select_overall.upper()} - {ReportState.comp_overall_description}",
-                        color="white",
-                        text_align="center",
-                    ),
-                    background=ReportState.comp_overall_background,
-                    border_radius="5px",
-                    height="3em",
-                    width="100%",
-                ),
-            ),
-            flex_direction="column",
-            gap="24px",
-            width="100%",
+            class_name="flex-col dark:divide-zinc-500 space-y-2 divide-y w-full",
         ),
-        width="100%",
-    )
-
-
-def button() -> rx.Component:
-    return rx.card(
-        rx.flex(
-            rx.button(
-                "Go to Assignment",
-                rx.icon("arrow-big-right"),
-                on_click=ReportState.handle_submit_compensation,
-                variant="ghost",
-                size="3",
-            ),
-            align_items="center",
-            justify_content="center",
-            width="100%",
-        ),
-        width="100%",
-    )
-
-
-def callout() -> rx.Component:
-    return rx.flex(
-        width="100%",
+        class_name="flex-col border rounded dark:border-zinc-500 bg-zinc-100 dark:bg-zinc-800 divide-y w-full",
     )
