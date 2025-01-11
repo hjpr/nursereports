@@ -116,161 +116,7 @@ def pay() -> rx.Component:
                 ),
                 width="100%",
             ),
-            rx.cond(
-                ReportState.comp_select_pay_type,
-                rx.cond(
-                    ReportState.is_weekly,
-                    rx.vstack(
-                        rx.text(
-                            "Total rate per ",
-                            rx.text("week? ", display="inline", font_weight="bold"),
-                            rx.text("(in $)", display="inline"),
-                        ),
-                        rx.flex(
-                            chakra.number_input(
-                                value=ReportState.comp_input_pay_amount,
-                                input_mode="numeric",
-                                on_change=ReportState.set_comp_input_pay_amount,
-                                is_required=True,
-                                class_name="w-full"
-                            ),
-                            class_name="h-8 w-full"
-                        ),
-                        rx.cond(
-                            ReportState.is_pay_invalid,
-                            rx.callout(
-                                "A valid weekly rate must be entered.",
-                                width="100%",
-                                icon="triangle_alert",
-                                color_scheme="red",
-                                role="alert",
-                            ),
-                        ),
-                        width="100%",
-                    ),
-                    rx.vstack(
-                        rx.text(
-                            " Base rate per ",
-                            rx.text("hour? ", display="inline", font_weight="bold"),
-                            rx.text("(in $)", display="inline"),
-                        ),
-                        chakra.number_input(
-                            value=ReportState.comp_input_pay_amount,
-                            input_mode="numeric",
-                            on_change=ReportState.set_comp_input_pay_amount,
-                            is_required=True,
-                            class_name="h-4 w-full"
-                        ),
-                        rx.cond(
-                            ReportState.is_pay_invalid,
-                            rx.callout(
-                                "A valid hourly rate must be entered.",
-                                width="100%",
-                                icon="triangle_alert",
-                                color_scheme="red",
-                                role="alert",
-                            ),
-                        ),
-                        width="100%",
-                    ),
-                ),
-            ),
-            rx.vstack(
-                rx.text("Do you get extra pay for nights or weekends?"),
-                rx.select(
-                    ["Yes", "No"],
-                    placeholder="- Select -",
-                    value=ReportState.comp_select_diff_response,
-                    on_change=ReportState.set_comp_select_diff_response,
-                    required=True,
-                    size="3",
-                    width="100%",
-                ),
-                width="100%",
-            ),
-            rx.cond(
-                ReportState.gets_differential,
-                rx.vstack(
-                    rx.vstack(
-                        rx.text(
-                            "(Optional) Extra per hour for ",
-                            rx.text("nights? ", display="inline", font_weight="bold"),
-                            rx.text("(in $)", display="inline"),
-                        ),
-                        chakra.number_input(
-                            value=ReportState.comp_input_diff_nights,
-                            on_change=ReportState.set_comp_input_diff_nights,
-                            max=100,
-                            width="100%",
-                        ),
-                        width="100%",
-                    ),
-                    rx.vstack(
-                        rx.text(
-                            "(Optional) Extra per hour for ",
-                            rx.text(
-                                "weekends? ",
-                                display="inline",
-                                font_weight="bold",
-                            ),
-                            rx.text("(in $)", display="inline"),
-                        ),
-                        chakra.number_input(
-                            value=ReportState.comp_input_diff_weekends,
-                            on_change=ReportState.set_comp_input_diff_weekends,
-                            max=100,
-                            width="100%",
-                        ),
-                        width="100%",
-                    ),
-                    gap="24px",
-                    width="100%",
-                ),
-            ),
-            rx.vstack(
-                rx.text(
-                    """Does your hospital have special incentive pay for
-                    certain shifts? (e.g. critical shift pay)""",
-                ),
-                rx.select(
-                    ["Yes", "No"],
-                    placeholder="- Select -",
-                    value=ReportState.comp_select_incentive_response,
-                    on_change=ReportState.set_comp_select_incentive_response,
-                    required=True,
-                    size="3",
-                    width="100%",
-                ),
-                width="100%",
-            ),
-            rx.cond(
-                ReportState.gets_incentive,
-                rx.vstack(
-                    rx.text("(Optional) Extra per hour for incentive? (in $)"),
-                    chakra.number_input(
-                        value=ReportState.comp_input_incentive_amount,
-                        on_change=ReportState.set_comp_input_incentive_amount,
-                        max_=200,
-                        width="100%",
-                    ),
-                ),
-            ),
-            rx.vstack(
-                rx.text(
-                    """Does your hospital pay extra for having certifications?
-                    (e.g. CCRN, CWON, RN-BC)""",
-                ),
-                rx.select(
-                    ["Yes", "No"],
-                    placeholder="- Select -",
-                    value=ReportState.comp_select_certifications,
-                    on_change=ReportState.set_comp_select_certifications,
-                    required=True,
-                    size="3",
-                    width="100%",
-                ),
-                width="100%",
-            ),
+
             flex_direction="column",
             gap="24px",
             width="100%",
@@ -344,16 +190,6 @@ def demographics() -> rx.Component:
                     width="100%",
                 ),
                 width="100%",
-            ),
-            rx.cond(
-                ReportState.is_experience_invalid,
-                rx.callout(
-                    "Can't have less total years than years at current hospital.",
-                    width="100%",
-                    icon="triangle_alert",
-                    color_scheme="red",
-                    role="alert",
-                ),
             ),
             flex_direction="column",
             gap="24px",
@@ -795,15 +631,5 @@ def button() -> rx.Component:
 
 def callout() -> rx.Component:
     return rx.flex(
-        rx.cond(
-            ReportState.comp_has_error,
-            rx.callout(
-                ReportState.comp_error_message,
-                width="100%",
-                icon="triangle_alert",
-                color_scheme="red",
-                role="alert",
-            ),
-        ),
         width="100%",
     )

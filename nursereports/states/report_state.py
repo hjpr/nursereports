@@ -1,3 +1,4 @@
+
 from ..states import PageState
 from ..server.exceptions import RequestFailed, DuplicateReport, DuplicateUUID
 from ..server.secrets import anyscale_api_key, anyscale_url, api_url, api_key
@@ -125,13 +126,10 @@ class ReportState(PageState):
 
     comp_select_emp_type: str
     comp_select_pay_type: str
-    comp_input_pay_amount: int
-    comp_select_diff_response: str
-    comp_input_diff_nights: int
-    comp_input_diff_weekends: int
-    comp_select_incentive_response: str
-    comp_input_incentive_amount: int
-    comp_select_certifications: str
+    comp_input_pay_hourly: float = 00.00
+    comp_input_pay_weekly: float = 0000.00
+    comp_input_diff_nights: float = 00.00
+    comp_input_diff_weekends: float = 00.00
     comp_select_shift: str
     comp_select_weekly_shifts: str
     comp_select_hospital_experience: str
@@ -147,102 +145,9 @@ class ReportState(PageState):
     comp_select_overall: str
     comp_error_message: str
 
-    def set_comp_input_pay_amount(self, pay) -> None:
-        logger.critical(pay)
-        # if bool(re.match(r"^[0-9]+$", pay)):
-        #     self.comp_input_pay_amount = int(pay)
-        # if pay == "":
-        #     self.comp_input_pay_amount = 0
-
-    def set_comp_select_pay_type(self, type: str) -> None:
-        self.comp_select_pay_type = type
-        self.comp_input_pay_amount = 0
-
-    def set_comp_select_diff_response(self, response: str) -> None:
-        self.comp_input_diff_nights = 0
-        self.comp_input_diff_weekends = 0
-        self.comp_select_diff_response = response
-
-    def set_comp_input_diff_nights(self, pay: str) -> None:
-        if bool(re.match(r"^[0-9]+$", pay)):
-            self.comp_input_diff_nights = int(pay)
-        if pay == "":
-            self.comp_input_diff_nights = 0
-
-    def set_comp_input_diff_weekends(self, pay: str) -> None:
-        if bool(re.match(r"^[0-9]+$", pay)):
-            self.comp_input_diff_weekends = int(pay)
-        if pay == "":
-            self.comp_input_diff_weekends = 0
-
-    def set_comp_select_incentive_response(self, response: str) -> None:
-        self.comp_select_incentive_response = response
-        self.comp_input_incentive_amount = 0
-
-    def set_comp_input_incentive_amount(self, pay: str) -> None:
-        if bool(re.match(r"^[0-9]+$", pay)):
-            self.comp_input_incentive_amount = int(pay)
-        if pay == "":
-            self.comp_input_incentive_amount = 0
-
-    @rx.var
-    def is_hourly(self) -> bool:
-        if self.comp_select_pay_type:
-            return True if self.comp_select_pay_type == "Hourly" else False
-
-    @rx.var
-    def is_pay_invalid(self) -> bool:
-        if self.comp_input_pay_amount or self.comp_input_pay_amount == 0:
-            if (
-                self.comp_input_pay_amount < 20 or self.comp_input_pay_amount > 200
-            ) and self.is_hourly:
-                return True
-            if (
-                self.comp_input_pay_amount < 500 or self.comp_input_pay_amount > 12000
-            ) and not self.is_hourly:
-                return True
-        else:
-            return False
-
-    @rx.var
-    def is_experience_invalid(self) -> bool:
-        if self.comp_select_hospital_experience and self.comp_select_total_experience:
-            if self.comp_select_hospital_experience == "More than 25 years":
-                hospital_experience = 26
-            elif self.comp_select_hospital_experience == "Less than a year":
-                hospital_experience = 0
-            else:
-                hospital_experience = int(self.comp_select_hospital_experience)
-
-            if self.comp_select_total_experience == "More than 25 years":
-                total_experience = 26
-            elif self.comp_select_total_experience == "Less than a year":
-                total_experience = 0
-            else:
-                total_experience = int(self.comp_select_total_experience)
-
-            if (total_experience - hospital_experience) < 0:
-                return True
-            else:
-                return False
-        else:
-            return False
-
-    @rx.var
-    def gets_differential(self) -> bool:
-        return True if self.comp_select_diff_response == "Yes" else False
-
-    @rx.var
-    def gets_incentive(self) -> bool:
-        return True if self.comp_select_incentive_response == "Yes" else False
-
-    @rx.var
-    def is_weekly(self) -> bool:
-        return True if self.comp_select_pay_type == "Weekly" else False
-
-    @rx.var
-    def compensation_is_inadequate(self) -> bool:
-        return True if self.comp_select_comp_adequate == "No" else False
+    def set_comp_select_hospital_experience(self, experience: str) -> None:
+        self.comp_select_hospital_experience = experience
+        self.comp_select_total_experience = None
 
     @rx.var
     def comp_comments_chars_left(self) -> int:
@@ -284,43 +189,17 @@ class ReportState(PageState):
             return "rgb(185, 65, 55)"
 
     @rx.var
-    def comp_progress(self) -> int:
-        progress = 0
-        if self.comp_select_emp_type:
-            progress = progress + 5
-        if self.comp_select_pay_type:
-            progress = progress + 5
-        if self.comp_input_pay_amount and not self.is_pay_invalid:
-            progress = progress + 10
-        if self.comp_select_diff_response:
-            progress = progress + 10
-        if self.comp_select_incentive_response:
-            progress = progress + 5
-        if self.comp_select_certifications:
-            progress = progress + 5
-        if self.comp_select_shift:
-            progress = progress + 10
-        if self.comp_select_weekly_shifts:
-            progress = progress + 10
-        if (
-            self.comp_select_hospital_experience
-            and self.comp_select_total_experience
-            and not self.is_experience_invalid
-        ):
-            progress = progress + 20
-        if self.comp_select_comp_adequate:
-            progress = progress + 10
-        if self.comp_select_overall:
-            progress = progress + 10
-        return progress
+    def years_hospital_experience(self) -> list[str]:
+        from ..client.components import years_experience
+        return years_experience
 
     @rx.var
-    def comp_can_progress(self) -> bool:
-        return True if self.comp_progress == 100 else False
-
-    @rx.var
-    def comp_has_error(self) -> bool:
-        return True if self.comp_error_message else False
+    def years_total_experience(self) -> list[str]:
+        from ..client.components import years_experience
+        index = 0
+        if self.comp_select_hospital_experience:
+            index = years_experience.index(self.comp_select_hospital_experience)
+        return years_experience[index:]
 
     #################################################################
     #

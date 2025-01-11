@@ -1,4 +1,4 @@
-from ..components import c2a, footer, login_protected, navbar, progress, spacer
+from ..components import c2a, footer, login_protected, navbar, spacer
 from reflex_motion import motion
 from ...states import BaseState, ReportState
 
@@ -32,7 +32,6 @@ def staffing_page() -> rx.Component:
 
 def content() -> rx.Component:
     return rx.flex(
-        progress(),
         staffing(),
         ratios(),
         support(),

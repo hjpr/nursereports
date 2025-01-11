@@ -4,7 +4,6 @@ from ..components import (
     leaving_reason,
     login_protected,
     navbar,
-    progress,
     spacer,
     unit_specialties,
 )
@@ -41,7 +40,6 @@ def assignment_page() -> rx.Component:
 
 def content() -> rx.Component:
     return rx.flex(
-        progress(),
         unit(),
         specialty(),
         culture(),

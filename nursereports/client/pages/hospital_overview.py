@@ -153,7 +153,7 @@ def hospital_average() -> rx.Component:
                         rx.cond(
                             HospitalState.extrapolated_ft_pay_hospital,
                             rx.skeleton(
-                                text(HospitalState.ft_pay_hospital_formatted['hourly'], class_name="text-xl"),
+                                text(HospitalState.ft_pay_hospital_formatted['hourly'], class_name="text-2xl"),
                                 loading=~rx.State.is_hydrated
                             ),
                             rx.skeleton(
@@ -170,7 +170,7 @@ def hospital_average() -> rx.Component:
                         rx.cond(
                             HospitalState.extrapolated_pt_pay_hospital,
                             rx.skeleton(
-                                text(HospitalState.pt_pay_hospital_formatted['hourly'], class_name="text-xl"),
+                                text(HospitalState.pt_pay_hospital_formatted['hourly'], class_name="text-2xl"),
                                 loading=~rx.State.is_hydrated
                             ),
                             rx.skeleton(
@@ -191,7 +191,7 @@ def hospital_average() -> rx.Component:
                         rx.cond(
                             HospitalState.extrapolated_ft_pay_hospital,
                             rx.skeleton(
-                                text(HospitalState.ft_pay_hospital_formatted["yearly"], class_name="text-xl"),
+                                text(HospitalState.ft_pay_hospital_formatted["yearly"], class_name="text-2xl"),
                                 loading=~rx.State.is_hydrated
                             ),
                             rx.skeleton(
@@ -208,7 +208,7 @@ def hospital_average() -> rx.Component:
                         rx.cond(
                             HospitalState.extrapolated_pt_pay_hospital,
                             rx.skeleton(
-                                text(HospitalState.pt_pay_hospital_formatted["yearly"], class_name="text-xl"),
+                                text(HospitalState.pt_pay_hospital_formatted["yearly"], class_name="text-2xl"),
                                 loading=~rx.State.is_hydrated
                             ),
                             rx.skeleton(
@@ -287,7 +287,7 @@ def state_average() -> rx.Component:
                         rx.cond(
                             HospitalState.extrapolated_ft_pay_state,
                             rx.skeleton(
-                                text(HospitalState.ft_pay_state_formatted['hourly'], class_name="text-xl"),
+                                text(HospitalState.ft_pay_state_formatted['hourly'], class_name="text-2xl"),
                                 loading=~rx.State.is_hydrated
                             ),
                             rx.skeleton(
@@ -304,7 +304,7 @@ def state_average() -> rx.Component:
                         rx.cond(
                             HospitalState.extrapolated_pt_pay_state,
                             rx.skeleton(
-                                text(HospitalState.pt_pay_state_formatted['hourly'], class_name="text-xl"),
+                                text(HospitalState.pt_pay_state_formatted['hourly'], class_name="text-2xl"),
                                 loading=~rx.State.is_hydrated
                             ),
                             rx.skeleton(
@@ -325,7 +325,7 @@ def state_average() -> rx.Component:
                         rx.cond(
                             HospitalState.extrapolated_ft_pay_state,
                             rx.skeleton(
-                                text(HospitalState.ft_pay_state_formatted["yearly"], class_name="text-xl"),
+                                text(HospitalState.ft_pay_state_formatted["yearly"], class_name="text-2xl"),
                                 loading=~rx.State.is_hydrated
                             ),
                             rx.skeleton(
@@ -342,7 +342,7 @@ def state_average() -> rx.Component:
                         rx.cond(
                             HospitalState.extrapolated_pt_pay_state,
                             rx.skeleton(
-                                text(HospitalState.pt_pay_state_formatted["yearly"], class_name="text-xl"),
+                                text(HospitalState.pt_pay_state_formatted["yearly"], class_name="text-2xl"),
                                 loading=~rx.State.is_hydrated
                             ),
                             rx.skeleton(

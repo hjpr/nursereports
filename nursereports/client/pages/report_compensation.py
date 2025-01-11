@@ -4,9 +4,8 @@ from ..components import (
     login_protected,
     navbar,
     spacer,
-    years_experience
+    text
 )
-from ..components.report_progress import progress
 from reflex_motion import motion
 from ...states.base_state import BaseState
 from ...states.report_state import ReportState
@@ -37,28 +36,41 @@ def compensation_page() -> rx.Component:
 
 def content() -> rx.Component:
     return rx.flex(
-        progress(),
         pay(),
-        demographics(),
         benefits(),
         compensation(),
         overall(),
         comments(),
         callout(),
         button(),
-        class_name="flex-col space-y-8 p-4 w-full max-w-screen-sm"
+        class_name="flex-col items-center space-y-12 px-4 py-12 w-full max-w-screen-sm",
     )
 
 
 def pay() -> rx.Component:
     return rx.flex(
         rx.flex(
-            rx.text("Pay", class_name="text-xl font-bold"),
-            class_name="flex bg-zinc-100 dark:bg-zinc-800 p-4 w-full"
+            text("Compensation", class_name="text-2xl font-bold"),
+            class_name="flex-col items-center bg-zinc-100 dark:bg-zinc-800 p-4 w-full"
         ),
         flex(
-            rx.vstack(
-                rx.text("What is your employment type?"),
+            # What is your employment type?
+            rx.flex(
+                rx.flex(
+                    rx.text("What is your employment type?"),
+                    rx.cond(
+                        ReportState.comp_select_emp_type,
+                        rx.flex(
+                            rx.icon("circle-check-big", class_name="h-6 w-6 stroke-green-400"),
+                            class_name="pl-4"
+                        ),
+                        rx.flex(
+                            rx.icon("circle", class_name="h-6 w-6 stroke-zinc-200"),
+                            class_name="pl-4"
+                        )
+                    ),
+                    class_name="flex-row justify-between w-full"
+                ),
                 rx.select(
                     ["Full-time", "Part-time", "Contract"],
                     placeholder="- Select -",
@@ -68,10 +80,26 @@ def pay() -> rx.Component:
                     size="3",
                     width="100%",
                 ),
-                width="100%",
+                id="comp_select_emp_type",
+                class_name="flex-col p-4 space-y-2 w-full",
             ),
-            rx.vstack(
-                rx.text("Are you paid at an hourly or weekly rate?"),
+            # Are you paid at an hourly or weekly rate?
+            rx.flex(
+                rx.flex(
+                    rx.text("Are you paid at an hourly or weekly rate?"),
+                    rx.cond(
+                        ReportState.comp_select_pay_type,
+                        rx.flex(
+                            rx.icon("circle-check-big", class_name="h-6 w-6 stroke-green-400"),
+                            class_name="pl-4"
+                        ),
+                        rx.flex(
+                            rx.icon("circle", class_name="h-6 w-6 stroke-zinc-200"),
+                            class_name="pl-4"
+                        )
+                    ),
+                    class_name="flex-row justify-between w-full"
+                ),
                 rx.select(
                     ["Hourly", "Weekly"],
                     placeholder="- Select -",
@@ -81,251 +109,223 @@ def pay() -> rx.Component:
                     size="3",
                     width="100%",
                 ),
-                width="100%",
+                id="comp_select_pay_type",
+                class_name="flex-col p-4 space-y-2 w-full"
             ),
+            # Conditional base rate entries
             rx.cond(
                 ReportState.comp_select_pay_type,
-                rx.cond(
-                    ReportState.is_weekly,
-                    rx.vstack(
-                        rx.text(
-                            "Total rate per ",
-                            rx.text("week? ", display="inline", font_weight="bold"),
-                        ),
+                rx.flex(
+                    rx.cond(
+                        ReportState.comp_select_pay_type == "Weekly",
                         rx.flex(
                             rx.flex(
-                                rx.text(
-                                    "$",
-                                    class_name="text-xl pr-1"
+                                rx.text("Base rate per week?"),
+                                rx.cond(
+                                    ReportState.comp_input_pay_weekly,
+                                    rx.flex(
+                                        rx.icon("circle-check-big", class_name="h-6 w-6 stroke-green-400"),
+                                        class_name="pl-4"
+                                    ),
+                                    rx.flex(
+                                        rx.icon("circle", class_name="h-6 w-6 stroke-zinc-200"),
+                                        class_name="pl-4"
+                                    )
                                 ),
-                                rx.input(
-                                    id="weekly-digit-1",
-                                    size="3",
-                                    class_name="w-9",
-                                    on_change=rx.set_focus("weekly-digit-2")
-                                ),
-                                rx.input(
-                                    id="weekly-digit-2",
-                                    size="3",
-                                    class_name="w-9",
-                                    on_change=rx.set_focus("weekly-digit-3")
-                                ),
-                                rx.input(
-                                    id="weekly-digit-3",
-                                    size="3",
-                                    class_name="w-9",
-                                    on_change=rx.set_focus("weekly-digit-4")
-                                ),
-                                rx.input(
-                                    id="weekly-digit-4",
-                                    size="3",
-                                    class_name="w-9",
-                                ),
-                                class_name="flex-row items-center space-x-2"
+                                class_name="flex-row justify-between w-full"
                             ),
-                            class_name="flex-row justify-center w-full"
-                        ),
-                        rx.cond(
-                            ReportState.is_pay_invalid,
-                            rx.callout(
-                                "A valid weekly rate must be entered.",
-                                width="100%",
-                                icon="triangle_alert",
-                                color_scheme="red",
-                                role="alert",
+                            rx.flex(
+                                rx.flex(
+                                    rx.text(
+                                        "$",
+                                        class_name="text-xl pr-1"
+                                    ),
+                                    rx.input(
+                                        id="weekly-digit-1",
+                                        size="3",
+                                        class_name="w-9",
+                                        on_change=rx.set_focus("weekly-digit-2")
+                                    ),
+                                    rx.input(
+                                        id="weekly-digit-2",
+                                        size="3",
+                                        class_name="w-9",
+                                        on_change=rx.set_focus("weekly-digit-3")
+                                    ),
+                                    rx.input(
+                                        id="weekly-digit-3",
+                                        size="3",
+                                        class_name="w-9",
+                                        on_change=rx.set_focus("weekly-digit-4")
+                                    ),
+                                    rx.input(
+                                        id="weekly-digit-4",
+                                        size="3",
+                                        class_name="w-9",
+                                    ),
+                                    class_name="flex-row items-center space-x-2"
+                                ),
+                                class_name="flex-row justify-center w-full"
                             ),
-                        ),
-                        width="100%",
+                            class_name="flex-col space-y-2 p-4 w-full"
+                        )
                     ),
-                    rx.vstack(
-                        rx.text(
-                            " Base rate per ",
-                            rx.text("hour? ", display="inline", font_weight="bold"),
-                        ),
+                    rx.cond(
+                        ReportState.comp_select_pay_type == "Hourly",
                         rx.flex(
                             rx.flex(
-                                rx.text(
-                                    "$",
-                                    class_name="text-xl pr-1"
+                                rx.text("Base rate per hour?"),
+                                rx.cond(
+                                    ReportState.comp_input_pay_hourly,
+                                    rx.icon("circle-check-big", class_name="stroke-green-400"),
+                                    rx.icon("circle", class_name="stroke-zinc-200")
                                 ),
-                                rx.input(
-                                    id="hourly-digit-1",
-                                    size="3",
-                                    max_length=1,
-                                    class_name="w-9",
-                                    on_change=rx.set_focus("hourly-digit-2")
-                                ),
-                                rx.input(
-                                    id="hourly-digit-2",
-                                    size="3",
-                                    max_length=1,
-                                    class_name="w-9",
-                                    on_change=rx.set_focus("hourly-digit-3")
-                                ),
-                                rx.input(
-                                    id="hourly-digit-3",
-                                    size="3",
-                                    max_length=1,
-                                    class_name="w-9",
-                                    on_change=rx.set_focus("hourly-digit-4")
-                                ),
-                                rx.text(
-                                    ".",
-                                    class_name="text-lg pt-4"
-                                ),
-                                rx.input(
-                                    id="hourly-digit-4",
-                                    size="3",
-                                    max_length=1,
-                                    class_name="w-9",
-                                    on_change=rx.set_focus("hourly-digit-5")
-                                ),
-                                rx.input(
-                                    id="hourly-digit-5",
-                                    size="3",
-                                    max_length=1,
-                                    class_name="w-9",
-                                ),
-                                class_name="flex-row items-center space-x-2"
+                                class_name="flex-row justify-between w-full"
                             ),
-                            class_name="flex-row justify-center w-full"
-                        ),
-                        # rx.chakra.number_input(
-                        #     value=ReportState.comp_input_pay_amount,
-                        #     input_mode="numeric",
-                        #     on_change=ReportState.set_comp_input_pay_amount,
-                        #     is_required=True,
-                        #     width="100%",
-                        # ),
-                        rx.cond(
-                            ReportState.is_pay_invalid,
-                            rx.callout(
-                                "A valid hourly rate must be entered.",
-                                width="100%",
-                                icon="triangle_alert",
-                                color_scheme="red",
-                                role="alert",
+                            rx.flex(
+                                rx.flex(
+                                    rx.text(
+                                        "$",
+                                        class_name="text-xl pr-1"
+                                    ),
+                                    rx.input(
+                                        id="hourly-dollars",
+                                        size="3",
+                                        max_length=3,
+                                        pattern="^[0-9]+$",
+                                        class_name="w-14",
+                                    ),
+                                    rx.text(
+                                        ".",
+                                        class_name="text-lg pt-4"
+                                    ),
+                                    rx.input(
+                                        id="hourly-cents",
+                                        size="3",
+                                        max_length=2,
+                                        pattern="[0-9]+",
+                                        class_name="w-14",
+                                    ),
+                                    class_name="flex-row items-center space-x-2"
+                                ),
+                                class_name="flex-row justify-center w-full"
                             ),
-                        ),
-                        width="100%",
-                    ),
-                ),
+                            class_name="flex-col space-y-2 p-4 w-full"
+                        )
+                    )
+                )
             ),
-            rx.vstack(
-                rx.text("Do you get extra pay for nights or weekends?"),
-                rx.select(
-                    ["Yes", "No"],
-                    placeholder="- Select -",
-                    value=ReportState.comp_select_diff_response,
-                    on_change=ReportState.set_comp_select_diff_response,
-                    required=True,
-                    size="3",
-                    width="100%",
-                ),
-                width="100%",
-            ),
-            rx.cond(
-                ReportState.gets_differential,
-                rx.vstack(
-                    rx.vstack(
-                        rx.text(
-                            "(Optional) Extra per hour for ",
-                            rx.text("nights? ", display="inline", font_weight="bold"),
-                            rx.text("(in $)", display="inline"),
-                        ),
-                        rx.chakra.number_input(
-                            value=ReportState.comp_input_diff_nights,
-                            on_change=ReportState.set_comp_input_diff_nights,
-                            max=100,
-                            width="100%",
-                        ),
-                        width="100%",
-                    ),
-                    rx.vstack(
-                        rx.text(
-                            "(Optional) Extra per hour for ",
-                            rx.text(
-                                "weekends? ",
-                                display="inline",
-                                font_weight="bold",
-                            ),
-                            rx.text("(in $)", display="inline"),
-                        ),
-                        rx.chakra.number_input(
-                            value=ReportState.comp_input_diff_weekends,
-                            on_change=ReportState.set_comp_input_diff_weekends,
-                            max=100,
-                            width="100%",
-                        ),
-                        width="100%",
-                    ),
-                    gap="24px",
-                    width="100%",
-                ),
-            ),
-            rx.vstack(
+            rx.flex(
                 rx.text(
-                    """Does your hospital have special incentive pay for
-                    certain shifts? (e.g. critical shift pay)""",
+                    "Night differential per hour? (Optional)"
                 ),
-                rx.select(
-                    ["Yes", "No"],
-                    placeholder="- Select -",
-                    value=ReportState.comp_select_incentive_response,
-                    on_change=ReportState.set_comp_select_incentive_response,
-                    required=True,
-                    size="3",
-                    width="100%",
-                ),
-                width="100%",
-            ),
-            rx.cond(
-                ReportState.gets_incentive,
-                rx.vstack(
-                    rx.text("(Optional) Extra per hour for incentive? (in $)"),
-                    rx.chakra.number_input(
-                        value=ReportState.comp_input_incentive_amount,
-                        on_change=ReportState.set_comp_input_incentive_amount,
-                        max_=200,
-                        width="100%",
+                rx.flex(
+                    rx.flex(
+                        rx.text(
+                            "$",
+                            class_name="text-xl pr-1"
+                        ),
+                        rx.input(
+                            id="nights-digit-1",
+                            size="3",
+                            max_length=1,
+                            class_name="w-9",
+                            on_change=rx.set_focus("nights-digit-2")
+                        ),
+                        rx.input(
+                            id="nights-digit-2",
+                            size="3",
+                            max_length=1,
+                            class_name="w-9",
+                            on_change=rx.set_focus("nights-digit-3")
+                        ),
+                        rx.text(
+                            ".",
+                            class_name="text-lg pt-4"
+                        ),
+                        rx.input(
+                            id="nights-digit-3",
+                            size="3",
+                            max_length=1,
+                            class_name="w-9",
+                            on_change=rx.set_focus("nights-digit-4")
+                        ),
+                        rx.input(
+                            id="nights-digit-4",
+                            size="3",
+                            max_length=1,
+                            class_name="w-9",
+                        ),
+                        class_name="flex-row items-center space-x-2"
                     ),
+                    class_name="flex-col items-center w-full"
                 ),
+                class_name="flex-col space-y-2 p-4 w-full"
             ),
-            rx.vstack(
+            rx.flex(
                 rx.text(
-                    """Does your hospital pay extra for having certifications?
-                    (e.g. CCRN, CWON, RN-BC)""",
+                    "Weekend differential per hour? (Optional)"
                 ),
-                rx.select(
-                    ["Yes", "No"],
-                    placeholder="- Select -",
-                    value=ReportState.comp_select_certifications,
-                    on_change=ReportState.set_comp_select_certifications,
-                    required=True,
-                    size="3",
-                    width="100%",
+                rx.flex(
+                    rx.flex(
+                        rx.text(
+                            "$",
+                            class_name="text-xl pr-1"
+                        ),
+                        rx.input(
+                            id="weekends-digit-1",
+                            size="3",
+                            max_length=1,
+                            class_name="w-9",
+                            on_change=rx.set_focus("weekends-digit-2")
+                        ),
+                        rx.input(
+                            id="weekends-digit-2",
+                            size="3",
+                            max_length=1,
+                            class_name="w-9",
+                            on_change=rx.set_focus("weekends-digit-3")
+                        ),
+                        rx.text(
+                            ".",
+                            class_name="text-lg pt-4"
+                        ),
+                        rx.input(
+                            id="weekends-digit-3",
+                            size="3",
+                            max_length=1,
+                            class_name="w-9",
+                            on_change=rx.set_focus("weekends-digit-4")
+                        ),
+                        rx.input(
+                            id="weekends-digit-4",
+                            size="3",
+                            max_length=1,
+                            class_name="w-9",
+                        ),
+                        class_name="flex-row items-center space-x-2"
+                    ),
+                    class_name="flex-col items-center w-full"
                 ),
-                width="100%",
+                class_name="flex-col space-y-2 p-4 w-full",
             ),
-            class_name="flex-col dark:divide-zinc-500 space-y-2 p-4 w-full",
-        ),
-        class_name="flex-col border rounded dark:border-zinc-500 bg-zinc-100 dark:bg-zinc-800 divide-y w-full",
-    )
-
-
-def demographics() -> rx.Component:
-    return rx.card(
-        rx.vstack(
-            rx.heading(
-                "Demographics",
-            ),
-            rx.divider(),
-            width="100%",
-        ),
-        spacer(height="24px"),
-        rx.flex(
-            rx.vstack(
-                rx.text("What shifts do you typically work?"),
+            # What shifts do you work?
+            rx.flex(
+                rx.flex(
+                    rx.text("What shifts do you work?"),
+                    rx.cond(
+                        ReportState.comp_select_shift,
+                        rx.flex(
+                            rx.icon("circle-check-big", class_name="h-6 w-6 stroke-green-400"),
+                            class_name="pl-4"
+                        ),
+                        rx.flex(
+                            rx.icon("circle", class_name="h-6 w-6 stroke-zinc-200"),
+                            class_name="pl-4"
+                        )
+                    ),
+                    class_name="flex-row justify-between w-full"
+                ),
                 rx.select(
                     ["Day", "Night", "Rotating"],
                     placeholder="- Select -",
@@ -335,12 +335,28 @@ def demographics() -> rx.Component:
                     size="3",
                     width="100%",
                 ),
-                width="100%",
+                id="comp_select_shift",
+                class_name="flex-col space-y-2 p-4 w-full"
             ),
-            rx.vstack(
-                rx.text("On average, how many shifts do you work per week?"),
+            # How many shifts do you work per week?
+            rx.flex(
+                rx.flex(
+                    rx.text("How many shifts do you work per week?"),
+                    rx.cond(
+                        ReportState.comp_select_weekly_shifts,
+                        rx.flex(
+                            rx.icon("circle-check-big", class_name="h-6 w-6 stroke-green-400"),
+                            class_name="pl-4"
+                        ),
+                        rx.flex(
+                            rx.icon("circle", class_name="h-6 w-6 stroke-zinc-200"),
+                            class_name="pl-4"
+                        )
+                    ),
+                    class_name="flex-row justify-between w-full"
+                ),
                 rx.select(
-                    ["1", "2", "3", "4", "5", "6"],
+                    ["1", "2", "3", "4", "5"],
                     placeholder="- Select -",
                     value=ReportState.comp_select_weekly_shifts,
                     on_change=ReportState.set_comp_select_weekly_shifts,
@@ -348,13 +364,28 @@ def demographics() -> rx.Component:
                     size="3",
                     width="100%",
                 ),
-                width="100%",
+                id="comp_select_weekly_shifts",
+                class_name="flex-col space-y-2 p-4 w-full"
             ),
-            # DEMO - TIME AT HOSPITAL AS RN -------------------------
-            rx.vstack(
-                rx.text("How many years have you worked at this hospital as a RN?"),
+            # How many years have you worked at this hospital as an RN?
+            rx.flex(
+                rx.flex(
+                    rx.text("How many years have you worked at this hospital as an RN?"),
+                    rx.cond(
+                        ReportState.comp_select_hospital_experience,
+                        rx.flex(
+                            rx.icon("circle-check-big", class_name="h-6 w-6 stroke-green-400"),
+                            class_name="pl-4"
+                        ),
+                        rx.flex(
+                            rx.icon("circle", class_name="h-6 w-6 stroke-zinc-200"),
+                            class_name="pl-4"
+                        )
+                    ),
+                    class_name="flex-row justify-between w-full"
+                ),
                 rx.select(
-                    years_experience,
+                    ReportState.years_hospital_experience,
                     placeholder="- Select -",
                     value=ReportState.comp_select_hospital_experience,
                     on_change=ReportState.set_comp_select_hospital_experience,
@@ -362,39 +393,43 @@ def demographics() -> rx.Component:
                     size="3",
                     width="100%",
                 ),
-                width="100%",
+                id="comp_select_hospital_experience",
+                class_name="flex-col space-y-2 p-4 w-full"
             ),
-            # DEMO - TOTAL EXPERIENCE AS RN -------------------------
-            rx.vstack(
-                rx.text("How many years in total have you worked as a RN?"),
+            # How many years in total have you worked as an RN?
+            rx.flex(
+                rx.flex(
+                    rx.text("How many years in total have you worked as an RN?"),
+                    rx.cond(
+                        ReportState.comp_select_total_experience,
+                        rx.flex(
+                            rx.icon("circle-check-big", class_name="h-6 w-6 stroke-green-400"),
+                            class_name="pl-4"
+                        ),
+                        rx.flex(
+                            rx.icon("circle", class_name="h-6 w-6 stroke-zinc-200"),
+                            class_name="pl-4"
+                        )
+                    ),
+                    class_name="flex-row justify-between w-full"
+                ),
                 rx.select(
-                    years_experience,
+                    ReportState.years_total_experience,
                     placeholder="- Select -",
                     value=ReportState.comp_select_total_experience,
                     on_change=ReportState.set_comp_select_total_experience,
                     required=True,
                     size="3",
+                    disabled=~ReportState.comp_select_hospital_experience,
                     width="100%",
                 ),
-                width="100%",
+                id="comp_select_total_experience",
+                class_name="flex-col space-y-2 p-4 w-full"
             ),
-            rx.cond(
-                ReportState.is_experience_invalid,
-                rx.callout(
-                    "Can't have less total years than years at current hospital.",
-                    width="100%",
-                    icon="triangle_alert",
-                    color_scheme="red",
-                    role="alert",
-                ),
-            ),
-            flex_direction="column",
-            gap="24px",
-            width="100%",
+            class_name="flex-col dark:divide-zinc-500 space-y-2 divide-y w-full",
         ),
-        width="100%",
+        class_name="flex-col border rounded dark:border-zinc-500 bg-zinc-100 dark:bg-zinc-800 divide-y w-full",
     )
-
 
 def benefits() -> rx.Component:
     return rx.card(
@@ -823,15 +858,5 @@ def button() -> rx.Component:
 
 def callout() -> rx.Component:
     return rx.flex(
-        rx.cond(
-            ReportState.comp_has_error,
-            rx.callout(
-                ReportState.comp_error_message,
-                width="100%",
-                icon="triangle_alert",
-                color_scheme="red",
-                role="alert",
-            ),
-        ),
         width="100%",
     )
