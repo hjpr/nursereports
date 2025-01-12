@@ -482,7 +482,7 @@ def compensation() -> rx.Component:
             # Comments for your nursing peers about pay or benefits?
             rx.flex(
                 rx.flex(
-                    rx.text("Additional info for your nursing peers about pay or benefits? (Optional)"),
+                    rx.text("Comments or additional info for your nursing peers about pay or benefits? (Optional)"),
                     rx.flex(
                         rx.icon("circle-check-big", class_name="stroke-zinc-200"),
                         class_name="pl-4"
