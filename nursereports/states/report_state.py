@@ -14,7 +14,7 @@ from ..server.supabase import (
     supabase_update_hospital_area_role
 )
 from loguru import logger
-from typing import Callable, Iterable
+from typing import Callable, Iterable, Literal
 
 import httpx
 import inspect
@@ -124,30 +124,57 @@ class ReportState(PageState):
     #
     #################################################################
 
-    comp_select_emp_type: str
-    comp_select_pay_type: str
-    comp_input_pay_hourly: float = 00.00
-    comp_input_pay_weekly: float = 0000.00
-    comp_input_diff_nights: float = 00.00
-    comp_input_diff_weekends: float = 00.00
-    comp_select_shift: str
-    comp_select_weekly_shifts: str
-    comp_select_hospital_experience: str
-    comp_select_total_experience: str
+    comp_select_emp_type: Literal["Full-time", "Part-time", "Contract"]
+    comp_select_pay_type: Literal["Hourly", "Weekly"]
+    comp_input_pay_hourly: int = 0
+    comp_input_pay_weekly: int = 0
+    comp_input_pay_night: int = 0
+    comp_input_pay_weekend: int = 0
+    input_calculator: Literal["hourly", "weekly", "night", "weekend"]
+    calculator_value: str
+    comp_select_shift: Literal["Day", "Night", "Rotating"]
+    comp_select_weekly_shifts: Literal["Less than 1", "1", "2", "3", "4", "5",]
+    comp_select_hospital_experience: Literal["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "More than 25 years"]
+    comp_select_total_experience: Literal["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "More than 25 years"]
     comp_check_benefit_pto: bool = False
     comp_check_benefit_parental: bool = False
     comp_check_benefit_insurance: bool = False
     comp_check_benefit_retirement: bool = False
     comp_check_benefit_pro_dev: bool = False
     comp_check_benefit_tuition: bool = False
-    comp_select_comp_adequate: str
-    comp_input_comments: str
     comp_select_overall: int
+    comp_input_comments: str
     comp_error_message: str
+
+    def set_comp_select_pay_type(self, type: str) -> None:
+        self.comp_select_pay_type = type
+        self.comp_input_pay_hourly = 0
+        self.comp_input_pay_weekly = 0
+
+    def set_comp_select_weekly_shifts(self, shift: str) -> None:
+        self.comp_select_weekly_shifts = int(shift)
 
     def set_comp_select_hospital_experience(self, experience: str) -> None:
         self.comp_select_hospital_experience = experience
         self.comp_select_total_experience = ""
+
+    def set_calculator_value(self, input: str) -> None:
+        if input == "clear":
+            self.calculator_value = "0"
+            return
+        if input == "enter":
+            setattr(self, f"comp_input_pay_{self.input_calculator}", self.calculator_value)
+            self.calculator_value = "0"
+            return
+        if self.calculator_value == "0":
+            self.calculator_value = input
+            return
+        else:
+            if len(self.calculator_value) >= 4:
+                return
+            else:
+                self.calculator_value += input
+                return
 
     @rx.var
     def comp_comments_chars_left(self) -> int:

@@ -127,33 +127,8 @@ def compensation() -> rx.Component:
                             ),
                             rx.flex(
                                 rx.flex(
-                                    rx.text(
-                                        "$",
-                                        class_name="text-xl pr-1"
-                                    ),
-                                    rx.input(
-                                        id="weekly-digit-1",
-                                        size="3",
-                                        class_name="w-9",
-                                        on_change=rx.set_focus("weekly-digit-2")
-                                    ),
-                                    rx.input(
-                                        id="weekly-digit-2",
-                                        size="3",
-                                        class_name="w-9",
-                                        on_change=rx.set_focus("weekly-digit-3")
-                                    ),
-                                    rx.input(
-                                        id="weekly-digit-3",
-                                        size="3",
-                                        class_name="w-9",
-                                        on_change=rx.set_focus("weekly-digit-4")
-                                    ),
-                                    rx.input(
-                                        id="weekly-digit-4",
-                                        size="3",
-                                        class_name="w-9",
-                                    ),
+                                    text(f"$ {ReportState.comp_input_pay_weekly} /wk", class_name="text-2xl font-bold"),
+                                    calculator("weekly"),
                                     class_name="flex-row items-center space-x-2"
                                 ),
                                 class_name="flex-row justify-center w-full"
@@ -175,28 +150,8 @@ def compensation() -> rx.Component:
                             ),
                             rx.flex(
                                 rx.flex(
-                                    rx.text(
-                                        "$",
-                                        class_name="text-xl pr-1"
-                                    ),
-                                    rx.input(
-                                        id="hourly-dollars",
-                                        size="3",
-                                        max_length=3,
-                                        pattern="^[0-9]+$",
-                                        class_name="w-14",
-                                    ),
-                                    rx.text(
-                                        ".",
-                                        class_name="text-lg pt-4"
-                                    ),
-                                    rx.input(
-                                        id="hourly-cents",
-                                        size="3",
-                                        max_length=2,
-                                        pattern="[0-9]+",
-                                        class_name="w-14",
-                                    ),
+                                    text(f"$ {ReportState.comp_input_pay_hourly} /hr", class_name="text-2xl font-bold"),
+                                    calculator("hourly"),
                                     class_name="flex-row items-center space-x-2"
                                 ),
                                 class_name="flex-row justify-center w-full"
@@ -207,96 +162,40 @@ def compensation() -> rx.Component:
                 )
             ),
             rx.flex(
-                rx.text(
-                    "Night differential per hour? (Optional)"
+                rx.flex(
+                    rx.text("Night differential per hour? (Optional)"),
+                    rx.flex(
+                        rx.icon("circle-check-big", class_name="stroke-zinc-200"),
+                        class_name="pl-4"
+                    ),
+                    class_name="flex-row justify-between w-full"
                 ),
                 rx.flex(
                     rx.flex(
-                        rx.text(
-                            "$",
-                            class_name="text-xl pr-1"
-                        ),
-                        rx.input(
-                            id="nights-digit-1",
-                            size="3",
-                            max_length=1,
-                            class_name="w-9",
-                            on_change=rx.set_focus("nights-digit-2")
-                        ),
-                        rx.input(
-                            id="nights-digit-2",
-                            size="3",
-                            max_length=1,
-                            class_name="w-9",
-                            on_change=rx.set_focus("nights-digit-3")
-                        ),
-                        rx.text(
-                            ".",
-                            class_name="text-lg pt-4"
-                        ),
-                        rx.input(
-                            id="nights-digit-3",
-                            size="3",
-                            max_length=1,
-                            class_name="w-9",
-                            on_change=rx.set_focus("nights-digit-4")
-                        ),
-                        rx.input(
-                            id="nights-digit-4",
-                            size="3",
-                            max_length=1,
-                            class_name="w-9",
-                        ),
+                        text(f"$ {ReportState.comp_input_pay_night} /hr", class_name="text-2xl font-bold"),
+                        calculator("night"),
                         class_name="flex-row items-center space-x-2"
                     ),
-                    class_name="flex-col items-center w-full"
+                    class_name="flex-row justify-center w-full"
                 ),
                 class_name="flex-col space-y-2 p-4 w-full"
             ),
             rx.flex(
-                rx.text(
-                    "Weekend differential per hour? (Optional)"
+                rx.flex(
+                    rx.text("Weekend differential per hour? (Optional)"),
+                    rx.flex(
+                        rx.icon("circle-check-big", class_name="stroke-zinc-200"),
+                        class_name="pl-4"
+                    ),
+                    class_name="flex-row justify-between w-full"
                 ),
                 rx.flex(
                     rx.flex(
-                        rx.text(
-                            "$",
-                            class_name="text-xl pr-1"
-                        ),
-                        rx.input(
-                            id="weekends-digit-1",
-                            size="3",
-                            max_length=1,
-                            class_name="w-9",
-                            on_change=rx.set_focus("weekends-digit-2")
-                        ),
-                        rx.input(
-                            id="weekends-digit-2",
-                            size="3",
-                            max_length=1,
-                            class_name="w-9",
-                            on_change=rx.set_focus("weekends-digit-3")
-                        ),
-                        rx.text(
-                            ".",
-                            class_name="text-lg pt-4"
-                        ),
-                        rx.input(
-                            id="weekends-digit-3",
-                            size="3",
-                            max_length=1,
-                            class_name="w-9",
-                            on_change=rx.set_focus("weekends-digit-4")
-                        ),
-                        rx.input(
-                            id="weekends-digit-4",
-                            size="3",
-                            max_length=1,
-                            class_name="w-9",
-                        ),
+                        text(f"$ {ReportState.comp_input_pay_weekend} /hr", class_name="text-2xl font-bold"),
+                        calculator("weekend"),
                         class_name="flex-row items-center space-x-2"
                     ),
-                    class_name="flex-col items-center w-full"
+                    class_name="flex-row justify-center w-full"
                 ),
                 class_name="flex-col space-y-2 p-4 w-full",
             ),
@@ -347,7 +246,7 @@ def compensation() -> rx.Component:
                     class_name="flex-row justify-between w-full"
                 ),
                 rx.select(
-                    ["1", "2", "3", "4", "5"],
+                    ["Less than 1", "1", "2", "3", "4", "5"],
                     placeholder="- Select -",
                     value=ReportState.comp_select_weekly_shifts,
                     on_change=ReportState.set_comp_select_weekly_shifts,
@@ -419,8 +318,13 @@ def compensation() -> rx.Component:
             ),
             # Select benefits that are offered to you
             rx.flex(
-                rx.text(
-                    "Select benefits that are offered to you. (Optional)",
+                rx.flex(
+                    rx.text("Select benefits that are offered to you. (Optional)"),
+                    rx.flex(
+                        rx.icon("circle-check-big", class_name="stroke-zinc-200"),
+                        class_name="pl-4"
+                    ),
+                    class_name="flex-row justify-between w-full"
                 ),
                 rx.flex(
                     rx.flex(
@@ -577,8 +481,13 @@ def compensation() -> rx.Component:
             ),
             # Comments for your nursing peers about pay or benefits?
             rx.flex(
-                rx.text(
-                    "Additional info for your nursing peers about pay or benefits? (Optional)"
+                rx.flex(
+                    rx.text("Additional info for your nursing peers about pay or benefits? (Optional)"),
+                    rx.flex(
+                        rx.icon("circle-check-big", class_name="stroke-zinc-200"),
+                        class_name="pl-4"
+                    ),
+                    class_name="flex-row justify-between w-full"
                 ),
                 rx.debounce_input(
                     rx.text_area(
@@ -623,8 +532,9 @@ def compensation() -> rx.Component:
             # Go to assignment button
             rx.flex(
                 solid_button(
-                    "Go to Assignment",
+                    "Next section",
                     rx.icon("arrow-big-right"),
+                    size="3",
                     on_click=ReportState.handle_submit_compensation,
                 ),
                 class_name="flex-col justify-center items-center p-4 w-full"
@@ -632,4 +542,118 @@ def compensation() -> rx.Component:
             class_name="flex-col dark:divide-zinc-500 space-y-2 divide-y w-full",
         ),
         class_name="flex-col border rounded dark:border-zinc-500 bg-zinc-100 dark:bg-zinc-800 divide-y w-full",
+    )
+
+def calculator(label:str) -> rx.Component:
+    return rx.popover.root(
+        rx.popover.trigger(
+            rx.flex(
+                rx.icon("pencil", class_name="h-5 w-5"),
+                on_click=ReportState.set_input_calculator(label),
+                class_name="flex-row items-center space-x-4 p-2 w-full cursor-pointer"
+            )
+        ),
+        rx.popover.content(
+            rx.cond(
+                ReportState.input_calculator,
+                rx.flex(
+                    rx.flex(
+                        rx.popover.close(rx.icon("x")),
+                        class_name="flex-row justify-end w-full cursor-pointer"
+                    ),
+                    rx.flex(
+                        rx.flex(
+                            rx.text("$", class_name="text-4xl font-bold"),
+                        ),
+                        rx.flex(
+                            rx.text(
+                                f"{ReportState.calculator_value}",
+                                class_name="text-4xl font-bold"
+                            ),
+                            class_name="flex-row justify-end w-full"
+                        ),
+                        class_name="flex-row py-4 w-full"
+                    ),
+                    rx.flex(
+                        rx.flex(
+                            rx.text("1", class_name="px-2 text-2xl"),
+                            on_click=ReportState.set_calculator_value("1"),
+                            class_name="flex-col items-center justify-center border rounded p-4 cursor-pointer select-none active:bg-zinc-200 transition-colors duration-75"
+                        ),
+                        rx.flex(
+                            rx.text("2", class_name="px-2 text-2xl"),
+                            on_click=ReportState.set_calculator_value("2"),
+                            class_name="flex-col items-center justify-center border rounded p-4 cursor-pointer select-none active:bg-zinc-200 transition-colors duration-75"
+                        ),
+                        rx.flex(
+                            rx.text("3", class_name="px-2 text-2xl"),
+                            on_click=ReportState.set_calculator_value("3"),
+                            class_name="flex-col items-center justify-center border rounded p-4 cursor-pointer select-none active:bg-zinc-200 transition-colors duration-75"
+                        ),
+                        class_name="flex-row space-x-2 w-full"
+                    ),
+                    rx.flex(
+                        rx.flex(
+                            rx.text("4", class_name="px-2 text-2xl"),
+                            on_click=ReportState.set_calculator_value("4"),
+                            class_name="flex-col items-center justify-center border rounded p-4 cursor-pointer select-none select-none active:bg-zinc-200 transition-colors duration-75"
+                        ),
+                        rx.flex(
+                            rx.text("5", class_name="px-2 text-2xl"),
+                            on_click=ReportState.set_calculator_value("5"),
+                            class_name="flex-col items-center justify-center border rounded p-4 cursor-pointer select-none active:bg-zinc-200 transition-colors duration-75"
+                        ),
+                        rx.flex(
+                            rx.text("6", class_name="px-2 text-2xl"),
+                            on_click=ReportState.set_calculator_value("6"),
+                            class_name="flex-col items-center justify-center border rounded p-4 cursor-pointer select-none active:bg-zinc-200 transition-colors duration-75"
+                        ),
+                        class_name="flex-row space-x-2 w-full"
+                    ),
+                    rx.flex(
+                        rx.flex(
+                            rx.text("7", class_name="px-2 text-2xl"),
+                            on_click=ReportState.set_calculator_value("7"),
+                            class_name="flex-col items-center justify-center border rounded p-4 cursor-pointer select-none active:bg-zinc-200 transition-colors duration-75"
+                        ),
+                        rx.flex(
+                            rx.text("8", class_name="px-2 text-2xl"),
+                            on_click=ReportState.set_calculator_value("8"),
+                            class_name="flex-col items-center justify-center border rounded p-4 cursor-pointer select-none active:bg-zinc-200 transition-colors duration-75"
+                        ),
+                        rx.flex(
+                            rx.text("9", class_name="px-2 text-2xl"),
+                            on_click=ReportState.set_calculator_value("9"),
+                            class_name="flex-col items-center justify-center border rounded p-4 cursor-pointer select-none active:bg-zinc-200 transition-colors duration-75"
+                        ),
+                        class_name="flex-row space-x-2 w-full"
+                    ),
+                    rx.flex(
+                        rx.flex(
+                            rx.text("0", class_name="px-2 text-2xl"),
+                            on_click=ReportState.set_calculator_value("0"),
+                            class_name="flex-col items-center justify-center border rounded p-4 cursor-pointer select-none active:bg-zinc-200 transition-colors duration-75"
+                        ),
+                        rx.flex(
+                            rx.text("CE", class_name="text-xl"),
+                            on_click=ReportState.set_calculator_value("clear"),
+                            class_name="flex-col items-center justify-center border rounded p-4 cursor-pointer select-none w-full active:bg-zinc-200 transition-colors duration-75"
+                        ),
+                        class_name="flex-row space-x-2 w-full"
+                    ),
+                    rx.flex(
+                        rx.popover.close(
+                            rx.flex(
+                                rx.text("Enter", class_name="text-xl"),
+                                on_click=ReportState.set_calculator_value("enter"),
+                                class_name="flex-col items-center justify-center border rounded p-4 cursor-pointer select-none w-full active:bg-zinc-200 transition-colors duration-75"
+                            ),
+                            class_name="w-full"
+                        ),
+                        class_name="flex-row w-full"
+                    ),
+                    class_name="flex-col items-center space-y-2 w-full max-w-xl"
+                )
+            )
+        )
     )

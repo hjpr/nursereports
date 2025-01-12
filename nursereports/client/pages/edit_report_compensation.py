@@ -370,15 +370,7 @@ def compensation() -> rx.Component:
                     """Is your overall pay and benefits package generally
                     enough to keep you satisfied in your current role?""",
                 ),
-                rx.select(
-                    ["Yes", "No"],
-                    placeholder="- Select -",
-                    value=ReportState.comp_select_comp_adequate,
-                    on_change=ReportState.set_comp_select_comp_adequate,
-                    required=True,
-                    size="3",
-                    width="100%",
-                ),
+
                 width="100%",
             ),
             width="100%",
