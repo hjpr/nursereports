@@ -573,7 +573,6 @@ def button() -> rx.Component:
             rx.button(
                 "Go to Assignment",
                 rx.icon("arrow-big-right"),
-                on_click=ReportState.handle_edit_compensation,
                 variant="ghost",
                 size="3",
             ),

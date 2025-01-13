@@ -3,7 +3,6 @@ from ..components import (
     footer,
     login_protected,
     navbar,
-    solid_button,
     text
 )
 from ...states.base_state import BaseState
@@ -13,7 +12,7 @@ import reflex as rx
 
 
 @rx.page(
-    route="/report/full-report/compensation",
+    route="/report/[report_mode]/compensation",
     title="Nurse Reports",
     on_load=[
         BaseState.event_state_auth_flow,
@@ -42,7 +41,7 @@ def compensation() -> rx.Component:
     return rx.flex(
         rx.flex(
             text("Compensation", class_name="text-2xl font-bold"),
-            class_name="flex-col items-center bg-zinc-100 dark:bg-zinc-800 p-4 w-full"
+            class_name="flex-col items-center bg-zinc-100 dark:bg-zinc-800 p-6 w-full"
         ),
         flex(
             # What is your employment type?
@@ -193,6 +192,25 @@ def compensation() -> rx.Component:
                     rx.flex(
                         text(f"$ {ReportState.comp_input_pay_weekend} /hr", class_name="text-2xl font-bold"),
                         calculator("weekend"),
+                        class_name="flex-row items-center space-x-2"
+                    ),
+                    class_name="flex-row justify-center w-full"
+                ),
+                class_name="flex-col space-y-2 p-4 w-full",
+            ),
+            rx.flex(
+                rx.flex(
+                    rx.text("Weekend night differential per hour? (Optional)"),
+                    rx.flex(
+                        rx.icon("circle-check-big", class_name="stroke-zinc-200"),
+                        class_name="pl-4"
+                    ),
+                    class_name="flex-row justify-between w-full"
+                ),
+                rx.flex(
+                    rx.flex(
+                        text(f"$ {ReportState.comp_input_pay_weekend_night} /hr", class_name="text-2xl font-bold"),
+                        calculator("weekend_night"),
                         class_name="flex-row items-center space-x-2"
                     ),
                     class_name="flex-row justify-center w-full"
@@ -529,19 +547,31 @@ def compensation() -> rx.Component:
                 ),
                 class_name="flex-col space-y-2 p-4 w-full"
             ),
-            # Go to assignment button
+            # Navigation buttons
             rx.flex(
-                solid_button(
-                    "Next section",
-                    rx.icon("arrow-big-right"),
-                    size="3",
-                    on_click=ReportState.handle_submit_compensation,
+                rx.flex(
+                    rx.flex(
+                        rx.icon("arrow-left"),
+                        rx.text("Back", class_name="font-bold select-none"),
+                        on_click=rx.redirect("/report/full-report/overview"),
+                        class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer"
+                    ),
+                    class_name="flex-col w-full active:bg-zinc-200 transition-colors duration-75"
                 ),
-                class_name="flex-col justify-center items-center p-4 w-full"
+                rx.flex(
+                    rx.flex(
+                        rx.text("Next", class_name="font-bold select-none"),
+                        rx.icon("arrow-right"),
+                        on_click=ReportState.handle_submit_compensation,
+                        class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer"
+                    ),
+                    class_name="flex-col w-full active:bg-zinc-200 transition-colors duration-75"
+                ),
+                class_name="flex-row divide-x w-full"
             ),
             class_name="flex-col dark:divide-zinc-500 space-y-2 divide-y w-full",
         ),
-        class_name="flex-col border rounded dark:border-zinc-500 bg-zinc-100 dark:bg-zinc-800 divide-y w-full",
+        class_name="flex-col border rounded shadow-lg dark:border-zinc-500 bg-zinc-100 dark:bg-zinc-800 divide-y w-full",
     )
 
 def calculator(label:str) -> rx.Component:

@@ -683,7 +683,6 @@ def button() -> rx.Component:
             rx.button(
                 "Go to Staffing",
                 rx.icon("arrow-big-right"),
-                on_click=ReportState.handle_edit_assignment,
                 variant="ghost",
                 size="3",
             ),

@@ -1,4 +1,3 @@
-
 from ..states import PageState
 from ..server.exceptions import RequestFailed, DuplicateReport, DuplicateUUID
 from ..server.secrets import anyscale_api_key, anyscale_url, api_url, api_key
@@ -11,7 +10,7 @@ from ..server.supabase import (
     supabase_submit_full_report,
     supabase_update_user_info,
     supabase_update_hospital_units,
-    supabase_update_hospital_area_role
+    supabase_update_hospital_area_role,
 )
 from loguru import logger
 from typing import Callable, Iterable, Literal
@@ -38,19 +37,26 @@ class ReportState(PageState):
     # Dict of hospital data pulled from /hospital.
     hospital_info: dict[str, str | int | list]
 
-    # Are we in "edit" or "new".
-    mode: str
-
     # Generated uuid for the current report.
     report_id: str
 
+    @rx.var
+    def mode(self) -> Literal["edit", "full-report", "pay-report", "red-flag"]:
+        return self.router.page.params.get("report_mode")
+
     def event_state_report_flow(self) -> Iterable[Callable]:
         """
-        Ensures that report navigation is via event, not manual entry.
+        Ensures that report navigation contains the proper information before proceeding
         """
-        if not self.hospital_id or not self.report_id or not self.mode:
-            yield rx.redirect("/dashboard")
-            yield rx.toast.error("Unable to access that resource manually.")
+        if not self.mode or not self.hospital_id or not self.hospital_info:
+            if self.hospital_id:
+                yield rx.redirect(f"/hospital/{self.hospital_id}")
+            else:
+                yield rx.redirect("/dashboard")
+        logger.critical(self.hospital_id)
+        logger.critical(self.hospital_info)
+        logger.critical(self.report_id)
+        logger.critical(self.mode)
 
     def event_state_edit_user_report(self, report_id: str) -> Iterable[Callable]:
         """
@@ -67,7 +73,6 @@ class ReportState(PageState):
             # Populate other report details to state.
             self.report_id = report["report_id"]
             self.hospital_id = report["hospital_id"]
-            self.mode = "edit"
             self.hospital_info = supabase_get_hospital_info(
                 self.access_token, self.hospital_id
             )
@@ -94,15 +99,14 @@ class ReportState(PageState):
             self.hospital_info = supabase_get_hospital_info(
                 self.access_token, self.hospital_id
             )
-            self.mode = "new"
 
             # Redirect to first page of full report.
             yield rx.redirect("/report/full-report/overview")
 
         except Exception as e:
-            logger.critical(e)
             yield rx.redirect("/dashboard")
-            yield rx.toast.error("Error while setting up new report.")
+            logger.critical(str(e))
+            raise Exception("Error while setting up new report.")
 
     def event_state_get_hospital_info(self) -> Iterable[Callable]:
         """
@@ -114,37 +118,102 @@ class ReportState(PageState):
             )
 
         except Exception as e:
-            logger.critical(e)
             yield rx.redirect("/dashboard")
-            yield rx.toast.error("Error while pulling hospital details.")
+            logger.critical(str(e))
+            raise Exception("Error while pulling hospital details.")
 
     #################################################################
     #
-    # COMPENSATION VARIABLES
+    # COMPENSATION
     #
     #################################################################
 
-    comp_select_emp_type: Literal["Full-time", "Part-time", "Contract"]
-    comp_select_pay_type: Literal["Hourly", "Weekly"]
+    comp_select_emp_type: Literal["Full-time", "Part-time", "Contract"] = ""
+    comp_select_pay_type: Literal["Hourly", "Weekly"] = ""
     comp_input_pay_hourly: int = 0
     comp_input_pay_weekly: int = 0
     comp_input_pay_night: int = 0
     comp_input_pay_weekend: int = 0
-    input_calculator: Literal["hourly", "weekly", "night", "weekend"]
-    calculator_value: str
-    comp_select_shift: Literal["Day", "Night", "Rotating"]
-    comp_select_weekly_shifts: Literal["Less than 1", "1", "2", "3", "4", "5",]
-    comp_select_hospital_experience: Literal["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "More than 25 years"]
-    comp_select_total_experience: Literal["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "More than 25 years"]
+    comp_input_pay_weekend_night: int = 0
+    input_calculator: Literal[
+        "hourly", "weekly", "night", "weekend", "weekend_night"
+    ] = ""
+    calculator_value: str = "0"
+    comp_select_shift: Literal["Day", "Night", "Rotating"] = ""
+    comp_select_weekly_shifts: Literal[
+        "Less than 1",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+    ] = ""
+    comp_select_hospital_experience: Literal[
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "17",
+        "18",
+        "19",
+        "20",
+        "21",
+        "22",
+        "23",
+        "24",
+        "25",
+        "More than 25 years",
+    ] = ""
+    comp_select_total_experience: Literal[
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16",
+        "17",
+        "18",
+        "19",
+        "20",
+        "21",
+        "22",
+        "23",
+        "24",
+        "25",
+        "More than 25 years",
+    ] = ""
     comp_check_benefit_pto: bool = False
     comp_check_benefit_parental: bool = False
     comp_check_benefit_insurance: bool = False
     comp_check_benefit_retirement: bool = False
     comp_check_benefit_pro_dev: bool = False
     comp_check_benefit_tuition: bool = False
-    comp_select_overall: int
-    comp_input_comments: str
-    comp_error_message: str
+    comp_select_overall: int = 0
+    comp_input_comments: str = ""
 
     def set_comp_select_pay_type(self, type: str) -> None:
         self.comp_select_pay_type = type
@@ -156,18 +225,29 @@ class ReportState(PageState):
         self.comp_select_total_experience = ""
 
     def set_calculator_value(self, input: str) -> None:
+        """
+        Set calculator based on context from self.input_calculator. Restricts length
+        of input based on if user is entering hourly/weekly/etc rates.
+        """
         if input == "clear":
             self.calculator_value = "0"
             return
         if input == "enter":
-            setattr(self, f"comp_input_pay_{self.input_calculator}", int(self.calculator_value))
+            setattr(
+                self,
+                f"comp_input_pay_{self.input_calculator}",
+                int(self.calculator_value),
+            )
             self.calculator_value = "0"
             return
         if self.calculator_value == "0":
             self.calculator_value = input
             return
         else:
-            if self.input_calculator in ("weekend", "night") and len(self.calculator_value) >= 2:
+            if (
+                self.input_calculator in ("weekend", "night")
+                and len(self.calculator_value) >= 2
+            ):
                 return
             elif self.input_calculator == "hourly" and len(self.calculator_value) >= 3:
                 return
@@ -175,7 +255,6 @@ class ReportState(PageState):
                 return
             else:
                 self.calculator_value += input
-                return
 
     @rx.var
     def comp_comments_chars_left(self) -> int:
@@ -185,15 +264,102 @@ class ReportState(PageState):
     @rx.var
     def years_hospital_experience(self) -> list[str]:
         from ..client.components import years_experience
+
         return years_experience
 
     @rx.var
     def years_total_experience(self) -> list[str]:
-        from ..client.components import years_experience
+        """
+        Uses years_hospital_experience to ensure that RN can't select a number of years
+        less than the number worked at hospital as RN.
+        """
         index = 0
         if self.comp_select_hospital_experience:
-            index = years_experience.index(self.comp_select_hospital_experience)
-        return years_experience[index:]
+            index = self.years_hospital_experience.index(
+                self.comp_select_hospital_experience
+            )
+        return self.years_hospital_experience[index:]
+
+    def handle_submit_compensation(self) -> Callable | Iterable[Callable]:
+        """
+        Ensure validity of all entries in the compensation section before advancing to the
+        assignment section.
+        """
+        # Check all our required values for completion.
+        if (
+            not self.comp_select_emp_type
+            or not self.comp_select_pay_type
+            or not (self.comp_input_pay_hourly or self.comp_input_pay_weekly)
+            or not self.comp_select_shift
+            or not self.comp_select_weekly_shifts
+            or not self.comp_select_hospital_experience
+            or not self.comp_select_total_experience
+            or not self.comp_select_overall
+        ):
+            return rx.toast.error(
+                "Missing information. Please check form and complete required questions.",
+                close_button=True,
+            )
+
+        # Check all our values for validity.
+        if (
+            self.comp_select_emp_type not in ("Full-time", "Part-time", "Contract")
+            or self.comp_select_pay_type not in ("Hourly", "Weekly")
+            or not isinstance(self.comp_input_pay_hourly, int)
+            or self.comp_input_pay_hourly > 999
+            or not isinstance(self.comp_input_pay_weekly, int)
+            or self.comp_input_pay_weekly > 9999
+            or not isinstance(self.comp_input_pay_night, int)
+            or self.comp_input_pay_night > 99
+            or not isinstance(self.comp_input_pay_weekend, int)
+            or self.comp_input_pay_weekend > 99
+            or self.comp_select_shift not in ("Day", "Night", "Rotating")
+            or self.comp_select_weekly_shifts
+            not in ("Less than 1", "1", "2", "3", "4", "5")
+            or self.comp_select_hospital_experience
+            not in tuple(str(i) for i in range(26)) + tuple("More than 25 years")
+            or self.comp_select_total_experience
+            not in tuple(str(i) for i in range(26)) + tuple("More than 25 years")
+            or not isinstance(self.comp_check_benefit_pto, bool)
+            or not isinstance(self.comp_check_benefit_parental, bool)
+            or not isinstance(self.comp_check_benefit_insurance, bool)
+            or not isinstance(self.comp_check_benefit_retirement, bool)
+            or not isinstance(self.comp_check_benefit_pro_dev, bool)
+            or not isinstance(self.comp_check_benefit_tuition, bool)
+            or not isinstance(self.comp_select_overall, int)
+            or (5 < self.comp_select_overall < 1)
+            or not isinstance(self.comp_input_comments, str)
+        ):
+            return rx.toast.error(
+                "Validity check failed. Contact support if problem persists.",
+                close_button=True,
+            )
+
+        # Check all our values for sanity.
+        error_messages = []
+        if self.comp_input_pay_hourly:
+            if not (15 <= self.comp_input_pay_hourly <= 250):
+                error_messages.append("Hourly rate entered exceeds normal ranges.")
+        if self.comp_input_pay_weekly:
+            if not (800 <= self.comp_input_pay_weekly <= 15000):
+                error_messages.append("Weekly rate entered exceeds normal ranges.")
+        if not (0 <= self.comp_input_pay_night <= 50):
+            error_messages.append("Night differential entered exceeds normal ranges.")
+        if not (0 <= self.comp_input_pay_weekend <= 50):
+            error_messages.append("Weekend differential entered exceeds normal ranges.")
+        if not (0 <= self.comp_input_pay_weekend_night <= 50):
+            error_messages.append(
+                "Weekend night differential entered exceeds normal ranges."
+            )
+        if len(self.comp_input_comments) > 1000:
+            error_messages.append("Length of comment exceeds 1000 characters.")
+
+        for message in error_messages:
+            yield rx.toast.error(message, close_button=True)
+
+        # If all checks are complete and everything is groovy.
+        if not error_messages:
+            return rx.redirect(f"/report/{self.mode}/assignment")
 
     #################################################################
     #
@@ -562,48 +728,8 @@ class ReportState(PageState):
     #
     #################################################################
 
-    def handle_edit_compensation(self) -> Callable:
-        if not self.comp_can_progress:
-            self.comp_error_message = "Some fields incomplete or invalid."
-            return
-        if len(self.comp_input_comments) > 1000:
-            self.comp_error_message = "Comments contain too many characters."
-            return
-        self.comp_error_message = ""
-        return rx.redirect("/report/edit/assignment")
-
-    def handle_edit_assignment(self) -> Callable:
-        if not self.assign_can_progress:
-            self.assign_error_message = "Some fields incomplete or invalid."
-            return
-        if len(self.assign_input_comments) > 1000:
-            self.assign_error_message = "Comments contain too many characters."
-            return
-        self.assign_error_message = ""
-        return rx.redirect("/report/edit/staffing")
-
     def handle_edit_staffing(self) -> Callable | None:
-        if not self.staffing_can_progress:
-            self.staffing_error_message = "Some fields incomplete or invalid."
-            return
-        if self.has_ratios and not self.ratio_is_valid:
-            self.staffing_error_message = "Some fields incomplete or invalid."
-            return
-        if len(self.staffing_input_comments) > 1000:
-            self.staffing_error_message = "Comments contain too many characters."
-            return
-        self.staffing_error_message = ""
         return ReportState.edit_report
-
-    def handle_submit_compensation(self) -> Callable:
-        if not self.comp_can_progress:
-            self.comp_error_message = "Some fields incomplete or invalid."
-            return
-        if len(self.comp_input_comments) > 1000:
-            self.comp_error_message = "Comments contain too many characters."
-            return
-        self.comp_error_message = ""
-        return rx.redirect("/report/full-report/assignment")
 
     def handle_submit_assignment(self) -> Callable:
         if not self.assign_can_progress:
@@ -646,7 +772,7 @@ class ReportState(PageState):
             if not self.staffing_can_progress:
                 self.staffing_can_progress = "Some fields incomplete or invalid."
                 return rx.redirect("/report/edit/staffing")
-            
+
             # Upload changes to supabase.
             supabase_user_edit_report(self.access_token, report)
 
@@ -681,7 +807,7 @@ class ReportState(PageState):
             if not self.staffing_can_progress:
                 self.staffing_can_progress = "Some fields incomplete or invalid."
                 return rx.redirect("/report/full-report/staffing")
-            
+
             # Ensure that no report UUID's conflict.
             supabase_no_report_id_conflict(self.access_token, self.report_id)
 
@@ -691,13 +817,12 @@ class ReportState(PageState):
             # Submit report to supabase.
             supabase_submit_full_report(self.access_token, report)
 
-
             updated_data = supabase_update_user_info(
                 self.access_token,
                 self.user_id,
                 data={
-                "needs_onboard": False,
-                }
+                    "needs_onboard": False,
+                },
             )
 
             self.user_info.update(updated_data)
@@ -716,7 +841,9 @@ class ReportState(PageState):
             self.is_loading = False
         except Exception as e:
             logger.critical(e)
-            yield rx.toast.error("Uncaught exception. If this persists contact support@nursereports.org")
+            yield rx.toast.error(
+                "Uncaught exception. If this persists contact support@nursereports.org"
+            )
             self.is_loading = False
 
     def prepare_report_dict(self) -> dict:
@@ -751,12 +878,16 @@ class ReportState(PageState):
             "comp_select_overall": self.comp_select_overall,
             "assign_select_specific_unit": self.assign_select_specific_unit,
             "assign_select_unit": (
-                self.assign_select_unit if self.assign_select_unit != "I don't see my unit" else None
-                ),
+                self.assign_select_unit
+                if self.assign_select_unit != "I don't see my unit"
+                else None
+            ),
             "assign_input_unit_name": self.assign_input_unit_name,
             "assign_select_acuity": self.assign_select_acuity,
             "assign_select_area": (
-                self.assign_select_area if self.assign_select_area != "I dont see my area or role" else None
+                self.assign_select_area
+                if self.assign_select_area != "I dont see my area or role"
+                else None
             ),
             "assign_input_area": self.assign_input_area,
             "assign_select_specialty_1": self.assign_select_specialty_1,
@@ -945,9 +1076,9 @@ class ReportState(PageState):
                 return
         else:
             logger.debug(
-                f"""User report {report['report_id']} seems ok. No entries found requiring moderation."""
+                f"""User report {report["report_id"]} seems ok. No entries found requiring moderation."""
             )
             return
 
     def redirect_to_red_flag_report(self, hosp_id: str) -> Iterable[Callable]:
-        return rx.redirect(f"/report/red-flag-report/{hosp_id}/overview")      
+        return rx.redirect(f"/report/red-flag-report/{hosp_id}/overview")
