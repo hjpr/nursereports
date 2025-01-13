@@ -151,9 +151,6 @@ class ReportState(PageState):
         self.comp_input_pay_hourly = 0
         self.comp_input_pay_weekly = 0
 
-    def set_comp_select_weekly_shifts(self, shift: str) -> None:
-        self.comp_select_weekly_shifts = int(shift)
-
     def set_comp_select_hospital_experience(self, experience: str) -> None:
         self.comp_select_hospital_experience = experience
         self.comp_select_total_experience = ""
@@ -163,14 +160,18 @@ class ReportState(PageState):
             self.calculator_value = "0"
             return
         if input == "enter":
-            setattr(self, f"comp_input_pay_{self.input_calculator}", self.calculator_value)
+            setattr(self, f"comp_input_pay_{self.input_calculator}", int(self.calculator_value))
             self.calculator_value = "0"
             return
         if self.calculator_value == "0":
             self.calculator_value = input
             return
         else:
-            if len(self.calculator_value) >= 4:
+            if self.input_calculator in ("weekend", "night") and len(self.calculator_value) >= 2:
+                return
+            elif self.input_calculator == "hourly" and len(self.calculator_value) >= 3:
+                return
+            elif self.input_calculator == "weekly" and len(self.calculator_value) >= 5:
                 return
             else:
                 self.calculator_value += input
