@@ -53,10 +53,7 @@ class ReportState(PageState):
                 yield rx.redirect(f"/hospital/{self.hospital_id}")
             else:
                 yield rx.redirect("/dashboard")
-        logger.critical(self.hospital_id)
-        logger.critical(self.hospital_info)
-        logger.critical(self.report_id)
-        logger.critical(self.mode)
+
 
     def event_state_edit_user_report(self, report_id: str) -> Iterable[Callable]:
         """
