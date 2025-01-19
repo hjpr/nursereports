@@ -33,7 +33,6 @@ def staffing_page() -> rx.Component:
 def content() -> rx.Component:
     return rx.flex(
         staffing(),
-        ratios(),
         support(),
         overall(),
         comments(),
@@ -117,77 +116,11 @@ def staffing() -> rx.Component:
                 ),
                 width="100%",
             ),
-            rx.cond(
-                ReportState.has_charge,
-                rx.vstack(
-                    rx.text("How often does charge take a patient assignment?"),
-                    rx.select(
-                        ["Always", "Usually", "Sometimes", "Rarely", "Never"],
-                        placeholder="- Select -",
-                        value=ReportState.staffing_select_charge_assignment,
-                        on_change=ReportState.set_staffing_select_charge_assignment,
-                        required=True,
-                        size="3",
-                        width="100%",
-                    ),
-                    width="100%",
-                ),
-            ),
             flex_direction="column",
             gap="24px",
             width="100%",
         ),
         width="100%",
-    )
-
-
-def ratios() -> rx.Component:
-    return rx.cond(
-        ReportState.has_ratios,
-        rx.card(
-            rx.vstack(rx.heading("Ratios"), rx.divider(), width="100%"),
-            spacer(height="24px"),
-            rx.flex(
-                rx.vstack(
-                    rx.text("How many patients are you typically assigned?"),
-                    rx.chakra.number_input(
-                        value=ReportState.staffing_input_ratio,
-                        input_mode="numeric",
-                        on_change=ReportState.set_staffing_input_ratio,
-                        is_required=True,
-                        width="100%",
-                    ),
-                    rx.cond(
-                        ~ReportState.ratio_is_valid,
-                        rx.callout(
-                            "A valid number must be entered.",
-                            width="100%",
-                            icon="triangle_alert",
-                            color_scheme="red",
-                            role="alert",
-                        ),
-                    ),
-                    width="100%",
-                ),
-                rx.vstack(
-                    rx.text("How often does this ratio feel unsafe?"),
-                    rx.select(
-                        ["Always", "Usually", "Sometimes", "Rarely", "Never"],
-                        placeholder="- Select -",
-                        value=ReportState.staffing_select_ratio_unsafe,
-                        on_change=ReportState.set_staffing_select_ratio_unsafe,
-                        required=True,
-                        size="3",
-                        width="100%",
-                    ),
-                    width="100%",
-                ),
-                flex_direction="column",
-                gap="24px",
-                width="100%",
-            ),
-            width="100%",
-        ),
     )
 
 
@@ -582,7 +515,6 @@ def button() -> rx.Component:
                     rx.text("Submit Report"),
                 ),
                 rx.icon("arrow-big-right"),
-                on_click=ReportState.handle_submit_staffing,
                 variant="ghost",
                 size="3",
             ),

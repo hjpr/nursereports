@@ -22,7 +22,7 @@ import reflex as rx
 )
 @login_protected
 def compensation_page() -> rx.Component:
-    return flex(
+    return rx.flex(
         navbar(),
         content(),
         footer(),
@@ -33,7 +33,7 @@ def compensation_page() -> rx.Component:
 def content() -> rx.Component:
     return rx.flex(
         compensation(),
-        class_name="flex-col items-center space-y-12 px-4 py-12 w-full max-w-screen-sm",
+        class_name="flex-col items-center space-y-12 px-4 py-14 md:py-20 w-full max-w-screen-sm",
     )
 
 
@@ -44,20 +44,18 @@ def compensation() -> rx.Component:
             class_name="flex-col items-center bg-zinc-100 dark:bg-zinc-800 p-6 w-full"
         ),
         flex(
+            
             # What is your employment type?
             rx.flex(
                 rx.flex(
                     rx.text("What is your employment type?"),
-                    rx.cond(
-                        ReportState.comp_select_emp_type,
-                        rx.flex(
+                    rx.flex(
+                        rx.cond(
+                            ReportState.comp_select_emp_type,
                             rx.icon("circle-check-big", class_name="h-6 w-6 stroke-green-400"),
-                            class_name="pl-4"
+                            rx.icon("circle-alert", class_name="h-6 w-6 stroke-zinc-200"),
                         ),
-                        rx.flex(
-                            rx.icon("circle", class_name="h-6 w-6 stroke-zinc-200"),
-                            class_name="pl-4"
-                        )
+                        class_name="pl-4"
                     ),
                     class_name="flex-row justify-between w-full"
                 ),
@@ -65,6 +63,7 @@ def compensation() -> rx.Component:
                     ["Full-time", "Part-time", "Contract"],
                     placeholder="- Select -",
                     value=ReportState.comp_select_emp_type,
+                    position="popper",
                     on_change=ReportState.set_comp_select_emp_type,
                     required=True,
                     size="3",
@@ -73,20 +72,15 @@ def compensation() -> rx.Component:
                 id="comp_select_emp_type",
                 class_name="flex-col p-4 space-y-2 w-full",
             ),
+
             # Are you paid at an hourly or weekly rate?
             rx.flex(
                 rx.flex(
                     rx.text("Are you paid at an hourly or weekly rate?"),
                     rx.cond(
                         ReportState.comp_select_pay_type,
-                        rx.flex(
-                            rx.icon("circle-check-big", class_name="h-6 w-6 stroke-green-400"),
-                            class_name="pl-4"
-                        ),
-                        rx.flex(
-                            rx.icon("circle", class_name="h-6 w-6 stroke-zinc-200"),
-                            class_name="pl-4"
-                        )
+                        rx.icon("circle-check-big", class_name="h-6 w-6 stroke-green-400"),
+                        rx.icon("circle-alert", class_name="h-6 w-6 stroke-zinc-200"),
                     ),
                     class_name="flex-row justify-between w-full"
                 ),
@@ -94,6 +88,7 @@ def compensation() -> rx.Component:
                     ["Hourly", "Weekly"],
                     placeholder="- Select -",
                     value=ReportState.comp_select_pay_type,
+                    position="popper",
                     on_change=ReportState.set_comp_select_pay_type,
                     required=True,
                     size="3",
@@ -102,6 +97,7 @@ def compensation() -> rx.Component:
                 id="comp_select_pay_type",
                 class_name="flex-col p-4 space-y-2 w-full"
             ),
+
             # Conditional base rate entries
             rx.cond(
                 ReportState.comp_select_pay_type,
@@ -113,14 +109,8 @@ def compensation() -> rx.Component:
                                 rx.text("Base rate per week?"),
                                 rx.cond(
                                     ReportState.comp_input_pay_weekly,
-                                    rx.flex(
-                                        rx.icon("circle-check-big", class_name="h-6 w-6 stroke-green-400"),
-                                        class_name="pl-4"
-                                    ),
-                                    rx.flex(
-                                        rx.icon("circle", class_name="h-6 w-6 stroke-zinc-200"),
-                                        class_name="pl-4"
-                                    )
+                                    rx.icon("circle-check-big", class_name="h-6 w-6 stroke-green-400"),
+                                    rx.icon("circle-alert", class_name="h-6 w-6 stroke-zinc-200"),
                                 ),
                                 class_name="flex-row justify-between w-full"
                             ),
@@ -143,7 +133,7 @@ def compensation() -> rx.Component:
                                 rx.cond(
                                     ReportState.comp_input_pay_hourly,
                                     rx.icon("circle-check-big", class_name="stroke-green-400"),
-                                    rx.icon("circle", class_name="stroke-zinc-200")
+                                    rx.icon("circle-alert", class_name="stroke-zinc-200")
                                 ),
                                 class_name="flex-row justify-between w-full"
                             ),
@@ -160,11 +150,17 @@ def compensation() -> rx.Component:
                     )
                 )
             ),
+
+            # Night differential per hour?
             rx.flex(
                 rx.flex(
                     rx.text("Night differential per hour? (Optional)"),
                     rx.flex(
-                        rx.icon("circle-check-big", class_name="stroke-zinc-200"),
+                        rx.cond(
+                            ReportState.comp_input_pay_night,
+                            rx.icon("circle-check-big", class_name="stroke-green-400"),
+                            rx.icon("circle-check-big", class_name="stroke-zinc-200"),
+                        ),
                         class_name="pl-4"
                     ),
                     class_name="flex-row justify-between w-full"
@@ -179,11 +175,17 @@ def compensation() -> rx.Component:
                 ),
                 class_name="flex-col space-y-2 p-4 w-full"
             ),
+
+            # Weekend differential per hour?
             rx.flex(
                 rx.flex(
                     rx.text("Weekend differential per hour? (Optional)"),
                     rx.flex(
-                        rx.icon("circle-check-big", class_name="stroke-zinc-200"),
+                        rx.cond(
+                            ReportState.comp_input_pay_weekend,
+                            rx.icon("circle-check-big", class_name="stroke-green-400"),
+                            rx.icon("circle-check-big", class_name="stroke-zinc-200"),
+                        ),
                         class_name="pl-4"
                     ),
                     class_name="flex-row justify-between w-full"
@@ -198,11 +200,17 @@ def compensation() -> rx.Component:
                 ),
                 class_name="flex-col space-y-2 p-4 w-full",
             ),
+
+            # Weekend night differential per hour?
             rx.flex(
                 rx.flex(
                     rx.text("Weekend night differential per hour? (Optional)"),
                     rx.flex(
-                        rx.icon("circle-check-big", class_name="stroke-zinc-200"),
+                        rx.cond(
+                            ReportState.comp_input_pay_weekend_night,
+                            rx.icon("circle-check-big", class_name="stroke-green-400"),
+                            rx.icon("circle-check-big", class_name="stroke-zinc-200"),
+                        ),
                         class_name="pl-4"
                     ),
                     class_name="flex-row justify-between w-full"
@@ -217,20 +225,18 @@ def compensation() -> rx.Component:
                 ),
                 class_name="flex-col space-y-2 p-4 w-full",
             ),
+
             # What shifts do you work?
             rx.flex(
                 rx.flex(
                     rx.text("What shifts do you work?"),
-                    rx.cond(
-                        ReportState.comp_select_shift,
-                        rx.flex(
+                    rx.flex(
+                        rx.cond(
+                            ReportState.comp_select_shift,
                             rx.icon("circle-check-big", class_name="h-6 w-6 stroke-green-400"),
-                            class_name="pl-4"
+                            rx.icon("circle-alert", class_name="h-6 w-6 stroke-zinc-200"),
                         ),
-                        rx.flex(
-                            rx.icon("circle", class_name="h-6 w-6 stroke-zinc-200"),
-                            class_name="pl-4"
-                        )
+                        class_name="pl-4"
                     ),
                     class_name="flex-row justify-between w-full"
                 ),
@@ -238,6 +244,7 @@ def compensation() -> rx.Component:
                     ["Day", "Night", "Rotating"],
                     placeholder="- Select -",
                     value=ReportState.comp_select_shift,
+                    position="popper",
                     on_change=ReportState.set_comp_select_shift,
                     required=True,
                     size="3",
@@ -246,20 +253,18 @@ def compensation() -> rx.Component:
                 id="comp_select_shift",
                 class_name="flex-col space-y-2 p-4 w-full"
             ),
+
             # How many shifts do you work per week on average?
             rx.flex(
                 rx.flex(
                     rx.text("How many shifts do you work per week on average?"),
-                    rx.cond(
-                        ReportState.comp_select_weekly_shifts,
-                        rx.flex(
+                    rx.flex(
+                        rx.cond(
+                            ReportState.comp_select_weekly_shifts,
                             rx.icon("circle-check-big", class_name="h-6 w-6 stroke-green-400"),
-                            class_name="pl-4"
+                            rx.icon("circle-alert", class_name="h-6 w-6 stroke-zinc-200"),
                         ),
-                        rx.flex(
-                            rx.icon("circle", class_name="h-6 w-6 stroke-zinc-200"),
-                            class_name="pl-4"
-                        )
+                        class_name="pl-4"
                     ),
                     class_name="flex-row justify-between w-full"
                 ),
@@ -267,6 +272,7 @@ def compensation() -> rx.Component:
                     ["Less than 1", "1", "2", "3", "4", "5"],
                     placeholder="- Select -",
                     value=ReportState.comp_select_weekly_shifts,
+                    position="popper",
                     on_change=ReportState.set_comp_select_weekly_shifts,
                     required=True,
                     size="3",
@@ -275,20 +281,18 @@ def compensation() -> rx.Component:
                 id="comp_select_weekly_shifts",
                 class_name="flex-col space-y-2 p-4 w-full"
             ),
+
             # How many years have you worked at this hospital as an RN?
             rx.flex(
                 rx.flex(
                     rx.text("How many years have you worked at this hospital as an RN?"),
-                    rx.cond(
-                        ReportState.comp_select_hospital_experience,
-                        rx.flex(
+                    rx.flex(
+                        rx.cond(
+                            ReportState.comp_select_hospital_experience,
                             rx.icon("circle-check-big", class_name="h-6 w-6 stroke-green-400"),
-                            class_name="pl-4"
+                            rx.icon("circle-alert", class_name="h-6 w-6 stroke-zinc-200"),
                         ),
-                        rx.flex(
-                            rx.icon("circle", class_name="h-6 w-6 stroke-zinc-200"),
-                            class_name="pl-4"
-                        )
+                        class_name="pl-4"
                     ),
                     class_name="flex-row justify-between w-full"
                 ),
@@ -296,6 +300,7 @@ def compensation() -> rx.Component:
                     ReportState.years_hospital_experience,
                     placeholder="- Select -",
                     value=ReportState.comp_select_hospital_experience,
+                    position="popper",
                     on_change=ReportState.set_comp_select_hospital_experience,
                     required=True,
                     size="3",
@@ -304,20 +309,18 @@ def compensation() -> rx.Component:
                 id="comp_select_hospital_experience",
                 class_name="flex-col space-y-2 p-4 w-full"
             ),
+
             # How many years in total have you worked as an RN?
             rx.flex(
                 rx.flex(
                     rx.text("How many years in total have you worked as an RN?"),
-                    rx.cond(
-                        ReportState.comp_select_total_experience,
-                        rx.flex(
+                    rx.flex(
+                        rx.cond(
+                            ReportState.comp_select_total_experience,
                             rx.icon("circle-check-big", class_name="h-6 w-6 stroke-green-400"),
-                            class_name="pl-4"
+                            rx.icon("circle-alert", class_name="h-6 w-6 stroke-zinc-200"),
                         ),
-                        rx.flex(
-                            rx.icon("circle", class_name="h-6 w-6 stroke-zinc-200"),
-                            class_name="pl-4"
-                        )
+                        class_name="pl-4"
                     ),
                     class_name="flex-row justify-between w-full"
                 ),
@@ -325,6 +328,7 @@ def compensation() -> rx.Component:
                     ReportState.years_total_experience,
                     placeholder="- Select -",
                     value=ReportState.comp_select_total_experience,
+                    position="popper",
                     on_change=ReportState.set_comp_select_total_experience,
                     required=True,
                     size="3",
@@ -334,12 +338,17 @@ def compensation() -> rx.Component:
                 id="comp_select_total_experience",
                 class_name="flex-col space-y-2 p-4 w-full"
             ),
+
             # Select benefits that are offered to you
             rx.flex(
                 rx.flex(
                     rx.text("Select benefits that are offered to you. (Optional)"),
                     rx.flex(
-                        rx.icon("circle-check-big", class_name="stroke-zinc-200"),
+                        rx.cond(
+                            ReportState.comp_check_benefit_pto,
+                            rx.icon("circle-check-big", class_name="stroke-green-400"),
+                            rx.icon("circle-check-big", class_name="stroke-zinc-200"),
+                        ),
                         class_name="pl-4"
                     ),
                     class_name="flex-row justify-between w-full"
@@ -414,12 +423,12 @@ def compensation() -> rx.Component:
                         rx.flex(
                             rx.flex(
                                 rx.checkbox(
-                                    on_change=ReportState.set_comp_check_benefit_pro_dev,
-                                    checked=ReportState.comp_check_benefit_pro_dev,
+                                    on_change=ReportState.set_comp_check_benefit_reimbursement,
+                                    checked=ReportState.comp_check_benefit_reimbursement,
                                     class_name="cursor-pointer"
                                 ),
                                 rx.text("Certification Reimbursement"),
-                                on_click=ReportState.set_comp_check_benefit_pro_dev(~ReportState.comp_check_benefit_pro_dev),
+                                on_click=ReportState.set_comp_check_benefit_reimbursement(~ReportState.comp_check_benefit_reimbursement),
                                 class_name="flex-row flex-nowrap items-center space-x-2 cursor-pointer"
                             ),
                             class_name="flex-row p-4"
@@ -430,6 +439,7 @@ def compensation() -> rx.Component:
                 ),
                 class_name="flex-col space-y-2 p-4 w-full"
             ),
+
             # How would you grade compensation overall?
             rx.flex(
                 rx.flex(
@@ -441,7 +451,7 @@ def compensation() -> rx.Component:
                             class_name="pl-4"
                         ),
                         rx.flex(
-                            rx.icon("circle", class_name="h-6 w-6 stroke-zinc-200"),
+                            rx.icon("circle-alert", class_name="h-6 w-6 stroke-zinc-200"),
                             class_name="pl-4"
                         )
                     ),
@@ -497,12 +507,17 @@ def compensation() -> rx.Component:
                 ),
                 class_name="flex-col space-y-2 p-4 w-full"
             ),
+
             # Comments for your nursing peers about pay or benefits?
             rx.flex(
                 rx.flex(
                     rx.text("Comments or additional info for your nursing peers about pay or benefits? (Optional)"),
                     rx.flex(
-                        rx.icon("circle-check-big", class_name="stroke-zinc-200"),
+                        rx.cond(
+                            ReportState.comp_input_comments,
+                            rx.icon("circle-check-big", class_name="stroke-green-400"),
+                            rx.icon("circle-check-big", class_name="stroke-zinc-200"),
+                        ),
                         class_name="pl-4"
                     ),
                     class_name="flex-row justify-between w-full"
@@ -547,6 +562,7 @@ def compensation() -> rx.Component:
                 ),
                 class_name="flex-col space-y-2 p-4 w-full"
             ),
+
             # Navigation buttons
             rx.flex(
                 rx.flex(

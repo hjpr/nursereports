@@ -31,7 +31,7 @@ def overview_page() -> rx.Component:
 def content() -> rx.Component:
     return flex(
         hospital_info(),
-        class_name="flex-col items-center space-y-12 px-4 py-12 w-full max-w-screen-sm",
+        class_name="flex-col items-center space-y-12 px-4 py-14 md:py-20 w-full max-w-screen-sm",
     )
 
 def hospital_info() -> rx.Component:

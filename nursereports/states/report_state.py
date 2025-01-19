@@ -40,6 +40,11 @@ class ReportState(PageState):
     # Generated uuid for the current report.
     report_id: str
 
+    # Units areas and roles pulled for user selection at report load.
+    hospital_units: list[str]
+    hospital_areas: list[str]
+    hospital_roles: list[str]
+
     @rx.var
     def mode(self) -> Literal["edit", "full-report", "pay-report", "red-flag"]:
         return self.router.page.params.get("report_mode")
@@ -97,6 +102,13 @@ class ReportState(PageState):
                 self.access_token, self.hospital_id
             )
 
+            self.hospital_units = self.hospital_info.get("hosp_units", [])
+            self.hospital_units.append("I don't see my unit")
+            self.hospital_areas = self.hospital_info.get("hosp_areas", [])
+            self.hospital_areas.append("I don't see my area")
+            self.hospital_roles = self.hospital_info.get("hosp_roles", [])
+            self.hospital_roles.append("I don't see my role")
+
             # Redirect to first page of full report.
             yield rx.redirect("/report/full-report/overview")
 
@@ -125,27 +137,27 @@ class ReportState(PageState):
     #
     #################################################################
 
-    comp_select_emp_type: Literal["Full-time", "Part-time", "Contract"] = ""
-    comp_select_pay_type: Literal["Hourly", "Weekly"] = ""
+    comp_select_emp_type: Literal["", "Full-time", "Part-time", "Contract"]
+    comp_select_pay_type: Literal["", "Hourly", "Weekly"]
     comp_input_pay_hourly: int = 0
     comp_input_pay_weekly: int = 0
     comp_input_pay_night: int = 0
     comp_input_pay_weekend: int = 0
     comp_input_pay_weekend_night: int = 0
-    input_calculator: Literal[
-        "hourly", "weekly", "night", "weekend", "weekend_night"
-    ] = ""
+    input_calculator: Literal["", "hourly", "weekly", "night", "weekend", "weekend_night"]
     calculator_value: str = "0"
-    comp_select_shift: Literal["Day", "Night", "Rotating"] = ""
+    comp_select_shift: Literal["", "Day", "Night", "Rotating"]
     comp_select_weekly_shifts: Literal[
+        "",
         "Less than 1",
         "1",
         "2",
         "3",
         "4",
         "5",
-    ] = ""
+    ]
     comp_select_hospital_experience: Literal[
+        "",
         "0",
         "1",
         "2",
@@ -172,9 +184,10 @@ class ReportState(PageState):
         "23",
         "24",
         "25",
-        "More than 25 years",
-    ] = ""
+        "More than 25 years"
+    ]
     comp_select_total_experience: Literal[
+        "",
         "0",
         "1",
         "2",
@@ -201,14 +214,14 @@ class ReportState(PageState):
         "23",
         "24",
         "25",
-        "More than 25 years",
-    ] = ""
-    comp_check_benefit_pto: bool = False
-    comp_check_benefit_parental: bool = False
-    comp_check_benefit_insurance: bool = False
-    comp_check_benefit_retirement: bool = False
-    comp_check_benefit_pro_dev: bool = False
-    comp_check_benefit_tuition: bool = False
+        "More than 25 years"
+    ]
+    comp_check_benefit_pto: Literal[False, True]
+    comp_check_benefit_parental: Literal[False, True]
+    comp_check_benefit_insurance: Literal[False, True]
+    comp_check_benefit_retirement: Literal[False, True]
+    comp_check_benefit_reimbursement: Literal[False, True]
+    comp_check_benefit_tuition: Literal[False, True]
     comp_select_overall: int = 0
     comp_input_comments: str = ""
 
@@ -258,13 +271,12 @@ class ReportState(PageState):
         if self.comp_input_comments:
             return 1000 - len(self.comp_input_comments)
 
-    @rx.var
+    @rx.var(cache=True)
     def years_hospital_experience(self) -> list[str]:
         from ..client.components import years_experience
-
         return years_experience
 
-    @rx.var
+    @rx.var(cache=True)
     def years_total_experience(self) -> list[str]:
         """
         Uses years_hospital_experience to ensure that RN can't select a number of years
@@ -321,7 +333,7 @@ class ReportState(PageState):
             or not isinstance(self.comp_check_benefit_parental, bool)
             or not isinstance(self.comp_check_benefit_insurance, bool)
             or not isinstance(self.comp_check_benefit_retirement, bool)
-            or not isinstance(self.comp_check_benefit_pro_dev, bool)
+            or not isinstance(self.comp_check_benefit_reimbursement, bool)
             or not isinstance(self.comp_check_benefit_tuition, bool)
             or not isinstance(self.comp_select_overall, int)
             or (5 < self.comp_select_overall < 1)
@@ -364,216 +376,193 @@ class ReportState(PageState):
     #
     #################################################################
 
-    assign_select_specific_unit: str
+    assign_select_classify: Literal["", "Unit", "Area", "Role"]
     assign_select_unit: str
-    assign_input_unit_name: str
-    assign_select_acuity: str
     assign_select_area: str
+    assign_select_role: str
+    assign_input_unit: str
     assign_input_area: str
-    assign_select_specialty_1: str
-    assign_select_specialty_2: str
-    assign_select_specialty_3: str
-    assign_select_teamwork_rn: str
-    assign_select_teamwork_na: str
-    assign_select_providers: str
-    assign_select_contributions: str
-    assign_select_impact: str
-    assign_select_management: str
-    assign_select_leaving: str
-    assign_select_leaving_reason: str
-    assign_select_recommend: str
+    assign_input_role: str
+    assign_select_acuity: Literal["", "Intensive", "Intermediate", "Floor", "Mixed"]
+    assign_select_specialty_1: Literal[
+        "",
+        "Allergy",
+        "Burn",
+        "Cardiac",
+        "Cardiothoracic",
+        "Cardiovascular",
+        "Dermatology",
+        "Diabetes",
+        "Education",
+        "Emergency",
+        "Endocrine",
+        "Gastroenterology",
+        "Hematology",
+        "Infusion",
+        "Labor & Delivery",
+        "Medicine",
+        "Neonatal",
+        "Nephrology",
+        "Neurology",
+        "Neuroscience",
+        "Obstetrics",
+        "Occupational Health",
+        "Oncology",
+        "Orthopedic",
+        "Pain",
+        "Perinatal",
+        "Perioperative",
+        "Psychiatric",
+        "Pulmonary",
+        "Research",
+        "Rheumatology",
+        "Substance Abuse",
+        "Surgical",
+        "Toxicology",
+        "Transplant",
+        "Trauma",
+        "Urology",
+        "Wound, Ostomy, and Continence",
+    ]
+    assign_select_specialty_2: Literal[
+        "",
+        "Allergy",
+        "Burn",
+        "Cardiac",
+        "Cardiothoracic",
+        "Cardiovascular",
+        "Dermatology",
+        "Diabetes",
+        "Education",
+        "Emergency",
+        "Endocrine",
+        "Gastroenterology",
+        "Hematology",
+        "Infusion",
+        "Labor & Delivery",
+        "Medicine",
+        "Neonatal",
+        "Nephrology",
+        "Neurology",
+        "Neuroscience",
+        "Obstetrics",
+        "Occupational Health",
+        "Oncology",
+        "Orthopedic",
+        "Pain",
+        "Perinatal",
+        "Perioperative",
+        "Psychiatric",
+        "Pulmonary",
+        "Research",
+        "Rheumatology",
+        "Substance Abuse",
+        "Surgical",
+        "Toxicology",
+        "Transplant",
+        "Trauma",
+        "Urology",
+        "Wound, Ostomy, and Continence",
+    ]
+    assign_select_specialty_3: Literal[
+        "",
+        "Allergy",
+        "Burn",
+        "Cardiac",
+        "Cardiothoracic",
+        "Cardiovascular",
+        "Dermatology",
+        "Diabetes",
+        "Education",
+        "Emergency",
+        "Endocrine",
+        "Gastroenterology",
+        "Hematology",
+        "Infusion",
+        "Labor & Delivery",
+        "Medicine",
+        "Neonatal",
+        "Nephrology",
+        "Neurology",
+        "Neuroscience",
+        "Obstetrics",
+        "Occupational Health",
+        "Oncology",
+        "Orthopedic",
+        "Pain",
+        "Perinatal",
+        "Perioperative",
+        "Psychiatric",
+        "Pulmonary",
+        "Research",
+        "Rheumatology",
+        "Substance Abuse",
+        "Surgical",
+        "Toxicology",
+        "Transplant",
+        "Trauma",
+        "Urology",
+        "Wound, Ostomy, and Continence",
+    ]
+    assign_select_rate_nurses: int = 0
+    assign_select_rate_nurse_aides: int = 0
+    assign_select_rate_physicians: int = 0
+    assign_select_rate_management: int = 0
+    assign_select_recommend: Literal["", "Yes", "No"]
     assign_input_comments: str
-    assign_select_overall: str
+    assign_select_overall: int = 0
     assign_error_message: str
 
-    def set_assign_select_specific_unit(self, unit: str) -> None:
-        self.assign_select_acuity = ""
+    def set_assign_select_classify(self, classification: str) -> None:
+        self.assign_select_classify = classification
         self.assign_select_unit = ""
         self.assign_select_area = ""
+        self.assign_select_role = ""
+        self.assign_input_unit = ""
         self.assign_input_area = ""
-        self.assign_input_unit_name = ""
-        self.assign_select_specific_unit = unit
+        self.assign_input_role = ""
+        self.assign_select_acuity = ""
 
-    def set_assign_select_specialty_1(self, specialty: str) -> None:
-        self.assign_select_specialty_3 = ""
-        self.assign_select_specialty_2 = ""
-        self.assign_select_specialty_1 = specialty
+    def set_assign_select_unit(self, unit: str) -> None:
+        self.assign_select_unit = unit
+        self.assign_input_unit = ""
 
-    def set_assign_select_specialty_2(self, specialty: str) -> None:
-        self.assign_select_specialty_3 = ""
-        self.assign_select_specialty_2 = specialty
+    def set_assign_select_area(self, area: str) -> None:
+        self.assign_select_area = area
+        self.assign_input_area = ""
 
-    @rx.var
-    def name_too_long(self) -> bool:
-        if self.assign_input_unit_name:
-            if len(self.assign_input_unit_name) > 30:
-                return True
-            else:
-                return False
-        else:
-            return False
-
-    @rx.var
-    def area_too_long(self) -> bool:
-        if self.assign_input_area:
-            if len(self.assign_input_area) > 50:
-                return True
-            else:
-                return False
-        else:
-            return False
+    def set_assign_select_role(self, role: str) -> None:
+        self.assign_select_role = role
+        self.assign_input_role = ""
 
     @rx.var(cache=True)
-    def hospital_units(self) -> list[str]:
-        if self.hospital_info:
-            units = self.hospital_info["hosp_units"]
-            units.sort()
-            units.append("I don't see my unit")
-            return units
-        else:
-            return ["I don't see my unit"]
+    def assign_specialty_1(self) -> list[str]:
+        from ..client.components import unit_specialties
+        return unit_specialties
+    
+    @rx.var(cache=True)
+    def assign_specialty_2(self) -> list[str]:
+        return [unit for unit in self.assign_specialty_1 if unit not in self.assign_select_specialty_1]
 
     @rx.var(cache=True)
-    def hospital_areas(self) -> list[str]:
-        if self.hospital_info:
-            areas = self.hospital_info["hosp_areas_roles"]
-            areas.sort()
-            areas.append("I don't see my area or role")
-            return areas
-        else:
-            return ["I don't see my area or role"]
-
-    @rx.var
-    def has_unit(self) -> bool:
-        return True if self.assign_select_specific_unit else False
-
-    @rx.var
-    def is_unit(self) -> bool:
-        return True if self.assign_select_specific_unit == "Yes" else False
-
-    @rx.var
-    def unit_not_present(self) -> bool:
-        return True if self.assign_select_unit == "I don't see my unit" else False
-
-    @rx.var
-    def area_not_present(self) -> bool:
-        return (
-            True if self.assign_select_area == "I don't see my area or role" else False
-        )
-
-    @rx.var
-    def has_specialty_1(self) -> bool:
-        return True if self.assign_select_specialty_1 else False
-
-    @rx.var
-    def has_specialty_2(self) -> bool:
-        return True if self.assign_select_specialty_2 else False
-
-    @rx.var
-    def is_leaving(self) -> bool:
-        return True if self.assign_select_leaving == "Yes" else False
-
-    @rx.var
-    def assign_input_comments_chars_over(self) -> bool:
-        if self.assign_input_comments_chars_left:
-            if self.assign_input_comments_chars_left < 0:
-                return True
-            else:
-                return False
+    def assign_specialty_3(self) -> list[str]:
+        return [unit for unit in self.assign_specialty_2 if unit not in self.assign_select_specialty_2]
 
     @rx.var
     def assign_input_comments_chars_left(self) -> int:
         if self.assign_input_comments:
             return 1000 - len(self.assign_input_comments)
+        
+    def handle_submit_assignment(self) -> Callable | Iterable[Callable]:
+        # Check all our values for completion.
 
-    @rx.var
-    def assign_select_overall_description(self) -> str:
-        if self.assign_select_overall == "a":
-            return "Great"
-        if self.assign_select_overall == "b":
-            return "Good"
-        if self.assign_select_overall == "c":
-            return "So-so"
-        if self.assign_select_overall == "d":
-            return "Bad"
-        if self.assign_select_overall == "f":
-            return "Terrible"
+        # Check all our values for validity.
+        
+        # Check all our values for sanity.
 
-    @rx.var
-    def assign_select_overall_background(self) -> str:
-        if self.assign_select_overall == "a":
-            return "rgb(95, 163, 217)"
-        if self.assign_select_overall == "b":
-            return "rgb(95, 154, 100)"
-        if self.assign_select_overall == "c":
-            return "rgb(237, 234, 95)"
-        if self.assign_select_overall == "d":
-            return "rgb(197, 116, 57)"
-        if self.assign_select_overall == "f":
-            return "rgb(185, 65, 55)"
+        # If all checks complete and everything is groovy.
+        return rx.redirect(f"/report/{self.mode}/staffing")
 
-    @rx.var
-    def assign_progress(self) -> int:
-        progress = 0
-        if self.assign_select_specific_unit == "Yes":
-            progress = progress + 10
-            if self.assign_select_unit:
-                if self.assign_select_unit != "I don't see my unit":
-                    progress = progress + 10
-                if self.assign_select_unit == "I don't see my unit":
-                    progress = progress + 5
-                    if self.assign_input_unit_name:
-                        progress = progress + 5
-                if self.assign_select_acuity:
-                    progress = progress + 10
-
-        if self.assign_select_specific_unit == "No":
-            progress = progress + 10
-            if self.assign_select_area:
-                if self.assign_select_area != "I don't see my area or role":
-                    progress = progress + 20
-                if self.assign_select_area == "I don't see my area or role":
-                    progress = progress + 10
-                    if self.assign_input_area:
-                        progress = progress + 10
-
-        if self.assign_select_teamwork_rn:
-            progress = progress + 5
-        if self.assign_select_teamwork_na:
-            progress = progress + 5
-        if self.assign_select_providers:
-            progress = progress + 10
-        if self.assign_select_contributions:
-            progress = progress + 10
-        if self.assign_select_impact:
-            progress = progress + 5
-        if self.assign_select_management:
-            progress = progress + 5
-        if self.assign_select_leaving:
-            if self.is_leaving:
-                progress = progress + 5
-                if self.assign_select_leaving_reason:
-                    progress = progress + 5
-            else:
-                progress = progress + 10
-        if self.assign_select_recommend:
-            progress = progress + 10
-
-        if self.assign_select_overall:
-            progress = progress + 10
-
-        return progress
-
-    @rx.var
-    def assign_can_progress(self) -> bool:
-        if self.assign_progress == 100:
-            return True
-        else:
-            return False
-
-    @rx.var
-    def assign_has_error(self) -> bool:
-        return True if self.assign_error_message else False
 
     #################################################################
     #
@@ -614,24 +603,6 @@ class ReportState(PageState):
         self.staffing_select_charge_assignment = ""
         self.staffing_select_charge_response = response
 
-    @rx.var
-    def has_ratios(self) -> bool:
-        if (
-            self.assign_select_acuity == "Intensive"
-            or self.assign_select_acuity == "Intermediate"
-            or self.assign_select_acuity == "Floor"
-        ):
-            return True
-        else:
-            return False
-
-    @rx.var
-    def ratio_is_valid(self) -> bool:
-        return True if 0 < self.staffing_input_ratio < 30 else False
-
-    @rx.var
-    def has_charge(self) -> bool:
-        return True if self.staffing_select_charge_response == "Yes" else False
 
     @rx.var
     def ratios_unsafe(self) -> bool:
@@ -724,32 +695,6 @@ class ReportState(PageState):
     # REPORT SUBMISSION \ HANDLERS
     #
     #################################################################
-
-    def handle_edit_staffing(self) -> Callable | None:
-        return ReportState.edit_report
-
-    def handle_submit_assignment(self) -> Callable:
-        if not self.assign_can_progress:
-            self.assign_error_message = "Some fields incomplete or invalid."
-            return
-        if len(self.assign_input_comments) > 1000:
-            self.assign_error_message = "Comments contain too many characters."
-            return
-        self.assign_error_message = ""
-        return rx.redirect("/report/full-report/staffing")
-
-    def handle_submit_staffing(self) -> Callable:
-        if not self.staffing_can_progress:
-            self.staffing_error_message = "Some fields incomplete or invalid."
-            return
-        if self.has_ratios and not self.ratio_is_valid:
-            self.staffing_error_message = "Some fields incomplete or invalid."
-            return
-        if len(self.staffing_input_comments) > 1000:
-            self.staffing_error_message = "Comments contain too many characters."
-            return
-        self.staffing_error_message = ""
-        return ReportState.submit_full_report
 
     def edit_report(self) -> Iterable[Callable]:
         """
