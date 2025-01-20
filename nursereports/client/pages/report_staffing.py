@@ -1,6 +1,17 @@
-from ..components import c2a, footer, login_protected, navbar, spacer
-from reflex_motion import motion
-from ...states import BaseState, ReportState
+from ..components import (
+    flex,
+    footer,
+    login_protected,
+    navbar,
+    outline_button,
+    text
+)
+
+from ...states import (
+    BaseState,
+    ReportState,
+    constants_types
+)
 
 import reflex as rx
 
@@ -17,61 +28,55 @@ import reflex as rx
 @login_protected
 def staffing_page() -> rx.Component:
     return rx.flex(
-        c2a(),
         navbar(),
-        spacer(height="1em"),
         content(),
-        spacer(height="1em"),
         footer(),
-        width="100%",
-        flex_direction="column",
-        align_items="center",
-        min_height="100vh",
+        class_name="flex-col items-center w-full"
     )
 
 
 def content() -> rx.Component:
     return rx.flex(
         staffing(),
-        support(),
-        overall(),
-        comments(),
-        button(),
-        spacer(height="40px"),
-        gap="24px",
-        padding_x="24px",
-        width=["100%", "480px", "480px", "480px", "480px"],
-        max_width="1200px",
-        flex_direction="column",
-        flex_basis="auto",
-        flex_grow="1",
-        flex_shrink="0",
+        class_name="flex-col items-center space-y-12 px-4 py-14 md:py-20 w-full max-w-screen-sm"
     )
 
 
 def staffing() -> rx.Component:
-    return rx.card(
-        rx.vstack(rx.heading("Staffing"), rx.divider(), width="100%"),
-        spacer(height="24px"),
+    return rx.flex(
         rx.flex(
-            rx.vstack(
-                rx.text(
-                    "Do you have enough ",
-                    rx.text("nurses ", display="inline", font_weight="bold"),
-                    rx.text("each day to ensure reasonable ratios?", display="inline"),
+            text("Staffing", class_name="text-2xl font-bold"),
+            class_name="flex-col items-center bg-zinc-100 dark:bg-zinc-800 p-6 w-full",
+        ),
+        flex(
+
+            # How many patients are you responsible for at a time?
+            rx.flex(
+                rx.flex(
+                    rx.text("How many patients are you responsible for at a time?"),
+                    rx.flex(
+                        rx.cond(
+                            ReportState.staffing_input_actual_ratio,
+                            rx.icon("circle-check-big", class_name="stroke-green-400"),
+                            rx.icon("circle-alert", class_name="stroke-zinc-200"),
+                        ),
+                        class_name="pl-4"
+                    ),
+                    class_name="flex-row justify-between w-full"
                 ),
-                rx.select(
-                    ["Always", "Usually", "Sometimes", "Rarely", "Never", "N/A"],
-                    placeholder="- Select -",
-                    value=ReportState.staffing_select_nursing_shortages,
-                    on_change=ReportState.set_staffing_select_nursing_shortages,
-                    required=True,
-                    size="3",
-                    width="100%",
+                rx.flex(
+                    rx.flex(
+                        text(f"1 : {ReportState.staffing_input_actual_ratio}", class_name="text-2xl font-bold"),
+                        calculator("actual_ratio"),
+                        class_name="flex-row items-center space-x-2"
+                    ),
+                    class_name="flex-row justify-center w-full"
                 ),
-                width="100%",
+                class_name="flex-col space-y-2 p-4 w-full"
             ),
-            rx.vstack(
+
+            # Do you have enough nurse aides to ensure availability?
+            rx.flex(
                 rx.text(
                     "Do you have enough ",
                     rx.text("nurse aides ", display="inline", font_weight="bold"),
@@ -88,9 +93,11 @@ def staffing() -> rx.Component:
                     size="3",
                     width="100%",
                 ),
-                width="100%",
+                class_name="flex-col p-4 space-y-2 w-full",
             ),
-            rx.vstack(
+
+            # How would you rate the average daily workload?
+            rx.flex(
                 rx.text("How would you rate the average daily workload?"),
                 rx.select(
                     ["Overwhelming", "Heavy", "Moderate", "Light"],
@@ -101,9 +108,11 @@ def staffing() -> rx.Component:
                     size="3",
                     width="100%",
                 ),
-                width="100%",
+                class_name="flex-col p-4 space-y-2 w-full",
             ),
-            rx.vstack(
+
+            # Does the area you work in have a charge nurse?
+            rx.flex(
                 rx.text("Does the area you work in have a charge nurse?"),
                 rx.select(
                     ["Yes", "No"],
@@ -114,187 +123,127 @@ def staffing() -> rx.Component:
                     size="3",
                     width="100%",
                 ),
-                width="100%",
+                class_name="flex-col p-4 space-y-2 w-full",
             ),
-            flex_direction="column",
-            gap="24px",
-            width="100%",
-        ),
-        width="100%",
-    )
 
-
-def support() -> rx.Component:
-    return rx.card(
-        rx.vstack(rx.heading("Support"), rx.divider(), width="100%"),
-        spacer(height="24px"),
-        rx.text(
-            "Select support staff available to you as a resource.", text_align="center"
-        ),
-        spacer(height="24px"),
-        rx.flex(
-            motion(
-                rx.card(
+            # Select benefits?
+            rx.flex(
+                rx.flex(
+                    rx.text(
+                        """
+                        Select support staff available to you as a resource (Optional).
+                        """,
+                    ),
+                    rx.flex(
+                        rx.cond(
+                            (ReportState.staffing_check_transport
+                            | ReportState.staffing_check_chaplain
+                            | ReportState.staffing_check_cvad)
+                            ,
+                            rx.icon("circle-check-big", class_name="h-6 w-6 stroke-green-400"),
+                            rx.icon("circle-check-big", class_name="h-6 w-6 stroke-zinc-200"),
+                        ),
+                        class_name="pl-4"
+                    ),
+                    class_name="flex-row justify-between w-full"
+                ),
+                rx.flex(
                     rx.flex(
                         rx.checkbox(
                             on_change=ReportState.set_staffing_check_transport,
                             checked=ReportState.staffing_check_transport,
+                            class_name="cursor-pointer"
                         ),
                         rx.text("Transport"),
-                        gap="12px",
-                        align_items="center",
-                        justify_content="center",
+                        class_name="flex-row flex-nowrap items-center space-x-2 cursor-pointer"
                     ),
-                    cursor="pointer",
-                    width="100%",
-                    on_click=ReportState.set_staffing_check_transport(
-                        ~ReportState.staffing_check_transport
-                    ),
+                    class_name="flex-row p-4"
                 ),
-                initial={"scale": 1},
-                while_tap={"scale": 0.95},
-            ),
-            motion(
-                rx.card(
+                rx.flex(
                     rx.flex(
-                        rx.checkbox(
-                            on_change=ReportState.set_staffing_check_lab,
-                            checked=ReportState.staffing_check_lab,
+                        rx.flex(
+                            rx.flex(
+                                rx.checkbox(
+                                    on_change=ReportState.set_staffing_check_lab,
+                                    checked=ReportState.staffing_check_lab,
+                                    class_name="cursor-pointer"
+                                ),
+                                class_name="flex-row flex-nowrap items-center space-x-2 cursor-pointer"
+                            ),
+                            class_name="flex-row p-4"
                         ),
-                        rx.text("Phlebotomy"),
-                        gap="12px",
-                        align_items="center",
-                        justify_content="center",
+                        rx.flex(
+                            rx.flex(
+                                rx.checkbox(
+                                    on_change=ReportState.set_staffing_check_cvad,
+                                    checked=ReportState.staffing_check_cvad,
+                                    class_name="cursor-pointer"
+                                ),
+                                rx.text("CVAD"),
+                                class_name="flex-row flex-nowrap items-center space-x-2 cursor-pointer"
+                            ),
+                            class_name="flex-row p-4"
+                        ),
+                        rx.flex(
+                            rx.flex(
+                                rx.checkbox(
+                                    on_change=ReportState.set_staffing_check_wocn,
+                                    checked=ReportState.staffing_check_wocn,
+                                    class_name="cursor-pointer"
+                                ),
+                                rx.text("Wound Care"),
+                                class_name="flex-row flex-nowrap items-center space-x-2 cursor-pointer"
+                            ),
+                            class_name="flex-row p-4"
+                        ),
+                        rx.flex(
+                            rx.flex(
+                                rx.checkbox(
+                                    on_change=ReportState.set_staffing_check_chaplain,
+                                    checked=ReportState.staffing_check_chaplain,
+                                    class_name="cursor-pointer"
+                                ),
+                                rx.text("Chaplain"),
+                                class_name="flex-row flex-nowrap items-center space-x-2 cursor-pointer"
+                            ),
+                            class_name="flex-row p-4"
+                        ),
+                        rx.flex(
+                            rx.flex(
+                                rx.checkbox(
+                                    on_change=ReportState.set_staffing_check_educator,
+                                    checked=ReportState.staffing_check_educator,
+                                    class_name="cursor-pointer"
+                                ),
+                                rx.text("Educator"),
+                                class_name="flex-row flex-nowrap items-center space-x-2 cursor-pointer"
+                            ),
+                            class_name="flex-row p-4"
+                        ),                
+                        class_name="inline-flex flex-wrap justify-center"
                     ),
-                    cursor="pointer",
-                    width="100%",
-                    on_click=ReportState.set_staffing_check_lab(
-                        ~ReportState.staffing_check_lab
-                    ),
+                    class_name="flex-col items-center"
                 ),
-                initial={"scale": 1},
-                while_tap={"scale": 0.95},
+                class_name="flex-col space-y-2 p-4 w-full"
             ),
-            motion(
-                rx.card(
+            # Any comments for your nursing peers about daily patient workloads or staffing?
+            rx.flex(
+                rx.flex(
+                    rx.text(
+                        """
+                        (Optional) Any comments for your nursing peers
+                        about daily patient workloads or staffing?
+                        """,
+                    ),
                     rx.flex(
-                        rx.checkbox(
-                            on_change=ReportState.set_staffing_check_cvad,
-                            checked=ReportState.staffing_check_cvad,
+                        rx.cond(
+                            ReportState.staffing_input_comments,
+                            rx.icon("circle-check-big", class_name="h-6 w-6 stroke-green-400"),
+                            rx.icon("circle-check-big", class_name="h-6 w-6 stroke-zinc-200"),
                         ),
-                        rx.text("CVAD"),
-                        gap="12px",
-                        align_items="center",
-                        justify_content="center",
+                        class_name="pl-4"
                     ),
-                    cursor="pointer",
-                    width="100%",
-                    on_click=ReportState.set_staffing_check_cvad(
-                        ~ReportState.staffing_check_cvad
-                    ),
-                ),
-                initial={"scale": 1},
-                while_tap={"scale": 0.95},
-            ),
-            motion(
-                rx.card(
-                    rx.flex(
-                        rx.checkbox(
-                            on_change=ReportState.set_staffing_check_wocn,
-                            checked=ReportState.staffing_check_wocn,
-                        ),
-                        rx.text("Wound Care"),
-                        gap="12px",
-                        align_items="center",
-                        justify_content="center",
-                    ),
-                    cursor="pointer",
-                    width="100%",
-                    on_click=ReportState.set_staffing_check_wocn(
-                        ~ReportState.staffing_check_wocn
-                    ),
-                ),
-                initial={"scale": 1},
-                while_tap={"scale": 0.95},
-            ),
-            motion(
-                rx.card(
-                    rx.flex(
-                        rx.checkbox(
-                            on_change=ReportState.set_staffing_check_chaplain,
-                            checked=ReportState.staffing_check_chaplain,
-                        ),
-                        rx.text("Chaplain"),
-                        gap="12px",
-                        align_items="center",
-                        justify_content="center",
-                    ),
-                    cursor="pointer",
-                    width="100%",
-                    on_click=ReportState.set_staffing_check_chaplain(
-                        ~ReportState.staffing_check_chaplain
-                    ),
-                ),
-                initial={"scale": 1},
-                while_tap={"scale": 0.95},
-            ),
-            motion(
-                rx.card(
-                    rx.flex(
-                        rx.checkbox(
-                            on_change=ReportState.set_staffing_check_educator,
-                            checked=ReportState.staffing_check_educator,
-                        ),
-                        rx.text("Educator"),
-                        gap="12px",
-                        align_items="center",
-                        justify_content="center",
-                    ),
-                    cursor="pointer",
-                    width="100%",
-                    on_click=ReportState.set_staffing_check_educator(
-                        ~ReportState.staffing_check_educator
-                    ),
-                ),
-                initial={"scale": 1},
-                while_tap={"scale": 0.95},
-            ),
-            flex_direction="column",
-            gap="12px",
-            width="100%",
-        ),
-        spacer(height="24px"),
-        rx.vstack(
-            rx.text(
-                "Of the selected resources, are they available for help?",
-                text_align="center",
-            ),
-            rx.select(
-                ["Always", "Usually", "Sometimes", "Rarely", "Never", "N/A"],
-                placeholder="- Select -",
-                value=ReportState.staffing_select_support_available,
-                on_change=ReportState.set_staffing_select_support_available,
-                required=True,
-                size="3",
-                width="100%",
-            ),
-            width="100%",
-        ),
-        width="100%",
-    )
-
-
-def comments() -> rx.Component:
-    return rx.card(
-        rx.vstack(rx.heading("Comments"), rx.divider(), width="100%"),
-        spacer(height="24px"),
-        rx.flex(
-            rx.vstack(
-                rx.text(
-                    """
-                    (Optional) Any comments for your nursing peers 
-                    about staffing, workloads, or resources?
-                    """,
+                    class_name="flex-row justify-between w-full"
                 ),
                 rx.debounce_input(
                     rx.text_area(
@@ -311,7 +260,7 @@ def comments() -> rx.Component:
                 rx.cond(
                     ReportState.staffing_input_comments,
                     rx.cond(
-                        ReportState.staffing_input_comments_chars_over,
+                        ReportState.staffing_input_comments_chars_left < 0,
                         rx.callout(
                             "Please limit response to < 1000 characters!",
                             width="100%",
@@ -335,208 +284,186 @@ def comments() -> rx.Component:
                         justify_content="center",
                     ),
                 ),
-                width="100%",
+                class_name="flex-col space-y-2 p-4 w-full",
             ),
-            flex_direction="column",
-            gap="24px",
-            width="100%",
-        ),
-    )
-
-
-def overall() -> rx.Component:
-    return rx.card(
-        rx.vstack(rx.heading("Grade"), rx.divider(), width="100%"),
-        spacer(height="24px"),
-        rx.flex(
-            rx.text("How would you grade staffing overall?", text_align="center"),
+            # How would you rate the staffing and workloads overall?
             rx.flex(
-                motion(
-                    rx.image(
-                        src="/raster/icons/icon_rating_a.webp",
-                        height=[
-                            "65px",
-                            "65px",
-                            "75px",
-                            "75px",
-                            "75px",
-                        ],
-                        width=[
-                            "65px",
-                            "65px",
-                            "75px",
-                            "75px",
-                            "75px",
-                        ],
-                        border_radius="5px",
-                        cursor="pointer",
-                        on_click=ReportState.set_staffing_select_overall("a"),
+                rx.flex(
+                    rx.text("How would you rate the staffing and workloads overall?"),
+                    rx.flex(
+                        rx.cond(
+                            ReportState.staffing_select_overall,
+                            rx.icon("circle-check-big", class_name="h-6 w-6 stroke-green-400"),
+                            rx.icon("circle-alert", class_name="h-6 w-6 stroke-zinc-200"),
+                        ),
+                        class_name="pl-4"
                     ),
-                    initial={"scale": 1},
-                    while_tap={"scale": 0.95},
+                    class_name="flex-row justify-between w-full",
                 ),
-                motion(
-                    rx.image(
-                        src="/raster/icons/icon_rating_b.webp",
-                        height=[
-                            "65px",
-                            "65px",
-                            "75px",
-                            "75px",
-                            "75px",
-                        ],
-                        width=[
-                            "65px",
-                            "65px",
-                            "75px",
-                            "75px",
-                            "75px",
-                        ],
-                        border_radius="5px",
-                        cursor="pointer",
-                        on_click=ReportState.set_staffing_select_overall("b"),
+                rx.flex(
+                    rx.flex(
+                        rx.cond(
+                            ReportState.staffing_select_overall == 1,
+                            rx.icon("angry", class_name="h-10 w-10 fill-red-400"),
+                            rx.icon("angry", class_name="h-10 w-10 stroke-zinc-400"),
+                        ),
+                        on_click=ReportState.set_staffing_select_overall(1),
+                        class_name="p-4 cursor-pointer",
                     ),
-                    initial={"scale": 1},
-                    while_tap={"scale": 0.95},
-                ),
-                motion(
-                    rx.image(
-                        src="/raster/icons/icon_rating_c.webp",
-                        height=[
-                            "65px",
-                            "65px",
-                            "75px",
-                            "75px",
-                            "75px",
-                        ],
-                        width=[
-                            "65px",
-                            "65px",
-                            "75px",
-                            "75px",
-                            "75px",
-                        ],
-                        border_radius="5px",
-                        cursor="pointer",
-                        on_click=ReportState.set_staffing_select_overall("c"),
+                    rx.flex(
+                        rx.cond(
+                            ReportState.staffing_select_overall == 2,
+                            rx.icon("frown", class_name="h-10 w-10 fill-orange-400"),
+                            rx.icon("frown", class_name="h-10 w-10 stroke-zinc-400"),
+                        ),
+                        on_click=ReportState.set_staffing_select_overall(2),
+                        class_name="p-4 cursor-pointer",
                     ),
-                    initial={"scale": 1},
-                    while_tap={"scale": 0.95},
-                ),
-                motion(
-                    rx.image(
-                        src="/raster/icons/icon_rating_d.webp",
-                        height=[
-                            "65px",
-                            "65px",
-                            "75px",
-                            "75px",
-                            "75px",
-                        ],
-                        width=[
-                            "65px",
-                            "65px",
-                            "75px",
-                            "75px",
-                            "75px",
-                        ],
-                        border_radius="5px",
-                        cursor="pointer",
-                        on_click=ReportState.set_staffing_select_overall("d"),
+                    rx.flex(
+                        rx.cond(
+                            ReportState.staffing_select_overall == 3,
+                            rx.icon("meh", class_name="h-10 w-10 fill-yellow-300"),
+                            rx.icon("meh", class_name="h-10 w-10 stroke-zinc-400"),
+                        ),
+                        on_click=ReportState.set_staffing_select_overall(3),
+                        class_name="p-4 cursor-pointer",
                     ),
-                    initial={"scale": 1},
-                    while_tap={"scale": 0.95},
-                ),
-                motion(
-                    rx.image(
-                        src="/raster/icons/icon_rating_f.webp",
-                        height=[
-                            "65px",
-                            "65px",
-                            "75px",
-                            "75px",
-                            "75px",
-                        ],
-                        width=[
-                            "65px",
-                            "65px",
-                            "75px",
-                            "75px",
-                            "75px",
-                        ],
-                        border_radius="5px",
-                        cursor="pointer",
-                        on_click=ReportState.set_staffing_select_overall("f"),
+                    rx.flex(
+                        rx.cond(
+                            ReportState.staffing_select_overall == 4,
+                            rx.icon("smile", class_name="h-10 w-10 fill-green-400"),
+                            rx.icon("smile", class_name="h-10 w-10 stroke-zinc-400"),
+                        ),
+                        on_click=ReportState.set_staffing_select_overall(4),
+                        class_name="p-4 cursor-pointer",
                     ),
-                    initial={"scale": 1},
-                    while_tap={"scale": 0.95},
+                    rx.flex(
+                        rx.cond(
+                            ReportState.staffing_select_overall == 5,
+                            rx.icon("laugh", class_name="h-10 w-10 fill-blue-300"),
+                            rx.icon("laugh", class_name="h-10 w-10 stroke-zinc-400"),
+                        ),
+                        on_click=ReportState.set_staffing_select_overall(5),
+                        class_name="p-4 cursor-pointer",
+                    ),
+                    class_name="flex-row justify-around w-full",
                 ),
-                flex_direction="row",
-                justify_content="space-between",
-                width="100%",
+                class_name="flex-col space-y-2 p-4 w-full",
             ),
+            class_name="flex-col dark:divide-zinc-500 space-y-2 divide-y w-full",
+        ),
+        class_name="flex-col border rounded shadow-lg dark:border-zinc-500 bg-zinc-100 dark:bg-zinc-800 divide-y w-full",
+    )
+
+def calculator(label:str) -> rx.Component:
+    return rx.popover.root(
+        rx.popover.trigger(
+            rx.flex(
+                rx.icon("pencil", class_name="h-5 w-5"),
+                on_click=[
+                    ReportState.set_calculator_select_ratio(label),
+                    ReportState.set_calculator_ratio_value("clear")
+                ],
+                class_name="flex-row items-center space-x-4 p-2 w-full cursor-pointer"
+            )
+        ),
+        rx.popover.content(
             rx.cond(
-                ~ReportState.staffing_select_overall,
-                rx.callout(
-                    "Please make a selection.",
-                    width="100%",
-                    icon="triangle_alert",
-                    color_scheme="red",
-                    role="alert",
-                ),
-                rx.center(
-                    rx.heading(
-                        f"You graded: {ReportState.staffing_select_overall.upper()}\
-                            - {ReportState.staffing_select_overall_description}",
-                        color="white",
-                        text_align="center",
+                ReportState.calculator_ratio_value,
+                rx.flex(
+                    rx.flex(
+                        rx.flex(
+                            rx.text("$", class_name="text-4xl font-bold"),
+                        ),
+                        rx.flex(
+                            rx.text(
+                                f"{ReportState.calculator_ratio_value}",
+                                class_name="text-4xl font-bold"
+                            ),
+                            class_name="flex-row justify-end w-full"
+                        ),
+                        class_name="flex-row py-4 w-full"
                     ),
-                    background=ReportState.staffing_select_overall_background,
-                    border_radius="5px",
-                    height="3em",
-                    width="100%",
-                ),
-            ),
-            flex_direction="column",
-            gap="24px",
-            width="100%",
-        ),
-        width="100%",
-    )
-
-
-def button() -> rx.Component:
-    return rx.card(
-        rx.flex(
-            rx.button(
-                rx.cond(
-                    ReportState.is_hydrated,
-                    rx.spinner(),
-                    rx.text("Submit Report"),
-                ),
-                rx.icon("arrow-big-right"),
-                variant="ghost",
-                size="3",
-            ),
-            align_items="center",
-            justify_content="center",
-            width="100%",
-        ),
-        width="100%",
-    )
-
-
-def callout() -> rx.Component:
-    return rx.flex(
-        rx.cond(
-            ReportState.staffing_has_error,
-            rx.callout(
-                ReportState.staffing_error_message,
-                width="100%",
-                icon="triangle_alert",
-                color_scheme="red",
-                role="alert",
-            ),
-        ),
-        width="100%",
+                    rx.flex(
+                        rx.flex(
+                            rx.text("1", class_name="px-2 text-2xl"),
+                            on_click=ReportState.set_calculator_ratio_value("1"),
+                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 transition-colors duration-75"
+                        ),
+                        rx.flex(
+                            rx.text("2", class_name="px-2 text-2xl"),
+                            on_click=ReportState.set_calculator_ratio_value("2"),
+                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 transition-colors duration-75"
+                        ),
+                        rx.flex(
+                            rx.text("3", class_name="px-2 text-2xl"),
+                            on_click=ReportState.set_calculator_ratio_value("3"),
+                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 transition-colors duration-75"
+                        ),
+                        class_name="flex-row space-x-2 w-full"
+                    ),
+                    rx.flex(
+                        rx.flex(
+                            rx.text("4", class_name="px-2 text-2xl"),
+                            on_click=ReportState.set_calculator_ratio_value("4"),
+                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none select-none active:bg-zinc-200 transition-colors duration-75"
+                        ),
+                        rx.flex(
+                            rx.text("5", class_name="px-2 text-2xl"),
+                            on_click=ReportState.set_calculator_ratio_value("5"),
+                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 transition-colors duration-75"
+                        ),
+                        rx.flex(
+                            rx.text("6", class_name="px-2 text-2xl"),
+                            on_click=ReportState.set_calculator_ratio_value("6"),
+                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 transition-colors duration-75"
+                        ),
+                        class_name="flex-row space-x-2 w-full"
+                    ),
+                    rx.flex(
+                        rx.flex(
+                            rx.text("7", class_name="px-2 text-2xl"),
+                            on_click=ReportState.set_calculator_ratio_value("7"),
+                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 transition-colors duration-75"
+                        ),
+                        rx.flex(
+                            rx.text("8", class_name="px-2 text-2xl"),
+                            on_click=ReportState.set_calculator_ratio_value("8"),
+                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 transition-colors duration-75"
+                        ),
+                        rx.flex(
+                            rx.text("9", class_name="px-2 text-2xl"),
+                            on_click=ReportState.set_calculator_ratio_value("9"),
+                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 transition-colors duration-75"
+                        ),
+                        class_name="flex-row space-x-2 w-full"
+                    ),
+                    rx.flex(
+                        rx.flex(
+                            rx.text("0", class_name="px-2 text-2xl"),
+                            on_click=ReportState.set_calculator_ratio_value("0"),
+                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 transition-colors duration-75"
+                        ),
+                        rx.flex(
+                            rx.icon("delete"),
+                            on_click=ReportState.set_calculator_ratio_value("clear"),
+                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none w-full active:bg-zinc-200 transition-colors duration-75"
+                        ),
+                        class_name="flex-row space-x-2 w-full"
+                    ),
+                    rx.flex(
+                        rx.popover.close(
+                            rx.flex(
+                                rx.text("Enter", class_name="text-xl"),
+                                on_click=ReportState.set_calculator_ratio_value("enter"),
+                                class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none w-full active:bg-zinc-200 transition-colors duration-75"
+                            ),
+                            class_name="w-full"
+                        ),
+                        class_name="flex-row w-full"
+                    ),
+                    class_name="flex-col items-center space-y-2 w-full max-w-xl"
+                )
+            )
+        )
     )

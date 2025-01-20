@@ -38,6 +38,7 @@ leaving_reason = [
 ]
 
 unit_specialties = [
+    "",
     "Allergy",
     "Burn",
     "Cardiac",

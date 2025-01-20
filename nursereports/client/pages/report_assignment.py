@@ -1,5 +1,17 @@
-from ..components import flex, footer, login_protected, navbar, outline_button, text
-from ...states import BaseState, ReportState
+from ..components import (
+    flex,
+    footer,
+    login_protected,
+    navbar,
+    outline_button,
+    text
+)
+
+from ...states import (
+    BaseState,
+    ReportState,
+    constants_types
+)
 
 import reflex as rx
 
@@ -57,7 +69,7 @@ def assignment() -> rx.Component:
                     class_name="flex-col pl-8 w-full",
                 ),
                 rx.select(
-                    ["Unit", "Area", "Role"],
+                    constants_types.ASSIGN_SELECT_CLASSIFY_SELECTIONS,
                     placeholder="- Select -",
                     value=ReportState.assign_select_classify,
                     position="popper",
@@ -147,7 +159,7 @@ def assignment() -> rx.Component:
                                 class_name="flex-row justify-between w-full",
                             ),
                             rx.select(
-                                ["Intensive", "Intermediate", "Floor", "Mixed"],
+                                constants_types.ASSIGN_SELECT_ACUITY_SELECTIONS,
                                 placeholder="- Select -",
                                 value=ReportState.assign_select_acuity,
                                 position="popper",
@@ -621,7 +633,7 @@ def assignment() -> rx.Component:
                     class_name="flex-row justify-between w-full",
                 ),
                 rx.select(
-                    ["Yes", "No"],
+                    constants_types.ASSIGN_SELECT_RECOMMEND_SELECTIONS,
                     placeholder="- Select -",
                     value=ReportState.assign_select_recommend,
                     position="popper",
@@ -711,7 +723,7 @@ def assignment() -> rx.Component:
                         rx.cond(
                             ReportState.assign_input_comments,
                             rx.icon("circle-check-big", class_name="h-6 w-6 stroke-green-400"),
-                            rx.icon("circle-alert", class_name="h-6 w-6 stroke-zinc-200"),
+                            rx.icon("circle-check-big", class_name="h-6 w-6 stroke-zinc-200"),
                         ),
                         class_name="pl-4"
                     ),

@@ -5,8 +5,11 @@ from ..components import (
     navbar,
     text
 )
-from ...states.base_state import BaseState
-from ...states.report_state import ReportState
+from ...states import (
+    BaseState,
+    ReportState,
+    constants_types
+)
 
 import reflex as rx
 
@@ -60,7 +63,7 @@ def compensation() -> rx.Component:
                     class_name="flex-row justify-between w-full"
                 ),
                 rx.select(
-                    ["Full-time", "Part-time", "Contract"],
+                    constants_types.COMP_SELECT_EMP_TYPE_SELECTIONS,
                     placeholder="- Select -",
                     value=ReportState.comp_select_emp_type,
                     position="popper",
@@ -85,7 +88,7 @@ def compensation() -> rx.Component:
                     class_name="flex-row justify-between w-full"
                 ),
                 rx.select(
-                    ["Hourly", "Weekly"],
+                    constants_types.COMP_SELECT_PAY_TYPE_SELECTIONS,
                     placeholder="- Select -",
                     value=ReportState.comp_select_pay_type,
                     position="popper",
@@ -241,7 +244,7 @@ def compensation() -> rx.Component:
                     class_name="flex-row justify-between w-full"
                 ),
                 rx.select(
-                    ["Day", "Night", "Rotating"],
+                    constants_types.COMP_SELECT_SHIFT_SELECTIONS,
                     placeholder="- Select -",
                     value=ReportState.comp_select_shift,
                     position="popper",
@@ -269,7 +272,7 @@ def compensation() -> rx.Component:
                     class_name="flex-row justify-between w-full"
                 ),
                 rx.select(
-                    ["Less than 1", "1", "2", "3", "4", "5"],
+                    constants_types.COMP_SELECT_WEEKLY_SHIFTS_SELECTIONS,
                     placeholder="- Select -",
                     value=ReportState.comp_select_weekly_shifts,
                     position="popper",
@@ -297,7 +300,7 @@ def compensation() -> rx.Component:
                     class_name="flex-row justify-between w-full"
                 ),
                 rx.select(
-                    ReportState.years_hospital_experience,
+                    constants_types.COMP_SELECT_HOSPITAL_EXPERIENCE,
                     placeholder="- Select -",
                     value=ReportState.comp_select_hospital_experience,
                     position="popper",
@@ -597,7 +600,7 @@ def calculator(label:str) -> rx.Component:
                 rx.icon("pencil", class_name="h-5 w-5"),
                 on_click=[
                     ReportState.set_input_calculator(label),
-                    ReportState.set_calculator_value("clear")
+                    ReportState.set_calculator_pay_value("clear")
                 ],
                 class_name="flex-row items-center space-x-4 p-2 w-full cursor-pointer"
             )
@@ -612,7 +615,7 @@ def calculator(label:str) -> rx.Component:
                         ),
                         rx.flex(
                             rx.text(
-                                f"{ReportState.calculator_value}",
+                                f"{ReportState.calculator_pay_value}",
                                 class_name="text-4xl font-bold"
                             ),
                             class_name="flex-row justify-end w-full"
@@ -622,17 +625,17 @@ def calculator(label:str) -> rx.Component:
                     rx.flex(
                         rx.flex(
                             rx.text("1", class_name="px-2 text-2xl"),
-                            on_click=ReportState.set_calculator_value("1"),
+                            on_click=ReportState.set_calculator_pay_value("1"),
                             class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 transition-colors duration-75"
                         ),
                         rx.flex(
                             rx.text("2", class_name="px-2 text-2xl"),
-                            on_click=ReportState.set_calculator_value("2"),
+                            on_click=ReportState.set_calculator_pay_value("2"),
                             class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 transition-colors duration-75"
                         ),
                         rx.flex(
                             rx.text("3", class_name="px-2 text-2xl"),
-                            on_click=ReportState.set_calculator_value("3"),
+                            on_click=ReportState.set_calculator_pay_value("3"),
                             class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 transition-colors duration-75"
                         ),
                         class_name="flex-row space-x-2 w-full"
@@ -640,17 +643,17 @@ def calculator(label:str) -> rx.Component:
                     rx.flex(
                         rx.flex(
                             rx.text("4", class_name="px-2 text-2xl"),
-                            on_click=ReportState.set_calculator_value("4"),
+                            on_click=ReportState.set_calculator_pay_value("4"),
                             class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none select-none active:bg-zinc-200 transition-colors duration-75"
                         ),
                         rx.flex(
                             rx.text("5", class_name="px-2 text-2xl"),
-                            on_click=ReportState.set_calculator_value("5"),
+                            on_click=ReportState.set_calculator_pay_value("5"),
                             class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 transition-colors duration-75"
                         ),
                         rx.flex(
                             rx.text("6", class_name="px-2 text-2xl"),
-                            on_click=ReportState.set_calculator_value("6"),
+                            on_click=ReportState.set_calculator_pay_value("6"),
                             class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 transition-colors duration-75"
                         ),
                         class_name="flex-row space-x-2 w-full"
@@ -658,17 +661,17 @@ def calculator(label:str) -> rx.Component:
                     rx.flex(
                         rx.flex(
                             rx.text("7", class_name="px-2 text-2xl"),
-                            on_click=ReportState.set_calculator_value("7"),
+                            on_click=ReportState.set_calculator_pay_value("7"),
                             class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 transition-colors duration-75"
                         ),
                         rx.flex(
                             rx.text("8", class_name="px-2 text-2xl"),
-                            on_click=ReportState.set_calculator_value("8"),
+                            on_click=ReportState.set_calculator_pay_value("8"),
                             class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 transition-colors duration-75"
                         ),
                         rx.flex(
                             rx.text("9", class_name="px-2 text-2xl"),
-                            on_click=ReportState.set_calculator_value("9"),
+                            on_click=ReportState.set_calculator_pay_value("9"),
                             class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 transition-colors duration-75"
                         ),
                         class_name="flex-row space-x-2 w-full"
@@ -676,12 +679,12 @@ def calculator(label:str) -> rx.Component:
                     rx.flex(
                         rx.flex(
                             rx.text("0", class_name="px-2 text-2xl"),
-                            on_click=ReportState.set_calculator_value("0"),
+                            on_click=ReportState.set_calculator_pay_value("0"),
                             class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 transition-colors duration-75"
                         ),
                         rx.flex(
                             rx.icon("delete"),
-                            on_click=ReportState.set_calculator_value("clear"),
+                            on_click=ReportState.set_calculator_pay_value("clear"),
                             class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none w-full active:bg-zinc-200 transition-colors duration-75"
                         ),
                         class_name="flex-row space-x-2 w-full"
@@ -690,7 +693,7 @@ def calculator(label:str) -> rx.Component:
                         rx.popover.close(
                             rx.flex(
                                 rx.text("Enter", class_name="text-xl"),
-                                on_click=ReportState.set_calculator_value("enter"),
+                                on_click=ReportState.set_calculator_pay_value("enter"),
                                 class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none w-full active:bg-zinc-200 transition-colors duration-75"
                             ),
                             class_name="w-full"

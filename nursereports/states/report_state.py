@@ -1,3 +1,4 @@
+from . import constants_types
 from ..states import PageState
 from ..server.exceptions import RequestFailed, DuplicateReport, DuplicateUUID
 from ..server.secrets import anyscale_api_key, anyscale_url, api_url, api_key
@@ -14,6 +15,7 @@ from ..server.supabase import (
 )
 from loguru import logger
 from typing import Callable, Iterable, Literal
+from rich.pretty import pprint
 
 import httpx
 import inspect
@@ -45,6 +47,9 @@ class ReportState(PageState):
     hospital_areas: list[str]
     hospital_roles: list[str]
 
+    # Full report dictionary.
+    report_dict: dict[str, bool | int | str] = {}
+
     @rx.var
     def mode(self) -> Literal["edit", "full-report", "pay-report", "red-flag"]:
         return self.router.page.params.get("report_mode")
@@ -58,7 +63,6 @@ class ReportState(PageState):
                 yield rx.redirect(f"/hospital/{self.hospital_id}")
             else:
                 yield rx.redirect("/dashboard")
-
 
     def event_state_edit_user_report(self, report_id: str) -> Iterable[Callable]:
         """
@@ -137,91 +141,25 @@ class ReportState(PageState):
     #
     #################################################################
 
-    comp_select_emp_type: Literal["", "Full-time", "Part-time", "Contract"]
-    comp_select_pay_type: Literal["", "Hourly", "Weekly"]
+    comp_select_emp_type: constants_types.ValidEmploymentType
+    comp_select_pay_type: constants_types.ValidPayType
     comp_input_pay_hourly: int = 0
     comp_input_pay_weekly: int = 0
     comp_input_pay_night: int = 0
     comp_input_pay_weekend: int = 0
     comp_input_pay_weekend_night: int = 0
-    input_calculator: Literal["", "hourly", "weekly", "night", "weekend", "weekend_night"]
-    calculator_value: str = "0"
-    comp_select_shift: Literal["", "Day", "Night", "Rotating"]
-    comp_select_weekly_shifts: Literal[
-        "",
-        "Less than 1",
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-    ]
-    comp_select_hospital_experience: Literal[
-        "",
-        "0",
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        "8",
-        "9",
-        "10",
-        "11",
-        "12",
-        "13",
-        "14",
-        "15",
-        "16",
-        "17",
-        "18",
-        "19",
-        "20",
-        "21",
-        "22",
-        "23",
-        "24",
-        "25",
-        "More than 25 years"
-    ]
-    comp_select_total_experience: Literal[
-        "",
-        "0",
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "7",
-        "8",
-        "9",
-        "10",
-        "11",
-        "12",
-        "13",
-        "14",
-        "15",
-        "16",
-        "17",
-        "18",
-        "19",
-        "20",
-        "21",
-        "22",
-        "23",
-        "24",
-        "25",
-        "More than 25 years"
-    ]
-    comp_check_benefit_pto: Literal[False, True]
-    comp_check_benefit_parental: Literal[False, True]
-    comp_check_benefit_insurance: Literal[False, True]
-    comp_check_benefit_retirement: Literal[False, True]
-    comp_check_benefit_reimbursement: Literal[False, True]
-    comp_check_benefit_tuition: Literal[False, True]
+    input_calculator: constants_types.ValidCalculatorInputType
+    calculator_pay_value: str = "0"
+    comp_select_shift: constants_types.ValidShiftType
+    comp_select_weekly_shifts: constants_types.ValidWeeklyShiftsType
+    comp_select_hospital_experience: constants_types.ValidHospitalExperienceType
+    comp_select_total_experience: constants_types.ValidHospitalExperienceType
+    comp_check_benefit_pto: bool = False
+    comp_check_benefit_parental: bool = False
+    comp_check_benefit_insurance: bool = False
+    comp_check_benefit_retirement: bool = False
+    comp_check_benefit_reimbursement: bool = False
+    comp_check_benefit_tuition: bool = False
     comp_select_overall: int = 0
     comp_input_comments: str = ""
 
@@ -234,37 +172,37 @@ class ReportState(PageState):
         self.comp_select_hospital_experience = experience
         self.comp_select_total_experience = ""
 
-    def set_calculator_value(self, input: str) -> None:
+    def set_calculator_pay_value(self, input: str) -> None:
         """
         Set calculator based on context from self.input_calculator. Restricts length
         of input based on if user is entering hourly/weekly/etc rates.
         """
         if input == "clear":
-            self.calculator_value = "0"
+            self.calculator_pay_value = "0"
             return
         if input == "enter":
             setattr(
                 self,
                 f"comp_input_pay_{self.input_calculator}",
-                int(self.calculator_value),
+                int(self.calculator_pay_value),
             )
-            self.calculator_value = "0"
+            self.calculator_pay_value = "0"
             return
-        if self.calculator_value == "0":
-            self.calculator_value = input
+        if self.calculator_pay_value == "0":
+            self.calculator_pay_value = input
             return
         else:
             if (
                 self.input_calculator in ("weekend", "night")
-                and len(self.calculator_value) >= 2
+                and len(self.calculator_pay_value) >= 2
             ):
                 return
-            elif self.input_calculator == "hourly" and len(self.calculator_value) >= 3:
+            elif self.input_calculator == "hourly" and len(self.calculator_pay_value) >= 3:
                 return
-            elif self.input_calculator == "weekly" and len(self.calculator_value) >= 5:
+            elif self.input_calculator == "weekly" and len(self.calculator_pay_value) >= 5:
                 return
             else:
-                self.calculator_value += input
+                self.calculator_pay_value += input
 
     @rx.var
     def comp_comments_chars_left(self) -> int:
@@ -273,8 +211,7 @@ class ReportState(PageState):
 
     @rx.var(cache=True)
     def years_hospital_experience(self) -> list[str]:
-        from ..client.components import years_experience
-        return years_experience
+        return constants_types.COMP_SELECT_HOSPITAL_EXPERIENCE
 
     @rx.var(cache=True)
     def years_total_experience(self) -> list[str]:
@@ -294,6 +231,7 @@ class ReportState(PageState):
         Ensure validity of all entries in the compensation section before advancing to the
         assignment section.
         """
+
         # Check all our required values for completion.
         if (
             not self.comp_select_emp_type
@@ -312,23 +250,27 @@ class ReportState(PageState):
 
         # Check all our values for validity.
         if (
-            self.comp_select_emp_type not in ("Full-time", "Part-time", "Contract")
-            or self.comp_select_pay_type not in ("Hourly", "Weekly")
+            self.comp_select_emp_type
+            not in constants_types.COMP_SELECT_EMP_TYPE_SELECTIONS
+            or self.comp_select_pay_type
+            not in constants_types.COMP_SELECT_PAY_TYPE_SELECTIONS
             or not isinstance(self.comp_input_pay_hourly, int)
             or self.comp_input_pay_hourly > 999
             or not isinstance(self.comp_input_pay_weekly, int)
             or self.comp_input_pay_weekly > 9999
+            or (self.comp_input_pay_hourly and self.comp_input_pay_weekly)
             or not isinstance(self.comp_input_pay_night, int)
             or self.comp_input_pay_night > 99
             or not isinstance(self.comp_input_pay_weekend, int)
             or self.comp_input_pay_weekend > 99
-            or self.comp_select_shift not in ("Day", "Night", "Rotating")
+            or self.comp_select_shift
+            not in constants_types.COMP_SELECT_SHIFT_SELECTIONS
             or self.comp_select_weekly_shifts
-            not in ("Less than 1", "1", "2", "3", "4", "5")
+            not in constants_types.COMP_SELECT_WEEKLY_SHIFTS_SELECTIONS
             or self.comp_select_hospital_experience
-            not in tuple(str(i) for i in range(26)) + tuple("More than 25 years")
+            not in constants_types.COMP_SELECT_HOSPITAL_EXPERIENCE
             or self.comp_select_total_experience
-            not in tuple(str(i) for i in range(26)) + tuple("More than 25 years")
+            not in constants_types.COMP_SELECT_HOSPITAL_EXPERIENCE
             or not isinstance(self.comp_check_benefit_pto, bool)
             or not isinstance(self.comp_check_benefit_parental, bool)
             or not isinstance(self.comp_check_benefit_insurance, bool)
@@ -339,6 +281,14 @@ class ReportState(PageState):
             or (5 < self.comp_select_overall < 1)
             or not isinstance(self.comp_input_comments, str)
         ):
+            # Grab all relevant fields by key so we can see whats going wrong.
+            keys = [key for key in ReportState.__fields__.keys() if "comp" in key]
+            debug_dict = {}
+            for key in keys:
+                value = self.get_value(key)
+                debug_dict[key] = value
+                logger.warning(f"{key} - {value} - {type(value)}")
+
             return rx.toast.error(
                 "Validity check failed. Contact support if problem persists.",
                 close_button=True,
@@ -368,6 +318,37 @@ class ReportState(PageState):
 
         # If all checks are complete and everything is groovy.
         if not error_messages:
+            self.report_dict = {
+                "compensation": {
+                    "emp_type": self.comp_select_emp_type,
+                    "pay_type": self.comp_select_pay_type,
+                    "pay": {
+                        "hourly": self.comp_input_pay_hourly,
+                        "weekly": self.comp_input_pay_weekly,
+                        "night": self.comp_input_pay_night,
+                        "weekend": self.comp_input_pay_weekend,
+                        "weekend_night": self.comp_input_pay_weekend_night,
+                    },
+                    "shift": self.comp_select_shift,
+                    "weekly_shifts": self.comp_select_weekly_shifts,
+                    "experience": {
+                        "hospital": self.comp_select_hospital_experience,
+                        "total": self.comp_select_total_experience,
+                    },
+                    "benefits": {
+                        "pto": self.comp_check_benefit_pto,
+                        "parental_leave": self.comp_check_benefit_parental,
+                        "insurance": self.comp_check_benefit_insurance,
+                        "retirement": self.comp_check_benefit_retirement,
+                        "reimbursement": self.comp_check_benefit_reimbursement,
+                        "tuition": self.comp_check_benefit_tuition,
+                    },
+                    "ratings": {
+                        "overall": self.comp_select_overall,
+                    },
+                    "comments": self.comp_input_comments,
+                }
+            }
             return rx.redirect(f"/report/{self.mode}/assignment")
 
     #################################################################
@@ -376,141 +357,24 @@ class ReportState(PageState):
     #
     #################################################################
 
-    assign_select_classify: Literal["", "Unit", "Area", "Role"]
+    assign_select_classify: constants_types.ValidClassifyType
     assign_select_unit: str
     assign_select_area: str
     assign_select_role: str
     assign_input_unit: str
     assign_input_area: str
     assign_input_role: str
-    assign_select_acuity: Literal["", "Intensive", "Intermediate", "Floor", "Mixed"]
-    assign_select_specialty_1: Literal[
-        "",
-        "Allergy",
-        "Burn",
-        "Cardiac",
-        "Cardiothoracic",
-        "Cardiovascular",
-        "Dermatology",
-        "Diabetes",
-        "Education",
-        "Emergency",
-        "Endocrine",
-        "Gastroenterology",
-        "Hematology",
-        "Infusion",
-        "Labor & Delivery",
-        "Medicine",
-        "Neonatal",
-        "Nephrology",
-        "Neurology",
-        "Neuroscience",
-        "Obstetrics",
-        "Occupational Health",
-        "Oncology",
-        "Orthopedic",
-        "Pain",
-        "Perinatal",
-        "Perioperative",
-        "Psychiatric",
-        "Pulmonary",
-        "Research",
-        "Rheumatology",
-        "Substance Abuse",
-        "Surgical",
-        "Toxicology",
-        "Transplant",
-        "Trauma",
-        "Urology",
-        "Wound, Ostomy, and Continence",
-    ]
-    assign_select_specialty_2: Literal[
-        "",
-        "Allergy",
-        "Burn",
-        "Cardiac",
-        "Cardiothoracic",
-        "Cardiovascular",
-        "Dermatology",
-        "Diabetes",
-        "Education",
-        "Emergency",
-        "Endocrine",
-        "Gastroenterology",
-        "Hematology",
-        "Infusion",
-        "Labor & Delivery",
-        "Medicine",
-        "Neonatal",
-        "Nephrology",
-        "Neurology",
-        "Neuroscience",
-        "Obstetrics",
-        "Occupational Health",
-        "Oncology",
-        "Orthopedic",
-        "Pain",
-        "Perinatal",
-        "Perioperative",
-        "Psychiatric",
-        "Pulmonary",
-        "Research",
-        "Rheumatology",
-        "Substance Abuse",
-        "Surgical",
-        "Toxicology",
-        "Transplant",
-        "Trauma",
-        "Urology",
-        "Wound, Ostomy, and Continence",
-    ]
-    assign_select_specialty_3: Literal[
-        "",
-        "Allergy",
-        "Burn",
-        "Cardiac",
-        "Cardiothoracic",
-        "Cardiovascular",
-        "Dermatology",
-        "Diabetes",
-        "Education",
-        "Emergency",
-        "Endocrine",
-        "Gastroenterology",
-        "Hematology",
-        "Infusion",
-        "Labor & Delivery",
-        "Medicine",
-        "Neonatal",
-        "Nephrology",
-        "Neurology",
-        "Neuroscience",
-        "Obstetrics",
-        "Occupational Health",
-        "Oncology",
-        "Orthopedic",
-        "Pain",
-        "Perinatal",
-        "Perioperative",
-        "Psychiatric",
-        "Pulmonary",
-        "Research",
-        "Rheumatology",
-        "Substance Abuse",
-        "Surgical",
-        "Toxicology",
-        "Transplant",
-        "Trauma",
-        "Urology",
-        "Wound, Ostomy, and Continence",
-    ]
+    assign_select_acuity: constants_types.ValidAcuityType
+    assign_select_specialty_1: constants_types.ValidSpecialtyType
+    assign_select_specialty_2: constants_types.ValidSpecialtyType
+    assign_select_specialty_3: constants_types.ValidSpecialtyType
     assign_select_rate_nurses: int = 0
     assign_select_rate_nurse_aides: int = 0
     assign_select_rate_physicians: int = 0
     assign_select_rate_management: int = 0
-    assign_select_recommend: Literal["", "Yes", "No"]
-    assign_input_comments: str
+    assign_select_recommend: constants_types.ValidYesNoType
     assign_select_overall: int = 0
+    assign_input_comments: str
     assign_error_message: str
 
     def set_assign_select_classify(self, classification: str) -> None:
@@ -526,6 +390,7 @@ class ReportState(PageState):
     def set_assign_select_unit(self, unit: str) -> None:
         self.assign_select_unit = unit
         self.assign_input_unit = ""
+        self.assign_select_acuity = ""
 
     def set_assign_select_area(self, area: str) -> None:
         self.assign_select_area = area
@@ -537,32 +402,180 @@ class ReportState(PageState):
 
     @rx.var(cache=True)
     def assign_specialty_1(self) -> list[str]:
-        from ..client.components import unit_specialties
-        return unit_specialties
-    
+        return constants_types.ASSIGN_SELECT_SPECIALTY_SELECTIONS
+
     @rx.var(cache=True)
     def assign_specialty_2(self) -> list[str]:
-        return [unit for unit in self.assign_specialty_1 if unit not in self.assign_select_specialty_1]
+        return [
+            unit
+            for unit in self.assign_specialty_1
+            if unit not in self.assign_select_specialty_1
+        ]
 
     @rx.var(cache=True)
     def assign_specialty_3(self) -> list[str]:
-        return [unit for unit in self.assign_specialty_2 if unit not in self.assign_select_specialty_2]
+        return [
+            unit
+            for unit in self.assign_specialty_2
+            if unit not in self.assign_select_specialty_2
+        ]
 
     @rx.var
     def assign_input_comments_chars_left(self) -> int:
         if self.assign_input_comments:
             return 1000 - len(self.assign_input_comments)
-        
+
     def handle_submit_assignment(self) -> Callable | Iterable[Callable]:
         # Check all our values for completion.
+        if (
+            not self.assign_select_classify
+            or not (
+                (
+                    self.assign_select_unit
+                    and self.assign_select_unit != "I don't see my unit"
+                    and self.assign_select_acuity
+                )
+                or (
+                    self.assign_select_unit
+                    and self.assign_select_unit == "I don't see my unit"
+                    and self.assign_input_unit
+                    and self.assign_select_acuity
+                )
+                or (
+                    self.assign_select_area
+                    and self.assign_select_area != "I don't see my unit"
+                )
+                or (
+                    self.assign_select_area
+                    and self.assign_select_area == "I don't see my unit"
+                    and self.assign_input_area
+                )
+                or (
+                    self.assign_select_role
+                    and self.assign_select_role != "I don't see my role"
+                )
+                or (
+                    self.assign_select_role
+                    and self.assign_select_role == "I don't see my role"
+                    and self.assign_input_role
+                )
+            )
+            or not self.assign_select_rate_nurses
+            or not self.assign_select_rate_nurse_aides
+            or not self.assign_select_rate_physicians
+            or not self.assign_select_rate_management
+            or not self.assign_select_recommend
+            or not self.assign_select_overall
+        ):
+            return rx.toast.error(
+                "Missing information. Please check form and complete required questions.",
+                close_button=True,
+            )
 
         # Check all our values for validity.
-        
+        if (
+            self.assign_select_classify == "Unit" and (self.assign_select_acuity
+            not in constants_types.ASSIGN_SELECT_ACUITY_SELECTIONS)
+            or not isinstance(self.assign_input_unit, str)
+            or len(self.assign_input_unit) > 50
+            or not isinstance(self.assign_input_area, str)
+            or len(self.assign_input_area) > 50
+            or not isinstance(self.assign_input_role, str)
+            or len(self.assign_input_role) > 50
+            or self.assign_select_classify
+            not in constants_types.ASSIGN_SELECT_CLASSIFY_SELECTIONS
+            or (
+                self.assign_select_specialty_1 != "" 
+                and self.assign_select_specialty_1 not in constants_types.ASSIGN_SELECT_SPECIALTY_SELECTIONS
+            )
+            or (
+                self.assign_select_specialty_2 != "" 
+                and self.assign_select_specialty_2 not in constants_types.ASSIGN_SELECT_SPECIALTY_SELECTIONS
+            )
+            or (
+                self.assign_select_specialty_3 != "" 
+                and self.assign_select_specialty_3 not in constants_types.ASSIGN_SELECT_SPECIALTY_SELECTIONS
+            )
+            or not isinstance(self.assign_select_rate_nurses, int)
+            or (5 < self.assign_select_rate_nurses < 1)
+            or not isinstance(self.assign_select_rate_nurse_aides, int)
+            or (5 < self.assign_select_rate_nurse_aides < 1)
+            or not isinstance(self.assign_select_rate_physicians, int)
+            or (5 < self.assign_select_rate_physicians < 1)
+            or not isinstance(self.assign_select_rate_management, int)
+            or (5 < self.assign_select_rate_management < 1)
+            or self.assign_select_recommend
+            not in constants_types.ASSIGN_SELECT_RECOMMEND_SELECTIONS
+            or not isinstance(self.assign_input_comments, str)
+        ):
+            # Grab all relevant fields by key to see what is going wrong.
+            keys = [key for key in ReportState.__fields__.keys() if "assign" in key]
+            debug_dict = {}
+            for key in keys:
+                value = self.get_value(key)
+                debug_dict[key] = value
+                logger.warning(f"{key} - {value} - {type(value)}")
+
+            return rx.toast.error(
+                "Validity check failed. Contact support if problem persists.",
+                close_button=True,
+            )
+
         # Check all our values for sanity.
+        error_messages = []
+        if (
+            self.assign_select_specialty_1 and (self.assign_select_specialty_1 in self.assign_select_specialty_2)
+            or self.assign_select_specialty_2 and (self.assign_select_specialty_2 in self.assign_select_specialty_3)
+            or self.assign_select_specialty_3 and (self.assign_select_specialty_3 in self.assign_select_specialty_1)
+        ):
+            error_messages.append("Can't have duplicate specialty entries.")
+        if len(self.assign_input_comments) > 1000:
+            error_messages.append("Length of comment exceeds 1000 characters")
+
+        for message in error_messages:
+            yield rx.toast.error(message, close_button=True)
 
         # If all checks complete and everything is groovy.
-        return rx.redirect(f"/report/{self.mode}/staffing")
-
+        if not error_messages:
+            self.report_dict = {
+                "assignment": {
+                    "classify": self.assign_select_classify,
+                    "unit": {
+                        "selected_unit": self.assign_select_unit
+                        if self.assign_select_unit != "I don't see my unit"
+                        else "",
+                        "entered_unit": self.assign_input_unit,
+                        "acuity": self.assign_select_acuity,
+                    },
+                    "area": {
+                        "selected_area": self.assign_select_area
+                        if self.assign_select_area != "I don't see my area"
+                        else "",
+                        "entered_area": self.assign_input_area,
+                    },
+                    "role": {
+                        "selected_role": self.assign_select_role
+                        if self.assign_select_role != "I don't see my role"
+                        else "",
+                        "entered_role": self.assign_input_role,
+                    },
+                    "specialty": {
+                        "specialty_1": self.assign_select_specialty_1,
+                        "specialty_2": self.assign_select_specialty_2,
+                        "specialty_3": self.assign_select_specialty_3,
+                    },
+                    "ratings": {
+                        "nurses": self.assign_select_rate_nurses,
+                        "nurse_aides": self.assign_select_rate_nurse_aides,
+                        "physicians": self.assign_select_rate_physicians,
+                        "management": self.assign_select_rate_management,
+                        "overall": self.assign_select_overall,
+                    },
+                    "recommend": self.assign_select_recommend,
+                    "comments": self.assign_input_comments,
+                }
+            }
+            return rx.redirect(f"/report/{self.mode}/staffing")
 
     #################################################################
     #
@@ -570,29 +583,55 @@ class ReportState(PageState):
     #
     #################################################################
 
-    staffing_input_ratio: int
-    staffing_select_ratio_unsafe: str
+    staffing_input_actual_ratio: int
+    staffing_input_ideal_ratio: int
+    calculator_select_ratio: str
+    calculator_ratio_value: str
     staffing_select_workload: str
     staffing_select_charge_response: str
     staffing_select_charge_assignment: str
     staffing_select_nursing_shortages: str
     staffing_select_aide_shortages: str
-    staffing_check_transport: bool
-    staffing_check_lab: bool
-    staffing_check_cvad: bool
-    staffing_check_wocn: bool
-    staffing_check_chaplain: bool
-    staffing_check_educator: bool
-    staffing_select_support_available: str
+    staffing_check_transport: bool = False
+    staffing_check_lab: bool = False
+    staffing_check_cvad: bool = False
+    staffing_check_wocn: bool = False
+    staffing_check_chaplain: bool = False
+    staffing_check_educator: bool = False
+    staffing_select_overall: int = 0
     staffing_input_comments: str
-    staffing_select_overall: str
-    staffing_error_message: str
 
-    def set_staffing_input_ratio(self, ratio: str) -> None:
-        if bool(re.match(r"^[0-9]+$", ratio)):
-            self.staffing_input_ratio = int(ratio)
-        if ratio == "":
-            self.staffing_input_ratio = 0
+    def set_calculator_ratio_value(self, input: str) -> None:
+            """
+            Set calculator based on context from self.input_calculator. Restricts length
+            of input to 2 digits.
+            """
+            if input == "clear":
+                self.calculator_ratio_value = "0"
+                return
+            if input == "enter":
+                setattr(
+                    self,
+                    f"staffing_input_{self.calculator_select_ratio}",
+                    int(self.calculator_ratio_value),
+                )
+                self.calculator_ratio_value = "0"
+                return
+            if self.calculator_ratio_value == "0":
+                self.calculator_ratio_value = input
+                return
+            else:
+                if (
+                    self.input_calculator in ("weekend", "night")
+                    and len(self.calculator_ratio_value) >= 2
+                ):
+                    return
+                elif self.input_calculator == "hourly" and len(self.calculator_ratio_value) >= 3:
+                    return
+                elif self.input_calculator == "weekly" and len(self.calculator_ratio_value) >= 5:
+                    return
+                else:
+                    self.calculator_ratio_value += input
 
     def set_staffing_select_ratio_response(self, response: str) -> None:
         self.staffing_input_ratio = 0
@@ -603,92 +642,11 @@ class ReportState(PageState):
         self.staffing_select_charge_assignment = ""
         self.staffing_select_charge_response = response
 
-
-    @rx.var
-    def ratios_unsafe(self) -> bool:
-        if (
-            self.staffing_select_ratio_unsafe == "Always"
-            or self.staffing_select_ratio_unsafe == "Usually"
-            or self.staffing_select_ratio_unsafe == "Sometimes"
-        ):
-            return True
-        else:
-            return False
-
-    @rx.var
-    def staffing_input_comments_chars_over(self) -> bool:
-        if self.staffing_input_comments_chars_left:
-            if self.staffing_input_comments_chars_left < 0:
-                return True
-            else:
-                return False
-
     @rx.var
     def staffing_input_comments_chars_left(self) -> int:
         if self.staffing_input_comments:
             return 1000 - len(self.staffing_input_comments)
 
-    @rx.var
-    def staffing_select_overall_description(self) -> str:
-        if self.staffing_select_overall == "a":
-            return "Great"
-        if self.staffing_select_overall == "b":
-            return "Good"
-        if self.staffing_select_overall == "c":
-            return "So-so"
-        if self.staffing_select_overall == "d":
-            return "Bad"
-        if self.staffing_select_overall == "f":
-            return "Terrible"
-
-    @rx.var
-    def staffing_select_overall_background(self) -> str:
-        if self.staffing_select_overall == "a":
-            return "rgb(95, 163, 217)"
-        if self.staffing_select_overall == "b":
-            return "rgb(95, 154, 100)"
-        if self.staffing_select_overall == "c":
-            return "rgb(237, 234, 95)"
-        if self.staffing_select_overall == "d":
-            return "rgb(197, 116, 57)"
-        if self.staffing_select_overall == "f":
-            return "rgb(185, 65, 55)"
-
-    @rx.var
-    def staffing_progress(self) -> int:
-        progress = 0
-        if self.has_ratios:
-            if self.staffing_input_ratio and self.ratio_is_valid:
-                progress = progress + 10
-            if self.staffing_select_ratio_unsafe:
-                progress = progress + 10
-        if not self.has_ratios and self.staffing_select_workload:
-            progress = progress + 20
-        if self.staffing_select_workload:
-            progress = progress + 10
-        if self.staffing_select_charge_response == "Yes":
-            progress = progress + 5
-            if self.staffing_select_charge_assignment:
-                progress = progress + 5
-        if self.staffing_select_charge_response == "No":
-            progress = progress + 10
-        if self.staffing_select_nursing_shortages:
-            progress = progress + 15
-        if self.staffing_select_aide_shortages:
-            progress = progress + 15
-        if self.staffing_select_support_available:
-            progress = progress + 15
-        if self.staffing_select_overall:
-            progress = progress + 15
-        return progress
-
-    @rx.var
-    def staffing_can_progress(self) -> bool:
-        return True if self.staffing_progress == 100 else False
-
-    @rx.var
-    def staffing_has_error(self) -> bool:
-        return True if self.staffing_error_message else False
 
     #################################################################
     #
