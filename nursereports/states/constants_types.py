@@ -1,6 +1,8 @@
 from typing import Literal
 
-# Compensation
+#################################################################
+# COMPENSATION
+#################################################################
 COMP_SELECT_EMP_TYPE_SELECTIONS = ["Full-time", "Part-time", "Contract"]
 COMP_SELECT_PAY_TYPE_SELECTIONS = ["Hourly", "Weekly"]
 COMP_SELECT_SHIFT_SELECTIONS = ["Day", "Night", "Rotating"]
@@ -81,7 +83,9 @@ ValidHospitalExperienceType = Literal[
     "More than 25 years",
 ]
 
-# Assignment
+#################################################################
+# ASSIGNMENT
+#################################################################
 ASSIGN_SELECT_CLASSIFY_SELECTIONS = ["Unit", "Area", "Role"]
 ASSIGN_SELECT_ACUITY_SELECTIONS = ["Intensive", "Intermediate", "Floor", "Mixed"]
 ASSIGN_SELECT_SPECIALTY_SELECTIONS = [
@@ -168,3 +172,18 @@ ValidSpecialtyType = Literal[
     "Wound, Ostomy, and Continence",
 ]
 ValidYesNoType = Literal["", "Yes", "No"]
+
+#################################################################
+# STAFFING
+#################################################################
+STAFFING_SELECT_RATIO_SELECTIONS = ["Yes", "No"]
+STAFFING_SELECT_RATIO_APPROPRIATE = ["Yes", "No"]
+STAFFING_SELECT_WORKLOAD_SELECTIONS = ["Light", "Moderate", "Heavy", "Overwhelming"]
+STAFFING_SELECT_CHARGE_PRESENT_SELECTIONS = ["Yes", "No"]
+STAFFING_SELECT_CHARGE_ASSIGNMENT_SELECTIONS = ["Never", "Rarely", "Sometimes", "Often", "Always"]
+
+ValidRatioType = Literal["", "Yes", "No"]
+ValidCalculatorToggleRatioType = Literal["", "actual_ratio", "ideal_ratio"]
+ValidWorkloadType = Literal["", "Light", "Moderate", "Heavy", "Overwhelming"]
+ValidChargeAssignmentType = Literal["", "Never", "Rarely", "Sometimes", "Often", "Always"]
+
