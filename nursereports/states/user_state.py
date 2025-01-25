@@ -27,7 +27,7 @@ import time
 
 class UserState(AuthState):
     # Stored dict of user information from /public.
-    user_info: dict[str, str | list | None] = {}
+    user_info: dict[str, str | list | dict | None] = {}
 
     # Stored list of user information from /public
     user_reports: list[dict[str, str]] = []

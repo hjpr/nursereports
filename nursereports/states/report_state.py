@@ -21,6 +21,7 @@ import httpx
 import inspect
 import json
 import uuid
+import pprint
 import reflex as rx
 import rich
 import textwrap
@@ -119,24 +120,18 @@ class ReportState(PageState):
             self.report_dict["hospital_id"] = self.hospital_id
             self.report_dict["user"] = {
                 "user_id": self.user_claims_id,
-                "trust": self.user_info["trust"],
-                "license": self.user_info["license"],
-                "license_state": self.user_info["license_state"],
+                "professional": {self.user_info["professional"]},
                 "ip_addr": self.router.session.client_ip,
                 "host": self.router.headers.host,
-                "user_agent": self.router.headers.user_agent
+                "user_agent": self.router.headers.user_agent,
             }
             self.report_dict["compensation"] = {}
             self.report_dict["assignment"] = {}
             self.report_dict["staffing"] = {}
-            self.report_dict["social"] = {
-                "likes": {},
-                "comments": {},
-                "tags": {}
-            }
-            self.report_dict["created_at"] = datetime.now(timezone.utc)
-            self.report_dict["modified_at"] = datetime.now(timezone.utc)
-            
+            self.report_dict["social"] = {"likes": {}, "comments": {}, "tags": {}}
+            self.report_dict["created_at"] = str(datetime.now(timezone.utc))
+            self.report_dict["modified_at"] = str(datetime.now(timezone.utc))
+
             # Redirect to first page of full report.
             yield rx.redirect("/report/full-report/overview")
 
@@ -159,9 +154,9 @@ class ReportState(PageState):
             logger.critical(str(e))
             raise Exception("Error while pulling hospital details.")
 
-#################################################################
-# COMPENSATION
-#################################################################
+    #################################################################
+    # COMPENSATION
+    #################################################################
 
     comp_select_emp_type: constants_types.ValidEmploymentType
     comp_select_pay_type: constants_types.ValidPayType
@@ -219,9 +214,15 @@ class ReportState(PageState):
                 and len(self.calculator_pay_value) >= 2
             ):
                 return
-            elif self.input_calculator == "hourly" and len(self.calculator_pay_value) >= 3:
+            elif (
+                self.input_calculator == "hourly"
+                and len(self.calculator_pay_value) >= 3
+            ):
                 return
-            elif self.input_calculator == "weekly" and len(self.calculator_pay_value) >= 5:
+            elif (
+                self.input_calculator == "weekly"
+                and len(self.calculator_pay_value) >= 5
+            ):
                 return
             else:
                 self.calculator_pay_value += input
@@ -367,13 +368,13 @@ class ReportState(PageState):
                 "ratings": {
                     "overall": self.comp_select_overall,
                 },
-                "comments": self.comp_input_comments
+                "comments": self.comp_input_comments,
             }
             return rx.redirect(f"/report/{self.mode}/assignment")
 
-#################################################################
-# ASSIGNMENT
-#################################################################
+    #################################################################
+    # ASSIGNMENT
+    #################################################################
 
     assign_select_classify: constants_types.ValidClassifyType
     assign_select_unit: str = ""
@@ -491,8 +492,11 @@ class ReportState(PageState):
 
         # Check all our values for validity.
         if (
-            self.assign_select_classify == "Unit" and (self.assign_select_acuity
-            not in constants_types.ASSIGN_SELECT_ACUITY_SELECTIONS)
+            self.assign_select_classify == "Unit"
+            and (
+                self.assign_select_acuity
+                not in constants_types.ASSIGN_SELECT_ACUITY_SELECTIONS
+            )
             or not isinstance(self.assign_input_unit, str)
             or len(self.assign_input_unit) > 50
             or not isinstance(self.assign_input_area, str)
@@ -502,16 +506,19 @@ class ReportState(PageState):
             or self.assign_select_classify
             not in constants_types.ASSIGN_SELECT_CLASSIFY_SELECTIONS
             or (
-                self.assign_select_specialty_1 != "" 
-                and self.assign_select_specialty_1 not in constants_types.ASSIGN_SELECT_SPECIALTY_SELECTIONS
+                self.assign_select_specialty_1 != ""
+                and self.assign_select_specialty_1
+                not in constants_types.ASSIGN_SELECT_SPECIALTY_SELECTIONS
             )
             or (
-                self.assign_select_specialty_2 != "" 
-                and self.assign_select_specialty_2 not in constants_types.ASSIGN_SELECT_SPECIALTY_SELECTIONS
+                self.assign_select_specialty_2 != ""
+                and self.assign_select_specialty_2
+                not in constants_types.ASSIGN_SELECT_SPECIALTY_SELECTIONS
             )
             or (
-                self.assign_select_specialty_3 != "" 
-                and self.assign_select_specialty_3 not in constants_types.ASSIGN_SELECT_SPECIALTY_SELECTIONS
+                self.assign_select_specialty_3 != ""
+                and self.assign_select_specialty_3
+                not in constants_types.ASSIGN_SELECT_SPECIALTY_SELECTIONS
             )
             or not isinstance(self.assign_select_rate_nurses, int)
             or (5 < self.assign_select_rate_nurses < 1)
@@ -541,9 +548,12 @@ class ReportState(PageState):
         # Check all our values for sanity.
         error_messages = []
         if (
-            self.assign_select_specialty_1 and (self.assign_select_specialty_1 in self.assign_select_specialty_2)
-            or self.assign_select_specialty_2 and (self.assign_select_specialty_2 in self.assign_select_specialty_3)
-            or self.assign_select_specialty_3 and (self.assign_select_specialty_3 in self.assign_select_specialty_1)
+            self.assign_select_specialty_1
+            and (self.assign_select_specialty_1 in self.assign_select_specialty_2)
+            or self.assign_select_specialty_2
+            and (self.assign_select_specialty_2 in self.assign_select_specialty_3)
+            or self.assign_select_specialty_3
+            and (self.assign_select_specialty_3 in self.assign_select_specialty_1)
         ):
             error_messages.append("Can't have duplicate specialty entries.")
         if len(self.assign_input_comments) > 1000:
@@ -588,7 +598,7 @@ class ReportState(PageState):
                     "overall": self.assign_select_overall,
                 },
                 "recommend": self.assign_select_recommend,
-                "comments": self.assign_input_comments
+                "comments": self.assign_input_comments,
             }
             return rx.redirect(f"/report/{self.mode}/staffing")
 
@@ -625,29 +635,29 @@ class ReportState(PageState):
         self.staffing_input_ideal_ratio = 0
 
     def set_calculator_ratio_value(self, input: str) -> None:
-            """
-            Set calculator based on context from self.input_calculator. Restricts length
-            of input to 2 digits.
-            """
-            if input == "clear":
-                self.calculator_ratio_value = "0"
-                return
-            if input == "enter":
-                setattr(
-                    self,
-                    f"staffing_input_{self.calculator_toggle_ratio}",
-                    int(self.calculator_ratio_value),
-                )
-                self.calculator_ratio_value = "0"
-                return
-            if self.calculator_ratio_value == "0":
-                self.calculator_ratio_value = input
+        """
+        Set calculator based on context from self.input_calculator. Restricts length
+        of input to 2 digits.
+        """
+        if input == "clear":
+            self.calculator_ratio_value = "0"
+            return
+        if input == "enter":
+            setattr(
+                self,
+                f"staffing_input_{self.calculator_toggle_ratio}",
+                int(self.calculator_ratio_value),
+            )
+            self.calculator_ratio_value = "0"
+            return
+        if self.calculator_ratio_value == "0":
+            self.calculator_ratio_value = input
+            return
+        else:
+            if len(self.calculator_ratio_value) >= 2:
                 return
             else:
-                if len(self.calculator_ratio_value) >= 2:
-                    return
-                else:
-                    self.calculator_ratio_value += input
+                self.calculator_ratio_value += input
 
     def set_staffing_select_charge_present(self, response: str) -> None:
         self.staffing_select_charge_present = response
@@ -657,9 +667,10 @@ class ReportState(PageState):
     def staffing_input_comments_chars_left(self) -> int:
         if self.staffing_input_comments:
             return 1000 - len(self.staffing_input_comments)
-        
+
     def handle_submit_staffing(self) -> Callable | Iterable[Callable]:
         # Check our values for completion.
+        yield ReportState.set_user_is_loading(True)
         if (
             not self.staffing_select_ratio
             or not (
@@ -684,32 +695,38 @@ class ReportState(PageState):
             )
             or not self.staffing_select_overall
         ):
+            yield ReportState.set_user_is_loading(False)
             return rx.toast.error(
                 "Missing information. Please check form and complete required questions.",
                 close_button=True,
             )
-        
+
         # Check all our values for validity.
         if (
-            self.staffing_select_ratio not in constants_types.STAFFING_SELECT_RATIO_SELECTIONS
+            self.staffing_select_ratio
+            not in constants_types.STAFFING_SELECT_RATIO_SELECTIONS
             or not isinstance(self.staffing_input_actual_ratio, int)
             or (
                 self.staffing_select_ratio == "Yes"
-                and self.staffing_select_ratio_appropriate not in constants_types.STAFFING_SELECT_RATIO_APPROPRIATE
+                and self.staffing_select_ratio_appropriate
+                not in constants_types.STAFFING_SELECT_RATIO_APPROPRIATE
             )
             or not isinstance(self.staffing_input_ideal_ratio, int)
-            or self.staffing_select_workload not in constants_types.STAFFING_SELECT_WORKLOAD_SELECTIONS
+            or self.staffing_select_workload
+            not in constants_types.STAFFING_SELECT_WORKLOAD_SELECTIONS
             or not isinstance(self.staffing_select_rate_workload, int)
             or (5 < self.staffing_select_rate_workload < 1)
-            or self.staffing_select_charge_present not in constants_types.STAFFING_SELECT_CHARGE_PRESENT_SELECTIONS
+            or self.staffing_select_charge_present
+            not in constants_types.STAFFING_SELECT_CHARGE_PRESENT_SELECTIONS
             or (
                 self.staffing_select_charge_present == "Yes"
-                and self.staffing_select_charge_assignment not in constants_types.STAFFING_SELECT_CHARGE_ASSIGNMENT_SELECTIONS
+                and self.staffing_select_charge_assignment
+                not in constants_types.STAFFING_SELECT_CHARGE_ASSIGNMENT_SELECTIONS
             )
             or not isinstance(self.staffing_check_rapid_response, bool)
             or not isinstance(self.staffing_check_behavioral_response, bool)
             or not isinstance(self.staffing_check_transport, bool)
-            or not isinstance(self.staffing_check_lab, bool)
+            or not isinstance(self.staffing_check_phlebotomy, bool)
             or not isinstance(self.staffing_check_cvad, bool)
             or not isinstance(self.staffing_check_ivt, bool)
             or not isinstance(self.staffing_check_wocn, bool)
@@ -726,24 +743,19 @@ class ReportState(PageState):
                 debug_dict[key] = value
                 logger.warning(f"{key} - {value} - {type(value)}")
 
+            yield ReportState.user_is_loading(False)
             return rx.toast.error(
                 "Validity check failed. Contact support if problem persists.",
                 close_button=True,
             )
-        
+
         # Check all our values for sanity.
         error_messages = []
-        if (
-            self.staffing_input_actual_ratio
-            and self.staffing_input_actual_ratio > 15
-        ):
+        if self.staffing_input_actual_ratio and self.staffing_input_actual_ratio > 15:
             error_messages.append(
                 "Ratio can't be higher than 1:15. Please contact site admin if a higher ratio applies to you."
             )
-        if (
-            self.staffing_input_ideal_ratio
-            and self.staffing_input_ideal_ratio > 15
-        ):
+        if self.staffing_input_ideal_ratio and self.staffing_input_ideal_ratio > 15:
             error_messages.append(
                 "Ratio can't be higher than 1:15. Please contact site admin if a higher ratio applies to you."
             )
@@ -757,15 +769,15 @@ class ReportState(PageState):
                     "has_ratio": self.staffing_select_ratio,
                     "actual_ratio": self.staffing_input_actual_ratio,
                     "is_appropriate": self.staffing_select_ratio_appropriate,
-                    "ideal_ratio": self.staffing_input_ideal_ratio
+                    "ideal_ratio": self.staffing_input_ideal_ratio,
                 },
                 "workload": {
                     "amount": self.staffing_select_workload,
-                    "eos_rating": self.staffing_select_rate_workload
+                    "eos_rating": self.staffing_select_rate_workload,
                 },
                 "charge": {
                     "has_charge": self.staffing_select_charge_present,
-                    "takes_patients": self.staffing_select_charge_assignment
+                    "takes_patients": self.staffing_select_charge_assignment,
                 },
                 "resources": {
                     "rapid_response": self.staffing_check_rapid_response,
@@ -775,42 +787,16 @@ class ReportState(PageState):
                     "cvad": self.staffing_check_cvad,
                     "iv_team": self.staffing_check_ivt,
                     "wocn": self.staffing_check_wocn,
-                    "chaplain": self.staffing_check_chaplain
+                    "chaplain": self.staffing_check_chaplain,
                 },
-                "ratings": {
-                    "overall": self.staffing_select_overall
-                },
-                "comments": self.staffing_input_comments
+                "ratings": {"overall": self.staffing_select_overall},
+                "comments": self.staffing_input_comments,
             }
-            yield from self.submit_full_report()
-
-        
+            yield ReportState.submit_full_report()
 
     #################################################################
     # REPORT SUBMISSION \ HANDLERS
     #################################################################
-
-    def edit_report(self) -> Iterable[Callable]:
-        """
-        Prepare and submit edits to database for a previously completed report.
-        """
-        try:
-            # Build report from state data.
-            report = self.prepare_report_dict()
-
-            # Upload changes to supabase.
-            supabase_user_edit_report(self.access_token, report)
-
-            # Moderate new entries via AI.
-            yield ReportState.moderate_user_entries(report)
-
-            # Redirect to complete page.
-            yield rx.redirect("/report/edit/complete")
-
-
-        except Exception as e:
-            rich.inspect(e)
-            yield rx.toast.error("Unable to submit edits. Check logs.")
 
     def submit_full_report(self) -> Iterable[Callable]:
         """
@@ -818,76 +804,37 @@ class ReportState(PageState):
         """
         try:
             if not (
-                self.report_id
+                self.report_dict["report_id"]
+                and self.report_dict["hospital_id"]
                 and self.report_dict["user"]
                 and self.report_dict["compensation"]
                 and self.report_dict["assignment"]
                 and self.report_dict["staffing"]
             ):
                 return rx.toast.error(
-                    "Data corrupted. Recheck report for completion.",
-                    close_button=True)
+                    "Data corrupted. Recheck report for completion.", close_button=True
+                )
 
-            # Ensure that no report UUID's conflict.
-            supabase_no_report_id_conflict(self.access_token, self.report_id)
+            # # Ensure that no report UUID's conflict.
+            # supabase_no_report_id_conflict(self.access_token, self.report_dict["report_id"])
 
-            # SHIT IS BROKEN AS HECK
-            # supabase_check_for_existing_report(self.access_token, report)
+            # # Submit report to supabase.
+            # supabase_submit_full_report(self.access_token, self.report_dict)
 
-            # Submit report to supabase.
-            supabase_submit_full_report(self.access_token, self.report_dict)
+            # updated_data = supabase_update_user_info(
+            #     self.access_token,
+            #     self.user_id,
+            #     data={
+            #         "needs_onboard": False,
+            #     },
+            # )
 
-            updated_data = supabase_update_user_info(
-                self.access_token,
-                self.user_id,
-                data={
-                    "needs_onboard": False,
-                },
-            )
+            # self.user_info.update(updated_data)
+            # yield ReportState.moderate_user_entries(self.report_dict)
+            # yield rx.redirect("/report/full-report/complete")
 
-            self.user_info.update(updated_data)
-            yield ReportState.moderate_user_entries(self.report_dict)
-            yield rx.redirect("/report/full-report/complete")
-
-        except DuplicateReport:
-            self.is_loading = False
-            yield ReportState.edit_report
-        except DuplicateUUID:
-            self.is_loading = False
-            self.generate_report_id()
-            yield ReportState.submit_full_report
-        except RequestFailed as e:
-            yield rx.toast.error(str(e))
-            self.is_loading = False
-        except Exception as e:
-            logger.critical(e)
-            yield rx.toast.error(
-                "Uncaught exception. If this persists contact support@nursereports.org"
-            )
-            self.is_loading = False
-
-    def save_report_dict_to_state(self, report: dict) -> None:
-        """
-        Pop the following values out of the report as erroneous to report state.
-        """
-        # Pop keys out of the report.
-        report.pop("user_id")
-        report.pop("license")
-        report.pop("license_state")
-        report.pop("trust")
-        report.pop("created_at")
-        report.pop("modified_at")
-        report.pop("comp_input_comments_flag")
-        report.pop("assign_input_comments_flag")
-        report.pop("staffing_input_comments_flag")
-        report.pop("assign_input_unit_name_flag")
-        report.pop("assign_input_area_flag")
-        report.pop("is_test")
-        report.pop("likes")
-
-        # Set the rest of the keys to the state.
-        for key, value in report.items():
-            setattr(self, f"{key}", value)
+        except Exception:
+            yield rx.toast.error("Something went wrong", close_button=True)
 
     @rx.background
     async def moderate_user_entries(self, report: dict) -> None:
