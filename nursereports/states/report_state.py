@@ -120,7 +120,7 @@ class ReportState(PageState):
             self.report_dict["hospital_id"] = self.hospital_id
             self.report_dict["user"] = {
                 "user_id": self.user_claims_id,
-                "professional": {self.user_info["professional"]},
+                "professional": self.user_info.get("professional"),
                 "ip_addr": self.router.session.client_ip,
                 "host": self.router.headers.host,
                 "user_agent": self.router.headers.user_agent,

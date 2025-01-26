@@ -21,6 +21,6 @@ def login_protected(page) -> rx.Component:
 def report_protected(page) -> rx.Component:
     @functools.wraps(page)
     def _wrapper() -> rx.Component:
-        return rx.cond((UserState.user_claims_authenticated & UserState.user_has_reported), page(), rx.box("401 Placeholder"))
+        return rx.cond((UserState.user_claims_authenticated & ~UserState.user_needs_onboarding), page(), rx.box("401 Placeholder"))
 
     return _wrapper

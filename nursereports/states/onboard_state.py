@@ -11,34 +11,13 @@ class OnboardState(UserState):
     has_review: str
     license: str
     license_state: str
-    onboard_error_message: str
-
-    @rx.var(cache=True)
-    def onboard_has_error(self) -> bool:
-        return True if self.onboard_error_message else False
-
-    @rx.var(cache=True)
-    def is_student(self) -> bool:
-        if self.license == "Nursing Student":
-            return True
-        else:
-            return False
-
-    @rx.var(cache=True)
-    def can_give_review(self) -> bool:
-        if self.has_review == "No":
-            return False
-        else:
-            return True
 
     def set_license(self, license: str) -> None:
-        if license == "Nursing Student":
-            self.license_state = "Student"
-            self.has_review = "No"
-        else:
-            self.has_review = ""
-            self.license_state = ""
         self.license = license
+        self.license_state = ""
+        self.has_review = ""
+        if license == "Nursing Student":
+            self.has_review = "No"
 
     def event_state_submit_onboard(self) -> Iterable[Callable]:
         try:
@@ -61,7 +40,7 @@ class OnboardState(UserState):
             self.update_user_info_and_sync_locally(user_info)
 
             # # Decide if user either needs to submit report, or is okay to proceed.
-            # if self.user_info["needs_onboard"]:
+            # if self.user_info["license_type"] !=:
             #     logger.debug("User will need to complete a report for site access.")
             #     yield rx.redirect("/search/hospital")
             # else:

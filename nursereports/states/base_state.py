@@ -73,9 +73,10 @@ class BaseState(UserState):
                 yield rx.redirect("/")
                 yield rx.toast.error("Please login to access that page.")
 
-            if required_status == "report" and not self.user_has_reported:
+            if required_status == "report" and self.user_needs_onboarding:
                 yield rx.redirect("/onboard")
                 yield rx.toast.error("Please submit a report to access that page.")
+
         except Exception as e:
             logger.critical(e)
             yield rx.toast.error("Failed access checks.")

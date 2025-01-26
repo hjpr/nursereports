@@ -72,7 +72,7 @@ def supabase_create_initial_user_info(access_token: str, user_id: str) -> None:
         "id": user_id,
         "account": {
             "created_at": str(datetime.now(timezone.utc)),
-            "status": "new",
+            "status": "onboard",
             "trust": 0,
             "membership": "free",
             "browsers": {}

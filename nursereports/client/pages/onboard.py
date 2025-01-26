@@ -1,6 +1,4 @@
-from ..components.custom import login_protected
-from ..components.footer import footer
-from ..components.navbar import navbar
+from ..components import login_protected, flex, footer, navbar, text
 from ...states import BaseState, OnboardState, SearchState
 
 import reflex as rx
@@ -28,7 +26,6 @@ def content() -> rx.Component:
     return rx.flex(
         greeting(),
         questions(),
-        button(),
         class_name="flex-col items-center space-y-10 px-4 py-24 w-full md:max-w-screen-sm",
     )
 
@@ -65,13 +62,23 @@ def greeting() -> rx.Component:
 def questions() -> rx.Component:
     return rx.flex(
         rx.flex(
+            text("Nursing Information", class_name="text-2xl font-bold"),
+            class_name="flex-col items-center bg-zinc-100 dark:bg-zinc-800 p-6 w-full",
+        ),
+        flex(
             rx.flex(
-                rx.text("Onboarding Questions", class_name="text-xl font-bold"),
-                rx.divider(),
-                class_name="flex-col space-y-2 w-full",
-            ),
-            rx.flex(
-                rx.text("Are you licensed?"),
+                rx.flex(
+                    rx.text("What is your license?"),
+                    rx.flex(
+                        rx.cond(
+                            OnboardState.license,
+                            rx.icon("circle-check-big", class_name="stroke-green-400"),
+                            rx.icon("circle-alert", class_name="stroke-zinc-200"),
+                        ),
+                        class_name="pl-4",
+                    ),
+                    class_name="flex-row justify-between w-full",
+                ),
                 rx.select(
                     [
                         "APRN",
@@ -82,98 +89,106 @@ def questions() -> rx.Component:
                     ],
                     placeholder="- Select one -",
                     value=OnboardState.license,
+                    position="popper",
                     on_change=OnboardState.set_license,
                     required=True,
                     size="3",
                     width="100%",
                 ),
-                class_name="flex-col space-y-1 w-full",
+                class_name="flex-col space-y-2 p-4 w-full",
+            ),
+            rx.flex(
+                rx.flex(
+                    rx.cond(
+                        OnboardState.license == "Nursing Student",
+                        rx.text("What state do you attend school in?"),
+                        rx.text("What is the primary state in which you practice?"),
+                    ),
+                    rx.flex(
+                        rx.cond(
+                            OnboardState.license_state,
+                            rx.icon(
+                                "circle-check-big",
+                                class_name="h-6 w-6 stroke-green-400",
+                            ),
+                            rx.icon(
+                                "circle-alert", class_name="h-6 w-6 stroke-zinc-200"
+                            ),
+                        ),
+                        class_name="pl-4",
+                    ),
+                    class_name="flex-row justify-between w-full",
+                ),
+                rx.select(
+                    SearchState.state_options,
+                    placeholder="- Select one -",
+                    value=OnboardState.license_state,
+                    position="popper",
+                    on_change=OnboardState.set_license_state,
+                    required=True,
+                    size="3",
+                    width="100%",
+                ),
+                class_name="flex-col space-y-2 p-4 w-full",
+            ),
+            rx.flex(
+                rx.flex(
+                    rx.text(" Have you worked in a hospital in some nursing role within the past year? "),
+                    rx.flex(
+                        rx.cond(
+                            (OnboardState.license == "Nursing Student") |
+                            (OnboardState.has_review),
+                            rx.icon(
+                                "circle-check-big",
+                                class_name="h-6 w-6 stroke-green-400",
+                            ),
+                            rx.icon(
+                                "circle-alert", class_name="h-6 w-6 stroke-zinc-200"
+                            ),
+                        ),
+                        class_name="pl-4",
+                    ),
+                    class_name="flex-row justify-between w-full",
+                ),
+                rx.select(
+                    ["Yes", "No"],
+                    placeholder="- Select one -",
+                    value=OnboardState.has_review,
+                    position="popper",
+                    on_change=OnboardState.set_has_review,
+                    required=True,
+                    disabled=(OnboardState.license == "Nursing Student"),
+                    size="3",
+                    width="100%",
+                ),
+                class_name="flex-col space-y-2 p-4 w-full",
             ),
             rx.cond(
-                OnboardState.license,
-                rx.cond(
-                    ~OnboardState.is_student,
-                    rx.flex(
-                        rx.flex(
-                            rx.text("What state are you licensed in?"),
-                            rx.select(
-                                SearchState.state_options,
-                                placeholder="- Select one -",
-                                value=OnboardState.license_state,
-                                on_change=OnboardState.set_license_state,
-                                required=True,
-                                size="3",
-                                width="100%",
-                            ),
-                            class_name="flex-col space-y-1 w-full",
-                        ),
-                        rx.flex(
-                            rx.text(
-                                """Have you worked in a hospital in some
-                                nursing role within the past year?
-                                """
-                            ),
-                            rx.select(
-                                ["Yes", "No"],
-                                placeholder="- Select one -",
-                                value=OnboardState.has_review,
-                                on_change=OnboardState.set_has_review,
-                                required=True,
-                                size="3",
-                                width="100%",
-                            ),
-                            class_name="flex-col space-y-1 w-full",
-                        ),
-                        class_name="flex-col space-y-4 w-full",
+                (OnboardState.license
+                == "Nursing Student") | (OnboardState.has_review
+                == "No"),
+                rx.flex(
+                    rx.callout(
+                        """
+                        You won't be required to submit a
+                        report right now.
+                        """,
+                        icon="info",
+                        class_name="text-zinc-700 w-full",
                     ),
+                    class_name="flex-col space-y-2 p-4 w-full",
                 ),
             ),
-            rx.cond(~OnboardState.can_give_review, callout_review()),
-            callout_error(),
-            class_name="flex-col space-y-4 w-full",
-        ),
-        class_name="flex-col border rounded-lg bg-white p-4 w-full",
-    )
-
-
-def button() -> rx.Component:
-    return rx.flex(
-        rx.button(
-            "Let's go!",
-            rx.icon("chevron-right"),
-            size="4",
-            on_click=OnboardState.event_state_submit_onboard,
-        ),
-        width="100%",
-        justify_content="center",
-    )
-
-
-def callout_review() -> rx.Component:
-    return rx.flex(
-        rx.callout(
-            """Submit a review when you get hired (within the year)
-            to maintain access. You won't be required to submit a
-            report right now.
-            """,
-            icon="info",
-            class_name="text-zinc-700 w-full",
-        ),
-        class_name="pt-2 w-full",
-    )
-
-
-def callout_error() -> rx.Component:
-    return rx.flex(
-        rx.cond(
-            OnboardState.onboard_has_error,
-            rx.callout(
-                OnboardState.onboard_error_message,
-                width="100%",
-                icon="triangle_alert",
-                color_scheme="red",
-                role="alert",
+            rx.flex(
+                rx.flex(
+                    rx.text("Next", class_name="font-bold select-none"),
+                    rx.icon("arrow-right"),
+                    on_click=OnboardState.event_state_submit_onboard,
+                    class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer",
+                ),
+                class_name="flex-col w-full active:bg-zinc-200 transition-colors duration-75",
             ),
+            class_name="flex-col dark:divide-zinc-500 space-y-2 divide-y w-full",
         ),
-        width="100%",
+        class_name="flex-col border rounded shadow-lg dark:border-zinc-500 bg-zinc-100 dark:bg-zinc-800 divide-y w-full",
     )

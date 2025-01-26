@@ -58,7 +58,7 @@ def save_hospital(hospital: dict[str, str]) -> rx.Component:
 
 def go_to_report(hospital: dict[str, str]) -> rx.Component:
     return rx.cond(
-        UserState.user_has_reported,
+        ~UserState.user_needs_onboarding,
         rx.box(
             rx.skeleton(
                 outline_button(

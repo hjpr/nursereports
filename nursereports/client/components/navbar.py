@@ -226,7 +226,7 @@ def mobile_menu() -> rx.Component:
 
         # Show mobile menu for logged in users.
         rx.cond(
-            UserState.user_has_reported,
+            ~UserState.user_needs_onboarding,
 
             # Show menu for logged in and onboarded users.
             flex(

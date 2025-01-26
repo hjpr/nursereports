@@ -91,11 +91,6 @@ class UserState(AuthState):
         return True if self.user_claims.get("aud") == "authenticated" else False
 
     @rx.var(cache=True)
-    def user_has_reported(self) -> bool:
-        reports_submitted = len(self.user_info.get("reports", {}).get("ids", {}))
-        return True if reports_submitted > 0 else False
-
-    @rx.var(cache=True)
     def user_claims_expiring(self) -> bool:
         if self.user_claims_authenticated:
             current_time = int(time.time())
@@ -103,6 +98,10 @@ class UserState(AuthState):
             seconds_to_expiration = expires_at - current_time
             return True if seconds_to_expiration <= 900 else False
         return False
+    
+    @rx.var(cache=True)
+    def user_needs_onboarding(self) -> bool:
+        return True if self.user_info.get("account").get("status") == "onboard" else False
 
     def event_state_submit_login(self, auth_data: dict) -> Iterable[Callable]:
         """
@@ -431,9 +430,9 @@ class UserState(AuthState):
         """
         Used after login to push user to be onboarded, or to the dashboard.
         """
-        if self.user_has_reported:
-            logger.debug("Sending user to dashboard.")
-            yield rx.redirect("/dashboard")
-        else:
+        if self.user_needs_onboarding:
             logger.debug("Sending user to onboard.")
             yield rx.redirect("/onboard")
+        else:
+            logger.debug("Sending user to dashboard.")
+            yield rx.redirect("/dashboard")
