@@ -23,17 +23,6 @@ def supabase_get_user_info(access_token: str) -> dict | None:
 
     Returns:
         dict:
-            created_at: timestamptz - user creation date, default is nowutc()
-            hash: str - hash to compare state -> database
-            license: str - user's license type, default is NULL
-            license_state: str - user's license type, default is NULL
-            membership: str - default value is 'Free'
-            modified_at: timestamptz - user modified last date, default is nowutc()
-            my_jobs: list[dict] - default value is NULL
-            needs_onboard: bool - default value is True
-            saved_hospitals: dict - default value is NULL
-            trust: int - default value is 0
-            user_id: uuid - jwt provided uuid
 
     Exceptions:
         DuplicateUserError: retrieved too many user records.
@@ -49,8 +38,11 @@ def supabase_get_user_info(access_token: str) -> dict | None:
     response = httpx.get(url=url, headers=headers)
     if response.is_success:
         content = json.loads(response.content)
+        if len(content) == 0:
+            logger.debug("No user data present.")
         if len(content) == 1:
             logger.debug("Retrieved user data from public/users.")
+            logger.debug(content[0])
             return content[0]
         if len(content) > 1:
             logger.critical("Retrieved multiple user entries from a single user id!")
@@ -73,29 +65,56 @@ def supabase_create_initial_user_info(access_token: str, user_id: str) -> None:
         access_token: jwt object of user
         uuid: uuid of user
 
-    Default values set during initial user creation via default
-    supabase settings:
-        created_at: timestamptz - user creation date, default is nowutc()
-        license: str - user's license type, default is NULL
-        license_state: str - user's license type, default is NULL
-        membership: str - default value is 'Free'
-        modified_at: timestamptz - user modified last date, default is nowutc()
-        my_jobs: list[dict] - default value is NULL
-        needs_onboard: bool - default value is True
-        saved_hospitals: dict - default value is NULL
-        trust: int - default value is 0
-        user_id: uuid - jwt provided uuid
-
     Exceptions:
         RequestFailed: request to create user failed.
     """
+    user_info = {
+        "id": user_id,
+        "account": {
+            "created_at": str(datetime.now(timezone.utc)),
+            "status": "new",
+            "trust": 0,
+            "membership": "free",
+            "browsers": {}
+        },
+        "professional": {
+            "license_type": "",
+            "license_number": "",
+            "license_state": "",
+            "specialty": {},
+            "experience": 0
+        },
+        "reports": {
+            "ids": {},
+            "num_full": 0,
+            "num_flag": 0,
+            "num_pay": 0
+        },
+        "engagement": {
+            "likes": 0,
+            "tags": 0,
+            "referrals": {}
+        },
+        "preferences": {
+            "email": "",
+            "mobile": "",
+            "dark_mode": False,
+            "status_opt_in": False,
+            "update_opt_in": False,
+            "social_opt_in": False,
+        },
+        "saved": {
+            "jobs": {},
+            "hospitals": {}
+        }
+    }
     url = f"{api_url}/rest/v1/users"
     headers = {
         "apikey": api_key,
         "Authorization": f"Bearer {access_token}",
         "Content-Type": "application/json",
     }
-    data = {"user_id": user_id}
+    data = user_info
     response = httpx.post(url=url, headers=headers, data=json.dumps(data))
     if response.is_success:
         logger.debug("New user successfully created in public/users.")
@@ -112,10 +131,7 @@ def supabase_get_user_modified_at_timestamp(access_token: str) -> dict | None:
         access_token: str - user JWT object
 
     Returns:
-        dict:
-            success: bool - if API call successful.
-            status: str - user readable errors if any.
-            payload: str - timestamp that info was last modified at
+        modified_at: str - timestamptz
 
     Exceptions:
         RequestFailed: request to pull timestamp from database failed.
@@ -124,7 +140,7 @@ def supabase_get_user_modified_at_timestamp(access_token: str) -> dict | None:
     headers = {
         "apikey": api_key,
         "Authorization": f"Bearer {access_token}",
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
     }
     response = httpx.get(url=url, headers=headers)
     if response.is_success:
@@ -136,7 +152,7 @@ def supabase_get_user_modified_at_timestamp(access_token: str) -> dict | None:
 
 def supabase_update_user_info(
     access_token: str,
-    user_id: str,
+    user_id: dict,
     data: Any,
 ) -> dict:
     """
@@ -154,19 +170,20 @@ def supabase_update_user_info(
     Exceptions:
         RequestFailed: Request failed to update info in /users.
     """
-    data["modified_at"] = get_current_utc_timestamp_as_str()
-    url = f"{api_url}/rest/v1/users?user_id=eq.{user_id}"
+    data["modified_at"] = str(datetime.now(timezone.utc))
+    url = f"{api_url}/rest/v1/users?id=eq.{user_id}"
     headers = {
         "apikey": api_key,
         "Authorization": f"Bearer {access_token}",
         "Content-Type": "application/json",
-        "Prefer": "return=minimal",
     }
     response = httpx.patch(url=url, headers=headers, data=json.dumps(data))
     if response.is_success:
+        rich.inspect(response)
         logger.debug("Updated user info in public/users.")
         return data
     else:
+        rich.inspect(response)
         raise RequestFailed(f"{response.status_code} - {response.reason_phrase}")
 
 
@@ -338,8 +355,3 @@ def supabase_populate_saved_hospital_details(
             )
     else:
         raise RequestFailed(f"{response.status_code} - {response.reason_phrase}")
-
-
-def get_current_utc_timestamp_as_str() -> str:
-    now = datetime.now(timezone.utc)
-    return now.strftime("%Y-%m-%d %H:%M:%S.%f%z")

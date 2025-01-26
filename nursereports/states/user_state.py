@@ -21,6 +21,7 @@ from loguru import logger
 from typing import Callable, Iterable
 
 import jwt
+import pprint
 import reflex as rx
 import time
 
@@ -91,7 +92,7 @@ class UserState(AuthState):
 
     @rx.var(cache=True)
     def user_has_reported(self) -> bool:
-        reports_submitted = len(self.user_info.get("submitted_reports", []))
+        reports_submitted = len(self.user_info.get("reports", {}).get("ids", {}))
         return True if reports_submitted > 0 else False
 
     @rx.var(cache=True)
@@ -100,9 +101,6 @@ class UserState(AuthState):
             current_time = int(time.time())
             expires_at = self.user_claims_expires_at
             seconds_to_expiration = expires_at - current_time
-            logger.debug(
-                f"User has {seconds_to_expiration} seconds until credentials expire."
-            )
             return True if seconds_to_expiration <= 900 else False
         return False
 
@@ -160,7 +158,8 @@ class UserState(AuthState):
 
                 # Check if passwords match
                 if password != password_confirm:
-                    raise Exception("Passwords do not match")
+                    self.user_is_loading = False
+                    return rx.toast.error("Passwords do not match.", close_button=True)
 
                 # Create account from auth data.
                 supabase_create_account_with_email(email, password)
@@ -169,13 +168,12 @@ class UserState(AuthState):
                 yield rx.redirect("/login/confirm")
 
             else:
-                yield rx.toast.error("All fields must be completed.")
-
-            self.user_is_loading = False
+                self.user_is_loading = False
+                yield rx.toast.error("All fields must be completed.", close_button=True)
 
         except Exception as e:
             logger.error(e)
-            yield rx.toast.error(e, close_button=True)
+            yield rx.toast.error(str(e), close_button=True)
             self.user_is_loading = False
 
     def event_state_login_with_sso(self, provider: str) -> Iterable[Callable]:
@@ -192,9 +190,11 @@ class UserState(AuthState):
 
         except Exception as e:
             logger.error(e)
-            yield rx.toast.error(e)
+            yield rx.toast.error(
+                str(e),
+                close_button=True,
+            )
             self.user_is_loading = False
-
 
     def create_new_user(self) -> None:
         """
@@ -203,7 +203,6 @@ class UserState(AuthState):
         supabase_create_initial_user_info(self.access_token, self.user_claims_id)
         user_info = supabase_get_user_info(self.access_token)
         self.user_info = user_info
-
 
     def get_user_info(self) -> None:
         """
@@ -222,7 +221,6 @@ class UserState(AuthState):
         # Get all user reports.
         self.get_user_reports()
 
-
     def get_user_saved_hospitals(self) -> None:
         """Get or refresh saved hospitals."""
         if self.user_info.get("saved_hospitals"):
@@ -239,15 +237,14 @@ class UserState(AuthState):
 
     def get_user_reports(self) -> None:
         """Get or refresh user reports."""
-        user_reports = supabase_get_user_reports(
-            self.access_token, self.user_claims_id
-        )
+        user_reports = supabase_get_user_reports(self.access_token, self.user_claims_id)
 
         if user_reports:
             for hospital in user_reports:
-
                 # Get the city and state for each hospital.
-                hospital_data = supabase_get_hospital_info(self.access_token, hospital.get("hospital_id", ""))
+                hospital_data = supabase_get_hospital_info(
+                    self.access_token, hospital.get("hospital_id", "")
+                )
                 hospital["hosp_city"] = hospital_data.get("hosp_city", "").title()
                 hospital["hosp_state"] = hospital_data.get("hosp_state", "")
 
@@ -269,28 +266,23 @@ class UserState(AuthState):
         """
         Provide user info data to update to remote database, then save to local state.
         """
-        updated_data = supabase_update_user_info(
+        synced_data = supabase_update_user_info(
             self.access_token, self.user_claims_id, data
         )
-        logger.debug(self.user_info)
-        self.user_info.update(updated_data)
-        logger.debug(self.user_info)
-
+        self.user_info.update(synced_data)
+        pprint.pp(self.user_info)
 
     def local_user_data_synced_with_remote(self) -> bool:
         """
         Check modified_at timestamps to ensure user_info is in sync locally -> supabase.
         """
-        remote_modified_at_timestamp = supabase_get_user_modified_at_timestamp(
-            self.access_token
-        )["modified_at"]
-        local_modified_at_timestamp = self.user_info.get("modified_at", None)
+        remote_modified_at_timestamp = supabase_get_user_modified_at_timestamp(self.access_token)["modified_at"]
+        local_modified_at_timestamp = self.user_info["modified_at"]
         return (
             True
             if remote_modified_at_timestamp == local_modified_at_timestamp
             else False
         )
-
 
     def event_state_add_hospital(self, hosp_id: str) -> Iterable[Callable]:
         """
@@ -382,7 +374,6 @@ class UserState(AuthState):
 
             # Check that wait interval isn't sooner than 5 min.
             if wait_time >= 0:
-
                 if subject and text:
                     yield mailgun_send_email(
                         "support@nursereports.org",
@@ -396,8 +387,9 @@ class UserState(AuthState):
                     yield rx.toast.error("Some or all required fields are empty.")
 
             else:
-                yield rx.toast.error(f"You must wait {abs(wait_time)} second(s) to submit a message.")
-
+                yield rx.toast.error(
+                    f"You must wait {abs(wait_time)} second(s) to submit a message."
+                )
 
         except Exception as e:
             logger.error(e)
@@ -410,21 +402,26 @@ class UserState(AuthState):
         try:
             current_time = int(time.time())
             wait_interval = 120
-            wait_time = int(current_time - wait_interval) - self.user_recovery_email_time
+            wait_time = (
+                int(current_time - wait_interval) - self.user_recovery_email_time
+            )
             email = recover_dict.get("email")
 
             # Check that wait interval isn't sooner than 1 min.
             if wait_time >= 0:
-
                 if email:
                     yield supabase_recover_password(email)
-                    yield rx.redirect("/login/forgot-password/confirmation", replace=True)
+                    yield rx.redirect(
+                        "/login/forgot-password/confirmation", replace=True
+                    )
                     self.user_recovery_email_time = current_time
                 else:
                     raise Exception("Enter a valid email address")
-                
+
             else:
-                yield rx.toast.error(f"You must wait {abs(wait_time)} second(s) to make another recovery attempt.")
+                yield rx.toast.error(
+                    f"You must wait {abs(wait_time)} second(s) to make another recovery attempt."
+                )
 
         except Exception as e:
             logger.error(e)

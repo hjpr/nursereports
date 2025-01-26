@@ -48,19 +48,25 @@ class OnboardState(UserState):
 
             # Update remote database with onboard data.
             user_info = {
-                "license": self.license,
-                "license_state": self.license_state,
-                "needs_onboard": True if self.has_review == "Yes" else False,
+                "professional": {
+                    "license_type": self.license,
+                    "license_state": self.license_state,
+                    "license_number": "1234567890",
+                    "specialty": self.user_info["professional"]["specialty"],
+                    "experience": self.user_info["professional"]["experience"]
+                }
             }
-            yield from self.update_user_info_and_sync_locally(user_info)
+            logger.critical("About to upload to user data.")
+            logger.critical(user_info)
+            self.update_user_info_and_sync_locally(user_info)
 
-            # Decide if user either needs to submit report, or is okay to proceed.
-            if self.user_info["needs_onboard"]:
-                logger.debug("User will need to complete a report for site access.")
-                yield rx.redirect("/search/hospital")
-            else:
-                logger.debug("User doesn't have a report to capture.")
-                yield rx.redirect("/dashboard")
+            # # Decide if user either needs to submit report, or is okay to proceed.
+            # if self.user_info["needs_onboard"]:
+            #     logger.debug("User will need to complete a report for site access.")
+            #     yield rx.redirect("/search/hospital")
+            # else:
+            #     logger.debug("User doesn't have a report to capture.")
+            #     yield rx.redirect("/dashboard")
 
         except InvalidError as e:
             error_message = str(e)

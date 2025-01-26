@@ -4,6 +4,8 @@ from loguru import logger
 from typing import Callable, Iterable
 
 import reflex as rx
+import urllib
+
 
 
 class BaseState(UserState):
@@ -20,13 +22,19 @@ class BaseState(UserState):
         """
         Current path, ex. "/dashboard, or /search/hospital"
         """
-        return self.router.page.path
+        current_location = self.router.page.path
+        return current_location
 
     def event_state_auth_flow(self) -> Iterable[Callable]:
         """
         Simple standard login flow. Runs on_load prior to every page.
         """
         try:
+            # If user is coming from a redirect.
+            if "#" in self.current_location:
+                parsed_url = urllib.parse(self.current_location)
+                logger.debug(f"Parsed url - {parsed_url}")
+
             # If user is authenticated.
             if self.user_claims_authenticated:
                 # Ensure expiring access tokens are refreshed.
@@ -48,6 +56,7 @@ class BaseState(UserState):
                 url = self.router.page.raw_path
                 if ("access_token" in url) and ("refresh_token" in url):
                     yield from self.set_tokens()
+
         except Exception as e:
             logger.critical(e)
             yield rx.toast.error("Failed authentication checks.")

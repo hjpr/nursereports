@@ -1,4 +1,3 @@
-from ..components.c2a import c2a
 from ..components.custom import login_protected
 from ..components.footer import footer
 from ..components.navbar import navbar
@@ -18,11 +17,10 @@ import reflex as rx
 @login_protected
 def onboard_page() -> rx.Component:
     return rx.flex(
-        c2a(),
         navbar(),
         content(),
         footer(),
-        class_name="flex-col items-center bg-gradient-to-b from-white to-teal-200 min-h-svh",
+        class_name="flex-col items-center min-h-svh",
     )
 
 

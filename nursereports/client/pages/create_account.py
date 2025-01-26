@@ -145,5 +145,4 @@ def create_account() -> rx.Component:
             class_name="flex-col items-center space-y-8 w-full",
         ),
         on_submit=UserState.event_state_create_account,
-        reset_on_submit=True,
     )
