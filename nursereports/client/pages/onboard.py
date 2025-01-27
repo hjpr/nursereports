@@ -60,7 +60,7 @@ def greeting() -> rx.Component:
 
 
 def questions() -> rx.Component:
-    return rx.flex(
+    return flex(
         rx.flex(
             text("Nursing Information", class_name="text-2xl font-bold"),
             class_name="flex-col items-center bg-zinc-100 dark:bg-zinc-800 p-6 w-full",

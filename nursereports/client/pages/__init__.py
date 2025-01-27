@@ -20,7 +20,6 @@ from .policy_privacy import privacy_policy_page
 from .report_assignment import assignment_page
 from .report_compensation import compensation_page
 from .report_complete import complete_page
-from .report_outline import outline_page
 from .report_overview import overview_page
 from .report_staffing import staffing_page
 from .roadmap import roadmap_page

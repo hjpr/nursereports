@@ -31,7 +31,10 @@ def hospital_item_search(hospital: dict[str, str]) -> rx.Component:
             ),
             rx.spacer(),
             flex(
-                save_hospital(hospital),
+                rx.cond(
+                    ~UserState.user_needs_onboarding,
+                    save_hospital(hospital),
+                ),
                 go_to_report(hospital),
                 class_name="space-x-2"
             ),

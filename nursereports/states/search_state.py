@@ -9,10 +9,9 @@ import reflex as rx
 
 
 class SearchState(AuthState):
-    error_search: str
     last_searched_state: str
     last_searched_city: str
-    search_is_loading: bool
+    search_is_loading: bool = False
     search_results: list[dict]
     selected_state: str
     selected_city: str
@@ -43,7 +42,10 @@ class SearchState(AuthState):
         selection is made.
         """
         try:
-            self.search_is_loading = True
+            if not self.selected_state:
+                return rx.toast.error("State and city must be selected.")
+            if not self.selected_city:
+                return rx.toast.error("A city must be selected.")
             if (
                 self.selected_state
                 and self.selected_city
@@ -73,12 +75,9 @@ class SearchState(AuthState):
                 # Set the results to state.
                 self.search_results = search_results
 
-            self.search_is_loading = False
-
         except Exception as e:
             logger.warning(e)
             yield rx.toast.error("Failed to retrieve search results.")
-            self.search_is_loading = False
 
     def clear_search_results(self) -> None:
         self.selected_city = ""

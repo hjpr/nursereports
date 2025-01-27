@@ -4,11 +4,10 @@ from ..components import (
     hospital_item_search,
     login_protected,
     navbar,
-    solid_button,
     text
     )
 
-from ...states import BaseState, SearchState
+from ...states import BaseState, SearchState, UserState
 
 import reflex as rx
 
@@ -23,18 +22,18 @@ import reflex as rx
 )
 @login_protected
 def search_page() -> rx.Component:
-    return flex(
+    return rx.flex(
         navbar(),
         content(),
         footer(),
-        class_name="flex-col items-center bg-teal-50 min-h-screen",
+        class_name="flex-col items-center min-h-screen",
     )
 
 
 def content() -> rx.Component:
-    return flex(
+    return rx.flex(
         search(),
-        class_name="flex-col flex-grow items-center space-y-12 px-4 py-8 w-full max-w-screen-md h-full",
+        class_name="flex-col flex-grow items-center space-y-4 px-4 py-12 w-full max-w-screen-md h-full"
     )
 
 
@@ -42,64 +41,84 @@ def search() -> rx.Component:
     return flex(
         rx.flex(
             rx.flex(
-                rx.icon("search", class_name="h-6 w-6 stroke-zinc-700 dark:stroke-teal-800"),
                 text("Search for Hospital", class_name="text-2xl font-bold"),
                 class_name="flex-row items-center space-x-2"
             ),
             class_name="flex-col items-center bg-zinc-100 dark:bg-zinc-800 p-4 w-full"
         ),
         rx.flex(
-            search_content(),
+            search_filters(),
             class_name="w-full"
         ),
         rx.flex(
             search_results(),
             class_name="w-full"
         ),
-        class_name="flex-col items-center border rounded divide-y dark:divide-zinc-500 w-full"
+        class_name="flex-col border rounded shadow-lg divide-y dark:border-zinc-500 bg-zinc-100 dark:bg-zinc-800 w-full",
     )
 
 
-def search_content() -> rx.Component:
+def search_filters() -> rx.Component:
     return flex(
+        callout(),
         flex(
-            rx.select(
-                SearchState.state_options,
-                value=SearchState.selected_state,
-                placeholder="- Select state -",
-                position="popper",
-                on_change=SearchState.event_state_state_selected,
-                width=["100%", "100%", "30%", "30%", "30%"],
+            rx.flex(
+                rx.select(
+                    SearchState.state_options,
+                    value=SearchState.selected_state,
+                    placeholder="- Select state -",
+                    position="popper",
+                    size="3",
+                    on_change=SearchState.event_state_state_selected,
+                    width="100%"
+                ),
+                class_name="w-full"
             ),
-            rx.select(
-                SearchState.city_options,
-                placeholder="- Select city -",
-                value=SearchState.selected_city,
-                position="popper",
-                disabled=~SearchState.selected_state,
-                on_change=SearchState.event_state_city_selected,
-                width=["100%", "100%", "30%", "30%", "30%"],
+            rx.flex(
+                rx.select(
+                    SearchState.city_options,
+                    placeholder="- Select city -",
+                    value=SearchState.selected_city,
+                    position="popper",
+                    size="3",
+                    disabled=~SearchState.selected_state,
+                    on_change=SearchState.event_state_city_selected,
+                    width="100%"
+                ),
+                class_name="w-full"
             ),
-            solid_button(
-                "Search",
-                on_click=SearchState.event_state_search,
-                loading=SearchState.search_is_loading,
-                disabled=~(SearchState.selected_city & SearchState.selected_state),
-                class_name="w-full md:w-auto disabled:cursor-not-allowed disabled:text-zinc-200",
-            ),
-            solid_button(
-                "Clear",
-                disabled=~(SearchState.selected_state | SearchState.selected_city),
-                on_click=[
-                    SearchState.set_selected_state(""),
-                    SearchState.set_selected_city(""),
-                    SearchState.set_search_results([]),
-                ],
-                class_name="w-full md:w-auto disabled:cursor-not-allowed disabled:text-zinc-200",
-            ),
-            class_name="flex-col md:flex-row items-center justify-center md:space-x-2 space-y-4 md:space-y-0 p-4 w-full",
+            class_name="flex-row p-4 space-x-4 w-full"
         ),
-        class_name="flex-col items-center space-y-4 w-full",
+        rx.flex(
+            rx.flex(
+                rx.flex(
+                    rx.icon("search", class_name="stroke-zinc-700"),
+                    text("Search", class_name="font-bold select-none"),
+                    on_click=[
+                        SearchState.set_search_is_loading(True),
+                        SearchState.event_state_search,
+                        SearchState.set_search_is_loading(False),
+                    ],
+                    class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer"
+                ),
+                class_name="flex-col w-full active:bg-zinc-200 transition-colors duration-75"
+            ),
+            rx.flex(
+                rx.flex(
+                    rx.icon("x", class_name="stroke-zinc-700"),
+                    text("Clear selection", class_name="font-bold select-none"),
+                    on_click=[
+                        SearchState.set_selected_state(""),
+                        SearchState.set_selected_city(""),
+                        SearchState.set_search_results([]),
+                    ],
+                    class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer"
+                ),
+                class_name="flex-col w-full active:bg-zinc-200 transition-colors duration-75"
+            ),
+            class_name="flex-row divide-x w-full"
+        ),
+        class_name="flex-col items-center divide-y dark:divide-zinc-500 w-full",
     )
 
 
@@ -116,11 +135,24 @@ def search_results() -> rx.Component:
             flex(
                 rx.cond(
                     SearchState.search_is_loading,
-                    rx.icon("loader-circle", class_name="animate-spin text-zinc-700"),
-                    rx.icon("ellipsis-vertical", class_name="text-zinc-700"),
+                    rx.icon("loader-circle", class_name="animate-spin stroke-zinc-700"),
+                    rx.icon("search", class_name="stroke-zinc-700"),
                 ),
                 class_name="flex-col items-center justify-center min-h-20 w-full",
             ),
         ),
         class_name="flex w-full",
+    )
+
+def callout() -> rx.Component:
+    return rx.cond(
+        UserState.user_needs_onboarding,
+        rx.flex(
+            rx.callout(
+                "Please provide a report before accessing our resources. Select your hospital using the dropdowns below.",
+                icon="info",
+                class_name="w-full"
+            ),
+            class_name="p-4 w-full"
+        )
     )

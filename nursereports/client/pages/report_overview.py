@@ -21,7 +21,7 @@ import reflex as rx
 )
 @login_protected
 def overview_page() -> rx.Component:
-    return flex(
+    return rx.flex(
         navbar(),
         content(),
         footer(),
@@ -29,13 +29,13 @@ def overview_page() -> rx.Component:
     )
 
 def content() -> rx.Component:
-    return flex(
+    return rx.flex(
         hospital_info(),
         class_name="flex-col items-center space-y-12 px-4 py-14 md:py-20 w-full max-w-screen-sm",
     )
 
 def hospital_info() -> rx.Component:
-    return rx.flex(
+    return flex(
         # Main header
         rx.flex(
             rx.match(
@@ -68,7 +68,7 @@ def hospital_info() -> rx.Component:
             class_name="flex-col items-center bg-zinc-100 dark:bg-zinc-800 p-6 w-full"
         ),
         # Hospital header
-        rx.flex(
+        flex(
             flex(
                 rx.skeleton(
                     text(

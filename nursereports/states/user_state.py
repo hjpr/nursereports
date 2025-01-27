@@ -20,8 +20,9 @@ from datetime import datetime
 from loguru import logger
 from typing import Callable, Iterable
 
+import copy
 import jwt
-import pprint
+import rich
 import reflex as rx
 import time
 
@@ -101,7 +102,7 @@ class UserState(AuthState):
     
     @rx.var(cache=True)
     def user_needs_onboarding(self) -> bool:
-        return True if self.user_info.get("account").get("status") == "onboard" else False
+        return True if self.user_info.get("account", {}).get("status", "") == "onboard" else False
 
     def event_state_submit_login(self, auth_data: dict) -> Iterable[Callable]:
         """
@@ -260,16 +261,40 @@ class UserState(AuthState):
         self.user_reports = user_reports
 
     def update_user_info_and_sync_locally(
-        self, data: dict[str, any]
+        self, 
+        data: dict[str, any]
     ) -> Iterable[Callable]:
         """
         Provide user info data to update to remote database, then save to local state.
+        Updates nested JSONB fields by sending the complete parent object.
         """
-        synced_data = supabase_update_user_info(
-            self.access_token, self.user_claims_id, data
-        )
-        self.user_info.update(synced_data)
-        pprint.pp(self.user_info)
+        data_to_sync = {}
+        user_info = copy.deepcopy(self.user_info)
+
+        # Recursively update dicts down the tree.
+        def update(original: dict, new: dict):
+            for key, value in new.items():
+                if isinstance(value, dict):
+                    original[key] = update(original.get(key, {}), value)
+                else:
+                    original[key] = value
+            return original
+
+        update(user_info, data)
+
+        # Compare at the top-level so we can send the entire column if change occurred.
+        local_user_info = copy.deepcopy(self.user_info)
+        for key in data:
+            if user_info[key] != local_user_info[key]:
+                data_to_sync[key] = user_info[key]
+
+        if data_to_sync:
+            synced_data = supabase_update_user_info(
+                self.access_token, 
+                self.user_claims_id, 
+                data_to_sync
+            )
+            self.user_info.update(synced_data)
 
     def local_user_data_synced_with_remote(self) -> bool:
         """

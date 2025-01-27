@@ -41,11 +41,9 @@ def supabase_get_user_info(access_token: str) -> dict | None:
         if len(content) == 0:
             logger.debug("No user data present.")
         if len(content) == 1:
-            logger.debug("Retrieved user data from public/users.")
-            logger.debug(content[0])
+            rich.print(content[0])
             return content[0]
         if len(content) > 1:
-            logger.critical("Retrieved multiple user entries from a single user id!")
             raise DuplicateUserError(
                 "Retrieved multiple user entries for a single user id."
             )
@@ -75,17 +73,17 @@ def supabase_create_initial_user_info(access_token: str, user_id: str) -> None:
             "status": "onboard",
             "trust": 0,
             "membership": "free",
-            "browsers": {}
+            "browsers": []
         },
         "professional": {
             "license_type": "",
             "license_number": "",
             "license_state": "",
-            "specialty": {},
+            "specialty": [],
             "experience": 0
         },
         "reports": {
-            "ids": {},
+            "ids": [],
             "num_full": 0,
             "num_flag": 0,
             "num_pay": 0
@@ -93,7 +91,7 @@ def supabase_create_initial_user_info(access_token: str, user_id: str) -> None:
         "engagement": {
             "likes": 0,
             "tags": 0,
-            "referrals": {}
+            "referrals": []
         },
         "preferences": {
             "email": "",
@@ -104,8 +102,8 @@ def supabase_create_initial_user_info(access_token: str, user_id: str) -> None:
             "social_opt_in": False,
         },
         "saved": {
-            "jobs": {},
-            "hospitals": {}
+            "jobs": [],
+            "hospitals": []
         }
     }
     url = f"{api_url}/rest/v1/users"
@@ -179,7 +177,6 @@ def supabase_update_user_info(
     }
     response = httpx.patch(url=url, headers=headers, data=json.dumps(data))
     if response.is_success:
-        rich.inspect(response)
         logger.debug("Updated user info in public/users.")
         return data
     else:

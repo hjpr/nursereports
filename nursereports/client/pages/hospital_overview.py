@@ -31,16 +31,16 @@ import reflex as rx
 )
 @report_protected
 def hospital_overview() -> rx.Component:
-    return flex(
+    return rx.flex(
         navbar(),
         content(),
         footer(),
-        class_name="flex-col items-center",
+        class_name="flex-col items-center min-h-svh",
     )
 
 
 def content() -> rx.Component:
-    return flex(
+    return rx.flex(
             heading(),
             staff_pay(),
             travel_pay(),
@@ -51,7 +51,7 @@ def content() -> rx.Component:
 
 
 def heading() -> rx.Component:
-    return flex(
+    return rx.flex(
         rx.flex(
             rx.flex(
                 rx.icon("hospital", class_name="h-6 w-6 stroke-zinc-700 dark:stroke-teal-800"),
