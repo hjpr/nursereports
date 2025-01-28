@@ -36,7 +36,7 @@ def compensation_page() -> rx.Component:
 def content() -> rx.Component:
     return rx.flex(
         compensation(),
-        class_name="flex-col items-center space-y-12 px-4 py-14 md:py-20 w-full max-w-screen-sm",
+        class_name="flex-col items-center space-y-12 px-4 py-4 md:py-20 w-full max-w-screen-sm",
     )
 
 

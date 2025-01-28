@@ -195,19 +195,24 @@ def supabase_get_user_reports(access_token: str, user_id: str) -> list[dict] | N
 
     Returns:
         list[dict]: - list of reports as dicts
-            assign_select_unit: str - user selected unit
-            assign_input_unit_name: str - if unit not present, user entered unit
-            assign_select_area: str - user selected area
-            assign_input_area: str - if area not present, user entered area
-            created_at: str - time report was created
-            hospital_id: str - medicare id
-            modified_at: str - time report was modified
-            report_id: str - uuid of report
+            report_id: str
+            hospital_id: str
+            created_at: str
+            modified_at: str
+            assignment: dict 
+                classify: str
+                recommend: str
+                comments: str
+                unit: dict
+                area: dict
+                specialty: dict
+                role: dict
+                ratings: dict
 
     Exceptions
         RequestFailed: request to database failed
     """
-    columns = "report_id,hospital_id,assign_select_unit,assign_input_unit_name,assign_select_area,assign_input_area,created_at,modified_at"
+    columns = "report_id,hospital_id,assignment,created_at,modified_at"
     url = f"{api_url}/rest/v1/reports?user_id=eq.{user_id}&select={columns}"
     headers = {
         "apikey": api_key,

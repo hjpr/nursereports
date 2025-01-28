@@ -181,12 +181,8 @@ class UserState(AuthState):
         Navigate to Supabase SSO endpoint.
         """
         try:
-            self.user_is_loading = True
-
             # Supabase API endpoint for SSO auth.
             yield rx.redirect(f"{api_url}/auth/v1/authorize?provider={provider}")
-
-            self.user_is_loading = False
 
         except Exception as e:
             logger.error(e)
@@ -223,15 +219,16 @@ class UserState(AuthState):
 
     def get_user_saved_hospitals(self) -> None:
         """Get or refresh saved hospitals."""
-        if self.user_info.get("saved_hospitals"):
-            saved_hospitals = supabase_populate_saved_hospital_details(
-                self.access_token, self.user_info.get("saved_hospitals")
+        saved_hospital_list = self.user_info.get("saved", {}).get("hospitals", [])
+        if saved_hospital_list:
+            retrieved_hospitals = supabase_populate_saved_hospital_details(
+                self.access_token, saved_hospital_list
             )
 
             # Format hospital cities from all caps to 'title' case.
-            for hospital in saved_hospitals:
+            for hospital in retrieved_hospitals:
                 hospital["hosp_city"] = hospital["hosp_city"].title()
-            self.user_saved_hospitals = saved_hospitals
+            self.user_saved_hospitals = retrieved_hospitals
         else:
             self.user_saved_hospitals = []
 

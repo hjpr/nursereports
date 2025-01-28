@@ -33,7 +33,8 @@ def search_page() -> rx.Component:
 def content() -> rx.Component:
     return rx.flex(
         search(),
-        class_name="flex-col flex-grow items-center space-y-4 px-4 py-12 w-full max-w-screen-md h-full"
+        search_results(),
+        class_name="flex-col flex-grow items-center space-y-12 px-4 py-4 md:py-20 w-full max-w-screen-md h-full"
     )
 
 
@@ -48,10 +49,6 @@ def search() -> rx.Component:
         ),
         rx.flex(
             search_filters(),
-            class_name="w-full"
-        ),
-        rx.flex(
-            search_results(),
             class_name="w-full"
         ),
         class_name="flex-col border rounded shadow-lg divide-y dark:border-zinc-500 bg-zinc-100 dark:bg-zinc-800 w-full",
@@ -92,12 +89,12 @@ def search_filters() -> rx.Component:
         rx.flex(
             rx.flex(
                 rx.flex(
-                    rx.icon("search", class_name="stroke-zinc-700"),
-                    text("Search", class_name="font-bold select-none"),
+                    rx.icon("x", class_name="stroke-zinc-700"),
+                    text("Clear selection", class_name="font-bold select-none"),
                     on_click=[
-                        SearchState.set_search_is_loading(True),
-                        SearchState.event_state_search,
-                        SearchState.set_search_is_loading(False),
+                        SearchState.set_selected_state(""),
+                        SearchState.set_selected_city(""),
+                        SearchState.set_search_results([]),
                     ],
                     class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer"
                 ),
@@ -105,12 +102,12 @@ def search_filters() -> rx.Component:
             ),
             rx.flex(
                 rx.flex(
-                    rx.icon("x", class_name="stroke-zinc-700"),
-                    text("Clear selection", class_name="font-bold select-none"),
+                    rx.icon("search", class_name="stroke-zinc-700"),
+                    text("Search", class_name="font-bold select-none"),
                     on_click=[
-                        SearchState.set_selected_state(""),
-                        SearchState.set_selected_city(""),
-                        SearchState.set_search_results([]),
+                        SearchState.set_search_is_loading(True),
+                        SearchState.event_state_search,
+                        SearchState.set_search_is_loading(False),
                     ],
                     class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer"
                 ),
@@ -136,12 +133,12 @@ def search_results() -> rx.Component:
                 rx.cond(
                     SearchState.search_is_loading,
                     rx.icon("loader-circle", class_name="animate-spin stroke-zinc-700"),
-                    rx.icon("search", class_name="stroke-zinc-700"),
+                    rx.icon("ellipsis", class_name="stroke-zinc-700"),
                 ),
                 class_name="flex-col items-center justify-center min-h-20 w-full",
             ),
         ),
-        class_name="flex w-full",
+        class_name="flex-col border rounded shadow-lg divide-y dark:border-zinc-500 bg-zinc-100 dark:bg-zinc-800 w-full",
     )
 
 def callout() -> rx.Component:
