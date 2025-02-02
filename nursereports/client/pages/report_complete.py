@@ -1,8 +1,11 @@
-from ..components.c2a import c2a
-from ..components.custom import spacer, login_protected
-from ..components.footer import footer
-from ..components.navbar import navbar
-from ...states import BaseState, ReportState
+from ..components import (
+    flex,
+    footer,
+    login_protected,
+    navbar,
+    text
+)
+from ...states import BaseState
 
 import reflex as rx
 
@@ -13,130 +16,107 @@ import reflex as rx
     on_load=[
         BaseState.event_state_auth_flow,
         BaseState.event_state_access_flow("login"),
-        ReportState.event_state_report_flow,
     ],
 )
 @login_protected
 def complete_page() -> rx.Component:
     return rx.flex(
-        c2a(),
         navbar(),
-        spacer(height="48px"),
         content(),
-        spacer(height="96px"),
         footer(),
         fireworks(),
-        width="100%",
-        flex_direction="column",
-        align_items="center",
-        min_height="100vh",
+        class_name="flex-col items-center min-h-svh",
     )
 
 
 def content() -> rx.Component:
     return rx.flex(
         header(),
-        spacer(height="24px"),
         share(),
-        spacer(height="24px"),
         leave(),
-        gap="24px",
-        padding_x="24px",
-        width=["100%", "480px", "480px", "480px", "480px"],
-        max_width="1200px",
-        flex_direction="column",
-        flex_basis="auto",
-        flex_grow="1",
-        flex_shrink="0",
+        class_name="flex-col items-center space-y-10 px-4 py-24 w-full md:max-w-screen-sm",
     )
 
 
 def header() -> rx.Component:
     return rx.flex(
-        rx.vstack(
-            rx.heading(
-                "One report closer to full transparency!", text_align="center", size="7"
-            ),
-            rx.text(
-                """In just a short time you've made a big difference.
-                The only bigger difference you can make is to spread
-                the word. Share NurseReports.org to your friends and
-                colleagues below.
-                """,
-                text_align="center",
-            ),
-            width="100%",
+        rx.text(
+            "Like saving a few slices of pepperoni for night shift.",
+            class_name="font-bold text-center text-4xl text-zinc-700",
+
         ),
-        width="100%",
+        rx.text(
+            """You're a team player! Every report adds to transparency and
+            accountability across the US. Don't forget to share this site
+            with your friends and colleagues by using the social links below.
+            """,
+            class_name="text-zinc-700"
+        ),
+        class_name="flex-col space-y-10 pb-4 w-full max-w-screen-sm",
     )
 
 
 def share() -> rx.Component:
-    return rx.card(
+    return flex(
         rx.flex(
+            text("Share to...", class_name="text-xl font-bold"),
+            class_name="flex-col items-center bg-zinc-100 dark:bg-zinc-800 p-4 w-full",
+        ),
+        flex(
             rx.flex(
-                rx.text("Share to:", white_space="nowrap"),
                 rx.flex(
-                    rx.button(
-                        rx.icon("facebook", size=28),
-                        size="3",
-                        color="#1877F2",
-                        variant="ghost",
-                        on_click=rx.redirect(
-                            "https://www.facebook.com/sharer/sharer.php?u=https://nursereports.org&amp;src=sdkpreparse",
-                            external=True,
-                        ),
+                    rx.icon("facebook", class_name= "stroke-zinc-700"),
+                    text("Facebook", class_name="font-bold select-none"),
+                    on_click=rx.redirect(
+                        "https://www.facebook.com/sharer/sharer.php?u=https://nursereports.org&amp;src=sdkpreparse",
+                        external=True,
                     ),
-                    rx.button(
-                        rx.icon("twitter", size=28),
-                        size="3",
-                        color="#1DA1F2",
-                        variant="ghost",
-                        on_click=rx.redirect(
-                            "https://twitter.com/intent/post?text=Nationwide hospital reporting built by nurses for nurses.&url=https%3A%2F%2Fnursereports.org",
-                            external=True,
-                        ),
-                    ),
-                    rx.button(
-                        rx.icon("linkedin", size=28),
-                        size="3",
-                        color="#0077B5",
-                        variant="ghost",
-                        on_click=rx.redirect(
-                            "https://www.linkedin.com/sharing/share-offsite/?url=https://nursereports.org",
-                            external=True,
-                        ),
-                    ),
-                    flex_direction="row",
-                    align_items="center",
-                    justify_content="space-around",
-                    width="100%",
+                    class_name="flex-row items-center justify-center space-x-4 p-4 cursor-pointer",
                 ),
-                flex_direction="row",
-                align_items="center",
-                margin_top="12px",
+                class_name="flex-col w-full active:bg-zinc-200 transition-colors duration-75",
             ),
-            flex_direction="column",
-            gap="24px",
-        )
+            rx.flex(
+                rx.flex(
+                    rx.icon("twitter", class_name= "stroke-zinc-700"),
+                    text("Twitter", class_name="font-bold select-none"),
+                    on_click=rx.redirect(
+                        "https://twitter.com/intent/post?text=Nationwide hospital reporting built by nurses for nurses.&url=https%3A%2F%2Fnursereports.org",
+                        external=True,
+                    ),
+                    class_name="flex-row items-center justify-center space-x-4 p-4 cursor-pointer",
+                ),
+                class_name="flex-col w-full active:bg-zinc-200 transition-colors duration-75",
+            ),
+            rx.flex(
+                rx.flex(
+                    rx.icon("linkedin", class_name= "stroke-zinc-700"),
+                    text("LinkedIn", class_name="font-bold select-none"),
+                    on_click=rx.redirect(
+                        "https://www.linkedin.com/sharing/share-offsite/?url=https://nursereports.org",
+                        external=True,
+                    ),
+                    class_name="flex-row items-center justify-center space-x-4 p-4 cursor-pointer",
+                ),
+                class_name="flex-col w-full active:bg-zinc-200 transition-colors duration-75",
+            ),
+            class_name="flex-col dark:divide-zinc-500 divide-y w-full",
+        ),
+        class_name="flex-col border rounded shadow-lg dark:border-zinc-500 bg-zinc-100 dark:bg-zinc-800 divide-y w-full",
     )
 
 
 def leave() -> rx.Component:
-    return rx.card(
+    return flex(
         rx.flex(
-            rx.button(
-                "Go to Dashboard",
-                rx.icon("arrow-big-right"),
-                size="3",
-                variant="ghost",
+            rx.flex(
+                text("Go to Dashboard", class_name="font-bold select-none"),
+                rx.icon("arrow-right", class_name= "stroke-zinc-700"),
                 on_click=rx.redirect("/dashboard"),
+                class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer",
             ),
-            align_items="center",
-            justify_content="center",
-            width="100%",
+            class_name="flex-col w-full active:bg-zinc-200 transition-colors duration-75",
         ),
-        width="100%",
+        class_name="flex-col border rounded shadow-lg dark:border-zinc-500 bg-zinc-100 dark:bg-zinc-800 divide-y w-full",
     )
 
 
@@ -161,7 +141,7 @@ def fireworks() -> rx.Component:
                     return clearInterval(interval);
                 }
 
-                const particleCount = 50 * (timeLeft / duration);
+                const particleCount = 60 * (timeLeft / duration);
 
                 // since particles fall down, start a bit higher than random
                 confetti(

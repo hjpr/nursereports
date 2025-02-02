@@ -5,7 +5,7 @@ from ..components import (
     login_protected,
     text,
 )
-from ...states import BaseState, ReportState
+from ...states import BaseState, ReportState, UserState
 
 import reflex as rx
 
@@ -160,12 +160,22 @@ def hospital_info() -> rx.Component:
                         )
                     ),
                     (
-                        ("full-report" or "pay-report" or "red-flag"), rx.flex(
-                            rx.icon("arrow-left"),
-                            rx.text("Back", class_name="font-bold select-none"),
-                            on_click=rx.redirect(f"/hospital/{ReportState.hospital_id}"),
-                            class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer"
-                        )
+                        ("full-report" or "pay-report" or "red-flag"),
+                        rx.cond(
+                            UserState.user_needs_onboarding,
+                            rx.flex(
+                                rx.icon("arrow-left"),
+                                rx.text("Back", class_name="font-bold select-none"),
+                                on_click=rx.redirect("/search/hospital"),
+                                class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer"
+                            ),
+                            rx.flex(
+                                rx.icon("arrow-left"),
+                                rx.text("Back", class_name="font-bold select-none"),
+                                on_click=rx.redirect(f"/hospital/{ReportState.hospital_id}"),
+                                class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer"
+                            )
+                        ),
                     )
                 ),
                 class_name="flex-col w-full active:bg-zinc-200 transition-colors duration-75"

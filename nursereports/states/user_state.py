@@ -139,8 +139,8 @@ class UserState(AuthState):
             self.user_is_loading = False
 
         except Exception as e:
-            logger.warning(e)
-            yield rx.toast.error(e)
+            logger.warning(str(e))
+            yield rx.toast.error(str(e))
             self.user_is_loading = False
 
     def event_state_create_account(self, auth_data: dict) -> Iterable[Callable]:

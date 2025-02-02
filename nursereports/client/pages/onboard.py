@@ -10,6 +10,7 @@ import reflex as rx
     on_load=[
         BaseState.event_state_auth_flow,
         BaseState.event_state_access_flow("login"),
+        OnboardState.event_state_onboard_flow,
     ],
 )
 @login_protected
@@ -43,7 +44,7 @@ def greeting() -> rx.Component:
                 on the East Coast. I built this tool to help nurses
                 share hospital information across the US.
                 """,
-                class_name="text-center text-zinc-700",
+                class_name="text-zinc-700",
             ),
             rx.text(
                 """
@@ -51,7 +52,7 @@ def greeting() -> rx.Component:
                 ask that you share a report first if you are currently
                 working in a hospital.
                 """,
-                class_name="text-center text-zinc-700",
+                class_name="text-zinc-700",
             ),
             class_name="flex-col items-center space-y-6 w-full",
         ),

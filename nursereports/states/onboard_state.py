@@ -1,5 +1,4 @@
 from .user_state import UserState
-from ..server.exceptions import InvalidError, RequestFailed
 
 from typing import Callable, Iterable
 
@@ -17,6 +16,9 @@ class OnboardState(UserState):
         self.has_review = ""
         if license == "Nursing Student":
             self.has_review = "No"
+
+    def event_state_onboard_flow(self) -> Callable:
+        return rx.redirect("/dashboard") if not self.user_needs_onboarding else None
 
     def event_state_submit_onboard(self) -> Iterable[Callable]:
         try:

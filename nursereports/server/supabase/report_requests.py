@@ -80,7 +80,7 @@ def supabase_get_hospital_info(access_token: str, hosp_id: str) -> dict[str, any
         content= json.loads(response.content)
         return content[0]
     else:
-        logger.critical(f"Failed to retrieve {hosp_id} from /hospitals")
+        rich.inspect(response)
         raise RequestFailed("Request failed retrieving hospital.")
 
 def supabase_check_report_uuid_conflict(access_token: str, report_id: str) -> None:
@@ -109,6 +109,7 @@ def supabase_check_report_uuid_conflict(access_token: str, report_id: str) -> No
                 f"Found duplicate UUID in database. {report_id}"
             )
     else:
+        rich.inspect(response)
         raise RequestFailed(
             "Request to check for duplicate UUID's in database failed."
         )
@@ -150,7 +151,6 @@ def supabase_user_edit_report(access_token: str, report: dict[str, any]) -> None
     Exceptions:
         RequestFailed: request to database failed.
     """
-    report["modified_at"] = datetime.now(timezone.utc).isoformat()
     url = f"{api_url}/rest/v1/reports?report_id=eq.{report['report_id']}"
     data = json.dumps(report)
     headers = {
@@ -161,7 +161,7 @@ def supabase_user_edit_report(access_token: str, report: dict[str, any]) -> None
     }
     response = httpx.put(url=url, headers=headers, data=data)
     if response.is_success:
-        logger.debug(f"Successfully edited report {report['report_id']}.")
+        logger.debug(f"Successfully edited {report['report_id']}.")
     else:
         rich.inspect(response)
         raise RequestFailed("Request to submit report to database failed.")
@@ -185,73 +185,26 @@ def supabase_admin_edit_report(report: dict[str, any]) -> None:
         "Content-Type": "application/json",
         "Prefer": "return=minimal"
     }
-    response = httpx.put(url=url, headers=headers, data=data)
+    response = httpx.patch(url=url, headers=headers, data=data)
     if response.is_success:
         logger.debug(f"Successfully edited report {report['report_id']}.")
     else:
         rich.inspect(response)
         raise RequestFailed("Request to submit report to database failed.")
     
-def supabase_update_hospital_units(access_token: str, hosp_id: str,  unit: str) -> None:
+def supabase_update_hospital_departments(hosp_id: str, data: dict) -> None:
     """
     Adds a unit to hospital in /hospitals table. 
     """
     url = f"{api_url}/rest/v1/hospitals?hosp_id=eq.{hosp_id}&select=*"
     headers = {
         "apikey": api_key,
-        "Authorization": f"Bearer {access_token}",
+        "Authorization": f"Bearer {admin_key}",
         "Content-Type": "application/json",
     }
-    response = httpx.get(url=url, headers=headers)
-    if response.is_success:
-        hospital_info = json.loads(response.content)
-    else:
-        raise RequestFailed("Request failed retrieving hospital.")
-    
-    hospital_units: list = hospital_info["hosp_units"]
-    if unit not in hospital_units:
-        hospital_units.append(unit)
-
-    data = { 
-        "hosp_units": hospital_units,
-        "needs_validation": True,
-        "needs_moderation": True,      
-    }
-    response = httpx.put(url=url, headers=headers, data=json.dumps(data))
-    if response.is_success:
-        logger.debug("Updated unit info in public/hospitals.")
-    else:
-        raise RequestFailed("Failed to update unit information.")
-    
-def supabase_update_hospital_area_role(access_token: str, hosp_id: str, area_role: str) -> None:
-    """
-    Adds an area or role to hospital in /hospitals table.
-    """
-    url = f"{api_url}/rest/v1/hospitals?hosp_id=eq.{hosp_id}&select=*"
-    headers = {
-        "apikey": api_key,
-        "Authorization": f"Bearer {access_token}",
-        "Content-Type": "application/json",
-    }
-    response = httpx.get(url=url, headers=headers)
-    if response.is_success:
-        hospital_info = json.loads(response.content)[0]
-    else:
-        raise RequestFailed("Request failed retrieving hospital.")
-    
-    hospital_areas_roles = hospital_info["hosp_areas_roles"]
-    if area_role not in hospital_areas_roles:
-        hospital_areas_roles.append(area_role)
-
-    data = { 
-        "hosp_areas_roles": hospital_areas_roles,
-        "needs_validation": True,
-        "needs_moderation": True
-        }
     response = httpx.patch(url=url, headers=headers, data=json.dumps(data))
     if response.is_success:
-        logger.debug("Updated unit info in public/hospitals.")
+        logger.debug(f"Updated department info for {hosp_id}.")
     else:
         rich.inspect(response)
         raise RequestFailed("Failed to update unit information.")
-

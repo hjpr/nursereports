@@ -17,8 +17,7 @@ from .report_requests import (
     supabase_get_hospital_info,
     supabase_check_report_uuid_conflict,
     supabase_submit_full_report,
-    supabase_update_hospital_area_role,
-    supabase_update_hospital_units
+    supabase_update_hospital_departments,
 )
 from .search_requests import supabase_get_hospital_search_results
 from .users_requests import (

@@ -1,29 +1,23 @@
 from . import constants_types
 from ..states import PageState
 from ..server.exceptions import RequestFailed, DuplicateReport, DuplicateUUID
-from ..server.secrets import api_url, api_key, groq_key
+from ..server.secrets import groq_key
 from ..server.supabase import (
-    supabase_check_for_existing_report,
     supabase_user_edit_report,
     supabase_get_full_report_info,
     supabase_get_hospital_info,
     supabase_check_report_uuid_conflict,
     supabase_submit_full_report,
-    supabase_update_user_info,
-    supabase_update_hospital_units,
-    supabase_update_hospital_area_role,
+    supabase_update_hospital_departments,
 )
 from datetime import datetime, timezone
 from loguru import logger
-from groq import AsyncGroq
+from groq import Groq
 from typing import Callable, Iterable, Literal
 
-import httpx
 import json
 import uuid
-import pprint
 import reflex as rx
-import rich
 import textwrap
 
 
@@ -52,8 +46,8 @@ class ReportState(PageState):
     report_dict: dict[str, bool | int | str]
 
     @rx.var
-    def mode(self) -> Literal["edit", "full-report", "pay-report", "red-flag"]:
-        return self.router.page.params.get("report_mode")
+    def mode(self) -> Literal["", "edit", "full-report", "pay-report", "red-flag"]:
+        return self.router.page.params.get("report_mode", "")
 
     def event_state_report_flow(self) -> Iterable[Callable]:
         """
@@ -72,15 +66,17 @@ class ReportState(PageState):
         try:
             # Reset all report variables.
             self.reset()
+
             # Load report to edit into the state.
             report = supabase_get_full_report_info(self.access_token, report_id)
-            self.save_report_dict_to_state(report)
+
             # Populate other report details to state.
             self.report_id = report["report_id"]
             self.hospital_id = report["hospital_id"]
             self.hospital_info = supabase_get_hospital_info(
                 self.access_token, self.hospital_id
             )
+
             # Navigate to the first page of report edit page.
             yield rx.redirect("/report/edit/compensation")
 
@@ -97,27 +93,27 @@ class ReportState(PageState):
             # Reset all report variables.
             self.reset()
 
-            # Set report UUID
+            # Set report UUID to state.
             self.report_id = str(uuid.uuid4())
             self.uuid_timeout = 3
 
-            # Set CMS ID of report.
+            # Set CMS ID of report to state.
             self.hospital_id = hospital_id
 
-            # Get hospital info by CMS ID
+            # Get hospital info by CMS ID and set to state.
             self.hospital_info = supabase_get_hospital_info(
                 self.access_token, self.hospital_id
             )
 
-            # Set available units/areas/roles for user selection.
-            self.hospital_units = self.hospital_info.get("hosp_units", [])
+            # Set available units/areas/roles for user selection to state.
+            self.hospital_units = self.hospital_info.get("hosp_units", []).copy()
             self.hospital_units.append("I don't see my unit")
-            self.hospital_areas = self.hospital_info.get("hosp_areas", [])
+            self.hospital_areas = self.hospital_info.get("hosp_areas", []).copy()
             self.hospital_areas.append("I don't see my area")
-            self.hospital_roles = self.hospital_info.get("hosp_roles", [])
+            self.hospital_roles = self.hospital_info.get("hosp_roles", []).copy()
             self.hospital_roles.append("I don't see my role")
 
-            # Set user dict data.
+            # Set user dict data to state.
             self.report_dict["report_id"] = self.report_id
             self.report_dict["hospital_id"] = self.hospital_id
             self.report_dict["user_id"] = self.user_claims_id
@@ -127,15 +123,13 @@ class ReportState(PageState):
                 "host": self.router.headers.host,
                 "user_agent": self.router.headers.user_agent,
             }
-            self.report_dict["moderation"] = {
-                "flagged": 0,
-                "reason": ""
-            }
+            self.report_dict["moderation"] = {"flagged": 0, "reason": ""}
             self.report_dict["compensation"] = {}
             self.report_dict["assignment"] = {}
             self.report_dict["staffing"] = {}
             self.report_dict["social"] = {"likes": {}, "comments": {}, "tags": {}}
             self.report_dict["created_at"] = str(datetime.now(timezone.utc))
+            self.report_dict["submitted_at"] = None
 
             # Redirect to first page of full report.
             yield rx.redirect("/report/full-report/overview")
@@ -326,17 +320,25 @@ class ReportState(PageState):
         error_messages = []
         if self.comp_input_pay_hourly:
             if not (15 <= self.comp_input_pay_hourly <= 250):
-                error_messages.append("Hourly rate entered exceeds normal ranges.")
+                error_messages.append(
+                    "Hourly rate entered exceeds normal ranges ($15-$250/hr)."
+                )
         if self.comp_input_pay_weekly:
             if not (800 <= self.comp_input_pay_weekly <= 15000):
-                error_messages.append("Weekly rate entered exceeds normal ranges.")
+                error_messages.append(
+                    "Weekly rate entered exceeds normal ranges ($800-$15000/wk)."
+                )
         if not (0 <= self.comp_input_pay_night <= 50):
-            error_messages.append("Night differential entered exceeds normal ranges.")
+            error_messages.append(
+                "Night differential entered exceeds normal ranges ($1-$50/hr)."
+            )
         if not (0 <= self.comp_input_pay_weekend <= 50):
-            error_messages.append("Weekend differential entered exceeds normal ranges.")
+            error_messages.append(
+                "Weekend differential entered exceeds normal ranges ($1-$50/hr)."
+            )
         if not (0 <= self.comp_input_pay_weekend_night <= 50):
             error_messages.append(
-                "Weekend night differential entered exceeds normal ranges."
+                "Weekend night differential entered exceeds normal ranges ($1-$50/hr)."
             )
         if len(self.comp_input_comments) > 1000:
             error_messages.append("Length of comment exceeds 1000 characters.")
@@ -346,6 +348,7 @@ class ReportState(PageState):
 
         # If all checks are complete and everything is groovy.
         if not error_messages:
+            # Build compensation section.
             self.report_dict["compensation"] = {
                 "emp_type": self.comp_select_emp_type,
                 "pay_type": self.comp_select_pay_type,
@@ -380,6 +383,12 @@ class ReportState(PageState):
                 },
                 "comments": self.comp_input_comments,
             }
+
+            # Professional data at report creation is stale, so update that to reflect current.
+            self.report_dict["user"]["professional"]["experience"] = (
+                self.years_hospital_experience.index(self.comp_select_total_experience)
+            )
+
             return rx.redirect(f"/report/{self.mode}/assignment")
 
     #################################################################
@@ -574,6 +583,7 @@ class ReportState(PageState):
 
         # If all checks complete and everything is groovy.
         if not error_messages:
+            # Build assignment section.
             self.report_dict["assignment"] = {
                 "classify": self.assign_select_classify,
                 "unit": {
@@ -610,6 +620,23 @@ class ReportState(PageState):
                 "recommend": self.assign_select_recommend,
                 "comments": self.assign_input_comments,
             }
+
+            # Professional data at report creation is stale, so update that to reflect current.
+            specialty = self.user_info.get("professional", {}).get("specialty", [])
+            updated_specialty = list(
+                set(specialty)
+                | set(
+                    filter(
+                        None,
+                        [
+                            self.assign_select_specialty_1,
+                            self.assign_select_specialty_2,
+                            self.assign_select_specialty_3,
+                        ],
+                    )
+                )
+            )
+            self.report_dict["user"]["professional"]["specialty"] = updated_specialty
             return rx.redirect(f"/report/{self.mode}/staffing")
 
     #################################################################
@@ -817,7 +844,8 @@ class ReportState(PageState):
         try:
             if self.uuid_timeout <= 0:
                 return rx.toast.error(
-                    "Irreconcilable UUID conflict.", close_button=True
+                    "Irreconcilable UUID conflict. Close browser and complete new report. If this persists, please contact support.",
+                    close_button=True,
                 )
 
             if not (
@@ -829,69 +857,98 @@ class ReportState(PageState):
                 and self.report_dict["staffing"]
             ):
                 return rx.toast.error(
-                    "Data corrupted. Recheck report for completion.", close_button=True
+                    "Data corrupted. Recheck report for completion. If this persists, please contact support.",
+                    close_button=True,
                 )
-            
-            pprint.pp(self.report_dict.copy())
 
-            # # Ensure that no report UUID's conflict.
-            # supabase_check_report_uuid_conflict(self.access_token, self.report_dict["report_id"])
+            # Ensure that no report UUID's conflict.
+            supabase_check_report_uuid_conflict(
+                self.access_token, self.report_dict["report_id"]
+            )
 
-            # # Submit report to supabase.
-            # supabase_submit_full_report(self.access_token, self.report_dict)
+            # Submit report to supabase.
+            self.report_dict["submitted_at"] = str(datetime.now(timezone.utc))
+            supabase_submit_full_report(self.access_token, self.report_dict)
 
-            # # Update user data with relevant info once report is submitted.
-            # updated_status = "active"
-            # updated_specialty = self.user_info.get("professional", {}).get(
-            #     "specialty", []
-            # ).copy()
-            # updated_specialty.extend(
-            #     [
-            #         specialty
-            #         for specialty in [
-            #             self.assign_select_specialty_1,
-            #             self.assign_select_specialty_2,
-            #             self.assign_select_specialty_3,
-            #         ]
-            #         if (specialty and specialty not in updated_specialty)
-            #     ]
-            # )
-            # updated_experience = self.years_hospital_experience.index(
-            #     self.comp_select_total_experience
-            # )
-            # updated_ids: list = self.user_info.get("reports", {}). get("ids", []).copy()
-            # updated_ids.extend(
-            #     [id for id in [self.report_id] if id not in updated_ids]
-            # )
-            # updated_num = self.user_info.get("reports", []).get("num_full", 0) + 1
+            # Update user data with relevant info once report is submitted.
+            updated_status: str = "active"
 
-            # self.update_user_info_and_sync_locally(
-            #     data = {
-            #         "account": {
-            #             "status": updated_status
-            #         },
-            #         "professional": {
-            #             "specialty": updated_specialty,
-            #             "experience": updated_experience
-            #         },
-            #         "reports": {
-            #             "num_full": updated_num
-            #         }
-            #     }
-            # )
+            specialty = self.user_info.get("professional", {}).get("specialty", [])
+            updated_specialty = list(
+                set(specialty)
+                | set(
+                    filter(
+                        None,
+                        [
+                            self.assign_select_specialty_1,
+                            self.assign_select_specialty_2,
+                            self.assign_select_specialty_3,
+                        ],
+                    )
+                )
+            )
+
+            updated_experience: int = self.years_hospital_experience.index(
+                self.comp_select_total_experience
+            )
+
+            ids = self.user_info.get("reports", {}).get("ids", [])
+            updated_ids = list(set(ids) | set([self.report_dict["report_id"]]))
+
+            num_full_reports = self.user_info.get("reports", []).get("num_full", 0)
+            updated_num = num_full_reports + 1
+
+            self.update_user_info_and_sync_locally(
+                data={
+                    "account": {"status": updated_status},
+                    "professional": {
+                        "specialty": updated_specialty,
+                        "experience": updated_experience,
+                    },
+                    "reports": {"ids": updated_ids, "num_full": updated_num},
+                }
+            )
 
             # Moderate our unit/area/role and comment entries
             yield ReportState.moderate_user_entries()
 
+            # Send update to unit/area/role if moderation ok or unmoderated AND entries present.
+            if self.report_dict.get("moderation", {}).get("flagged", 0) in {0, 2} and (
+                self.assign_input_unit
+                or self.assign_input_area
+                or self.assign_input_role
+            ):
+                units = self.hospital_info.get("departments", {}).get("units", [])
+                updated_units = list(
+                    set(units) | set(filter(None, [self.assign_input_unit.upper()]))
+                )
+
+                areas = self.hospital_info.get("departments", {}).get("areas", [])
+                updated_areas = list(
+                    set(areas) | set(filter(None, [self.assign_input_area.upper()]))
+                )
+
+                roles = self.hospital_info.get("departments", {}).get("roles", [])
+                updated_roles = list(
+                    set(roles) | set(filter(None, [self.assign_input_role.upper()]))
+                )
+
+            hospital_updates = {}
+            hospital_updates["departments"] = {
+                "units": updated_units,
+                "areas": updated_areas,
+                "roles": updated_roles,
+            }
+            supabase_update_hospital_departments(self.hospital_id, hospital_updates)
+
             # Redirect user to the completed page for fireworks!
-            # yield rx.redirect("/report/full-report/complete")
+            yield rx.redirect("/report/full-report/complete")
+
         except DuplicateUUID:
             logger.warning(
                 f"Retrying with new UUID {(int(self.uuid_timeout))} more time(s)."
             )
-            logger.warning(f"Old UUID - {self.report_dict['report_id']}")
             self.report_dict["report_id"] = str(uuid.uuid4())
-            logger.warning(f"New UUID - {self.report_dict['report_id']}")
             self.uuid_timeout += 1
             yield ReportState.submit_full_report
         except RequestFailed as e:
@@ -900,22 +957,23 @@ class ReportState(PageState):
                 "Failed to submit report to database.", close_button=True
             )
 
-    @rx.background
-    async def moderate_user_entries(self) -> None:
+    def moderate_user_entries(self) -> None:
         """
         Send all user entered fields to AI for moderation.
         """
         try:
             job_location = f"{self.assign_input_unit} {self.assign_input_area} {self.assign_input_role}".strip()
             comments = f"{self.comp_input_comments} {self.assign_input_comments} {self.staffing_input_comments}".strip()
+            ai_moderation_model = "llama-3.3-70b-versatile"
+
             if job_location or comments:
                 if not job_location:
                     job_location = "EMPTY"
                 if not comments:
                     comments = "EMPTY"
-                client = AsyncGroq(api_key=groq_key)
-                completion = await client.chat.completions.create(
-                    model="llama-3.3-70b-versatile",
+                client = Groq(api_key=groq_key)
+                completion = client.chat.completions.create(
+                    model=ai_moderation_model,
                     messages=[
                         {
                             "role": "system",
@@ -926,31 +984,47 @@ class ReportState(PageState):
                                 health info, off-topic entries, spam, racism, sexism, or doxxing otherwise if valid output a 0. Profanity and content
                                 conveying strong emotions is acceptable given it's on topic. Under key 'reason', if entry is flagged
                                 give brief rationale otherwise output ''.
-                                """
-                                )
+                                """),
                         },
                         {
                             "role": "user",
-                            "content": f"User location or role: {job_location}. User comments: {comments}"
-                        }
+                            "content": f"User location or role: {job_location}. User comments: {comments}",
+                        },
                     ],
                     temperature=0.7,
                     max_completion_tokens=1024,
                     top_p=1,
                     stream=False,
                     response_format={"type": "json_object"},
-                    stop=None
+                    stop=None,
                 )
                 content = json.loads(completion.choices[0].message.content)
 
-                # If unit/area/role or comments contains objectionable content.
-                if content.get("flagged", 0) == 1:
-                    # Add moderation flags to report.
-                    pass
+                # If moderation successful assign result, else assign an unmoderated result.
+                if "flagged" and "reason" in content:
+                    self.report_dict["moderation"] = content
                 else:
-                    # Continue on your merry way.
-                    pass
+                    self.report_dict["moderation"] = {
+                        "flagged": 2,
+                        "reason": "Unmoderated due to incorrectly structured moderation output.",
+                    }
+
+                # Send moderation results to report in database.
+                if self.report_dict.get("moderation", {}).get("flagged", 0) in {1, 2}:
+                    logger.debug(
+                        "User entries were either flagged or unmoderated. Sending updates to database."
+                    )
+                    data = {}
+                    data["moderation"] = self.report_dict.get("moderation").copy()
+                    supabase_user_edit_report(self.access_token, data)
+                else:
+                    logger.debug(
+                        f"Entries for report {self.report_id} by {self.user_claims_id} are cleared by {ai_moderation_model}"
+                    )
+
             else:
-                logger.debug(f"{self.user_claims_id} hasn't entered any content to be moderated.")
+                logger.debug(
+                    f"{self.user_claims_id} hasn't entered any content to be moderated."
+                )
         except Exception:
             logger.warning(f"Moderation for {self.user_claims_id} failed.")
