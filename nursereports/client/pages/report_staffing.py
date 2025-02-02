@@ -574,7 +574,7 @@ def staffing() -> rx.Component:
                 ),
                 rx.debounce_input(
                     rx.text_area(
-                        ReportState.staffing_input_comments,
+                        value=ReportState.staffing_input_comments,
                         placeholder="Do not enter personally identifiable information.",
                         on_change=ReportState.set_staffing_input_comments,
                         on_blur=ReportState.set_staffing_input_comments,

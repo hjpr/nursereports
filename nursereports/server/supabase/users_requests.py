@@ -177,7 +177,42 @@ def supabase_update_user_info(
     }
     response = httpx.patch(url=url, headers=headers, data=json.dumps(data))
     if response.is_success:
-        logger.debug("Updated user info in public/users.")
+        logger.debug(f"Updated user info for {user_id}")
+        return data
+    else:
+        rich.inspect(response)
+        raise RequestFailed(f"{response.status_code} - {response.reason_phrase}")
+    
+def supabase_update_last_login(
+    access_token: str,
+    user_id: dict
+) -> dict:
+    """
+    Updates public users table with users access_token and dict of
+    info to change. Returns updated values so user can save to state.
+
+    Args:
+        access_token: jwt object of user
+        user_id: claims id of user
+        data: columns to update
+
+    Returns:
+        dict: updated data to save to state
+
+    Exceptions:
+        RequestFailed: Request failed to update info in /users.
+    """
+    data = {}
+    data["last_login"] = str(datetime.now(timezone.utc))
+    url = f"{api_url}/rest/v1/users?id=eq.{user_id}"
+    headers = {
+        "apikey": api_key,
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json",
+    }
+    response = httpx.patch(url=url, headers=headers, data=json.dumps(data))
+    if response.is_success:
+        logger.debug(f"Updated last login for {user_id}")
         return data
     else:
         rich.inspect(response)
@@ -222,7 +257,11 @@ def supabase_get_user_reports(access_token: str, user_id: str) -> list[dict] | N
     response = httpx.get(url=url, headers=headers)
     if response.is_success:
         content = json.loads(response.content)
-        logger.debug(f"Pulled {len(content)} user report(s) successfully.")
+        if len(content) > 0:
+            logger.debug(f"Pulled {len(content)} user report(s) for {user_id}.")
+        else:
+            logger.debug(f"No reports present for {user_id}")
+
         return content
     else:
         raise RequestFailed(f"{response.status_code} - {response.reason_phrase}")
@@ -306,11 +345,10 @@ def supabase_get_saved_hospitals(access_token: str, user_id: str) -> list | None
         content = json.loads(response.content)
         saved_hospitals = content[0]["saved_hospitals"]
         if saved_hospitals:
-            rich.inspect(saved_hospitals)
-            logger.debug("Retrieved information from user's saved hospitals list.")
+            logger.debug(f"Retrieved {len(content)} hospital(s) for {user_id}")
             return saved_hospitals
         else:
-            logger.debug("User doesn't have any saved hospitals to retrieve.")
+            logger.debug(f"No saved hospitals to retrieve for {user_id}")
     else:
         raise RequestFailed(f"{response.status_code} - {response.reason_phrase}")
 

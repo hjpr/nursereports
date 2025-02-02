@@ -1,13 +1,13 @@
 from . import constants_types
 from ..states import PageState
 from ..server.exceptions import RequestFailed, DuplicateReport, DuplicateUUID
-from ..server.secrets import anyscale_api_key, anyscale_url, api_url, api_key
+from ..server.secrets import api_url, api_key, groq_key
 from ..server.supabase import (
     supabase_check_for_existing_report,
     supabase_user_edit_report,
     supabase_get_full_report_info,
     supabase_get_hospital_info,
-    supabase_no_report_id_conflict,
+    supabase_check_report_uuid_conflict,
     supabase_submit_full_report,
     supabase_update_user_info,
     supabase_update_hospital_units,
@@ -15,10 +15,10 @@ from ..server.supabase import (
 )
 from datetime import datetime, timezone
 from loguru import logger
+from groq import AsyncGroq
 from typing import Callable, Iterable, Literal
 
 import httpx
-import inspect
 import json
 import uuid
 import pprint
@@ -41,6 +41,7 @@ class ReportState(PageState):
 
     # Generated uuid for the current report.
     report_id: str
+    uuid_timeout: int
 
     # Units areas and roles pulled for user selection at report load.
     hospital_units: list[str]
@@ -98,6 +99,7 @@ class ReportState(PageState):
 
             # Set report UUID
             self.report_id = str(uuid.uuid4())
+            self.uuid_timeout = 3
 
             # Set CMS ID of report.
             self.hospital_id = hospital_id
@@ -118,19 +120,22 @@ class ReportState(PageState):
             # Set user dict data.
             self.report_dict["report_id"] = self.report_id
             self.report_dict["hospital_id"] = self.hospital_id
+            self.report_dict["user_id"] = self.user_claims_id
             self.report_dict["user"] = {
-                "user_id": self.user_claims_id,
                 "professional": self.user_info.get("professional"),
                 "ip_addr": self.router.session.client_ip,
                 "host": self.router.headers.host,
                 "user_agent": self.router.headers.user_agent,
+            }
+            self.report_dict["moderation"] = {
+                "flagged": 0,
+                "reason": ""
             }
             self.report_dict["compensation"] = {}
             self.report_dict["assignment"] = {}
             self.report_dict["staffing"] = {}
             self.report_dict["social"] = {"likes": {}, "comments": {}, "tags": {}}
             self.report_dict["created_at"] = str(datetime.now(timezone.utc))
-            self.report_dict["modified_at"] = str(datetime.now(timezone.utc))
 
             # Redirect to first page of full report.
             yield rx.redirect("/report/full-report/overview")
@@ -354,8 +359,13 @@ class ReportState(PageState):
                 "shift": self.comp_select_shift,
                 "weekly_shifts": self.comp_select_weekly_shifts,
                 "experience": {
-                    "hospital": self.comp_select_hospital_experience,
-                    "total": self.comp_select_total_experience,
+                    # Gives us the int value 0-26 instead of having to convert to int when parsing.
+                    "hospital": self.years_hospital_experience.index(
+                        self.comp_select_hospital_experience
+                    ),
+                    "total": self.years_hospital_experience.index(
+                        self.comp_select_total_experience
+                    ),
                 },
                 "benefits": {
                     "pto": self.comp_check_benefit_pto,
@@ -570,20 +580,20 @@ class ReportState(PageState):
                     "selected_unit": self.assign_select_unit
                     if self.assign_select_unit != "I don't see my unit"
                     else "",
-                    "entered_unit": self.assign_input_unit,
+                    "entered_unit": self.assign_input_unit.upper(),
                     "acuity": self.assign_select_acuity,
                 },
                 "area": {
                     "selected_area": self.assign_select_area
                     if self.assign_select_area != "I don't see my area"
                     else "",
-                    "entered_area": self.assign_input_area,
+                    "entered_area": self.assign_input_area.upper(),
                 },
                 "role": {
                     "selected_role": self.assign_select_role
                     if self.assign_select_role != "I don't see my role"
                     else "",
-                    "entered_role": self.assign_input_role,
+                    "entered_role": self.assign_input_role.upper(),
                 },
                 "specialty": {
                     "specialty_1": self.assign_select_specialty_1,
@@ -672,8 +682,7 @@ class ReportState(PageState):
         # Check our values for completion.
         yield ReportState.set_user_is_loading(True)
         if (
-            not self.staffing_select_ratio
-            or not (
+            not (
                 (
                     self.staffing_select_ratio == "Yes"
                     and self.staffing_input_actual_ratio
@@ -685,13 +694,16 @@ class ReportState(PageState):
                     and self.staffing_select_ratio_appropriate == "No"
                     and self.staffing_input_ideal_ratio
                 )
+                or (self.staffing_select_ratio == "No")
             )
             or not self.staffing_select_workload
             or not self.staffing_select_rate_workload
-            or not self.staffing_select_charge_present
             or not (
-                self.staffing_select_charge_present == "Yes"
-                and self.staffing_select_charge_assignment
+                (
+                    self.staffing_select_charge_present == "Yes"
+                    and self.staffing_select_charge_assignment
+                )
+                or (self.staffing_select_charge_present == "No")
             )
             or not self.staffing_select_overall
         ):
@@ -803,6 +815,11 @@ class ReportState(PageState):
         Prepare and submit full report to database.
         """
         try:
+            if self.uuid_timeout <= 0:
+                return rx.toast.error(
+                    "Irreconcilable UUID conflict.", close_button=True
+                )
+
             if not (
                 self.report_dict["report_id"]
                 and self.report_dict["hospital_id"]
@@ -814,158 +831,126 @@ class ReportState(PageState):
                 return rx.toast.error(
                     "Data corrupted. Recheck report for completion.", close_button=True
                 )
+            
+            pprint.pp(self.report_dict.copy())
 
             # # Ensure that no report UUID's conflict.
-            # supabase_no_report_id_conflict(self.access_token, self.report_dict["report_id"])
+            # supabase_check_report_uuid_conflict(self.access_token, self.report_dict["report_id"])
 
             # # Submit report to supabase.
             # supabase_submit_full_report(self.access_token, self.report_dict)
 
-            # updated_data = supabase_update_user_info(
-            #     self.access_token,
-            #     self.user_id,
-            #     data={
-            #         "needs_onboard": False,
-            #     },
+            # # Update user data with relevant info once report is submitted.
+            # updated_status = "active"
+            # updated_specialty = self.user_info.get("professional", {}).get(
+            #     "specialty", []
+            # ).copy()
+            # updated_specialty.extend(
+            #     [
+            #         specialty
+            #         for specialty in [
+            #             self.assign_select_specialty_1,
+            #             self.assign_select_specialty_2,
+            #             self.assign_select_specialty_3,
+            #         ]
+            #         if (specialty and specialty not in updated_specialty)
+            #     ]
+            # )
+            # updated_experience = self.years_hospital_experience.index(
+            #     self.comp_select_total_experience
+            # )
+            # updated_ids: list = self.user_info.get("reports", {}). get("ids", []).copy()
+            # updated_ids.extend(
+            #     [id for id in [self.report_id] if id not in updated_ids]
+            # )
+            # updated_num = self.user_info.get("reports", []).get("num_full", 0) + 1
+
+            # self.update_user_info_and_sync_locally(
+            #     data = {
+            #         "account": {
+            #             "status": updated_status
+            #         },
+            #         "professional": {
+            #             "specialty": updated_specialty,
+            #             "experience": updated_experience
+            #         },
+            #         "reports": {
+            #             "num_full": updated_num
+            #         }
+            #     }
             # )
 
-            # self.user_info.update(updated_data)
-            # yield ReportState.moderate_user_entries(self.report_dict)
-            # yield rx.redirect("/report/full-report/complete")
+            # Moderate our unit/area/role and comment entries
+            yield ReportState.moderate_user_entries()
 
-        except Exception:
-            yield rx.toast.error("Something went wrong", close_button=True)
+            # Redirect user to the completed page for fireworks!
+            # yield rx.redirect("/report/full-report/complete")
+        except DuplicateUUID:
+            logger.warning(
+                f"Retrying with new UUID {(int(self.uuid_timeout))} more time(s)."
+            )
+            logger.warning(f"Old UUID - {self.report_dict['report_id']}")
+            self.report_dict["report_id"] = str(uuid.uuid4())
+            logger.warning(f"New UUID - {self.report_dict['report_id']}")
+            self.uuid_timeout += 1
+            yield ReportState.submit_full_report
+        except RequestFailed as e:
+            logger.warning(e)
+            yield rx.toast.error(
+                "Failed to submit report to database.", close_button=True
+            )
 
     @rx.background
-    async def moderate_user_entries(self, report: dict) -> None:
+    async def moderate_user_entries(self) -> None:
         """
-        Send all user entered fields to AI for moderation. AI will send
-        response flagging entries
+        Send all user entered fields to AI for moderation.
         """
-        user_entry_dict = {}
-        if report["comp_input_comments"]:
-            user_entry_dict["comp_input_comments"] = self.comp_input_comments
-        if report["staffing_input_comments"]:
-            user_entry_dict["staffing_input_comments"] = self.staffing_input_comments
-        if report["assign_input_unit_name"]:
-            user_entry_dict["assign_input_unit_name"] = self.assign_input_unit_name
-        if report["assign_input_area"]:
-            user_entry_dict["assign_input_area"] = self.assign_input_area
-        if report["assign_input_comments"]:
-            user_entry_dict["assign_input_comments"] = self.assign_input_comments
-
-        system_prompt = inspect.cleandoc(
-            """You moderate user entries by nurses for a hospital
-        review site. Output responses in JSON"""
-        )
-        user_prompt = f"""Moderate user entries for racism, slurs,
-        threats, web links, spam, personally identifiable
-        information, or names of specific people. An example of a
-        JSON output could be...
-        'comp_input_comments_flag': 'Slur',
-        'assign_input_unit_name_flag': 'Spam'
-        if comp_input_comments contained a slur, and
-        assign_input_unit_name contained nonsensical words not
-        relevant to a hospital review.
-        
-        Entry name with user entries are as follows. {json.dumps(user_entry_dict)}"""
-        url = f"{anyscale_url}/chat/completions"
-        headers = {
-            "Authorization": f"Bearer {anyscale_api_key}",
-            "Content-Type": "application/json",
-        }
-        data = {
-            "model": "mistralai/Mixtral-8x22B-Instruct-v0.1",
-            "messages": [
-                {"role": "system", "content": textwrap.dedent(system_prompt)},
-                {"role": "user", "content": textwrap.dedent(user_prompt)},
-            ],
-            "response_format": {
-                "type": "json_object",
-                "schema": {
-                    "type": "object",
-                    "properties": {
-                        "entries": {
-                            "type": "array",
-                            "items": {
-                                "type": "object",
-                                "properties": {
-                                    "entry_name": {"type": "string"},
-                                    "flag": {"type": "boolean"},
-                                    "flag_reason": {"type": "string"},
-                                },
-                                "required": ["entry_name", "flag", "flag_reason"],
-                            },
-                        }
-                    },
-                    "required": ["entries"],
-                },
-            },
-            "temperature": 0.5,
-        }
         try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                response = await client.post(
-                    url=url, headers=headers, data=json.dumps(data)
+            job_location = f"{self.assign_input_unit} {self.assign_input_area} {self.assign_input_role}".strip()
+            comments = f"{self.comp_input_comments} {self.assign_input_comments} {self.staffing_input_comments}".strip()
+            if job_location or comments:
+                if not job_location:
+                    job_location = "EMPTY"
+                if not comments:
+                    comments = "EMPTY"
+                client = AsyncGroq(api_key=groq_key)
+                completion = await client.chat.completions.create(
+                    model="llama-3.3-70b-versatile",
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": textwrap.dedent("""
+                                You moderate entries for a nurse review site. Entries may contain location data about where nurse works at hospital.
+                                Entries may also contain comments nurses are allowed to share to their peers about pay, staffing, or work environment.
+                                Output responses as JSON. Under key 'flagged', output a 1 for invalid entries flagged for containing violence, protected
+                                health info, off-topic entries, spam, racism, sexism, or doxxing otherwise if valid output a 0. Profanity and content
+                                conveying strong emotions is acceptable given it's on topic. Under key 'reason', if entry is flagged
+                                give brief rationale otherwise output ''.
+                                """
+                                )
+                        },
+                        {
+                            "role": "user",
+                            "content": f"User location or role: {job_location}. User comments: {comments}"
+                        }
+                    ],
+                    temperature=0.7,
+                    max_completion_tokens=1024,
+                    top_p=1,
+                    stream=False,
+                    response_format={"type": "json_object"},
+                    stop=None
                 )
-                if response.is_success:
-                    logger.debug("Retrieved moderation suggestions from Anyscale.")
-                    content = json.loads(response.content)
-                    rich.inspect(content)
-                    self.parse_moderation_suggestions(content, report)
-                    return None
+                content = json.loads(completion.choices[0].message.content)
+
+                # If unit/area/role or comments contains objectionable content.
+                if content.get("flagged", 0) == 1:
+                    # Add moderation flags to report.
+                    pass
                 else:
-                    logger.warning("User entry moderation to Anyscale unsuccessful.")
-                    return None
-        except Exception as e:
-            logger.critical(f"Exception while moderating report - {e}")
-
-    def parse_moderation_suggestions(self, content: list, report: dict) -> None:
-        """
-        flags['entries'] contains a list of dicts with keys
-        'entry_name', 'flag', and 'flag_reason'. If the flag
-        is true, add entry to moderation data so that we can
-        upload the flag_reason to our field _flag column to
-        prevent other users from accessing and having the
-        capability to manually review that before releasing.
-        """
-        moderation_data = {}
-        flags = json.loads(content["choices"][0]["message"]["content"])
-        for entry in flags["entries"]:
-            """
-            Add entry. For example if assign_input_comments has
-            issue, add assign_input_comments_flag with the reason
-            so we can manually check it later.
-            """
-            if entry["flag"] is True:
-                flag_name = f"{entry['entry_name']}_flag".replace(" ", "_")
-                moderation_data[flag_name] = entry["flag_reason"]
-
-        if moderation_data:
-            logger.warning(
-                f"""Found some entries requiring moderation - {moderation_data}"""
-            )
-            url = f"{api_url}/rest/v1/reports?report_id=eq.{report['report_id']}"
-            data = json.dumps(moderation_data)
-            headers = {
-                "apikey": api_key,
-                "Authorization": f"Bearer {self.access_token}",
-                "Content-Type": "application/json",
-                "Prefer": "return=minimal",
-            }
-            response = httpx.patch(url=url, headers=headers, data=data)
-            if response.is_success:
-                logger.debug(
-                    f"Successfully flagged entries in {report['report_id']}\
-                    for moderation in database."
-                )
-                return
+                    # Continue on your merry way.
+                    pass
             else:
-                logger.critical(f"Error calling API to moderate {report['report_id']}.")
-                rich.inspect(response)
-                return
-        else:
-            logger.debug(
-                f"""User report {report["report_id"]} seems ok. No entries found requiring moderation."""
-            )
-            return
+                logger.debug(f"{self.user_claims_id} hasn't entered any content to be moderated.")
+        except Exception:
+            logger.warning(f"Moderation for {self.user_claims_id} failed.")

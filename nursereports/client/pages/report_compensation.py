@@ -527,7 +527,7 @@ def compensation() -> rx.Component:
                 ),
                 rx.debounce_input(
                     rx.text_area(
-                        ReportState.comp_input_comments,
+                        value=ReportState.comp_input_comments,
                         placeholder="Do not enter personally identifiable information.",
                         on_change=ReportState.set_comp_input_comments,
                         on_blur=ReportState.set_comp_input_comments,

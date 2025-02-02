@@ -13,6 +13,7 @@ from ..server.supabase import (
     supabase_populate_saved_hospital_details,
     supabase_recover_password,
     supabase_update_user_info,
+    supabase_update_last_login
 )
 from ..states.auth_state import AuthState
 
@@ -120,6 +121,9 @@ class UserState(AuthState):
                 # Get JWT using provided auth data.
                 tokens = supabase_login_with_email(email, password)
                 self.access_token = tokens.get("access_token")
+
+                # Set login to current time.
+                supabase_update_last_login(self.access_token, self.user_claims_id)
 
                 # Get user data.
                 self.get_user_info()
@@ -453,8 +457,8 @@ class UserState(AuthState):
         Used after login to push user to be onboarded, or to the dashboard.
         """
         if self.user_needs_onboarding:
-            logger.debug("Sending user to onboard.")
+            logger.debug(f"Sending {self.user_claims_id} to onboard.")
             yield rx.redirect("/onboard")
         else:
-            logger.debug("Sending user to dashboard.")
+            logger.debug(f"Sending {self.user_claims_id} to dashboard.")
             yield rx.redirect("/dashboard")

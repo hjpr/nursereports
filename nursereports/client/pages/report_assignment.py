@@ -731,7 +731,7 @@ def assignment() -> rx.Component:
                 ),
                 rx.debounce_input(
                     rx.text_area(
-                        ReportState.assign_input_comments,
+                        value=ReportState.assign_input_comments,
                         placeholder="Do not enter personally identifiable information.",
                         on_change=ReportState.set_assign_input_comments,
                         on_blur=ReportState.set_assign_input_comments,

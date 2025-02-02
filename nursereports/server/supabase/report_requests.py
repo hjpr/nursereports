@@ -83,7 +83,7 @@ def supabase_get_hospital_info(access_token: str, hosp_id: str) -> dict[str, any
         logger.critical(f"Failed to retrieve {hosp_id} from /hospitals")
         raise RequestFailed("Request failed retrieving hospital.")
 
-def supabase_no_report_id_conflict(access_token: str, report_id: str) -> dict:
+def supabase_check_report_uuid_conflict(access_token: str, report_id: str) -> None:
     """
     Ensures that uuid is unique for each report in /report.
 
@@ -105,7 +105,9 @@ def supabase_no_report_id_conflict(access_token: str, report_id: str) -> dict:
     if response.is_success:
         id_conflict = json.loads(response.content)
         if id_conflict:
-            raise DuplicateUUID("Generated a duplicate UUID. Wow. Buy a lottery ticket!")
+            raise DuplicateUUID(
+                f"Found duplicate UUID in database. {report_id}"
+            )
     else:
         raise RequestFailed(
             "Request to check for duplicate UUID's in database failed."

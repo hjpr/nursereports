@@ -16,19 +16,19 @@ import reflex as rx
 def navbar() -> rx.Component:
     return flex(
         feedback(),
+        flex(
+            logo(),
+            links(),
+            rx.spacer(),
             flex(
-                logo(),
-                links(),
-                rx.spacer(),
-                flex(
-                    search(),
-                    dashboard(),
-                    login_or_account(),
-                    mobile_menu(),
-                    class_name="flex-row space-x-2"
-                ),
-                class_name="flex-row items-center justify-between p-3 w-full max-w-screen-xl",
+                search(),
+                dashboard(),
+                login_or_account(),
+                mobile_menu(),
+                class_name="flex-row space-x-2"
             ),
+            class_name="flex-row items-center justify-between p-3 w-full max-w-screen-xl",
+        ),
         class_name="flex-col border border-zinc-100 dark:border-zinc-900 border-b-zinc-200 dark:border-b-zinc-500 items-center justify-center sticky top-0 z-10 h-16 w-full"
     )
 
@@ -174,7 +174,10 @@ def search() -> rx.Component:
 
 def dashboard() -> rx.Component:
     return rx.cond(
-        UserState.user_claims_authenticated,
+        (
+            UserState.user_claims_authenticated &
+            ~UserState.user_needs_onboarding
+        ),
 
         # Show dashboard if user is logged in.
         flex(

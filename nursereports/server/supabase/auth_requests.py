@@ -37,7 +37,7 @@ def supabase_login_with_email(email: str, password: str) -> dict:
         data=json.dumps(data),
     )
     if response.is_success:
-        logger.debug("Successfully signed in using email.")
+        logger.debug(f"Signed in {email} using email.")
         payload = json.loads(response.content)
         return {
             "access_token": payload.get("access_token"),

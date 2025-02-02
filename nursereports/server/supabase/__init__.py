@@ -15,7 +15,7 @@ from .report_requests import (
     supabase_admin_edit_report,
     supabase_user_edit_report,
     supabase_get_hospital_info,
-    supabase_no_report_id_conflict,
+    supabase_check_report_uuid_conflict,
     supabase_submit_full_report,
     supabase_update_hospital_area_role,
     supabase_update_hospital_units
@@ -30,5 +30,6 @@ from .users_requests import (
     supabase_get_full_report_info,
     supabase_get_user_reports,
     supabase_populate_saved_hospital_details,
-    supabase_update_user_info
+    supabase_update_user_info,
+    supabase_update_last_login
 )
