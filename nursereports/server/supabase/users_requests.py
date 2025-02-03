@@ -292,7 +292,7 @@ def supabase_get_full_report_info(access_token: str, report_id: str) -> dict | N
     if response.is_success:
         content = json.loads(response.content)
         logger.debug(f"Pulled {len(content)} user report(s) successfully.")
-        return content[0]
+        return content[0] if len(content) > 0 else None
     else:
         raise RequestFailed(f"{response.status_code} - {response.reason_phrase}")
     

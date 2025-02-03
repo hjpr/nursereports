@@ -615,25 +615,36 @@ def staffing() -> rx.Component:
             ),
 
             # Navigation buttons
-            rx.flex(
+            rx.cond(
+                ReportState.user_is_loading,
                 rx.flex(
-                    rx.flex(
-                        rx.icon("arrow-left"),
-                        rx.text("Back", class_name="font-bold select-none"),
-                        on_click=rx.redirect("/report/full-report/assignment"),
-                        class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer"
-                    ),
-                    class_name="flex-col w-full active:bg-zinc-200 transition-colors duration-75"
+                    rx.icon("loader-circle", class_name="animate-spin"),
+                    class_name="flex-row items-center justify-center p-4 cursor-disabled"
                 ),
                 rx.flex(
                     rx.flex(
-                        rx.text("Submit Report", class_name="font-bold select-none"),
-                        on_click=ReportState.handle_submit_staffing,
-                        class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer"
+                        rx.flex(
+                            rx.icon("arrow-left"),
+                            rx.text("Back", class_name="font-bold select-none"),
+                            on_click=rx.redirect("/report/full-report/assignment"),
+                            class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer"
+                        ),
+                        class_name="flex-col w-full active:bg-zinc-200 transition-colors duration-75"
                     ),
-                    class_name="flex-col w-full active:bg-zinc-200 transition-colors duration-75"
+                    rx.flex(
+                        rx.flex(
+                            rx.text("Submit Report", class_name="font-bold select-none"),
+                            on_click=[
+                                ReportState.set_user_is_loading(True),
+                                ReportState.handle_submit_staffing,
+                                ReportState.set_user_is_loading(False)
+                            ],
+                            class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer"
+                        ),
+                        class_name="flex-col w-full active:bg-zinc-200 transition-colors duration-75"
+                    ),
+                    class_name="flex-row divide-x w-full"
                 ),
-                class_name="flex-row divide-x w-full"
             ),
             class_name="flex-col dark:divide-zinc-500 space-y-2 divide-y w-full",
         ),

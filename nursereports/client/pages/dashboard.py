@@ -72,12 +72,7 @@ def saved_hospitals() -> rx.Component:
                 ),
                 # User doesn't have saved hospitals.
                 flex(
-                    rx.button(
-                        rx.icon("search", class_name="h-5 w-5"),
-                        "Find hospitals to add...",
-                        on_click=rx.redirect("/search/hospital"),
-                        class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 cursor-pointer",
-                    ),
+                    rx.icon("ellipsis", class_name="stroke-zinc-700"),
                     class_name="flex-col items-center justify-center w-full min-h-[92px]",
                 ),
             ),
@@ -124,10 +119,7 @@ def my_reports() -> rx.Component:
                     class_name="flex-col divide-y w-full",
                 ),
                 flex(
-                    solid_button(
-                        text("No reports submitted..."),
-                        on_click=rx.redirect("/search/hospital"),
-                    ),
+                    rx.icon("ellipsis", class_name="stroke-zinc-700"),
                     class_name="flex-col items-center justify-center w-full min-h-[92px]",
                 ),
             ),

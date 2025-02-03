@@ -95,7 +95,9 @@ def report_item_dashboard_edit(report: dict[str, str]) -> rx.Component:
             outline_button(
                 rx.icon("pencil", class_name="h-5 w-5"),
                 rx.text("Edit"),
-                on_click=ReportState.event_state_edit_user_report(report["report_id"]),
+                on_click=ReportState.event_state_edit_user_report(
+                    report["report_id"], report["hospital_id"]
+                ),
             ),
             loading=~rx.State.is_hydrated,
         )
