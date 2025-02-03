@@ -17,6 +17,7 @@ from typing import Callable, Iterable, Literal
 
 import json
 import uuid
+import pprint
 import reflex as rx
 import textwrap
 
@@ -106,11 +107,11 @@ class ReportState(PageState):
             )
 
             # Set available units/areas/roles for user selection to state.
-            self.hospital_units = self.hospital_info.get("hosp_units", []).copy()
+            self.hospital_units = list(self.hospital_info.get("departments", {}).get("units", []))
             self.hospital_units.append("I don't see my unit")
-            self.hospital_areas = self.hospital_info.get("hosp_areas", []).copy()
+            self.hospital_areas = list(self.hospital_info.get("departments", {}).get("areas", []))
             self.hospital_areas.append("I don't see my area")
-            self.hospital_roles = self.hospital_info.get("hosp_roles", []).copy()
+            self.hospital_roles = list(self.hospital_info.get("departments", {}).get("roles", []))
             self.hospital_roles.append("I don't see my role")
 
             # Set user dict data to state.
@@ -122,6 +123,14 @@ class ReportState(PageState):
                 "ip_addr": self.router.session.client_ip,
                 "host": self.router.headers.host,
                 "user_agent": self.router.headers.user_agent,
+            }
+            self.report_dict["hospital"] = {
+                "name": self.hospital_info.get("hosp_name", ""),
+                "address": self.hospital_info.get("hosp_addr", ""),
+                "city": self.hospital_info.get("hosp_city", ""),
+                "state": self.hospital_info.get("hosp_state", ""),
+                "zip": self.hospital_info.get("hosp_zip", ""),
+                "county": self.hospital_info.get("hosp_county", "")
             }
             self.report_dict["moderation"] = {"flagged": 0, "reason": ""}
             self.report_dict["compensation"] = {}
@@ -138,20 +147,6 @@ class ReportState(PageState):
             yield rx.redirect("/dashboard")
             logger.critical(str(e))
             raise Exception("Error while setting up new report.")
-
-    def event_state_get_hospital_info(self) -> Iterable[Callable]:
-        """
-        Retrieves hospital info using hospital_id from state.
-        """
-        try:
-            self.hospital_info = supabase_get_hospital_info(
-                self.access_token, self.hospital_id
-            )
-
-        except Exception as e:
-            yield rx.redirect("/dashboard")
-            logger.critical(str(e))
-            raise Exception("Error while pulling hospital details.")
 
     #################################################################
     # COMPENSATION
@@ -910,7 +905,7 @@ class ReportState(PageState):
             )
 
             # Moderate our unit/area/role and comment entries
-            yield ReportState.moderate_user_entries()
+            self.moderate_user_entries()
 
             # Send update to unit/area/role if moderation ok or unmoderated AND entries present.
             if self.report_dict.get("moderation", {}).get("flagged", 0) in {0, 2} and (
@@ -933,13 +928,13 @@ class ReportState(PageState):
                     set(roles) | set(filter(None, [self.assign_input_role.upper()]))
                 )
 
-            hospital_updates = {}
-            hospital_updates["departments"] = {
-                "units": updated_units,
-                "areas": updated_areas,
-                "roles": updated_roles,
-            }
-            supabase_update_hospital_departments(self.hospital_id, hospital_updates)
+                hospital_updates = {}
+                hospital_updates["departments"] = {
+                    "units": updated_units,
+                    "areas": updated_areas,
+                    "roles": updated_roles,
+                }
+                supabase_update_hospital_departments(self.hospital_id, hospital_updates)
 
             # Redirect user to the completed page for fireworks!
             yield rx.redirect("/report/full-report/complete")
@@ -949,7 +944,7 @@ class ReportState(PageState):
                 f"Retrying with new UUID {(int(self.uuid_timeout))} more time(s)."
             )
             self.report_dict["report_id"] = str(uuid.uuid4())
-            self.uuid_timeout += 1
+            self.uuid_timeout -= 1
             yield ReportState.submit_full_report
         except RequestFailed as e:
             logger.warning(e)

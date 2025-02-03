@@ -17,7 +17,7 @@ import reflex as rx
     on_load=BaseState.event_state_auth_flow,
 )
 def index_page() -> rx.Component:
-    return flex(
+    return rx.flex(
         navbar(),
         content(),
         footer(),
@@ -26,7 +26,7 @@ def index_page() -> rx.Component:
 
 
 def content() -> rx.Component:
-    return flex(
+    return rx.flex(
         header(),
         header_image(),
         sponsors(),
@@ -37,8 +37,8 @@ def content() -> rx.Component:
 
 
 def header() -> rx.Component:
-    return flex(
-        flex(
+    return rx.flex(
+        rx.flex(
             text(
                 """Hospital reviews for nurses, by nurses.""",
                 class_name="font-bold text-center md:text-6xl text-4xl dark:text-teal-600",
@@ -51,7 +51,7 @@ def header() -> rx.Component:
                 """,
                 class_name="text-center",
             ),
-            flex(
+            rx.flex(
                 solid_button(
                     "Get Started",
                     rx.icon("chevron-right"),
@@ -73,7 +73,7 @@ def header() -> rx.Component:
 
 
 def header_image() -> rx.Component:
-    return flex(
+    return rx.flex(
         flex(
             text("PLACEHOLDER", class_name="text-xs"),
             class_name="items-center justify-center bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-500 rounded-lg shadow-lg aspect-square md:aspect-video justify-center h-full w-full",
@@ -83,7 +83,7 @@ def header_image() -> rx.Component:
 
 
 def sponsors() -> rx.Component:
-    return flex(
+    return rx.flex(
         text(
             """
             Are you looking to sponsor grassroots nursing
@@ -102,10 +102,10 @@ def sponsors() -> rx.Component:
 
 
 def info_header() -> rx.Component:
-    return flex(
-        flex(
+    return rx.flex(
+        rx.flex(
             rx.icon("messages-square", class_name="stroke-teal-700 h-10 w-10"),
-            flex(
+            rx.flex(
                 text(
                     "Read unfiltered and anonymous reviews from everywhere.",
                     class_name="text-2xl font-bold text-center",
@@ -127,12 +127,12 @@ def info_header() -> rx.Component:
 
 
 def info_cards() -> rx.Component:
-    return flex(info_cards_top(), info_cards_bottom(), class_name="flex-col w-full")
+    return rx.flex(info_cards_top(), info_cards_bottom(), class_name="flex-col w-full")
 
 
 def info_cards_top() -> rx.Component:
-    return flex(
-        flex(
+    return rx.flex(
+        rx.flex(
             flex(
                 flex(
                     flex(
@@ -183,8 +183,8 @@ def info_cards_top() -> rx.Component:
 
 
 def info_cards_bottom() -> rx.Component:
-    return flex(
-        flex(
+    return rx.flex(
+        rx.flex(
             flex(
                 flex(
                     flex(

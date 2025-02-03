@@ -23,6 +23,7 @@ from typing import Callable, Iterable
 
 import copy
 import jwt
+import pprint
 import rich
 import reflex as rx
 import time
@@ -237,29 +238,35 @@ class UserState(AuthState):
             self.user_saved_hospitals = []
 
     def get_user_reports(self) -> None:
-        """Get or refresh user reports."""
-        user_reports = supabase_get_user_reports(self.access_token, self.user_claims_id)
+        """
+        Get or refresh user reports. Data structure is different as these reports are used for the reports section
+        of the dashboard and the rx.foreach method can't parse nested dicts.
+        report: dict
+            report_id: str
+            hospital_id: str
+            area: str
+            unit: str
+            role: str
+            hospital_city: str
+            hospital_state: str
+        """
+        reports = supabase_get_user_reports(self.access_token, self.user_claims_id)
 
-        if user_reports:
-            for hospital in user_reports:
-                # Get the city and state for each hospital.
-                hospital_data = supabase_get_hospital_info(
-                    self.access_token, hospital.get("hospital_id", "")
-                )
-                hospital["hosp_city"] = hospital_data.get("hosp_city", "").title()
-                hospital["hosp_state"] = hospital_data.get("hosp_state", "")
+        if reports:
+            for report in reports:
+                # Format from nested -> top-level for access via rx.foreach
+                report["area"] = report["assignment"]["area"]["selected_area"] + report["assignment"]["area"]["entered_area"]
+                report["unit"] = report["assignment"]["unit"]["selected_unit"] + report["assignment"]["unit"]["entered_unit"]
+                report["role"] = report["assignment"]["role"]["selected_role"] + report["assignment"]["role"]["entered_role"]
+                report["hospital_city"] = report["hospital"]["city"]
+                report["hospital_state"] = report["hospital"]["state"]
 
                 # Format timestamps as YYYY-MM
-                if hospital["created_at"]:
-                    hospital["created_at"] = datetime.fromisoformat(
-                        hospital["created_at"]
-                    ).strftime("%B %Y")
-                if hospital["modified_at"]:
-                    hospital["modified_at"] = datetime.fromisoformat(
-                        hospital["modified_at"]
-                    ).strftime("%B %Y")
+                report["created_at"] = datetime.fromisoformat(report["created_at"]).strftime("%B %Y")
+                if report["modified_at"]:
+                    report["modified_at"] = datetime.fromisoformat(report["modified_at"]).strftime("%B %Y")
 
-        self.user_reports = user_reports
+        self.user_reports = reports
 
     def update_user_info_and_sync_locally(
         self, 

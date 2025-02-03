@@ -8,7 +8,7 @@ from ..components import (
     text,
     solid_button
 )
-from ...states import BaseState
+from ...states import BaseState, UserState
 
 import reflex as rx
 
@@ -23,21 +23,21 @@ import reflex as rx
 )
 @report_protected
 def dashboard_page() -> rx.Component:
-    return flex(
+    return rx.flex(
         navbar(),
         content(),
         footer(),
-        class_name="flex-col items-center bg-teal-50 w-full",
+        class_name="flex-col items-center w-full",
     )
 
 
 def content() -> rx.Component:
-    return flex(
+    return rx.flex(
         heading(),
         saved_hospitals(),
         my_pay(),
         my_reports(),
-        class_name="flex-col items-center p-4 py-12 space-y-12 w-full max-w-screen-lg",
+        class_name="flex-col items-center space-y-4 md:space-y-12 px-4 py-4 md:py-12 w-full md:max-w-screen-lg",
     )
 
 
@@ -48,7 +48,7 @@ def heading() -> rx.Component:
             text("Dashboard", class_name="text-2xl font-bold"),
             class_name="bg-transparent flex-row items-center space-x-2",
         ),
-        class_name="flex-col items-center border rounded dark:border-zinc-500 bg-zinc-100 dark:bg-zinc-800 p-4 w-full",
+        class_name="flex-col items-center border rounded shadow-lg dark:border-zinc-500 bg-zinc-100 dark:bg-zinc-800 p-4 w-full",
     )
 
 
@@ -64,7 +64,7 @@ def saved_hospitals() -> rx.Component:
                 class_name="flex-row items-center bg-zinc-100 dark:bg-zinc-800 p-2 w-full",
             ),
             rx.cond(
-                BaseState.user_saved_hospitals,
+                UserState.user_saved_hospitals,
                 # User has saved hospitals.
                 flex(
                     rx.foreach(BaseState.user_saved_hospitals, hospital_item_dashboard),
@@ -83,7 +83,7 @@ def saved_hospitals() -> rx.Component:
             ),
             class_name="flex-col divide-y dark:divide-zinc-500 w-full",
         ),
-        class_name="border rounded dark:border-zinc-500 bg-zinc-100 dark:bg-zinc-800 w-full",
+        class_name="border rounded shadow-lg dark:border-zinc-500 bg-zinc-100 dark:bg-zinc-800 w-full",
     )
 
 
@@ -105,7 +105,7 @@ def my_pay() -> rx.Component:
             ),
             class_name="flex-col divide-y dark:divide-zinc-500 w-full",
         ),
-        class_name="border rounded dark:border-zinc-500 bg-zinc-100 dark:bg-zinc-800 w-full",
+        class_name="border rounded shadow-lg dark:border-zinc-500 bg-zinc-100 dark:bg-zinc-800 w-full",
     )
 
 
@@ -118,17 +118,14 @@ def my_reports() -> rx.Component:
                 class_name="flex-row items-center bg-zinc-100 dark:bg-zinc-800 space-x-2 p-2 w-full",
             ),
             rx.cond(
-                BaseState.user_reports,
-                # User has prior reports.
+                UserState.user_reports,
                 flex(
                     rx.foreach(BaseState.user_reports, report_item_dashboard),
                     class_name="flex-col divide-y w-full",
                 ),
-                # User doesn't have prior reports.
                 flex(
                     solid_button(
-                        rx.icon("search", class_name="h-5 w-5"),
-                        "Make a report...",
+                        text("No reports submitted..."),
                         on_click=rx.redirect("/search/hospital"),
                     ),
                     class_name="flex-col items-center justify-center w-full min-h-[92px]",
@@ -136,5 +133,5 @@ def my_reports() -> rx.Component:
             ),
             class_name="flex-col divide-y dark:divide-zinc-500 w-full",
         ),
-        class_name="border rounded dark:border-zinc-500 bg-zinc-100 dark:bg-zinc-800 w-full",
+        class_name="border rounded shadow-lg dark:border-zinc-500 bg-zinc-100 dark:bg-zinc-800 w-full",
     )

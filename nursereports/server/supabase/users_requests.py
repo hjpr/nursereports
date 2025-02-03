@@ -249,7 +249,7 @@ def supabase_get_user_reports(access_token: str, user_id: str) -> list[dict] | N
     Exceptions
         RequestFailed: request to database failed
     """
-    columns = "report_id,hospital_id,assignment,created_at,modified_at"
+    columns = "report_id,hospital_id,assignment,hospital,created_at,modified_at"
     url = f"{api_url}/rest/v1/reports?user_id=eq.{user_id}&select={columns}"
     headers = {
         "apikey": api_key,
