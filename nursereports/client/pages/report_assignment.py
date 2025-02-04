@@ -34,10 +34,20 @@ def assignment_page() -> rx.Component:
 
 def content() -> rx.Component:
     return rx.flex(
+        editing(),
         assignment(),
-        class_name="flex-col items-center space-y-12 px-4 py-14 md:py-20 w-full max-w-screen-sm",
+        class_name="flex-col items-center space-y-4 px-4 py-14 md:py-20 w-full max-w-screen-sm",
     )
 
+def editing() -> rx.Component:
+    return rx.cond(
+        ReportState.mode == "edit",
+        rx.callout(
+            rx.text(f"You are currently editing a previously submitted report for {ReportState.hospital_info["hosp_name"]}"),
+            icon="info",
+            class_name="w-full"
+        )
+    )
 
 def assignment() -> rx.Component:
     return rx.flex(
@@ -782,7 +792,7 @@ def assignment() -> rx.Component:
                         rx.flex(
                             rx.icon("arrow-left"),
                             rx.text("Back", class_name="font-bold select-none"),
-                            on_click=rx.redirect("/report/full-report/compensation"),
+                            on_click=rx.redirect(f"/report/{ReportState.mode}/compensation"),
                             class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer",
                         ),
                         class_name="flex-col w-full active:bg-zinc-200 transition-colors duration-75",

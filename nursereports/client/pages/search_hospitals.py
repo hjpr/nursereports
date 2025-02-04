@@ -34,7 +34,7 @@ def content() -> rx.Component:
     return rx.flex(
         search(),
         search_results(),
-        class_name="flex-col flex-grow items-center space-y-12 px-4 py-4 md:py-20 w-full max-w-screen-md h-full"
+        class_name="flex-col flex-grow items-center space-y-4 md:space-y-12 px-4 py-4 md:py-20 w-full max-w-screen-md h-full"
     )
 
 

@@ -6,7 +6,6 @@ from ..components import (
     report_item_dashboard,
     report_protected,
     text,
-    solid_button
 )
 from ...states import BaseState, UserState
 
@@ -95,7 +94,7 @@ def my_pay() -> rx.Component:
                 class_name="flex-row items-center bg-zinc-100 dark:bg-zinc-800 space-x-2 p-2 w-full",
             ),
             flex(
-                text("PLACEHOLDER", class_name="text-xs"),
+                rx.icon("ellipsis", class_name="stroke-zinc-700"),
                 class_name="flex-col items-center justify-center w-full min-h-[300px]",
             ),
             class_name="flex-col divide-y dark:divide-zinc-500 w-full",

@@ -1,12 +1,11 @@
 from . import constants_types
 from ..states import PageState
-from ..server.exceptions import RequestFailed, DuplicateUUID
+from ..server.exceptions import RequestFailed
 from ..server.secrets import groq_key
 from ..server.supabase import (
     supabase_user_edit_report,
     supabase_get_full_report_info,
     supabase_get_hospital_info,
-    supabase_check_report_uuid_conflict,
     supabase_submit_full_report,
     supabase_update_hospital_departments,
 )
@@ -21,7 +20,6 @@ import uuid
 import pprint
 import reflex as rx
 import textwrap
-import traceback
 
 
 class ReportState(PageState):
@@ -67,6 +65,7 @@ class ReportState(PageState):
         Loads report data into state for user to make edits.
         """
         try:
+            logger.debug(f"{self.user_claims_id} is attempting to edit {report_id} for {hospital_id}")
             # Reset all report variables.
             self.reset()
 
@@ -139,7 +138,7 @@ class ReportState(PageState):
             self.assign_select_classify = report["assignment"]["classify"]
             self.assign_select_unit = "I don't see my unit" if report["assignment"]["unit"]["entered_unit"] else report["assignment"]["unit"]["selected_unit"]
             self.assign_input_unit = report["assignment"]["unit"]["entered_unit"]
-            self.assign_select_area = "I don't see my report" if report["assignment"]["area"]["entered_area"] else report["assignment"]["area"]["selected_area"]
+            self.assign_select_area = "I don't see my area" if report["assignment"]["area"]["entered_area"] else report["assignment"]["area"]["selected_area"]
             self.assign_input_area = report["assignment"]["area"]["entered_area"]
             self.assign_select_role = "I don't see my role" if report["assignment"]["role"]["entered_role"] else report["assignment"]["role"]["selected_role"]
             self.assign_input_role = report["assignment"]["role"]["entered_role"]
@@ -176,15 +175,14 @@ class ReportState(PageState):
             self.staffing_select_overall = report["staffing"]["ratings"]["overall"]
             self.staffing_input_comments = report["staffing"]["comments"]
 
-            pprint.pp(self.report_dict.copy())
             # Navigate to the first page of report edit page.
             yield rx.redirect("/report/edit/compensation")
+            yield ReportState.set_user_is_loading(False)
 
         except Exception as e:
             logger.critical(str(e))
-            traceback.print_exc()
-            yield rx.redirect("/dashboard")
             yield rx.toast.error("Error while retrieving report details.")
+            yield ReportState.set_user_is_loading(False)
 
     def event_state_create_full_report(self, hospital_id: str) -> Iterable[Callable]:
         """
@@ -196,7 +194,6 @@ class ReportState(PageState):
 
             # Set report UUID to state.
             self.report_id = str(uuid.uuid4())
-            self.uuid_timeout = 3
 
             # Set CMS ID of report to state.
             self.hospital_id = hospital_id
@@ -243,11 +240,12 @@ class ReportState(PageState):
 
             # Redirect to first page of full report.
             yield rx.redirect("/report/full-report/overview")
+            yield ReportState.set_user_is_loading(False)
 
         except Exception as e:
-            yield rx.redirect("/dashboard")
             logger.critical(str(e))
-            raise Exception("Error while setting up new report.")
+            yield rx.toast.error("Error while setting up new report.")
+            yield ReportState.set_user_is_loading(False)
 
     #################################################################
     # COMPENSATION
@@ -485,7 +483,7 @@ class ReportState(PageState):
                 self.years_hospital_experience.index(self.comp_select_total_experience)
             )
 
-            return rx.redirect(f"/report/{self.mode}/assignment")
+            yield rx.redirect(f"/report/{self.mode}/assignment")
 
     #################################################################
     # ASSIGNMENT
@@ -733,7 +731,7 @@ class ReportState(PageState):
                 )
             )
             self.report_dict["user"]["professional"]["specialty"] = updated_specialty
-            return rx.redirect(f"/report/{self.mode}/staffing")
+            yield rx.redirect(f"/report/{self.mode}/staffing")
 
     #################################################################
     # STAFFING
@@ -939,12 +937,6 @@ class ReportState(PageState):
         Prepare and submit full report to database.
         """
         try:
-            if self.uuid_timeout <= 0:
-                return rx.toast.error(
-                    "Irreconcilable UUID conflict. Close browser and complete new report. If this persists, please contact support.",
-                    close_button=True,
-                )
-
             if not (
                 self.report_dict["report_id"]
                 and self.report_dict["hospital_id"]
@@ -1043,20 +1035,15 @@ class ReportState(PageState):
                 supabase_update_hospital_departments(self.hospital_id, hospital_updates)
 
             # Redirect user to the completed page for fireworks!
-            return rx.redirect("/report/full-report/complete")
+            self.reset()
+            return rx.redirect(f"/report/{self.mode}/complete")
 
-        except DuplicateUUID:
-            logger.warning(
-                f"Retrying with new UUID {(int(self.uuid_timeout))} more time(s)."
-            )
-            self.report_dict["report_id"] = str(uuid.uuid4())
-            self.uuid_timeout -= 1
-            yield ReportState.submit_full_report
-        except RequestFailed as e:
+        except Exception as e:
             logger.warning(e)
             yield rx.toast.error(
                 "Failed to submit report to database.", close_button=True
             )
+            yield ReportState.set_user_is_loading(False)
 
     def moderate_user_entries(self) -> None:
         """

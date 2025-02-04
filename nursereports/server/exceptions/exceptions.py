@@ -56,10 +56,6 @@ class DuplicateReport(DatabaseError):
 class DuplicateUserError(DatabaseError): ...
 
 
-class DuplicateUUID(DatabaseError): ...
-
-# This one should throw an error to db
-
 class FormError(Exception):
     def __init__(self, error_message):
         super().__init__(error_message)

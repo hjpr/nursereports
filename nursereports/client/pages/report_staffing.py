@@ -3,7 +3,6 @@ from ..components import (
     footer,
     login_protected,
     navbar,
-    outline_button,
     text
 )
 
@@ -37,10 +36,20 @@ def staffing_page() -> rx.Component:
 
 def content() -> rx.Component:
     return rx.flex(
+        editing(),
         staffing(),
-        class_name="flex-col items-center space-y-12 px-4 py-14 md:py-20 w-full max-w-screen-sm"
+        class_name="flex-col items-center space-y-4 px-4 py-14 md:py-20 w-full max-w-screen-sm"
     )
 
+def editing() -> rx.Component:
+    return rx.cond(
+        ReportState.mode == "edit",
+        rx.callout(
+            rx.text(f"You are currently editing a previously submitted report for {ReportState.hospital_info["hosp_name"]}"),
+            icon="info",
+            class_name="w-full"
+        )
+    )
 
 def staffing() -> rx.Component:
     return rx.flex(
@@ -626,14 +635,18 @@ def staffing() -> rx.Component:
                         rx.flex(
                             rx.icon("arrow-left"),
                             rx.text("Back", class_name="font-bold select-none"),
-                            on_click=rx.redirect("/report/full-report/assignment"),
+                            on_click=rx.redirect(f"/report/{ReportState.mode}/assignment"),
                             class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer"
                         ),
                         class_name="flex-col w-full active:bg-zinc-200 transition-colors duration-75"
                     ),
                     rx.flex(
                         rx.flex(
-                            rx.text("Submit Report", class_name="font-bold select-none"),
+                            rx.cond(
+                                ReportState.mode == "edit",
+                                rx.text("Submit Edits", class_name="font-bold select-none"),
+                                rx.text("Submit Report", class_name="font-bold select-none"),
+                            ),
                             on_click=[
                                 ReportState.set_user_is_loading(True),
                                 ReportState.handle_submit_staffing,
