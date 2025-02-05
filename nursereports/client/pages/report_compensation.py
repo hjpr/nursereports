@@ -44,7 +44,7 @@ def editing() -> rx.Component:
     return rx.cond(
         ReportState.mode == "edit",
         rx.callout(
-            rx.text(f"You are currently editing a previously submitted report for {ReportState.hospital_info["hosp_name"]}"),
+            rx.text(f"You are currently editing a previously submitted report for {ReportState.hospital_info['hosp_name']}"),
             icon="info",
             class_name="w-full"
         )
