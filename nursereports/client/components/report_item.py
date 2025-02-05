@@ -7,51 +7,49 @@ import reflex as rx
 
 def report_item_dashboard(report: dict) -> rx.Component:
     return flex(
-        flex(
-            flex(
-                # Unit/area/role
-                rx.skeleton(
-                    text(
-                        f"{report['unit']}{report['area']}{report['role']}",
-                        class_name="text-md font-bold",
-                    ),
-                    loading=~rx.State.is_hydrated,
+        rx.flex(
+            # Unit/area/role
+            rx.skeleton(
+                text(
+                    f"{report['unit']}{report['area']}{report['role']}",
+                    class_name="text-md font-bold",
                 ),
-                # City/state
+                loading=~rx.State.is_hydrated,
+            ),
+            # City/state
+            rx.skeleton(
+                text(
+                    f"{report['hospital_city']}, {report['hospital_state']}",
+                    class_name="text-sm italic",
+                ),
+                loading=~rx.State.is_hydrated,
+            ),
+            # Modified at
+            rx.cond(
+                report["modified_at"],
+                # Date displayed if user has made modification.
                 rx.skeleton(
                     text(
-                        f"{report['hospital_city']} - {report['hospital_state']}",
+                        f"Edited {report['modified_at']}",
                         class_name="text-sm italic",
                     ),
                     loading=~rx.State.is_hydrated,
                 ),
-                # Modified at
-                rx.cond(
-                    report["modified_at"],
-                    # Date displayed if user has made modification.
-                    rx.skeleton(
-                        text(
-                            f"Edited {report['modified_at']}",
-                            class_name="text-sm italic",
-                        ),
-                        loading=~rx.State.is_hydrated,
+                # Date displayed if user hasn't made modifications.
+                rx.skeleton(
+                    text(
+                        f"Submitted {report['created_at']}",
+                        class_name="text-sm italic",
                     ),
-                    # Date displayed if user hasn't made modifications.
-                    rx.skeleton(
-                        text(
-                            f"Submitted {report['created_at']}",
-                            class_name="text-sm italic",
-                        ),
-                        loading=~rx.State.is_hydrated,
-                    ),
+                    loading=~rx.State.is_hydrated,
                 ),
-                class_name="flex-col space-y-1 w-full",
             ),
-            rx.spacer(),
-            flex(report_item_dashboard_edit(report), class_name="space-x-2"),
-            class_name="flex-row items-center space-x-4 w-full",
+            class_name="flex-col flex-1 min-w-0 justify-center p-4"
         ),
-        class_name="p-4 w-full",
+        rx.flex(
+            report_item_dashboard_edit(report),
+        ),
+        class_name="flex-row justify-between w-full"
     )
 
 
@@ -90,15 +88,13 @@ def report_item_dashboard_remove_report(report: dict[str, str]) -> rx.Component:
 
 
 def report_item_dashboard_edit(report: dict[str, str]) -> rx.Component:
-    return flex(
+    return rx.flex(
         rx.skeleton(
-            outline_button(
-                rx.icon("pencil", class_name="h-5 w-5"),
-                rx.text("Edit"),
-                on_click=ReportState.event_state_edit_user_report(
-                    report["report_id"], report["hospital_id"]
-                ),
-            ),
+            rx.icon("pencil", class_name="stroke-zinc-700"),
             loading=~rx.State.is_hydrated,
-        )
+        ),
+        on_click=ReportState.event_state_edit_user_report(
+                    report["report_id"], report["hospital_id"]
+        ),
+        class_name="flex-col items-center justify-center w-16 md:w-24 active:bg-zinc-200 transition-colors duration-75 cursor-pointer"
     )

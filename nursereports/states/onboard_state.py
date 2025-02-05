@@ -45,5 +45,8 @@ class OnboardState(UserState):
             else:
                 yield rx.redirect("/dashboard")
 
+            self.user_is_loading = False
+
         except Exception as e:
+            self.user_is_loading = False
             return rx.toast.error(str(e), close_button=True)

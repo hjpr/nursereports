@@ -181,11 +181,22 @@ def questions() -> rx.Component:
                 ),
             ),
             rx.flex(
-                rx.flex(
-                    rx.text("Next", class_name="font-bold select-none"),
-                    rx.icon("arrow-right"),
-                    on_click=OnboardState.event_state_submit_onboard,
-                    class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer",
+                rx.cond(
+                    OnboardState.user_is_loading,
+                    rx.flex(
+                        rx.icon("loader-circle", class_name="animate-spin"),
+                        class_name="flex-row items-center justify-center p-4 cursor-disabled"
+                    ),
+                    rx.flex(
+                        rx.text("Next", class_name="font-bold select-none"),
+                        rx.icon("arrow-right"),
+                        on_click=[
+                            OnboardState.set_user_is_loading(True),
+                            OnboardState.event_state_submit_onboard,
+                            OnboardState.set_user_is_loading(False)
+                        ],
+                        class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer",
+                    ),
                 ),
                 class_name="flex-col w-full active:bg-zinc-200 transition-colors duration-75",
             ),

@@ -991,6 +991,9 @@ class ReportState(PageState):
             num_full_reports = self.user_info.get("reports", []).get("num_full", 0)
             updated_num = num_full_reports + 1
 
+            hospitals = self.user_info.get("saved", {}).get("hospitals", [])
+            updated_hospitals = list(set(hospitals) | set([self.report_dict["hospital_id"]]))
+
             self.update_user_info_and_sync_locally(
                 data={
                     "account": {"status": updated_status},
@@ -999,6 +1002,7 @@ class ReportState(PageState):
                         "experience": updated_experience,
                     },
                     "reports": {"ids": updated_ids, "num_full": updated_num},
+                    "saved" : {"hospitals": updated_hospitals}
                 }
             )
 

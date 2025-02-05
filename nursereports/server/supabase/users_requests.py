@@ -377,7 +377,7 @@ def supabase_populate_saved_hospital_details(
         ReadError: expected information but response was empty.
         RequestFailed: request to database failed.
     """
-    columns = "hosp_name,hosp_state,hosp_city,hosp_id"
+    columns = "hosp_name,hosp_state,hosp_city,hosp_id,hosp_addr"
     hosp_id_str = ','.join(map(str, hosp_id))
     url = f"{api_url}/rest/v1/hospitals?hosp_id=in.({hosp_id_str})&select={columns}"
     headers = {

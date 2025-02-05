@@ -71,6 +71,7 @@ class SearchState(AuthState):
                 # Format the city as title
                 for hospital in search_results:
                     hospital["hosp_city"] = hospital["hosp_city"].title()
+                    hospital["hosp_addr"] = hospital["hosp_addr"].title()
 
                 # Set the results to state.
                 self.search_results = search_results

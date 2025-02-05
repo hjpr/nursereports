@@ -122,20 +122,23 @@ def search_filters() -> rx.Component:
 def search_results() -> rx.Component:
     return flex(
         rx.cond(
-            SearchState.search_results,
-            # Search results present.
-            flex(
-                rx.foreach(SearchState.search_results, hospital_item_search),
-                class_name="flex-col divide-y dark:divide-zinc-500 w-full",
+            SearchState.search_is_loading,
+            rx.flex(
+                rx.icon("loader-circle", class_name="stroke-zinc-700"),
+                class_name="flex-col items-center justify-center min-h-24 w-full",
             ),
-            # No search results present.
-            flex(
-                rx.cond(
-                    SearchState.search_is_loading,
-                    rx.icon("loader-circle", class_name="animate-spin stroke-zinc-700"),
-                    rx.icon("ellipsis", class_name="stroke-zinc-700"),
+            rx.cond(
+                SearchState.search_results,
+                # Search results present.
+                rx.flex(
+                    rx.foreach(SearchState.search_results, hospital_item_search),
+                    class_name="flex-col divide-y dark:divide-zinc-500 w-full",
                 ),
-                class_name="flex-col items-center justify-center min-h-20 w-full",
+                # No search results present.
+                rx.flex(
+                    rx.icon("ellipsis", class_name="stroke-zinc-700"),
+                    class_name="flex-col items-center justify-center min-h-24 w-full",
+                ),
             ),
         ),
         class_name="flex-col border rounded shadow-lg divide-y dark:border-zinc-500 bg-zinc-100 dark:bg-zinc-800 w-full",

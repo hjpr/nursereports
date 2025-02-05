@@ -233,6 +233,7 @@ class UserState(AuthState):
             # Format hospital cities from all caps to 'title' case.
             for hospital in retrieved_hospitals:
                 hospital["hosp_city"] = hospital["hosp_city"].title()
+                hospital["hosp_addr"] = hospital["hosp_addr"].title()
             self.user_saved_hospitals = retrieved_hospitals
         else:
             self.user_saved_hospitals = []
@@ -258,7 +259,7 @@ class UserState(AuthState):
                 report["area"] = report["assignment"]["area"]["selected_area"] + report["assignment"]["area"]["entered_area"]
                 report["unit"] = report["assignment"]["unit"]["selected_unit"] + report["assignment"]["unit"]["entered_unit"]
                 report["role"] = report["assignment"]["role"]["selected_role"] + report["assignment"]["role"]["entered_role"]
-                report["hospital_city"] = report["hospital"]["city"]
+                report["hospital_city"] = report["hospital"]["city"].title()
                 report["hospital_state"] = report["hospital"]["state"]
 
                 # Format timestamps as YYYY-MM
@@ -322,27 +323,27 @@ class UserState(AuthState):
         """
         try:
             # Limit saved hospital list length to 30 items.
-            if len(self.user_info["saved_hospitals"]) >= 30:
-                yield rx.toast.error("Maximum number of saved hospitals reached. (30)")
+            if len(self.user_info["saved"]["hospitals"]) >= 30:
+                return rx.toast.error("Maximum number of saved hospitals reached. (30)")
 
-            # If not duplicate, and not present in list, add to list.
-            elif hosp_id not in self.user_info["saved_hospitals"]:
-                new_user_info = self.user_info["saved_hospitals"] + [hosp_id]
-                user_info = {"saved_hospitals": new_user_info}
-                self.update_user_info_and_sync_locally(user_info)
-                yield rx.toast.success("Hospital added to 'Saved Hospitals'.")
+            # Check for duplicates.
+            if hosp_id in self.user_info["saved"]["hospitals"]:
+                return rx.toast.error("Hospital is already in saved hospitals.", close_button=True)
 
-            # Notify user that hospital is already present.
-            else:
-                yield rx.toast.warning(
-                    "This hospital has already been saved to your list."
-                )
+            # Add to list.
+            data = {
+                "saved": {
+                    "hospitals": self.user_info["saved"]["hospitals"] + [hosp_id]
+                }
+            }
+            self.update_user_info_and_sync_locally(data)
+            yield rx.toast.success("Hospital added to 'Saved Hospitals'.", close_button=True)
 
         except RequestFailed as e:
-            yield rx.toast.error(str(e), timeout=5000)
+            yield rx.toast.error(str(e), close_buttons=True)
         except Exception as e:
             logger.critical(str(e))
-            yield rx.toast.error("Unable to save hospital to list.")
+            yield rx.toast.error("Unable to save hospital to list.", close_button=True)
 
     def event_state_remove_hospital(self, hosp_id: str) -> Iterable[Callable]:
         """
@@ -350,19 +351,18 @@ class UserState(AuthState):
         """
         try:
             # Make a new list not including selected hospital.
-            new_saved_hospitals = [
-                h for h in self.user_info["saved_hospitals"] if h != hosp_id
+            updated_hospitals = [
+                h for h in self.user_info["saved"]["hospitals"] if h != hosp_id
             ]
 
-            # Upload new list to cloud database.
-            user_info = {"saved_hospitals": new_saved_hospitals}
-
-            # Uploads and syncs data locally from remote database.
-            self.update_user_info_and_sync_locally(user_info)
-
-            # Repulls hospital info to update list.
+            # Sent to database and update local info.
+            data = {
+                "saved": {
+                    "hospitals": updated_hospitals
+                }
+            }
+            self.update_user_info_and_sync_locally(data)
             self.get_user_saved_hospitals()
-
             yield rx.toast.success("Hospital removed from 'Saved Hospitals'")
 
         except RequestFailed as e:

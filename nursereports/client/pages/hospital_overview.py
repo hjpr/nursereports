@@ -46,7 +46,7 @@ def content() -> rx.Component:
             travel_pay(),
             units_roles(),
             reviews(),
-            class_name="flex-col items-center space-y-12 px-4 py-12 w-full max-w-screen-lg",
+            class_name="flex-col items-center space-y-4 md:space-y-12 px-4 py-4 md:py-12 w-full max-w-screen-lg",
     )
 
 
@@ -68,7 +68,7 @@ def heading() -> rx.Component:
             heading_buttons(),
             class_name="w-full"
         ),
-        class_name="flex-col items-center border rounded divide-y dark:divide-zinc-500 w-full"
+        class_name="flex-col items-center border rounded shadow-lg divide-y dark:divide-zinc-500 w-full"
     )
 
 
@@ -97,7 +97,7 @@ def heading_content() -> rx.Component:
 
 
 def heading_buttons() -> rx.Component:
-    return rx.flex(
+    return flex(
         solid_button(
             "Submit Full Report",
             class_name="w-full md:w-auto",
@@ -128,7 +128,7 @@ def staff_pay() -> rx.Component:
         hospital_average(),
         state_average(),
         experience_slider(),
-        class_name="flex-col items-center border rounded divide-y dark:divide-zinc-500 w-full"
+        class_name="flex-col items-center border rounded shadow-lg divide-y dark:divide-zinc-500 w-full"
     )
 
 def hospital_average() -> rx.Component:
@@ -454,7 +454,7 @@ def travel_pay() -> rx.Component:
             text("No reports yet, check back later!"),
             class_name="flex-col items-center p-6 w-full",
         ),
-        class_name="flex-col items-center border rounded divide-y dark:divide-zinc-500 w-full"
+        class_name="flex-col items-center border rounded shadow-lg divide-y dark:divide-zinc-500 w-full"
     )
 
 
@@ -566,7 +566,7 @@ def units_roles() -> rx.Component:
                 class_name="flex-col divide-y dark:divide-zinc-500 w-full"
             ),
         ),
-        class_name="flex-col items-center border rounded divide-y dark:divide-zinc-500 w-full"
+        class_name="flex-col items-center border rounded shadow-lg divide-y dark:divide-zinc-500 w-full"
     )
 
 def ranked_items() -> rx.Component:
@@ -632,7 +632,7 @@ def reviews() -> rx.Component:
                 class_name="flex-col items-center p-6 w-full",
             ),
         ),
-        class_name="flex-col items-center border rounded divide-y dark:divide-zinc-500 w-full"
+        class_name="flex-col items-center border rounded shadow-lg divide-y dark:divide-zinc-500 w-full"
     )
 
 

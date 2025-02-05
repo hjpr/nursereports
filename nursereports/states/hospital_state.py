@@ -17,7 +17,10 @@ from loguru import logger
 from scipy import interpolate
 from typing import Any, Callable, Iterable
 
+import copy
 import rich
+import pprint
+import traceback
 
 
 class HospitalState(UserState):
@@ -158,7 +161,6 @@ class HospitalState(UserState):
         else:
             return {}
 
-
     @rx.var(cache=True)
     def filtered_unit_info(self) -> dict[str, str]:
         """
@@ -169,7 +171,7 @@ class HospitalState(UserState):
         for score_dict in self.units_areas_roles_hospital_scores:
             if score_dict["units_areas_roles"] == self.selected_unit:
                 return score_dict
-            
+
         # If no match user hasn't filtered so retrieve hospital overall.
         for score_dict in self.units_areas_roles_hospital_scores:
             if score_dict["units_areas_roles"] == "hospital":
@@ -241,7 +243,9 @@ class HospitalState(UserState):
                     self.access_token, self.hosp_id
                 )
                 self.hospital_info["hosp_state_abbr"] = self.hospital_info["hosp_state"]
-                self.hospital_info["hosp_state"] = abbr_to_state_dict.get(self.hospital_info["hosp_state_abbr"])
+                self.hospital_info["hosp_state"] = abbr_to_state_dict.get(
+                    self.hospital_info["hosp_state_abbr"]
+                )
 
             # Otherwise send user back to dashboard.
             else:
@@ -268,7 +272,6 @@ class HospitalState(UserState):
         except Exception as e:
             logger.error(e)
             yield rx.toast.error("Unexpected behavior while loading report info.")
-        
 
     def event_state_load_pay_info(self) -> Iterable[Callable]:
         """
@@ -278,108 +281,303 @@ class HospitalState(UserState):
         try:
             if self.report_info:
                 # Copy reports into a dataframe.
-                pay_df = pl.DataFrame(self.report_info.copy())
+                pay_df = pl.DataFrame(copy.deepcopy(self.report_info))
 
-                # Full time hospital pay data and interpolation.
-                ft_pay_hospital_df = pay_df.filter(
-                    pl.col("comp_select_emp_type") == "Full-time"
-                ).select(["comp_input_pay_amount", "comp_select_total_experience"])
-                ft_pay_hospital_df = ft_pay_hospital_df.with_columns(
-                    pl.col("comp_select_total_experience")
-                    .cast(pl.Int8, strict=False)
-                    .fill_null(26)
-                ).sort(by=pl.col("comp_select_total_experience"))
-                ft_pay = ft_pay_hospital_df.to_dicts()
+                # Create our full time pay dictionary with columns hourly and total.
+                ft_pay_hospital_df = (
+                    pay_df.filter(
+                        pl.col("compensation").struct.field("emp_type") == "Full-time"
+                    )
+                    .select(
+                        [
+                            pl.col("compensation")
+                            .struct.field("pay")
+                            .struct.field("hourly"),
+                            pl.col("compensation")
+                            .struct.field("experience")
+                            .struct.field("total"),
+                        ]
+                    )
+                    .sort(by=pl.col("total"))
+                )
 
-                # Check if more than 10 full-time hospital pay reports.
-                self.ft_pay_hospital_info_limited = bool(len(ft_pay) < 10)
+                # Remove outliers.
+                self.remove_pay_outliers(ft_pay_hospital_df, "hourly")
 
-                # Extrapolate full-time hospital pay data to dict of values against experience.
-                if ft_pay:
-                    x = ft_pay_hospital_df["comp_select_total_experience"].to_numpy()
-                    y = ft_pay_hospital_df["comp_input_pay_amount"].to_numpy()
-                    f = interpolate.interp1d(
-                        x, y, kind="quadratic", fill_value="extrapolate"
+                # Flatten entries for years into an average.
+                ft_pay_hospital_df = self.flatten_pay(ft_pay_hospital_df, "total", "hourly")
+
+                # Set full time pay limited flag if less than 10 reports.
+                self.ft_pay_hospital_info_limited = bool(len(ft_pay_hospital_df) < 10)
+
+                # Quadratic interpolation as long as we have more than 2 reports.
+                if len(ft_pay_hospital_df)  > 2:
+                    regressed_df = self.quadratic_regression_pay(
+                        ft_pay_hospital_df, "total", "hourly"
                     )
-                    x_extrapolated = np.arange(0, 27)
-                    y_extrapolated = f(x_extrapolated)
-                    filtered_ft_pay_hospital_df = pl.DataFrame(
-                        {
-                            "years_experience": x_extrapolated,
-                            "interpolated_pay": y_extrapolated,
-                        }
+                    self.extrapolated_ft_pay_hospital = regressed_df
+                    logger.debug(
+                        f"Pulled {len(ft_pay_hospital_df) } full time report(s) and performed quadratic regression."
                     )
-                    extrapolated_ft_pay_hospital = (
-                        filtered_ft_pay_hospital_df.to_dicts()
+                elif len(ft_pay_hospital_df) > 0:
+                    self.extrapolated_ft_pay_hospital = (
+                        self.simple_linear_regression_pay(
+                            ft_pay_hospital_df, "total", "hourly"
+                        )
                     )
-                    self.extrapolated_ft_pay_hospital = {
-                        item["years_experience"]: item["interpolated_pay"]
-                        for item in extrapolated_ft_pay_hospital
-                    }
+                    logger.debug(
+                        f"Pulled {len(ft_pay_hospital_df) } full time report(s) and performed linear regression."
+                    )
+                else:
+                    logger.debug(
+                        "No full-time pay data present to be loaded to state..."
+                    )
 
                 # Part time pay data and interpolation.
-                pt_pay_df = pay_df.filter(
-                    pl.col("comp_select_emp_type") == "Part-time"
-                ).select(["comp_input_pay_amount", "comp_select_total_experience"])
-                pt_pay_df = pt_pay_df.with_columns(
-                    pl.col("comp_select_total_experience")
-                    .cast(pl.Int8, strict=False)
-                    .fill_null(26)
+                pt_pay_hospital_df = (
+                    pay_df.filter(
+                        pl.col("compensation").struct.field("emp_type") == "Part-time"
+                    )
+                    .select(
+                        [
+                            pl.col("compensation")
+                            .struct.field("pay")
+                            .struct.field("hourly"),
+                            pl.col("compensation")
+                            .struct.field("experience")
+                            .struct.field("total"),
+                        ]
+                    )
+                    .sort(by=pl.col("total"))
                 )
-                pt_pay = pt_pay_df.to_dicts()
 
-                # Check if more than 10 part-time hospital pay reports.
-                self.pt_pay_hospital_info_limited = bool(len(pt_pay) < 10)
+                # Remove outliers.
+                self.remove_pay_outliers(pt_pay_hospital_df, "hourly")
 
-                # Extrapolate part-time hospital pay data to dict of values against experience.
-                if pt_pay:
-                    x = pt_pay_df["comp_select_total_experience"].to_numpy()
-                    y = pt_pay_df["comp_input_pay_amount"].to_numpy()
-                    f = interpolate.interp1d(
-                        x, y, kind="quadratic", fill_value="extrapolate"
+                # Flatten entries for years into an average.
+                pt_pay_hospital_df = self.flatten_pay(pt_pay_hospital_df, "total", "hourly")
+
+                # Set part time pay limited flag if less than 10 reports.
+                self.pt_pay_hospital_info_limited = bool(len(pt_pay_hospital_df) < 10)
+
+                # Quadratic interpolation as long as we have more than 2 reports.
+                if len(pt_pay_hospital_df) > 2:
+                    regressed_df = self.quadratic_regression_pay(
+                        pt_pay_hospital_df, "total", "hourly"
                     )
-                    x_extrapolated = np.arange(0, 27)
-                    y_extrapolated = f(x_extrapolated)
-                    filtered_pt_df = pl.DataFrame(
-                        {
-                            "years_experience": x_extrapolated,
-                            "interpolated_pay": y_extrapolated,
-                        }
+                    self.extrapolated_pt_pay_hospital = regressed_df
+                    logger.debug(
+                        f"Pulled {len(pt_pay_hospital_df) } part time report(s) and performed quadratic regression."
                     )
-                    extrapolated_pt_pay_hospital = filtered_pt_df.to_dict()
-                    self.extrapolated_pt_pay_hospital = {
-                        item["years_experience"]: item["interpolated_pay"]
-                        for item in extrapolated_pt_pay_hospital
-                    }
+                elif len(pt_pay_hospital_df) > 0:
+                    self.extrapolated_pt_pay_hospital = (
+                        self.simple_linear_regression_pay(
+                            pt_pay_hospital_df, "total", "hourly"
+                        )
+                    )
+                    logger.debug(
+                        f"Pulled {len(pt_pay_hospital_df) } part time report(s) and performed linear regression."
+                    )
+                else:
+                    logger.debug(
+                        "No part-time pay data present to be loaded to state..."
+                    )    
 
                 # Contract pay data and averaged pay.
-                contract_pay_df = pay_df.filter(
-                    pl.col("comp_select_emp_type") == "Contract"
-                ).select(["comp_input_pay_amount", "created_at"])
-                contract_pay = contract_pay_df.to_dicts()
+                contract_pay_df = (
+                    pay_df.filter(
+                        pl.col("compensation").struct.field("emp_type") == "Contract"
+                    )
+                    .select(
+                        [
+                            pl.col("compensation")
+                            .struct.field("pay")
+                            .struct.field("weekly"),
+                            pl.col("created_at"),
+                        ]
+                    )
+                    .sort(by=pl.col("created_at"))
+                )
 
                 # Check if more than 10 contract pay reports.
-                self.contract_pay_info_hospital_limited = bool(len(contract_pay) < 10)
+                self.contract_pay_info_hospital_limited = bool(
+                    len(contract_pay_df) < 10
+                )
 
                 # Average contract pay data.
-                if contract_pay:
-                    averaged_contract_pay_df = contract_pay_df.select(
-                        pl.col("comp_input_pay_amount")
-                        .mean()
-                        .alias("average_contract_pay")
+                if len(contract_pay_df) > 0:
+                    self.simple_average_pay(contract_pay_df, "weekly")
+                    logger.debug(
+                        f"Pulled {len(contract_pay_df)} contract report(s) and averaged them."
                     )
-                    self.averaged_contract_pay_hospital = (
-                        averaged_contract_pay_df.to_dict()
+                else:
+                    logger.debug(
+                        "No contract pay data present to be loaded to state..."
                     )
 
         except Exception as e:
+            traceback.print_exc()
             logger.critical(e)
+
+    @staticmethod
+    def remove_pay_outliers(
+        df_to_clean: pl.DataFrame, y_name: str, multiplier: float = 1.5
+    ) -> pl.DataFrame:
+        """
+        Removes outliers from DataFrame. Requires 4 entries
+        """
+        if len(df_to_clean) < 4:
+            logger.debug("Not enough entries to remove outliers.")
+            return df_to_clean
+        
+        y_values = df_to_clean[y_name].to_numpy()
+
+        # Calc Q1 and Q3 (25th % and 75th %).
+        Q1 = np.percentile(y_values, 25)
+        Q3 = np.percentile(y_values, 75)
+
+        # Calc IQR.
+        IQR = Q3 - Q1
+
+        # Calc outlier thresholds.
+        lower_bound = Q1 - (multiplier * IQR)
+        upper_bound = Q1 - (multiplier * IQR)
+
+        # Filter rows outside of our lower and upper bounds.
+        filtered_df = df_to_clean.filter(
+            (df_to_clean[y_name] >= lower_bound)
+            & (df_to_clean[y_name] <= upper_bound)
+        )
+        logger.debug(f"Dropped {df_to_clean.height - filtered_df.height} report(s) as outliers.")
+        return filtered_df        
+
+    @staticmethod
+    def flatten_pay(df_to_flatten: pl.DataFrame, x_name: str, y_name:str) -> pl.DataFrame:
+        """
+        Can't interpolate duplicate years ex. [{4, 5, 5}, {41, 37, 87}]. Averages duplicate
+        entries eg. [{4, 5}{41, 80.5}]
+        """
+        x = df_to_flatten[x_name].to_numpy()
+        y = df_to_flatten[y_name].to_numpy()
+
+        unique_x = np.unique(x)
+        averaged_y = [np.mean(y[x == val]) for val in unique_x]
+
+        flattened_df = pl.DataFrame(
+            {x_name: unique_x, y_name: averaged_y}
+        )
+
+        logger.debug(f"Flattened by {df_to_flatten.height - flattened_df.height} report(s).")
+        return flattened_df
+
+    @staticmethod
+    def simple_average_pay(pay_df: pl.DataFrame, y_name: str) -> dict:
+        """
+        Takes a pay dataframe with years on x-axis and pay on y-axis and computes
+        the average of those values. Returns a dict where the key is averaged_y_name
+        e.g. averaged_hourly / averaged_weekly etc.
+        """
+        averaged_pay = pay_df.select(
+            pl.col(f"{y_name}").mean().alias(f"averaged_{y_name}")
+        )
+        return averaged_pay.to_dict()
+
+    @staticmethod
+    def simple_linear_regression_pay(
+        pay_df: pl.DataFrame, x_name: str, y_name: str
+    ) -> dict:
+        """
+        Returns a dict of values where the key is a range from 0-26 representing
+        the years of experience, and the value is the pay as a float rounded to 2
+        decimal points. This function can handle dataframes with 1 or 2 pay entries.
+
+        Clamps values to sanity if regression has negative slope or unrealistic
+        y-intercept.
+        """
+        MIN_NEW_RN_PAY = 20
+        MAX_NEW_RN_PAY = 45
+        MIN_PAY_PROGRESSION_SLOPE = 1.1
+        MAX_PAY_PROGRESSION_SLOPE = 3.8
+
+        # Set our axes.
+        years_experience = pay_df[f"{x_name}"].to_numpy()
+        pay_values = pay_df[f"{y_name}"].to_numpy()
+
+        # Array to calc for 0-26 years.
+        x_range = np.arange(0, 27)
+
+        # If there's only one pay entry, same pay across all experiences.
+        if len(years_experience) == 1:
+            y_range = np.full_like(x_range, pay_values[0], dtype=float)
+
+        # If there are two pay entries, compute linear regression.
+        if len(years_experience) == 2:
+            m = (pay_values[1] - pay_values[0]) / (
+                years_experience[1] - years_experience[0]
+            )
+            b = pay_values[0] - m * years_experience[0]
+
+            # Clamp y-intercept to sane value.
+            b = max(MIN_NEW_RN_PAY, min(b, MAX_NEW_RN_PAY))
+
+            # If values are really wonky, give it the default min slope.
+            if 6 < m < 0:
+                m = MIN_PAY_PROGRESSION_SLOPE
+            else:
+                m = max(MIN_PAY_PROGRESSION_SLOPE, min(m, MAX_PAY_PROGRESSION_SLOPE))
+
+            # Calc the y from the line function.
+            y_range = m * x_range + b
+
+        pay_dict = dict(zip(x_range, y_range))
+        final_pay_dict = {
+            int(experience): round(float(pay), 2)
+            for experience, pay in pay_dict.items()
+        }
+        return final_pay_dict
+
+    @staticmethod
+    def quadratic_regression_pay(
+        pay_df: pl.DataFrame, x_name: str, y_name: str
+    ) -> dict | pl.DataFrame:
+        """
+        Returns a dict of values where the key is a range from 0-26 representing
+        the years of experience, and the value is the pay as a float rounded to 2
+        decimal points. These values have been interpolated and require more than
+        2 pay entries.
+
+        If outlier function drops too many values for quadratic, returns a Dataframe
+        to be linearly regressed, otherwise returns a dict.
+        """
+        # Set our values to arrays on the axes.
+        x = pay_df[x_name].to_numpy()
+        y = pay_df[y_name].to_numpy()
+
+        # Create our interpolation function
+        f = interpolate.interp1d(x, y, kind="quadratic", fill_value="extrapolate")
+
+        # Run our interpolation across our years of experience
+        x_i = np.arange(0, 27)
+        y_i = f(x_i)
+        interpolated_df = pl.DataFrame(
+            {"years_experience": x_i, "interpolated_pay": y_i}
+        )
+        return {
+            item["years_experience"]: item["interpolated_pay"]
+            for item in interpolated_df.to_dicts()
+        }
+
+    @staticmethod
+    def smooth_pay_clamp(value, min, max, smoothing_factor=0.1) -> float:
+        if value < min:
+            return round(min + (value - min) * smoothing_factor, 2)
+        elif value > max:
+            return round(max + (value - max) * smoothing_factor, 2)
+        return value
 
     def event_state_load_unit_info(self) -> Iterable[Callable]:
         try:
-
             if self.report_info:
-
                 # Create full dataframe and format.
                 units_df = (
                     pl.DataFrame(self.report_info.copy())
@@ -395,7 +593,6 @@ class HospitalState(UserState):
                         )
                         .otherwise(None)
                         .alias("unit"),
-
                         pl.when(
                             pl.col("assign_select_specific_unit").str.contains("No")
                         )
@@ -454,12 +651,11 @@ class HospitalState(UserState):
                         ]
                     )
                     .with_columns(
-                        pl.mean_horizontal("comp_numeric", "assign_numeric", "staffing_numeric")
-                        .alias("overall_numeric")
+                        pl.mean_horizontal(
+                            "comp_numeric", "assign_numeric", "staffing_numeric"
+                        ).alias("overall_numeric")
                     )
-                    .filter(
-                        pl.col("unit").is_not_null()
-                    )
+                    .filter(pl.col("unit").is_not_null())
                     .group_by("unit")
                     .agg(
                         [
@@ -478,7 +674,7 @@ class HospitalState(UserState):
                             pl.col("overall_numeric")
                             .mean()
                             .map_elements(self.number_to_letter, pl.Utf8)
-                            .alias("overall_mean")
+                            .alias("overall_mean"),
                         ]
                     )
                 )
@@ -499,12 +695,11 @@ class HospitalState(UserState):
                         ]
                     )
                     .with_columns(
-                        pl.mean_horizontal("comp_numeric", "assign_numeric", "staffing_numeric")
-                        .alias("overall_numeric")
+                        pl.mean_horizontal(
+                            "comp_numeric", "assign_numeric", "staffing_numeric"
+                        ).alias("overall_numeric")
                     )
-                    .filter(
-                        pl.col("area_role").is_not_null()
-                    )
+                    .filter(pl.col("area_role").is_not_null())
                     .group_by("area_role")
                     .agg(
                         [
@@ -523,7 +718,7 @@ class HospitalState(UserState):
                             pl.col("overall_numeric")
                             .mean()
                             .map_elements(self.number_to_letter, pl.Utf8)
-                            .alias("overall_mean")
+                            .alias("overall_mean"),
                         ]
                     )
                 )
@@ -544,8 +739,9 @@ class HospitalState(UserState):
                         ]
                     )
                     .with_columns(
-                        pl.mean_horizontal("comp_numeric", "assign_numeric", "staffing_numeric")
-                        .alias("overall_numeric")
+                        pl.mean_horizontal(
+                            "comp_numeric", "assign_numeric", "staffing_numeric"
+                        ).alias("overall_numeric")
                     )
                     .select(
                         [
@@ -565,28 +761,37 @@ class HospitalState(UserState):
                             pl.col("overall_numeric")
                             .mean()
                             .map_elements(self.number_to_letter, pl.Utf8)
-                            .alias("overall_mean")
+                            .alias("overall_mean"),
                         ]
                     )
                 )
 
                 # Combine and save to state
                 unit_score_df = unit_score_df.rename({"unit": "units_areas_roles"})
-                area_role_score_df = area_role_score_df.rename({"area_role": "units_areas_roles"})
-                hospital_score_df = hospital_score_df.rename({"unit": "units_areas_roles"})
+                area_role_score_df = area_role_score_df.rename(
+                    {"area_role": "units_areas_roles"}
+                )
+                hospital_score_df = hospital_score_df.rename(
+                    {"unit": "units_areas_roles"}
+                )
 
                 # Combine for individual unit/role rating.
-                units_areas_roles_df = pl.concat([unit_score_df, area_role_score_df, hospital_score_df], how="vertical")
+                units_areas_roles_df = pl.concat(
+                    [unit_score_df, area_role_score_df, hospital_score_df],
+                    how="vertical",
+                )
                 self.units_areas_roles_hospital_scores = units_areas_roles_df.to_dicts()
 
                 # Pull dict for unit/role rankings and add ranking numbers.
-                rankings_df = pl.concat([unit_score_df, area_role_score_df], how="vertical").sort("overall_mean")
+                rankings_df = pl.concat(
+                    [unit_score_df, area_role_score_df], how="vertical"
+                ).sort("overall_mean")
                 rankings_df = rankings_df.with_row_count("ranking", offset=1)
                 self.units_areas_roles_for_rankings = rankings_df.to_dicts()
 
         except Exception as e:
+            traceback.print_exc()
             logger.critical(e)
-
 
     def event_state_load_review_info(self) -> Iterable[Callable]:
         try:
@@ -618,7 +823,6 @@ class HospitalState(UserState):
                         .str.to_datetime("%Y-%m-%dT%H:%M:%S%.f%z")
                         .dt.strftime("%B %Y")
                         .alias("formatted_created_at"),
-
                         pl.when(
                             pl.col("assign_select_specific_unit").str.contains("Yes")
                         )
@@ -630,7 +834,6 @@ class HospitalState(UserState):
                         )
                         .otherwise(None)
                         .alias("unit"),
-
                         pl.when(
                             pl.col("assign_select_specific_unit").str.contains("No")
                         )
@@ -642,7 +845,6 @@ class HospitalState(UserState):
                         )
                         .otherwise(None)
                         .alias("area_role"),
-
                         pl.when((pl.col("comp_input_comments").str.len_chars() == 0))
                         .then(None)
                         .otherwise(pl.col("comp_input_comments"))
@@ -690,7 +892,6 @@ class HospitalState(UserState):
         except Exception as e:
             logger.critical(e)
             yield rx.toast.error("Whoops! Couldn't save reviews to state.")
-
 
     def event_state_like_unlike_review(
         self, review_to_edit: dict[str, str | list | bool]
