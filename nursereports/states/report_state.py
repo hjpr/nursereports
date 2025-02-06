@@ -107,7 +107,7 @@ class ReportState(PageState):
             self.report_dict["assignment"] = {}
             self.report_dict["staffing"] = {}
 
-            self.report_dict["created_at"] = str(datetime.now(timezone.utc))
+            self.report_dict["created_at"] = str(datetime.now(timezone.utc).isoformat("microseconds"))
             self.report_dict["submitted_at"] = report["submitted_at"]
 
             # Set compensation to state.
@@ -235,7 +235,7 @@ class ReportState(PageState):
             self.report_dict["assignment"] = {}
             self.report_dict["staffing"] = {}
             self.report_dict["social"] = {"likes": {}, "comments": {}, "tags": {}}
-            self.report_dict["created_at"] = str(datetime.now(timezone.utc))
+            self.report_dict["created_at"] = str(datetime.now(timezone.utc).isoformat("microseconds"))
             self.report_dict["submitted_at"] = None
 
             # Redirect to first page of full report.
@@ -955,12 +955,12 @@ class ReportState(PageState):
 
             # If report and report matches user ID, we'll assume user is attempting to edit unless physics suspends and the UUID clashes.
             if report and report["user_id"]:
-                self.report_dict["modified_at"] = str(datetime.now(timezone.utc))
+                self.report_dict["modified_at"] = str(datetime.now(timezone.utc).isoformat("microseconds"))
                 supabase_user_edit_report(self.access_token, self.report_dict)
 
             # If report not present then user is submitting a new report.
             if not report:
-                self.report_dict["submitted_at"] = str(datetime.now(timezone.utc))
+                self.report_dict["submitted_at"] = str(datetime.now(timezone.utc).isoformat("microseconds"))
                 supabase_submit_full_report(self.access_token, self.report_dict)
 
             # Update user data with relevant info once report is submitted.

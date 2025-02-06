@@ -69,9 +69,9 @@ def supabase_create_initial_user_info(access_token: str, user_id: str) -> None:
     user_info = {
         "id": user_id,
         "modified_at": None,
-        "last_login": str(datetime.now(timezone.utc)),
+        "last_login": str(datetime.now(timezone.utc).isoformat("microseconds")),
         "account": {
-            "created_at": str(datetime.now(timezone.utc)),
+            "created_at": str(datetime.now(timezone.utc).isoformat("microseconds")),
             "status": "onboard",
             "trust": 0,
             "membership": "free",
@@ -170,7 +170,7 @@ def supabase_update_user_info(
     Exceptions:
         RequestFailed: Request failed to update info in /users.
     """
-    data["modified_at"] = str(datetime.now(timezone.utc))
+    data["modified_at"] = str(datetime.now(timezone.utc).isoformat("microseconds"))
     url = f"{api_url}/rest/v1/users?id=eq.{user_id}"
     headers = {
         "apikey": api_key,
@@ -205,7 +205,7 @@ def supabase_update_last_login(
         RequestFailed: Request failed to update info in /users.
     """
     data = {}
-    data["last_login"] = str(datetime.now(timezone.utc))
+    data["last_login"] = str(datetime.now(timezone.utc).isoformat("microseconds"))
     url = f"{api_url}/rest/v1/users?id=eq.{user_id}"
     headers = {
         "apikey": api_key,
