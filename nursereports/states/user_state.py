@@ -27,6 +27,7 @@ import pprint
 import rich
 import reflex as rx
 import time
+import traceback
 
 
 class UserState(AuthState):
@@ -342,6 +343,7 @@ class UserState(AuthState):
         except RequestFailed as e:
             yield rx.toast.error(str(e), close_buttons=True)
         except Exception as e:
+            traceback.print_exc()
             logger.critical(str(e))
             yield rx.toast.error("Unable to save hospital to list.", close_button=True)
 
