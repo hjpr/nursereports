@@ -14,7 +14,6 @@ from ..server.exceptions import RequestFailed
 
 from datetime import datetime
 from loguru import logger
-from scipy import interpolate
 from typing import Any, Callable, Iterable
 
 import copy
@@ -55,11 +54,11 @@ class HospitalState(UserState):
     # Units/areas/roles pulled from reports.
     units_areas_roles_for_units: list[str]
     units_areas_roles_hospital_scores: list[dict]
+    overall_hospital_scores: dict
     units_areas_roles_for_reviews: list[str]
-    units_areas_roles_for_rankings: list[dict]
 
     # User selectable fields
-    selected_unit: str
+    selected_unit: str = ""
     selected_pay_tab: str = "staff"
     selected_experience: int = 4
     selected_hospital_average: str = "Full-time"
@@ -162,20 +161,24 @@ class HospitalState(UserState):
             return {}
 
     @rx.var(cache=True)
-    def filtered_unit_info(self) -> dict[str, str]:
+    def selected_unit_info(self) -> dict[str, str]:
         """
-        Used to display all units if no filters are selected, or filtered units if
-        user has selected filters.
+        If user has a unit selected in the unit grades section, show scores
+        for that unit. Hospital scores are stored as list of dicts, overall score
+        is simply a dict that we can return.
         """
         # Iterate to retrieve matched selection.
-        for score_dict in self.units_areas_roles_hospital_scores:
-            if score_dict["units_areas_roles"] == self.selected_unit:
-                return score_dict
+        matched_dict = next(
+            (
+                d
+                for d in self.units_areas_roles_hospital_scores
+                if d.get("units_areas_roles") == self.selected_unit
+            ),
+            None,
+        )
 
-        # If no match user hasn't filtered so retrieve hospital overall.
-        for score_dict in self.units_areas_roles_hospital_scores:
-            if score_dict["units_areas_roles"] == "hospital":
-                return score_dict
+        # Otherwise if no matches, user hasn't selected anything and we return hospital overall.
+        return matched_dict if matched_dict else self.overall_hospital_scores
 
     @rx.var(cache=True)
     def filtered_review_info(self) -> list[dict]:
@@ -191,8 +194,7 @@ class HospitalState(UserState):
             filtered_review_items = [
                 review
                 for review in self.review_info
-                if self.review_filter_units_areas_roles == review.get("unit", "")
-                or self.review_filter_units_areas_roles == review.get("area_role", "")
+                if self.review_filter_units_areas_roles == review.get("units_areas_roles", "")
             ]
 
         # Filter for "Most Recent" and/or "Most Helpful" if user has selected filters.
@@ -200,31 +202,17 @@ class HospitalState(UserState):
             if self.review_sorted == "Most Recent":
                 filtered_review_items = sorted(
                     filtered_review_items,
-                    key=lambda review: datetime.fromisoformat(review["created_at"]),
+                    key=lambda review: datetime.fromisoformat(review["timestamp"]),
                     reverse=True,
                 )
-            if self.review_sorted == "Most Helpful":
-                filtered_review_items = sorted(
-                    filtered_review_items,
-                    key=lambda review: review["likes_number"],
-                    reverse=True,
-                )
+            # if self.review_sorted == "Most Helpful":
+            #     filtered_review_items = sorted(
+            #         filtered_review_items,
+            #         key=lambda review: review["likes_number"],
+            #         reverse=True,
+            #     )
 
         return filtered_review_items
-
-    @staticmethod
-    def letter_to_number(letter: str) -> int:
-        """
-        Convert stored letter grades to numbers.
-        """
-        return {"a": 4, "b": 3, "c": 2, "d": 1, "f": 0}.get(letter)
-
-    @staticmethod
-    def number_to_letter(number: int | float) -> str:
-        """
-        Convert number grades back to formatted letter grades for display.
-        """
-        return {4: "A", 3: "B", 2: "C", 1: "D", 0: "F"}.get(round(number))
 
     def set_slider(self, value) -> None:
         self.selected_experience = value[0]
@@ -302,36 +290,23 @@ class HospitalState(UserState):
                 )
 
                 # Remove outliers.
-                self.remove_pay_outliers(ft_pay_hospital_df, "hourly")
+                ft_pay_hospital_df = self.remove_pay_outliers(
+                    ft_pay_hospital_df, "hourly"
+                )
 
                 # Flatten entries for years into an average.
-                ft_pay_hospital_df = self.flatten_pay(ft_pay_hospital_df, "total", "hourly")
+                ft_pay_hospital_df = self.flatten_pay(
+                    ft_pay_hospital_df, "total", "hourly"
+                )
 
                 # Set full time pay limited flag if less than 10 reports.
                 self.ft_pay_hospital_info_limited = bool(len(ft_pay_hospital_df) < 10)
 
                 # Quadratic interpolation as long as we have more than 2 reports.
-                if len(ft_pay_hospital_df)  > 2:
-                    regressed_df = self.quadratic_regression_pay(
-                        ft_pay_hospital_df, "total", "hourly"
-                    )
-                    self.extrapolated_ft_pay_hospital = regressed_df
-                    logger.debug(
-                        f"Pulled {len(ft_pay_hospital_df) } full time report(s) and performed quadratic regression."
-                    )
-                elif len(ft_pay_hospital_df) > 0:
-                    self.extrapolated_ft_pay_hospital = (
-                        self.simple_linear_regression_pay(
-                            ft_pay_hospital_df, "total", "hourly"
-                        )
-                    )
-                    logger.debug(
-                        f"Pulled {len(ft_pay_hospital_df) } full time report(s) and performed linear regression."
-                    )
-                else:
-                    logger.debug(
-                        "No full-time pay data present to be loaded to state..."
-                    )
+                self.extrapolated_ft_pay_hospital = self.linear_regression_pay(
+                    ft_pay_hospital_df, "total", "hourly"
+                )
+                logger.debug(f"Pulled {len(ft_pay_hospital_df)} full time report(s).")
 
                 # Part time pay data and interpolation.
                 pt_pay_hospital_df = (
@@ -352,36 +327,23 @@ class HospitalState(UserState):
                 )
 
                 # Remove outliers.
-                self.remove_pay_outliers(pt_pay_hospital_df, "hourly")
+                pt_pay_hospital_df = self.remove_pay_outliers(
+                    pt_pay_hospital_df, "hourly"
+                )
 
                 # Flatten entries for years into an average.
-                pt_pay_hospital_df = self.flatten_pay(pt_pay_hospital_df, "total", "hourly")
+                pt_pay_hospital_df = self.flatten_pay(
+                    pt_pay_hospital_df, "total", "hourly"
+                )
 
                 # Set part time pay limited flag if less than 10 reports.
                 self.pt_pay_hospital_info_limited = bool(len(pt_pay_hospital_df) < 10)
 
-                # Quadratic interpolation as long as we have more than 2 reports.
-                if len(pt_pay_hospital_df) > 2:
-                    regressed_df = self.quadratic_regression_pay(
-                        pt_pay_hospital_df, "total", "hourly"
-                    )
-                    self.extrapolated_pt_pay_hospital = regressed_df
-                    logger.debug(
-                        f"Pulled {len(pt_pay_hospital_df) } part time report(s) and performed quadratic regression."
-                    )
-                elif len(pt_pay_hospital_df) > 0:
-                    self.extrapolated_pt_pay_hospital = (
-                        self.simple_linear_regression_pay(
-                            pt_pay_hospital_df, "total", "hourly"
-                        )
-                    )
-                    logger.debug(
-                        f"Pulled {len(pt_pay_hospital_df) } part time report(s) and performed linear regression."
-                    )
-                else:
-                    logger.debug(
-                        "No part-time pay data present to be loaded to state..."
-                    )    
+                # Perform our linear regression.
+                self.extrapolated_pt_pay_hospital = self.linear_regression_pay(
+                    pt_pay_hospital_df, "total", "hourly"
+                )
+                logger.debug(f"Pulled {len(pt_pay_hospital_df)} part time report(s).")
 
                 # Contract pay data and averaged pay.
                 contract_pay_df = (
@@ -421,15 +383,15 @@ class HospitalState(UserState):
 
     @staticmethod
     def remove_pay_outliers(
-        df_to_clean: pl.DataFrame, y_name: str, multiplier: float = 1.5
+        df_to_clean: pl.DataFrame, y_name: str, multiplier: float = 2
     ) -> pl.DataFrame:
         """
-        Removes outliers from DataFrame. Requires 4 entries
+        Removes outliers from DataFrame. Requires at least 4 entries.
         """
         if len(df_to_clean) < 4:
             logger.debug("Not enough entries to remove outliers.")
             return df_to_clean
-        
+
         y_values = df_to_clean[y_name].to_numpy()
 
         # Calc Q1 and Q3 (25th % and 75th %).
@@ -441,18 +403,21 @@ class HospitalState(UserState):
 
         # Calc outlier thresholds.
         lower_bound = Q1 - (multiplier * IQR)
-        upper_bound = Q1 - (multiplier * IQR)
+        upper_bound = Q3 + (multiplier * IQR)
 
         # Filter rows outside of our lower and upper bounds.
         filtered_df = df_to_clean.filter(
-            (df_to_clean[y_name] >= lower_bound)
-            & (df_to_clean[y_name] <= upper_bound)
+            (df_to_clean[y_name] >= lower_bound) & (df_to_clean[y_name] <= upper_bound)
         )
-        logger.debug(f"Dropped {df_to_clean.height - filtered_df.height} report(s) as outliers.")
-        return filtered_df        
+        logger.debug(
+            f"Dropped {len(df_to_clean) - len(filtered_df)} report(s) as outliers."
+        )
+        return filtered_df
 
     @staticmethod
-    def flatten_pay(df_to_flatten: pl.DataFrame, x_name: str, y_name:str) -> pl.DataFrame:
+    def flatten_pay(
+        df_to_flatten: pl.DataFrame, x_name: str, y_name: str
+    ) -> pl.DataFrame:
         """
         Can't interpolate duplicate years ex. [{4, 5, 5}, {41, 37, 87}]. Averages duplicate
         entries eg. [{4, 5}{41, 80.5}]
@@ -463,11 +428,10 @@ class HospitalState(UserState):
         unique_x = np.unique(x)
         averaged_y = [np.mean(y[x == val]) for val in unique_x]
 
-        flattened_df = pl.DataFrame(
-            {x_name: unique_x, y_name: averaged_y}
+        flattened_df = pl.DataFrame({x_name: unique_x, y_name: averaged_y})
+        logger.debug(
+            f"Flattened by {df_to_flatten.height - flattened_df.height} report(s)."
         )
-
-        logger.debug(f"Flattened by {df_to_flatten.height - flattened_df.height} report(s).")
         return flattened_df
 
     @staticmethod
@@ -483,47 +447,43 @@ class HospitalState(UserState):
         return averaged_pay.to_dict()
 
     @staticmethod
-    def simple_linear_regression_pay(
-        pay_df: pl.DataFrame, x_name: str, y_name: str
-    ) -> dict:
+    def linear_regression_pay(pay_df: pl.DataFrame, x_name: str, y_name: str) -> dict:
         """
         Returns a dict of values where the key is a range from 0-26 representing
         the years of experience, and the value is the pay as a float rounded to 2
         decimal points. This function can handle dataframes with 1 or 2 pay entries.
 
         Clamps values to sanity if regression has negative slope or unrealistic
-        y-intercept.
+        y-intercept. Mainly should only happen with limited data. Once the dataset for
+        pay gets larger, removing outliers should help with sanity.
         """
         MIN_NEW_RN_PAY = 20
-        MAX_NEW_RN_PAY = 45
-        MIN_PAY_PROGRESSION_SLOPE = 1.1
-        MAX_PAY_PROGRESSION_SLOPE = 3.8
+        MAX_NEW_RN_PAY = 55
+        MIN_PAY_PROGRESSION_SLOPE = 0.5
+        MAX_PAY_PROGRESSION_SLOPE = 4
 
         # Set our axes.
-        years_experience = pay_df[f"{x_name}"].to_numpy()
-        pay_values = pay_df[f"{y_name}"].to_numpy()
+        years = pay_df[f"{x_name}"].to_numpy()  # Years experience.
+        pay = pay_df[f"{y_name}"].to_numpy()  # Pay value at each year experience
 
         # Array to calc for 0-26 years.
         x_range = np.arange(0, 27)
 
+        # Return empty dict for no entries.
+        if len(pay_df) == 0:
+            return {}
+
         # If there's only one pay entry, same pay across all experiences.
-        if len(years_experience) == 1:
-            y_range = np.full_like(x_range, pay_values[0], dtype=float)
+        if len(pay_df) == 1:
+            y_range = np.full_like(x_range, pay[0], dtype=float)
 
         # If there are two pay entries, compute linear regression.
-        if len(years_experience) == 2:
-            m = (pay_values[1] - pay_values[0]) / (
-                years_experience[1] - years_experience[0]
-            )
-            b = pay_values[0] - m * years_experience[0]
+        elif len(pay_df) > 1:
+            m, b = np.polyfit(years, pay, 1)
 
-            # Clamp y-intercept to sane value.
-            b = max(MIN_NEW_RN_PAY, min(b, MAX_NEW_RN_PAY))
-
-            # If values are really wonky, give it the default min slope.
-            if 6 < m < 0:
-                m = MIN_PAY_PROGRESSION_SLOPE
-            else:
+            # With limited reports, clamp values to avoid really wild regressions.
+            if len(pay_df) < 10:
+                b = max(MIN_NEW_RN_PAY, min(b, MAX_NEW_RN_PAY))
                 m = max(MIN_PAY_PROGRESSION_SLOPE, min(m, MAX_PAY_PROGRESSION_SLOPE))
 
             # Calc the y from the line function.
@@ -536,258 +496,214 @@ class HospitalState(UserState):
         }
         return final_pay_dict
 
-    @staticmethod
-    def quadratic_regression_pay(
-        pay_df: pl.DataFrame, x_name: str, y_name: str
-    ) -> dict | pl.DataFrame:
-        """
-        Returns a dict of values where the key is a range from 0-26 representing
-        the years of experience, and the value is the pay as a float rounded to 2
-        decimal points. These values have been interpolated and require more than
-        2 pay entries.
-
-        If outlier function drops too many values for quadratic, returns a Dataframe
-        to be linearly regressed, otherwise returns a dict.
-        """
-        # Set our values to arrays on the axes.
-        x = pay_df[x_name].to_numpy()
-        y = pay_df[y_name].to_numpy()
-
-        # Create our interpolation function
-        f = interpolate.interp1d(x, y, kind="quadratic", fill_value="extrapolate")
-
-        # Run our interpolation across our years of experience
-        x_i = np.arange(0, 27)
-        y_i = f(x_i)
-        interpolated_df = pl.DataFrame(
-            {"years_experience": x_i, "interpolated_pay": y_i}
-        )
-        return {
-            item["years_experience"]: item["interpolated_pay"]
-            for item in interpolated_df.to_dicts()
-        }
-
-    @staticmethod
-    def smooth_pay_clamp(value, min, max, smoothing_factor=0.1) -> float:
-        if value < min:
-            return round(min + (value - min) * smoothing_factor, 2)
-        elif value > max:
-            return round(max + (value - max) * smoothing_factor, 2)
-        return value
-
     def event_state_load_unit_info(self) -> Iterable[Callable]:
         try:
             if self.report_info:
                 # Create full dataframe and format.
-                units_df = (
-                    pl.DataFrame(self.report_info.copy())
-                    .with_columns(
-                        pl.when(
-                            pl.col("assign_select_specific_unit").str.contains("Yes")
-                        )
-                        .then(
-                            pl.coalesce(
-                                pl.col("assign_select_unit"),
-                                pl.col("assign_input_unit_name"),
-                            )
-                        )
-                        .otherwise(None)
-                        .alias("unit"),
-                        pl.when(
-                            pl.col("assign_select_specific_unit").str.contains("No")
-                        )
-                        .then(
-                            pl.coalesce(
-                                pl.col("assign_select_area"),
-                                pl.col("assign_input_area"),
-                            )
-                        )
-                        .otherwise(None)
-                        .alias("area_role"),
-                    )
-                    .select(
+                full_df = pl.DataFrame(copy.deepcopy(self.report_info))
+
+                # Create our units dictionary with units/areas/roles extracted.
+                refined_df = full_df.select(
+                    # Flatten unit/area/role structs to unit/area/role columns as strings.
+                    pl.coalesce(
                         [
-                            "unit",
-                            "area_role",
-                            "comp_select_overall",
-                            "assign_select_overall",
-                            "staffing_select_overall",
+                            pl.col("assignment").struct.field("unit").struct.field("entered_unit").replace("", None),
+                            pl.col("assignment").struct.field("unit").struct.field("selected_unit").replace("", None),
                         ]
+                    ).alias("unit"),
+                    pl.coalesce(
+                        [
+                            pl.col("assignment").struct.field("area").struct.field("entered_area").replace("", None),
+                            pl.col("assignment").struct.field("area").struct.field("selected_area").replace("", None),
+                        ]
+                    ).alias("area"),
+                    pl.coalesce(
+                        [
+                            pl.col("assignment").struct.field("role").struct.field("entered_role").replace("", None),
+                            pl.col("assignment").struct.field("role").struct.field("selected_role").replace("", None),
+                        ]
+                    ).alias("role"),
+                    pl.col("compensation")
+                    .struct.field("ratings")
+                    .struct.field("overall")
+                    .cast(pl.Int8)
+                    .alias("comp_overall"),
+                    pl.col("assignment")
+                    .struct.field("ratings")
+                    .struct.field("overall")
+                    .cast(pl.Int8)
+                    .alias("assign_overall"),
+                    pl.col("staffing")
+                    .struct.field("ratings")
+                    .struct.field("overall")
+                    .cast(pl.Int8)
+                    .alias("staff_overall"),
+                ).with_columns(
+                    pl.mean_horizontal(
+                        "comp_overall", "assign_overall", "staff_overall"
                     )
+                    .round(0)
+                    .cast(pl.Int8)
+                    .alias("overall")
                 )
 
-                # Get list of units/roles for filters.
-                units_for_units = sorted(
-                    units_df.select("unit")
-                    .filter(pl.col("unit").is_not_null())
-                    .unique()
-                    .to_series()
-                    .to_list()
+                sorted_units = refined_df.select(pl.col("unit")).to_dict()
+                sorted_units = sorted(
+                    list(unit for unit in set(sorted_units["unit"]) if unit)
                 )
-                areas_roles_for_unit = sorted(
-                    units_df.select("area_role")
-                    .filter(pl.col("area_role").is_not_null())
-                    .unique()
-                    .to_series()
-                    .to_list()
+
+                sorted_areas = refined_df.select(pl.col("area")).to_dict()
+                sorted_areas = sorted(
+                    list(area for area in set(sorted_areas["area"]) if area)
                 )
+
+                sorted_roles = refined_df.select(pl.col("role")).to_dict()
+                sorted_roles = sorted(
+                    list(role for role in set(sorted_roles["role"]) if role)
+                )
+
                 self.units_areas_roles_for_units = (
-                    units_for_units + areas_roles_for_unit
+                    sorted_units + sorted_areas + sorted_roles
                 )
 
-                # Average scores for respective units.
+                # Calc average scores for entire hospital.
+                hospital_score_df = full_df.select(
+                    pl.lit("HOSPITAL").alias("units_areas_roles"),
+                    pl.col("compensation")
+                    .struct.field("ratings")
+                    .struct.field("overall")
+                    .mean()
+                    .round()
+                    .cast(pl.Int8)
+                    .alias("comp_overall"),
+                    pl.col("assignment")
+                    .struct.field("ratings")
+                    .struct.field("overall")
+                    .mean()
+                    .round()
+                    .cast(pl.Int8)
+                    .alias("assign_overall"),
+                    pl.col("staffing")
+                    .struct.field("ratings")
+                    .struct.field("overall")
+                    .mean()
+                    .round()
+                    .cast(pl.Int8)
+                    .alias("staff_overall"),
+                ).with_columns(
+                    pl.mean_horizontal(
+                        "comp_overall", "assign_overall", "staff_overall"
+                    )
+                    .round(0)
+                    .cast(pl.Int8)
+                    .alias("overall")
+                )
+
                 unit_score_df = (
-                    units_df.with_columns(
-                        [
-                            pl.col("comp_select_overall")
-                            .map_elements(self.letter_to_number, pl.Int8)
-                            .alias("comp_numeric"),
-                            pl.col("assign_select_overall")
-                            .map_elements(self.letter_to_number, pl.Int8)
-                            .alias("assign_numeric"),
-                            pl.col("staffing_select_overall")
-                            .map_elements(self.letter_to_number, pl.Int8)
-                            .alias("staffing_numeric"),
-                        ]
-                    )
-                    .with_columns(
-                        pl.mean_horizontal(
-                            "comp_numeric", "assign_numeric", "staffing_numeric"
-                        ).alias("overall_numeric")
-                    )
-                    .filter(pl.col("unit").is_not_null())
+                    #
+                    refined_df.with_columns(pl.col("unit").replace("", None))
                     .group_by("unit")
                     .agg(
-                        [
-                            pl.col("comp_numeric")
-                            .mean()
-                            .map_elements(self.number_to_letter, pl.Utf8)
-                            .alias("comp_mean"),
-                            pl.col("assign_numeric")
-                            .mean()
-                            .map_elements(self.number_to_letter, pl.Utf8)
-                            .alias("assign_mean"),
-                            pl.col("staffing_numeric")
-                            .mean()
-                            .map_elements(self.number_to_letter, pl.Utf8)
-                            .alias("staffing_mean"),
-                            pl.col("overall_numeric")
-                            .mean()
-                            .map_elements(self.number_to_letter, pl.Utf8)
-                            .alias("overall_mean"),
-                        ]
-                    )
-                )
-
-                # Average scores with respect to roles.
-                area_role_score_df = (
-                    units_df.with_columns(
-                        [
-                            pl.col("comp_select_overall")
-                            .map_elements(self.letter_to_number, pl.Int8)
-                            .alias("comp_numeric"),
-                            pl.col("assign_select_overall")
-                            .map_elements(self.letter_to_number, pl.Int8)
-                            .alias("assign_numeric"),
-                            pl.col("staffing_select_overall")
-                            .map_elements(self.letter_to_number, pl.Int8)
-                            .alias("staffing_numeric"),
-                        ]
+                        pl.col("comp_overall")
+                        .mean()
+                        .round(0)
+                        .cast(pl.Int8)
+                        .alias("comp_overall"),
+                        pl.col("assign_overall")
+                        .mean()
+                        .round(0)
+                        .cast(pl.Int8)
+                        .alias("assign_overall"),
+                        pl.col("staff_overall")
+                        .mean()
+                        .round(0)
+                        .cast(pl.Int8)
+                        .alias("staff_overall"),
                     )
                     .with_columns(
                         pl.mean_horizontal(
-                            "comp_numeric", "assign_numeric", "staffing_numeric"
-                        ).alias("overall_numeric")
+                            "comp_overall", "assign_overall", "staff_overall"
+                        )
+                        .round(0)
+                        .cast(pl.Int8)
+                        .alias("overall")
                     )
-                    .filter(pl.col("area_role").is_not_null())
-                    .group_by("area_role")
+                    .drop_nulls("unit")
+                    .rename({"unit": "units_areas_roles"})
+                )
+
+                area_score_df = (
+                    refined_df.with_columns(pl.col("area").replace("", None))
+                    .group_by("area")
                     .agg(
-                        [
-                            pl.col("comp_numeric")
-                            .mean()
-                            .map_elements(self.number_to_letter, pl.Utf8)
-                            .alias("comp_mean"),
-                            pl.col("assign_numeric")
-                            .mean()
-                            .map_elements(self.number_to_letter, pl.Utf8)
-                            .alias("assign_mean"),
-                            pl.col("staffing_numeric")
-                            .mean()
-                            .map_elements(self.number_to_letter, pl.Utf8)
-                            .alias("staffing_mean"),
-                            pl.col("overall_numeric")
-                            .mean()
-                            .map_elements(self.number_to_letter, pl.Utf8)
-                            .alias("overall_mean"),
-                        ]
-                    )
-                )
-
-                # Create an overall hospital score from all units/roles
-                hospital_score_df = (
-                    units_df.with_columns(
-                        [
-                            pl.col("comp_select_overall")
-                            .map_elements(self.letter_to_number, pl.Int8)
-                            .alias("comp_numeric"),
-                            pl.col("assign_select_overall")
-                            .map_elements(self.letter_to_number, pl.Int8)
-                            .alias("assign_numeric"),
-                            pl.col("staffing_select_overall")
-                            .map_elements(self.letter_to_number, pl.Int8)
-                            .alias("staffing_numeric"),
-                        ]
+                        pl.col("comp_overall")
+                        .mean()
+                        .round(0)
+                        .cast(pl.Int8)
+                        .alias("comp_overall"),
+                        pl.col("assign_overall")
+                        .mean()
+                        .round(0)
+                        .cast(pl.Int8)
+                        .alias("assign_overall"),
+                        pl.col("staff_overall")
+                        .mean()
+                        .round(0)
+                        .cast(pl.Int8)
+                        .alias("staff_overall"),
                     )
                     .with_columns(
                         pl.mean_horizontal(
-                            "comp_numeric", "assign_numeric", "staffing_numeric"
-                        ).alias("overall_numeric")
+                            "comp_overall", "assign_overall", "staff_overall"
+                        )
+                        .round(0)
+                        .cast(pl.Int8)
+                        .alias("overall")
                     )
-                    .select(
-                        [
-                            pl.lit("hospital").alias("unit"),
-                            pl.col("comp_numeric")
-                            .mean()
-                            .map_elements(self.number_to_letter, pl.Utf8)
-                            .alias("comp_mean"),
-                            pl.col("assign_numeric")
-                            .mean()
-                            .map_elements(self.number_to_letter, pl.Utf8)
-                            .alias("assign_mean"),
-                            pl.col("staffing_numeric")
-                            .mean()
-                            .map_elements(self.number_to_letter, pl.Utf8)
-                            .alias("staffing_mean"),
-                            pl.col("overall_numeric")
-                            .mean()
-                            .map_elements(self.number_to_letter, pl.Utf8)
-                            .alias("overall_mean"),
-                        ]
+                    .drop_nulls("area")
+                    .rename({"area": "units_areas_roles"})
+                )
+
+                role_score_df = (
+                    refined_df.with_columns(pl.col("role").replace("", None))
+                    .group_by("role")
+                    .agg(
+                        pl.col("comp_overall")
+                        .mean()
+                        .round(0)
+                        .cast(pl.Int8)
+                        .alias("comp_overall"),
+                        pl.col("assign_overall")
+                        .mean()
+                        .round(0)
+                        .cast(pl.Int8)
+                        .alias("assign_overall"),
+                        pl.col("staff_overall")
+                        .mean()
+                        .round(0)
+                        .cast(pl.Int8)
+                        .alias("staff_overall"),
                     )
+                    .with_columns(
+                        pl.mean_horizontal(
+                            "comp_overall", "assign_overall", "staff_overall"
+                        )
+                        .round(0)
+                        .cast(pl.Int8)
+                        .alias("overall")
+                    )
+                    .drop_nulls("role")
+                    .rename({"role": "units_areas_roles"})
+                )
+                units_areas_roles_scores_df = pl.concat(
+                    [unit_score_df, area_score_df, role_score_df], how="vertical"
                 )
 
-                # Combine and save to state
-                unit_score_df = unit_score_df.rename({"unit": "units_areas_roles"})
-                area_role_score_df = area_role_score_df.rename(
-                    {"area_role": "units_areas_roles"}
+                # Set scores to state.
+                self.overall_hospital_scores = hospital_score_df.to_dicts()[0]
+                self.units_areas_roles_hospital_scores = (
+                    units_areas_roles_scores_df.to_dicts()
                 )
-                hospital_score_df = hospital_score_df.rename(
-                    {"unit": "units_areas_roles"}
-                )
-
-                # Combine for individual unit/role rating.
-                units_areas_roles_df = pl.concat(
-                    [unit_score_df, area_role_score_df, hospital_score_df],
-                    how="vertical",
-                )
-                self.units_areas_roles_hospital_scores = units_areas_roles_df.to_dicts()
-
-                # Pull dict for unit/role rankings and add ranking numbers.
-                rankings_df = pl.concat(
-                    [unit_score_df, area_role_score_df], how="vertical"
-                ).sort("overall_mean")
-                rankings_df = rankings_df.with_row_count("ranking", offset=1)
-                self.units_areas_roles_for_rankings = rankings_df.to_dicts()
 
         except Exception as e:
             traceback.print_exc()
@@ -797,97 +713,100 @@ class HospitalState(UserState):
         try:
             if self.report_info:
                 review_df = (
-                    pl.DataFrame(self.report_info.copy())
+                    pl.DataFrame(copy.deepcopy(self.report_info))
+                )
+
+                refined_df = (
+                    review_df
                     .select(
-                        [
-                            "user_id",
-                            "report_id",
-                            "created_at",
-                            "likes",
-                            "assign_select_specific_unit",
-                            "assign_select_unit",
-                            "assign_input_unit_name",
-                            "assign_select_area",
-                            "assign_input_area",
-                            "comp_input_comments",
-                            "assign_input_comments",
-                            "staffing_input_comments",
-                        ]
-                    )
-                    .with_columns(
-                        pl.col("likes").list.len().alias("likes_number"),
-                        pl.col("likes")
-                        .list.contains(self.user_info["user_id"])
-                        .alias("user_has_liked"),
-                        pl.col("created_at")
-                        .str.to_datetime("%Y-%m-%dT%H:%M:%S%.f%z")
-                        .dt.strftime("%B %Y")
-                        .alias("formatted_created_at"),
+                        pl.coalesce(
+                            [
+                                pl.col("assignment").struct.field("unit").struct.field("entered_unit").replace("", None),
+                                pl.col("assignment").struct.field("unit").struct.field("selected_unit").replace("", None),
+                            ]
+                        ).alias("unit"),
+                        pl.coalesce(
+                            [
+                                pl.col("assignment").struct.field("area").struct.field("entered_area").replace("", None),
+                                pl.col("assignment").struct.field("area").struct.field("selected_area").replace("", None),
+                            ]
+                        ).alias("area"),
+                        pl.coalesce(
+                            [
+                                pl.col("assignment").struct.field("role").struct.field("entered_role").replace("", None),
+                                pl.col("assignment").struct.field("role").struct.field("selected_role").replace("", None),
+                            ]
+                        ).alias("role"),
+
+                        pl.col("compensation").struct.field("comments").alias("comp_comments").replace("", None),
+                        pl.col("assignment").struct.field("comments").alias("assign_comments").replace("", None),
+                        pl.col("staffing").struct.field("comments").alias("staff_comments").replace("", None),
+                        pl.col("social").struct.field("likes").alias("likes"),
+                        pl.col("social").struct.field("tags").alias("tags"),
+
                         pl.when(
-                            pl.col("assign_select_specific_unit").str.contains("Yes")
+                            pl.col("modified_at").is_not_null()
                         )
                         .then(
-                            pl.coalesce(
-                                pl.col("assign_select_unit"),
-                                pl.col("assign_input_unit_name"),
-                            )
+                            pl.col("modified_at").alias("timestamp")
                         )
-                        .otherwise(None)
-                        .alias("unit"),
-                        pl.when(
-                            pl.col("assign_select_specific_unit").str.contains("No")
+                        .otherwise(
+                            pl.col("submitted_at").alias("timestamp")
                         )
-                        .then(
-                            pl.coalesce(
-                                pl.col("assign_select_area"),
-                                pl.col("assign_input_area"),
-                            )
-                        )
-                        .otherwise(None)
-                        .alias("area_role"),
-                        pl.when((pl.col("comp_input_comments").str.len_chars() == 0))
-                        .then(None)
-                        .otherwise(pl.col("comp_input_comments"))
-                        .alias("comp_input_comments"),
-                        pl.when((pl.col("assign_input_comments").str.len_chars() == 0))
-                        .then(None)
-                        .otherwise(pl.col("assign_input_comments"))
-                        .alias("assign_input_comments"),
-                        pl.when(
-                            (pl.col("staffing_input_comments").str.len_chars() == 0)
-                        )
-                        .then(None)
-                        .otherwise(pl.col("staffing_input_comments"))
-                        .alias("staffing_input_comments"),
                     )
                     .filter(
-                        (pl.col("comp_input_comments").is_not_null())
-                        | (pl.col("assign_input_comments").is_not_null())
-                        | (pl.col("staffing_input_comments").is_not_null())
+                        pl.any_horizontal(
+                            [
+                                pl.col("comp_comments").is_not_null(),
+                                pl.col("assign_comments").is_not_null(),
+                                pl.col("staff_comments").is_not_null(),
+                            ]
+                        )
                     )
                 )
 
-                units_for_reviews = sorted(
-                    review_df.select("unit")
-                    .filter(pl.col("unit").is_not_null())
-                    .unique()
-                    .to_series()
-                    .to_list()
+                pprint.pp(refined_df)
+
+                sorted_units = refined_df.select(pl.col("unit")).to_dict()
+                sorted_units = sorted(
+                    list(unit for unit in set(sorted_units["unit"]) if unit)
                 )
 
-                areas_roles_for_reviews = sorted(
-                    review_df.select("area_role")
-                    .filter(pl.col("area_role").is_not_null())
-                    .unique()
-                    .to_series()
-                    .to_list()
+                sorted_areas = refined_df.select(pl.col("area")).to_dict()
+                sorted_areas = sorted(
+                    list(area for area in set(sorted_areas["area"]) if area)
                 )
 
+                sorted_roles = refined_df.select(pl.col("role")).to_dict()
+                sorted_roles = sorted(
+                    list(role for role in set(sorted_roles["role"]) if role)
+                )
+
+                refined_df = (
+                    refined_df.select(
+                        pl.coalesce(
+                            [
+                                pl.col("unit"),
+                                pl.col("area"),
+                                pl.col("role")
+                            ]
+                        ).alias("units_areas_roles"),
+                        pl.col("comp_comments"),
+                        pl.col("assign_comments"),
+                        pl.col("staff_comments"),
+                        pl.col("likes"),
+                        pl.col("tags"),
+                        pl.col("timestamp")
+                    )
+                )
+
+                pprint.pp(refined_df)
+
+                # Add all to units_areas_roles list for user select.
                 self.units_areas_roles_for_reviews = (
-                    units_for_reviews + areas_roles_for_reviews
+                    sorted_units + sorted_areas + sorted_roles
                 )
-
-                self.review_info = review_df.to_dicts()
+                self.review_info = refined_df.to_dicts()
 
         except Exception as e:
             logger.critical(e)
