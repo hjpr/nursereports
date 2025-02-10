@@ -534,34 +534,34 @@ def units_roles() -> rx.Component:
             ),
         ),
 
-        # Unit rank subheader and filters.
-        rx.cond(
-            HospitalState.units_areas_roles_hospital_scores,
-            flex(
-                text("Rankings", class_name="text-lg"),
-                class_name="flex-col md:flex-row items-center px-6 py-2 space-y-1 md:space-y-0 w-full"
-            ),
-        ),
+        # # Unit rank subheader and filters.
+        # rx.cond(
+        #     HospitalState.units_areas_roles_hospital_scores,
+        #     flex(
+        #         text("Rankings", class_name="text-lg"),
+        #         class_name="flex-col md:flex-row items-center px-6 py-2 space-y-1 md:space-y-0 w-full"
+        #     ),
+        # ),
 
-        # Unit/Role rankings section.
-        rx.cond(
-            HospitalState.units_areas_roles_hospital_scores,
-            flex(
-                flex(
-                    rx.flex(
-                        rx.text("Unit/Role", class_name="text-xs text-center truncate uppercase p-2 w-[80%]"),
-                        class_name="divide-x dark:divide-zinc-500 w-[40%]"
-                    ),
-                    rx.text("Compensation", class_name="text-xs text-center truncate uppercase p-2 w-[15%]"),
-                    rx.text("Assignment", class_name="text-xs text-center truncate uppercase p-2 w-[15%]"),
-                    rx.text("Staffing", class_name="text-xs text-center truncate uppercase p-2 w-[15%]"),
-                    rx.text("Overall", class_name="text-xs text-center truncate uppercase p-2 w-[15%]"),
-                    class_name="flex-row items-center divide-x dark:divide-zinc-500 w-full"
-                ),
-                ranked_items(),
-                class_name="flex-col divide-y dark:divide-zinc-500 w-full"
-            ),
-        ),
+        # # Unit/Role rankings section.
+        # rx.cond(
+        #     HospitalState.units_areas_roles_hospital_scores,
+        #     flex(
+        #         flex(
+        #             rx.flex(
+        #                 rx.text("Unit/Role", class_name="text-xs text-center truncate uppercase p-2 w-[80%]"),
+        #                 class_name="divide-x dark:divide-zinc-500 w-[40%]"
+        #             ),
+        #             rx.text("Compensation", class_name="text-xs text-center truncate uppercase p-2 w-[15%]"),
+        #             rx.text("Assignment", class_name="text-xs text-center truncate uppercase p-2 w-[15%]"),
+        #             rx.text("Staffing", class_name="text-xs text-center truncate uppercase p-2 w-[15%]"),
+        #             rx.text("Overall", class_name="text-xs text-center truncate uppercase p-2 w-[15%]"),
+        #             class_name="flex-row items-center divide-x dark:divide-zinc-500 w-full"
+        #         ),
+        #         ranked_items(),
+        #         class_name="flex-col divide-y dark:divide-zinc-500 w-full"
+        #     ),
+        # ),
         class_name="flex-col items-center border rounded shadow-lg divide-y dark:divide-zinc-500 w-full"
     )
 
@@ -639,7 +639,7 @@ def reviews() -> rx.Component:
             # REVIEWS PRESENT
             flex(
                 rx.foreach(
-                    HospitalState.filtered_review_info,
+                    HospitalState.paginated_review_info,
                     response_card,
                 ),
                 class_name="flex-col divide-y w-full",
@@ -649,6 +649,23 @@ def reviews() -> rx.Component:
                 rx.text("No reports yet, check back later!"),
                 class_name="flex-col items-center p-6 w-full",
             ),
+        ),
+        rx.flex(
+            rx.flex(
+                rx.icon("arrow-left"),
+                on_click=HospitalState.previous_review_page,
+                class_name="flex justify-center p-4 w-full active:bg-zinc-200 transition-colors duration-75"
+            ),
+            rx.text(
+                f"{HospitalState.current_review_page} of {HospitalState.num_review_pages}",
+                class_name="flex justify-center p-4 w-full"
+            ),
+            rx.flex(
+                rx.icon("arrow-right"),
+                on_click=HospitalState.next_review_page,
+                class_name="flex justify-center p-4 w-full active:bg-zinc-200 transition-colors duration-75"
+            ),
+            class_name="flex-row divide-x w-full"
         ),
         class_name="flex-col items-center border rounded shadow-lg divide-y dark:divide-zinc-500 w-full"
     )

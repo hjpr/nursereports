@@ -17,19 +17,19 @@ from loguru import logger
 from typing import Any, Callable, Iterable
 
 import copy
+import math
 import rich
 import pprint
 import traceback
 
 
 class HospitalState(UserState):
-    # Full hospital info.
+
+    MAX_REVIEWS_DISPLAYED = 5
+
+    # Full info for each section.
     hospital_info: dict[str, Any]
-
-    # Full list of reports for hospital.
     report_info: list[dict]
-
-    # Full list of reviews pulled from reports.
     review_info: list[dict]
 
     # Dicts of pay values extrapolated over experience.
@@ -57,7 +57,7 @@ class HospitalState(UserState):
     overall_hospital_scores: dict
     units_areas_roles_for_reviews: list[str]
 
-    # User selectable fields
+    # User selectable fields.
     selected_unit: str = ""
     selected_pay_tab: str = "staff"
     selected_experience: int = 4
@@ -65,6 +65,9 @@ class HospitalState(UserState):
     selected_state_average: str = "Full-time"
     review_filter_units_areas_roles: str
     review_sorted: str = "Most Recent"
+
+    # Pagination for sections.
+    current_review_page: int = 1
 
     @rx.var(cache=True)
     def has_report_info(self) -> bool:
@@ -213,6 +216,47 @@ class HospitalState(UserState):
             #     )
 
         return filtered_review_items
+
+    @rx.var(cache=True)
+    def paginated_review_info(self) -> list[dict]:
+        """
+        Takes the filtered review info and paginates into a dict where user can
+        flip between sets of reviews. If there aren't enough reviews to paginate,
+        then return a dict with reviews under page 1.
+        """
+        if len(self.filtered_review_info) > self.MAX_REVIEWS_DISPLAYED:
+            # Determine number of pages.
+            num_pages = math.ceil(len(self.filtered_review_info) / self.MAX_REVIEWS_DISPLAYED)
+            num_pages_list = [page for page in range(1, (num_pages + 1))]
+
+            # Build dict.
+            paginated_reports = { number: [] for number in num_pages_list}
+
+            # Fill dict.
+            current_page = 1
+            for review in self.filtered_review_info:
+                if len(paginated_reports[current_page]) >= self.MAX_REVIEWS_DISPLAYED:
+                    current_page += 1
+                paginated_reports[current_page].append(review)
+
+            return paginated_reports.get(self.current_review_page)
+
+        else:
+            return self.filtered_review_info
+
+    @rx.var(cache=True)
+    def num_review_pages(self) -> int:
+        num_pages = math.ceil(len(self.filtered_review_info) / self.MAX_REVIEWS_DISPLAYED)
+        return num_pages
+
+    def next_review_page(self) -> None:
+        num_pages = math.ceil(len(self.filtered_review_info) / self.MAX_REVIEWS_DISPLAYED)
+        if self.current_review_page < num_pages:
+            self.current_review_page += 1
+
+    def previous_review_page(self) -> None:
+        if self.current_review_page > 1:
+            self.current_review_page -= 1
 
     def set_slider(self, value) -> None:
         self.selected_experience = value[0]
