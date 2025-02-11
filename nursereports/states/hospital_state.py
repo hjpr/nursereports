@@ -17,6 +17,7 @@ from loguru import logger
 from typing import Any, Callable, Iterable
 
 import copy
+import humanize
 import math
 import rich
 import pprint
@@ -25,7 +26,7 @@ import traceback
 
 class HospitalState(UserState):
 
-    MAX_REVIEWS_DISPLAYED = 5
+    MAX_REVIEWS_DISPLAYED = 10
 
     # Full info for each section.
     hospital_info: dict[str, Any]
@@ -807,6 +808,9 @@ class HospitalState(UserState):
                             ]
                         )
                     )
+                    .with_columns(
+                        pl.col("timestamp").map_elements(lambda ts: humanize.naturaltime(datetime.fromisoformat(ts)), return_dtype=pl.String).alias("time_ago")
+                    )
                 )
 
                 pprint.pp(refined_df)
@@ -840,11 +844,10 @@ class HospitalState(UserState):
                         pl.col("staff_comments"),
                         pl.col("likes"),
                         pl.col("tags"),
-                        pl.col("timestamp")
+                        pl.col("timestamp"),
+                        pl.col("time_ago")
                     )
                 )
-
-                pprint.pp(refined_df)
 
                 # Add all to units_areas_roles list for user select.
                 self.units_areas_roles_for_reviews = (

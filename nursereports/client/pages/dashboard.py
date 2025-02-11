@@ -36,12 +36,12 @@ def content() -> rx.Component:
         saved_hospitals(),
         my_pay(),
         my_reports(),
-        class_name="flex-col items-center space-y-4 md:space-y-12 px-4 py-4 md:py-12 w-full md:max-w-screen-md",
+        class_name="flex-col items-center space-y-4 md:space-y-12 px-4 py-4 md:py-20 w-full md:max-w-screen-md",
     )
 
 
 def heading() -> rx.Component:
-    return rx.flex(
+    return flex(
         rx.flex(
             rx.icon("layout-dashboard", class_name="h-6 w-6 stroke-teal-800"),
             text("Dashboard", class_name="text-2xl font-bold"),
@@ -52,7 +52,7 @@ def heading() -> rx.Component:
 
 
 def saved_hospitals() -> rx.Component:
-    return rx.flex(
+    return flex(
         flex(
             rx.flex(
                 rx.flex(
@@ -63,19 +63,37 @@ def saved_hospitals() -> rx.Component:
                 class_name="flex-row items-center bg-zinc-100 dark:bg-zinc-800 p-2 w-full",
             ),
             rx.cond(
-                UserState.user_saved_hospitals,
-                # User has saved hospitals.
-                flex(
-                    rx.foreach(BaseState.user_saved_hospitals, hospital_item_dashboard),
-                    class_name="flex-col divide-y dark:divide-zinc-500 w-full",
+                UserState.paginated_saved_hospitals,
+                rx.flex(
+                    rx.foreach(BaseState.paginated_saved_hospitals, hospital_item_dashboard),
+                    rx.cond(
+                        (UserState.num_hospital_pages > 1),
+                        rx.flex(
+                            rx.flex(
+                                rx.icon("arrow-left", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
+                                on_click=UserState.previous_hospital_page,
+                                class_name="flex justify-center p-4 w-full active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75 cursor-pointer"
+                            ),
+                            rx.text(
+                                f"{UserState.current_hospital_page} of {UserState.num_hospital_pages}",
+                                class_name="flex justify-center p-4 w-full"
+                            ),
+                            rx.flex(
+                                rx.icon("arrow-right", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
+                                on_click=UserState.next_hospital_page,
+                                class_name="flex justify-center p-4 w-full active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75 cursor-pointer"
+                            ),
+                            class_name="flex-row divide-x dark:divide-zinc-700 w-full"
+                        ),
+                    ),
+                    class_name="flex-col divide-y dark:divide-zinc-700 w-full",
                 ),
-                # User doesn't have saved hospitals.
-                flex(
+                rx.flex(
                     rx.icon("ellipsis", class_name="stroke-zinc-700"),
                     class_name="flex-col items-center justify-center w-full min-h-[92px]",
                 ),
             ),
-            class_name="flex-col divide-y dark:divide-zinc-500 w-full",
+            class_name="flex-col divide-y dark:divide-zinc-700 w-full",
         ),
         class_name="border rounded shadow-lg dark:border-zinc-500 bg-zinc-100 dark:bg-zinc-800 w-full",
     )
@@ -86,7 +104,7 @@ def skeleton_hospitals(hospital: dict) -> rx.Component:
 
 
 def my_pay() -> rx.Component:
-    return rx.flex(
+    return flex(
         flex(
             rx.flex(
                 rx.icon("piggy-bank", class_name="h-5 w-5 stroke-zinc-700 dark:stroke-teal-800"),
@@ -94,17 +112,17 @@ def my_pay() -> rx.Component:
                 class_name="flex-row items-center bg-zinc-100 dark:bg-zinc-800 space-x-2 p-2 w-full",
             ),
             flex(
-                rx.icon("ellipsis", class_name="stroke-zinc-700"),
+                rx.icon("ellipsis", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
                 class_name="flex-col items-center justify-center w-full min-h-[300px]",
             ),
-            class_name="flex-col divide-y dark:divide-zinc-500 w-full",
+            class_name="flex-col divide-y dark:divide-zinc-700 w-full",
         ),
         class_name="border rounded shadow-lg dark:border-zinc-500 bg-zinc-100 dark:bg-zinc-800 w-full",
     )
 
 
 def my_reports() -> rx.Component:
-    return rx.flex(
+    return flex(
         flex(
             rx.flex(
                 rx.icon("file-text", class_name="h-5 w-5 stroke-zinc-700 dark:stroke-teal-800"),
@@ -114,15 +132,36 @@ def my_reports() -> rx.Component:
             rx.cond(
                 UserState.user_reports,
                 flex(
-                    rx.foreach(BaseState.user_reports, report_item_dashboard),
-                    class_name="flex-col divide-y w-full",
+                    rx.foreach(BaseState.paginated_user_reports, report_item_dashboard),
+                    rx.cond(
+                        (UserState.num_report_pages > 1),
+                        rx.flex(
+                            rx.flex(
+                                rx.icon("arrow-left", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
+                                on_click=UserState.previous_report_page,
+                                class_name="flex justify-center p-4 w-full active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75 cursor-pointer"
+                            ),
+                            rx.text(
+                                f"{UserState.current_report_page} of {UserState.num_report_pages}",
+                                class_name="flex justify-center p-4 w-full"
+                            ),
+                            rx.flex(
+                                rx.icon("arrow-right", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
+                                on_click=UserState.next_report_page,
+                                class_name="flex justify-center p-4 w-full active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75 cursor-pointer"
+                            ),
+                            class_name="flex-row divide-x dark:divide-zinc-700 w-full"
+                        ),
+                    ),
+                    class_name="flex-col divide-y dark:divide-zinc-700 w-full",
                 ),
                 flex(
                     rx.icon("ellipsis", class_name="stroke-zinc-700"),
                     class_name="flex-col items-center justify-center w-full min-h-[92px]",
                 ),
+            
             ),
-            class_name="flex-col divide-y dark:divide-zinc-500 w-full",
+            class_name="flex-col divide-y dark:divide-zinc-700 w-full",
         ),
         class_name="border rounded shadow-lg dark:border-zinc-500 bg-zinc-100 dark:bg-zinc-800 w-full",
     )

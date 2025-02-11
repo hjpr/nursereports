@@ -46,12 +46,12 @@ def content() -> rx.Component:
             travel_pay(),
             units_roles(),
             reviews(),
-            class_name="flex-col items-center space-y-4 md:space-y-12 px-4 py-4 md:py-12 w-full max-w-screen-md",
+            class_name="flex-col items-center space-y-4 md:space-y-12 px-4 py-4 md:py-20 w-full max-w-screen-md",
     )
 
 
 def heading() -> rx.Component:
-    return rx.flex(
+    return flex(
         rx.flex(
             rx.flex(
                 rx.icon("hospital", class_name="h-6 w-6 stroke-zinc-700 dark:stroke-teal-800"),
@@ -60,58 +60,48 @@ def heading() -> rx.Component:
             ),
             class_name="flex-col items-center bg-zinc-100 dark:bg-zinc-800 p-4 w-full"
         ),
+
+        # Hospital information section.
         rx.flex(
-            heading_content(),
-            class_name="w-full"
+            rx.flex(
+                rx.skeleton(
+                    text(HospitalState.hospital_info["hosp_name"], class_name="font-bold text-center text-2xl"),
+                    loading=~rx.State.is_hydrated
+                ),
+                rx.skeleton(
+                    text(HospitalState.hospital_info["hosp_addr"], class_name="text-sm"),
+                    loading=~rx.State.is_hydrated
+                    ),
+                rx.skeleton(
+                    text(
+                        f'{HospitalState.hospital_info["hosp_city"]}, {HospitalState.hospital_info["hosp_state_abbr"]} {HospitalState.hospital_info["hosp_zip"]}',
+                        class_name="text-sm"
+                    ),
+                    loading=~rx.State.is_hydrated
+                ),
+                class_name="flex-col items-center space-y-1 w-full",
+            ),
+            class_name="p-4 w-full"
         ),
+
+        # Hospital buttons.
         rx.flex(
-            heading_buttons(),
-            class_name="w-full"
-        ),
-        class_name="flex-col items-center border rounded shadow-lg divide-y dark:divide-zinc-500 w-full"
-    )
-
-
-def heading_content() -> rx.Component:
-    return flex(
-        flex(
-            rx.skeleton(
-                text(HospitalState.hospital_info["hosp_name"], class_name="font-bold text-center text-2xl"),
-                loading=~rx.State.is_hydrated
+            solid_button(
+                "Submit Full Report",
+                class_name="w-full md:w-auto",
+                on_click=ReportState.event_state_create_full_report(HospitalState.hosp_id)
             ),
-            rx.skeleton(
-                text(HospitalState.hospital_info["hosp_addr"], class_name="text-sm"),
-                loading=~rx.State.is_hydrated
-                ),
-            rx.skeleton(
-                text(
-                    f'{HospitalState.hospital_info["hosp_city"]}, {HospitalState.hospital_info["hosp_state_abbr"]} {HospitalState.hospital_info["hosp_zip"]}',
-                    class_name="text-sm"
-                ),
-                loading=~rx.State.is_hydrated
+            outline_button(
+                "Submit Pay Report",
+                class_name="w-full md:w-auto"
             ),
-            class_name="flex-col items-center space-y-1 w-full",
+            outline_button(
+                "Request Page Moderation",
+                class_name="w-full md:w-auto"
+            ),
+            class_name="flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 items-center justify-center p-4 w-full"
         ),
-        class_name="p-4 w-full"
-    )
-
-
-def heading_buttons() -> rx.Component:
-    return flex(
-        solid_button(
-            "Submit Full Report",
-            class_name="w-full md:w-auto",
-            on_click=ReportState.event_state_create_full_report(HospitalState.hosp_id)
-        ),
-        outline_button(
-            "Submit Pay Report",
-            class_name="w-full md:w-auto"
-        ),
-        outline_button(
-            "Request Page Moderation",
-            class_name="w-full md:w-auto"
-        ),
-        class_name="flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 items-center justify-center p-4 w-full"
+        class_name="flex-col items-center border rounded shadow-lg divide-y dark:divide-zinc-700 w-full"
     )
 
 
@@ -128,7 +118,7 @@ def staff_pay() -> rx.Component:
         hospital_average(),
         state_average(),
         experience_slider(),
-        class_name="flex-col items-center border rounded shadow-lg divide-y dark:divide-zinc-500 w-full"
+        class_name="flex-col items-center border rounded shadow-lg divide-y dark:divide-zinc-700 w-full"
     )
 
 def hospital_average() -> rx.Component:
@@ -157,12 +147,12 @@ def hospital_average() -> rx.Component:
                                 loading=~rx.State.is_hydrated
                             ),
                             rx.skeleton(
-                                rx.icon("ban", class_name="h-7 w-7 stroke-zinc-200"),
+                                rx.icon("ban", class_name="h-7 w-7 stroke-zinc-200 m-1"),
                                 loading=~rx.State.is_hydrated
                             )
                         ),
                         text("HOURLY", class_name="text-xs"),
-                        class_name="flex-col items-center p-2 w-full"
+                        class_name="flex-col items-center p-4 w-full"
                     )
                ),
                ("Part-time", 
@@ -174,12 +164,12 @@ def hospital_average() -> rx.Component:
                                 loading=~rx.State.is_hydrated
                             ),
                             rx.skeleton(
-                                rx.icon("ban", class_name="h-7 w-7 stroke-zinc-200"),
+                                rx.icon("ban", class_name="h-7 w-7 stroke-zinc-200 m-1"),
                                 loading=~rx.State.is_hydrated
                             )
                         ),
                         text("HOURLY", class_name="text-xs"),
-                        class_name="flex-col items-center p-2 w-full"
+                        class_name="flex-col items-center p-4 w-full"
                     )
                 ),
             ),
@@ -195,12 +185,12 @@ def hospital_average() -> rx.Component:
                                 loading=~rx.State.is_hydrated
                             ),
                             rx.skeleton(
-                                rx.icon("ban", class_name="h-7 w-7 stroke-zinc-200"),
+                                rx.icon("ban", class_name="h-7 w-7 stroke-zinc-200 m-1"),
                                 loading=~rx.State.is_hydrated
                             )
                         ),
                         text("YEARLY", class_name="text-xs"),
-                        class_name="flex-col items-center p-2 w-full"
+                        class_name="flex-col items-center p-4 w-full"
                     ),
                 ),
                ("Part-time",
@@ -212,16 +202,16 @@ def hospital_average() -> rx.Component:
                                 loading=~rx.State.is_hydrated
                             ),
                             rx.skeleton(
-                                rx.icon("ban", class_name="h-7 w-7 stroke-zinc-200"),
+                                rx.icon("ban", class_name="h-7 w-7 stroke-zinc-200 m-1"),
                                 loading=~rx.State.is_hydrated
                             )
                         ),
                         text("YEARLY", class_name="text-xs"),
-                        class_name="flex-col items-center p-2 w-full"
+                        class_name="flex-col items-center p-4 w-full"
                     ),
                 )
             ),
-            class_name="flex-row divide-x w-full"
+            class_name="flex-row divide-x dark:divide-zinc-700 w-full"
         ),
 
         # Callouts
@@ -261,9 +251,8 @@ def hospital_average() -> rx.Component:
                 class_name="flex-row items-center justify-center p-1 space-x-2 w-full"
             )
         ),
-        class_name="flex-col items-center divide-y dark:divide-zinc-500 w-full"
+        class_name="flex-col items-center divide-y dark:divide-zinc-700 w-full"
     )
-
 
 def state_average() -> rx.Component:
     return flex(
@@ -291,12 +280,12 @@ def state_average() -> rx.Component:
                                 loading=~rx.State.is_hydrated
                             ),
                             rx.skeleton(
-                                rx.icon("ban", class_name="h-7 w-7 stroke-zinc-200"),
+                                rx.icon("ban", class_name="h-7 w-7 stroke-zinc-200 m-1"),
                                 loading=~rx.State.is_hydrated
                             )
                         ),
                         text("HOURLY", class_name="text-xs"),
-                        class_name="flex-col items-center p-2 w-full"
+                        class_name="flex-col items-center p-4 w-full"
                     )
                ),
                ("Part-time", 
@@ -308,12 +297,12 @@ def state_average() -> rx.Component:
                                 loading=~rx.State.is_hydrated
                             ),
                             rx.skeleton(
-                                rx.icon("ban", class_name="h-7 w-7 stroke-zinc-200"),
+                                rx.icon("ban", class_name="h-7 w-7 stroke-zinc-200 m-1"),
                                 loading=~rx.State.is_hydrated
                             )
                         ),
                         text("HOURLY", class_name="text-xs"),
-                        class_name="flex-col items-center p-2 w-full"
+                        class_name="flex-col items-center p-4 w-full"
                     )
                 ),
             ),
@@ -329,12 +318,12 @@ def state_average() -> rx.Component:
                                 loading=~rx.State.is_hydrated
                             ),
                             rx.skeleton(
-                                rx.icon("ban", class_name="h-7 w-7 stroke-zinc-200"),
+                                rx.icon("ban", class_name="h-7 w-7 stroke-zinc-200 m-1"),
                                 loading=~rx.State.is_hydrated
                             )
                         ),
                         text("YEARLY", class_name="text-xs"),
-                        class_name="flex-col items-center p-2 w-full"
+                        class_name="flex-col items-center p-4 w-full"
                     ),
                 ),
                ("Part-time",
@@ -346,12 +335,12 @@ def state_average() -> rx.Component:
                                 loading=~rx.State.is_hydrated
                             ),
                             rx.skeleton(
-                                rx.icon("ban", class_name="h-7 w-7 stroke-zinc-200"),
+                                rx.icon("ban", class_name="h-7 w-7 stroke-zinc-200 m-1"),
                                 loading=~rx.State.is_hydrated
                             )
                         ),
                         text("YEARLY", class_name="text-xs"),
-                        class_name="flex-col items-center p-2 w-full"
+                        class_name="flex-col items-center p-4 w-full"
                     ),
                 ),
             ),
@@ -394,7 +383,7 @@ def state_average() -> rx.Component:
                 class_name="flex-row items-center justify-center p-1 space-x-2 w-full"
             )
         ),
-        class_name="flex-col items-center divide-y w-full"
+        class_name="flex-col items-center divide-y dark:divide-zinc-700 w-full"
     )
 
 def experience_slider() -> rx.Component:
@@ -435,10 +424,8 @@ def experience_slider() -> rx.Component:
             text("> 25 YEARS", class_name="text-xs pl-4 text-nowrap"),
             class_name="flex-row items-center p-5 w-full"
         ),
-        class_name="flex-col items-center divide-y w-full"
+        class_name="flex-col items-center divide-y dark:divide-zinc-700 w-full"
     )
-
-
 
 def travel_pay() -> rx.Component:
     return flex(
@@ -454,7 +441,7 @@ def travel_pay() -> rx.Component:
             text("No reports yet, check back later!"),
             class_name="flex-col items-center p-6 w-full",
         ),
-        class_name="flex-col items-center border rounded shadow-lg divide-y dark:divide-zinc-500 w-full"
+        class_name="flex-col items-center border rounded shadow-lg divide-y dark:divide-zinc-700 w-full"
     )
 
 
@@ -475,7 +462,7 @@ def units_roles() -> rx.Component:
             flex(
                 rx.cond(
                     HospitalState.selected_unit,
-                    text(HospitalState.selected_unit, class_name="text-xl font-bold"),
+                    text(HospitalState.selected_unit, class_name="text-xl"),
                     text("Hospital Overall", class_name="text-xl")
                 ),
                 rx.spacer(),
@@ -526,7 +513,7 @@ def units_roles() -> rx.Component:
                     rx.text("OVERALL", class_name="text-sm font-bold"),
                     class_name="flex-row-reverse md:flex-col items-center justify-center px-6 py-4 md:space-y-1 w-full",
                 ),
-                class_name="flex-col md:flex-row items-center justify-between divide-y md:divide-y-0 md:divide-x w-full",
+                class_name="flex-col md:flex-row items-center justify-between divide-y md:divide-y-0 md:divide-x dark:divide-zinc-700 w-full",
             ),
             flex(
                 rx.text("No reports yet, check back later!"),
@@ -562,7 +549,7 @@ def units_roles() -> rx.Component:
         #         class_name="flex-col divide-y dark:divide-zinc-500 w-full"
         #     ),
         # ),
-        class_name="flex-col items-center border rounded shadow-lg divide-y dark:divide-zinc-500 w-full"
+        class_name="flex-col items-center border rounded shadow-lg divide-y dark:divide-zinc-700 w-full"
     )
 
 def ranked_items() -> rx.Component:
@@ -602,11 +589,11 @@ def rank_item(unit_area_role:dict) -> rx.Component:
 def convert_to_large_emoji(rating: str) -> rx.Component:
     return rx.match(
         rating,
-        (1, rx.icon("angry", class_name="h-10 w-10 fill-red-400")),
-        (2, rx.icon("frown", class_name="h-10 w-10 fill-orange-400")),
-        (3, rx.icon("meh", class_name="h-10 w-10 fill-yellow-200")),
-        (4, rx.icon("smile", class_name="h-10 w-10 fill-green-500")),
-        (5, rx.icon("laugh", class_name="h-10 w-10 fill-blue-300")),
+        (1, rx.icon("angry", class_name="h-10 w-10 fill-red-400 stroke-[1.5] dark:stroke-zinc-700")),
+        (2, rx.icon("frown", class_name="h-10 w-10 fill-orange-400 stroke-[1.5] dark:stroke-zinc-700")),
+        (3, rx.icon("meh", class_name="h-10 w-10 fill-yellow-200 stroke-[1.5] dark:stroke-zinc-700")),
+        (4, rx.icon("smile", class_name="h-10 w-10 fill-green-500 stroke-[1.5] dark:stroke-zinc-700")),
+        (5, rx.icon("laugh", class_name="h-10 w-10 fill-blue-300 stroke-[1.5] dark:stroke-zinc-700")),
     )
 
 def convert_to_small_emoji(rating: str) -> rx.Component:
@@ -650,24 +637,29 @@ def reviews() -> rx.Component:
                 class_name="flex-col items-center p-6 w-full",
             ),
         ),
-        rx.flex(
+
+        # Paginated reviews if multiple pages.
+        rx.cond(
+            (HospitalState.num_review_pages > 1),
             rx.flex(
-                rx.icon("arrow-left"),
-                on_click=HospitalState.previous_review_page,
-                class_name="flex justify-center p-4 w-full active:bg-zinc-200 transition-colors duration-75"
+                rx.flex(
+                    rx.icon("arrow-left"),
+                    on_click=HospitalState.previous_review_page,
+                    class_name="flex justify-center p-4 w-full active:bg-zinc-200 transition-colors duration-75 cursor-pointer"
+                ),
+                rx.text(
+                    f"{HospitalState.current_review_page} of {HospitalState.num_review_pages}",
+                    class_name="flex justify-center p-4 w-full"
+                ),
+                rx.flex(
+                    rx.icon("arrow-right"),
+                    on_click=HospitalState.next_review_page,
+                    class_name="flex justify-center p-4 w-full active:bg-zinc-200 transition-colors duration-75 cursor-pointer"
+                ),
+                class_name="flex-row divide-x dark:divide-zinc-700 w-full"
             ),
-            rx.text(
-                f"{HospitalState.current_review_page} of {HospitalState.num_review_pages}",
-                class_name="flex justify-center p-4 w-full"
-            ),
-            rx.flex(
-                rx.icon("arrow-right"),
-                on_click=HospitalState.next_review_page,
-                class_name="flex justify-center p-4 w-full active:bg-zinc-200 transition-colors duration-75"
-            ),
-            class_name="flex-row divide-x w-full"
         ),
-        class_name="flex-col items-center border rounded shadow-lg divide-y dark:divide-zinc-500 w-full"
+        class_name="flex-col items-center border rounded shadow-lg divide-y dark:divide-zinc-700 w-full"
     )
 
 
@@ -726,7 +718,7 @@ def response_card(review: dict[str, str]) -> rx.Component:
                 rx.text(review["units_areas_roles"], class_name="text-lg"),
                 rx.spacer(),
                 flex(
-                    text(review["timestamp"], class_name="text-xs uppercase"),
+                    text(review["time_ago"], class_name="text-xs uppercase"),
                 ),
                 class_name="flex-row items-center w-full"
             ),

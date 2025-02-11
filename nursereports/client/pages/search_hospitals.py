@@ -51,7 +51,7 @@ def search() -> rx.Component:
             search_filters(),
             class_name="w-full"
         ),
-        class_name="flex-col border rounded shadow-lg divide-y dark:border-zinc-500 bg-zinc-100 dark:bg-zinc-800 w-full",
+        class_name="flex-col border rounded shadow-lg divide-y dark:divide-zinc-700 bg-zinc-100 w-full",
     )
 
 
@@ -66,6 +66,7 @@ def search_filters() -> rx.Component:
                     placeholder="- Select state -",
                     position="popper",
                     size="3",
+                    color_scheme="teal",
                     on_change=SearchState.event_state_state_selected,
                     width="100%"
                 ),
@@ -78,6 +79,7 @@ def search_filters() -> rx.Component:
                     value=SearchState.selected_city,
                     position="popper",
                     size="3",
+                    color_scheme="teal",
                     disabled=~SearchState.selected_state,
                     on_change=SearchState.event_state_city_selected,
                     width="100%"
@@ -89,7 +91,7 @@ def search_filters() -> rx.Component:
         rx.flex(
             rx.flex(
                 rx.flex(
-                    rx.icon("x", class_name="stroke-zinc-700"),
+                    rx.icon("x", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
                     text("Clear selection", class_name="font-bold select-none"),
                     on_click=[
                         SearchState.set_selected_state(""),
@@ -98,11 +100,11 @@ def search_filters() -> rx.Component:
                     ],
                     class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer"
                 ),
-                class_name="flex-col w-full active:bg-zinc-200 transition-colors duration-75"
+                class_name="flex-col w-full active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75"
             ),
             rx.flex(
                 rx.flex(
-                    rx.icon("search", class_name="stroke-zinc-700"),
+                    rx.icon("search", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
                     text("Search", class_name="font-bold select-none"),
                     on_click=[
                         SearchState.set_search_is_loading(True),
@@ -111,11 +113,11 @@ def search_filters() -> rx.Component:
                     ],
                     class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer"
                 ),
-                class_name="flex-col w-full active:bg-zinc-200 transition-colors duration-75"
+                class_name="flex-col w-full active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75"
             ),
-            class_name="flex-row divide-x w-full"
+            class_name="flex-row divide-x dark:divide-zinc-700 w-full"
         ),
-        class_name="flex-col items-center divide-y dark:divide-zinc-500 w-full",
+        class_name="flex-col items-center divide-y dark:divide-zinc-700 w-full",
     )
 
 
@@ -124,7 +126,7 @@ def search_results() -> rx.Component:
         rx.cond(
             SearchState.search_is_loading,
             rx.flex(
-                rx.icon("loader-circle", class_name="stroke-zinc-700"),
+                rx.icon("loader-circle", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
                 class_name="flex-col items-center justify-center min-h-24 w-full",
             ),
             rx.cond(
@@ -132,16 +134,16 @@ def search_results() -> rx.Component:
                 # Search results present.
                 rx.flex(
                     rx.foreach(SearchState.search_results, hospital_item_search),
-                    class_name="flex-col divide-y dark:divide-zinc-500 w-full",
+                    class_name="flex-col divide-y dark:divide-zinc-700 w-full",
                 ),
                 # No search results present.
                 rx.flex(
-                    rx.icon("ellipsis", class_name="stroke-zinc-700"),
+                    rx.icon("ellipsis", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
                     class_name="flex-col items-center justify-center min-h-24 w-full",
                 ),
             ),
         ),
-        class_name="flex-col border rounded shadow-lg divide-y dark:border-zinc-500 bg-zinc-100 dark:bg-zinc-800 w-full",
+        class_name="flex-col border rounded shadow-lg bg-zinc-100 w-full",
     )
 
 def callout() -> rx.Component:

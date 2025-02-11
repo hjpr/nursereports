@@ -43,13 +43,13 @@ def hospital_item_search(hospital: dict[str, str]) -> rx.Component:
                 rx.flex(
                     rx.tooltip(
                         rx.skeleton(
-                            rx.icon("list-plus", class_name="stroke-zinc-700"),
+                            rx.icon("list-plus", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
                             loading=~rx.State.is_hydrated
                         ),
                         content="Add to Saved Hospitals"
                     ),
                     on_click=UserState.event_state_add_hospital(hospital['hosp_id']),
-                    class_name="flex-col items-center justify-center w-16 md:w-24 active:bg-zinc-200 transition-colors duration-75 cursor-pointer"
+                    class_name="flex-col items-center justify-center w-16 md:w-24 active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75 cursor-pointer"
                 ),
             ),
             # Go to report button
@@ -58,22 +58,22 @@ def hospital_item_search(hospital: dict[str, str]) -> rx.Component:
                 rx.flex(
                     rx.skeleton(
                         rx.flex(
-                            rx.icon("arrow-right", class_name="stroke-zinc-700"),
+                            rx.icon("arrow-right", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
                         ),
                         loading=~rx.State.is_hydrated
                     ),
                     on_click=ReportState.event_state_create_full_report(hospital['hosp_id']),
-                    class_name="flex-col items-center justify-center w-16 md:w-24 active:bg-zinc-200 transition-colors duration-75 cursor-pointer"
+                    class_name="flex-col items-center justify-center w-16 md:w-24 active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75 cursor-pointer"
                 ),
                 rx.flex(
                     rx.skeleton(
                         rx.flex(
-                            rx.icon("arrow-right", class_name="stroke-zinc-700"),
+                            rx.icon("arrow-right", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
                         ),
                         loading=~rx.State.is_hydrated
                     ),
                     on_click=HospitalState.redirect_to_hospital_overview(hospital['hosp_id']),
-                    class_name="flex-col items-center justify-center w-16 md:w-24 active:bg-zinc-200 transition-colors duration-75 cursor-pointer"
+                    class_name="flex-col items-center justify-center w-16 md:w-24 active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75 cursor-pointer"
                 )
             ),
         ),
@@ -121,11 +121,11 @@ def dashboard_trash(hospital: dict[str, str]) -> rx.Component:
         rx.popover.trigger(
             flex(
                 rx.skeleton(
-                    rx.icon("trash-2", class_name="stroke-zinc-700"),
+                    rx.icon("trash-2", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
                     loading=~rx.State.is_hydrated,
                     class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 cursor-pointer",
                 ), 
-                class_name="flex-col items-center justify-center w-16 md:w-24 active:bg-zinc-200 transition-colors duration-75 cursor-pointer"
+                class_name="flex-col items-center justify-center w-16 md:w-24 active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75 cursor-pointer"
             ),
         ),
         rx.popover.content(
@@ -154,10 +154,10 @@ def dashboard_trash(hospital: dict[str, str]) -> rx.Component:
 def dashboard_arrow(hospital: dict[str, str]) -> rx.Component:
     return rx.flex(
         rx.skeleton(
-            rx.icon("arrow-right", class_name="stroke-zinc-700"),
+            rx.icon("arrow-right", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
             loading=~rx.State.is_hydrated,
             class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 cursor-pointer"
         ),
         on_click=HospitalState.redirect_to_hospital_overview(hospital['hosp_id']),
-        class_name="flex-col items-center justify-center w-16 md:w-24 active:bg-zinc-200 transition-colors duration-75 cursor-pointer"
+        class_name="flex-col items-center justify-center w-16 md:w-24 active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75 cursor-pointer"
     )

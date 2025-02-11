@@ -324,6 +324,8 @@ class ReportState(PageState):
     def comp_comments_chars_left(self) -> int:
         if self.comp_input_comments:
             return 1000 - len(self.comp_input_comments)
+        else:
+            return 1000
 
     @rx.var(cache=True)
     def years_hospital_experience(self) -> list[str]:

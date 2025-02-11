@@ -30,7 +30,7 @@ def report_item_dashboard(report: dict) -> rx.Component:
                 # Date displayed if user has made modification.
                 rx.skeleton(
                     text(
-                        f"Edited {report['modified_at']}",
+                        f"Edited {report['time_ago']}",
                         class_name="text-sm italic",
                     ),
                     loading=~rx.State.is_hydrated,
@@ -38,7 +38,7 @@ def report_item_dashboard(report: dict) -> rx.Component:
                 # Date displayed if user hasn't made modifications.
                 rx.skeleton(
                     text(
-                        f"Submitted {report['created_at']}",
+                        f"Submitted {report['time_ago']}",
                         class_name="text-sm italic",
                     ),
                     loading=~rx.State.is_hydrated,
@@ -47,7 +47,17 @@ def report_item_dashboard(report: dict) -> rx.Component:
             class_name="flex-col flex-1 min-w-0 justify-center p-4"
         ),
         rx.flex(
-            report_item_dashboard_edit(report),
+            # Edit button.
+            rx.flex(
+                rx.skeleton(
+                    rx.icon("pencil", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
+                    loading=~rx.State.is_hydrated,
+                ),
+                on_click=ReportState.event_state_edit_user_report(
+                            report["report_id"], report["hospital_id"]
+                ),
+                class_name="flex-col items-center justify-center w-16 md:w-24 active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75 cursor-pointer"
+            ),
         ),
         class_name="flex-row justify-between w-full"
     )
@@ -84,17 +94,4 @@ def report_item_dashboard_remove_report(report: dict[str, str]) -> rx.Component:
                 class_name="flex-col items-center space-y-4",
             )
         ),
-    )
-
-
-def report_item_dashboard_edit(report: dict[str, str]) -> rx.Component:
-    return rx.flex(
-        rx.skeleton(
-            rx.icon("pencil", class_name="stroke-zinc-700"),
-            loading=~rx.State.is_hydrated,
-        ),
-        on_click=ReportState.event_state_edit_user_report(
-                    report["report_id"], report["hospital_id"]
-        ),
-        class_name="flex-col items-center justify-center w-16 md:w-24 active:bg-zinc-200 transition-colors duration-75 cursor-pointer"
     )

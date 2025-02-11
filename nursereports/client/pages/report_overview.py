@@ -99,7 +99,7 @@ def hospital_info() -> rx.Component:
         rx.flex(
             rx.flex(
                 rx.flex(
-                    rx.icon("eye"),
+                    rx.icon("eye", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
                     class_name="flex-col justify-center items-center h-8 w-8",
                 ),
                 text(
@@ -116,7 +116,7 @@ def hospital_info() -> rx.Component:
         rx.flex(
             rx.flex(
                 rx.flex(
-                    rx.icon("stethoscope"),
+                    rx.icon("stethoscope", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
                     class_name="flex-col justify-center items-center h-8 w-8",
                 ),
                 text(
@@ -133,7 +133,7 @@ def hospital_info() -> rx.Component:
         rx.flex(
             rx.flex(
                 rx.flex(
-                    rx.icon("clock-1"),
+                    rx.icon("clock-1", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
                     class_name="flex-col justify-center items-center h-8 w-8",
                 ),
                 text(
@@ -164,13 +164,13 @@ def hospital_info() -> rx.Component:
                         rx.cond(
                             UserState.user_needs_onboarding,
                             rx.flex(
-                                rx.icon("arrow-left"),
+                                rx.icon("arrow-left", class_name="dark:stroke-zinc-500"),
                                 rx.text("Back", class_name="font-bold select-none"),
                                 on_click=rx.redirect("/search/hospital"),
                                 class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer"
                             ),
                             rx.flex(
-                                rx.icon("arrow-left"),
+                                rx.icon("arrow-left", class_name="dark:stroke-zinc-500"),
                                 rx.text("Back", class_name="font-bold select-none"),
                                 on_click=rx.redirect(f"/hospital/{ReportState.hospital_id}"),
                                 class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer"
@@ -178,18 +178,18 @@ def hospital_info() -> rx.Component:
                         ),
                     )
                 ),
-                class_name="flex-col w-full active:bg-zinc-200 transition-colors duration-75"
+                class_name="flex-col w-full active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75 cursor-pointer"
             ),
             rx.flex(
                 rx.flex(
                     rx.text("Next", class_name="font-bold select-none"),
-                    rx.icon("arrow-right"),
+                    rx.icon("arrow-right", class_name="dark:stroke-zinc-500"),
                     on_click=rx.redirect(f"/report/{ReportState.mode}/compensation"),
                     class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer"
                 ),
-                class_name="flex-col w-full active:bg-zinc-200 transition-colors duration-75"
+                class_name="flex-col w-full active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75 cursor-pointer"
             ),
-            class_name="flex-row divide-x w-full"
+            class_name="flex-row divide-x dark:divide-zinc-700 w-full"
         ),
-        class_name="flex-col items-center border rounded shadow-lg divide-y dark:divide-zinc-500 w-full",
+        class_name="flex-col items-center border rounded shadow-lg divide-y dark:divide-zinc-700 w-full",
     )

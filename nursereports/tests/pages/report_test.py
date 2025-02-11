@@ -196,7 +196,7 @@ def button() -> rx.Component:
             rx.button(
                 rx.cond(
                     ReportTestState.is_running,
-                    rx.chakra.spinner(),
+                    rx.spinner(),
                     rx.text("Submit Report for Test")
                 ),
                 rx.icon("arrow-big-right"),

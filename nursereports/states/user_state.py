@@ -22,7 +22,9 @@ from loguru import logger
 from typing import Callable, Iterable
 
 import copy
+import humanize
 import jwt
+import math
 import pprint
 import rich
 import reflex as rx
@@ -31,22 +33,22 @@ import traceback
 
 
 class UserState(AuthState):
-    # Stored dict of user information from /public.
-    user_info: dict[str, str | list | dict | None] = {}
 
-    # Stored list of user information from /public
-    user_reports: list[dict[str, str]] = []
-
-    # Stored list of user information from /public
-    user_saved_hospitals: list[dict[str, str]] = []
+    MAX_HOSPITALS_DISPLAYED = 5
+    MAX_REPORTS_DISPLAYED = 5
 
     # Used to display loading wheel for user UI events.
     user_is_loading: bool = False
 
-    # Limit the rate at which a user can send contact.
-    user_contact_email_time: int = 0
+    # Stored dicts of user information.
+    user_info: dict[str, str | list | dict | None] = {}
+    user_reports: list[dict[str, str]] = []
+    user_saved_hospitals: list[dict[str, str]] = []
+    current_hospital_page: int = 1
+    current_report_page: int = 1
 
-    # Limit rate at which user can send password recovery.
+    # User rate limits.
+    user_contact_email_time: int = 0
     user_recovery_email_time: int = 0
 
     @rx.var(cache=True)
@@ -105,7 +107,84 @@ class UserState(AuthState):
     
     @rx.var(cache=True)
     def user_needs_onboarding(self) -> bool:
-        return True if self.user_info.get("account", {}).get("status", "") == "onboard" else False
+        return True if self.user_info.get("account").get("status") == "onboard" else False
+    
+    @rx.var()
+    def paginated_saved_hospitals(self) -> list[dict]:
+        if len(self.user_saved_hospitals) > self.MAX_HOSPITALS_DISPLAYED:
+            # Determine number of pages.
+            num_pages = math.ceil(len(self.user_saved_hospitals) / self.MAX_HOSPITALS_DISPLAYED)
+            num_pages_list = [ page for page in range(1, num_pages + 1) ]
+
+            # Build dict.
+            paginated_hospitals = { number: [] for number in num_pages_list}
+
+            # Fill dict.
+            current_page = 1
+            for hospital in self.user_saved_hospitals:
+                if len(paginated_hospitals[current_page]) >= self.MAX_HOSPITALS_DISPLAYED:
+                    current_page += 1
+                paginated_hospitals[current_page].append(hospital)
+            
+            return paginated_hospitals.get(self.current_hospital_page)
+        
+        else:
+            return self.user_saved_hospitals
+        
+    @rx.var()
+    def paginated_user_reports(self) -> list[dict]:
+        """
+        Paginates the list of dicts and returns the associated page. Also sorts so that
+        more recent reports are shown first.
+        """
+        if len(self.user_reports) > self.MAX_REPORTS_DISPLAYED:
+            # Determine number of pages.
+            num_pages = math.ceil(len(self.user_reports) / self.MAX_REPORTS_DISPLAYED)
+            num_pages_list = [ page for page in range(1, num_pages + 1) ]
+
+            # Build dict.
+            paginated_reports = { number: [] for number in num_pages_list}
+
+            # Sort by date.
+            sorted_reports = sorted(self.user_reports, key=lambda report: report["modified_at"] or report["created_at"], reverse=True)
+
+            # Fill dict.
+            current_page = 1
+            for report in sorted_reports:
+                if len(paginated_reports[current_page]) >= self.MAX_REPORTS_DISPLAYED:
+                    current_page += 1
+                paginated_reports[current_page].append(report)
+
+            return paginated_reports.get(self.current_report_page)
+        
+        else:
+            return sorted(self.user_reports, key=lambda report: report["modified_at"] or report["created_at"], reverse=True)
+
+    @rx.var(cache=True)
+    def num_hospital_pages(self) -> int:
+        return math.ceil(len(self.user_saved_hospitals) / self.MAX_HOSPITALS_DISPLAYED)
+    
+    @rx.var(cache=True)
+    def num_report_pages(self) -> int:
+        return math.ceil(len(self.user_reports) / self.MAX_REPORTS_DISPLAYED)
+    
+    def next_hospital_page(self) -> None:
+        num_pages = math.ceil(len(self.user_saved_hospitals) / self.MAX_HOSPITALS_DISPLAYED)
+        if self.current_hospital_page < num_pages:
+            self.current_hospital_page += 1
+    
+    def previous_hospital_page(self) -> None:
+        if self.current_hospital_page > 1:
+            self.current_hospital_page -= 1
+
+    def next_report_page(self) -> None:
+        num_pages = math.ceil(len(self.user_reports) / self.MAX_REPORTS_DISPLAYED)
+        if self.current_report_page < num_pages:
+            self.current_report_page += 1
+
+    def previous_report_page(self) -> None:
+        if self.current_report_page > 1:
+            self.current_report_page -= 1
 
     def event_state_submit_login(self, auth_data: dict) -> Iterable[Callable]:
         """
@@ -263,10 +342,10 @@ class UserState(AuthState):
                 report["hospital_city"] = report["hospital"]["city"].title()
                 report["hospital_state"] = report["hospital"]["state"]
 
-                # Format timestamps as YYYY-MM
-                report["created_at"] = datetime.fromisoformat(report["created_at"]).strftime("%B %Y")
+                # Format timestamps
+                report["time_ago"] = humanize.naturaltime(datetime.fromisoformat(report["created_at"]))
                 if report["modified_at"]:
-                    report["modified_at"] = datetime.fromisoformat(report["modified_at"]).strftime("%B %Y")
+                    report["time_ago"] = humanize.naturaltime(datetime.fromisoformat(report["modified_at"]))
 
         self.user_reports = reports
 

@@ -29,7 +29,7 @@ def navbar() -> rx.Component:
             ),
             class_name="flex-row items-center justify-between p-3 w-full max-w-screen-xl",
         ),
-        class_name="flex-col border border-zinc-100 dark:border-zinc-900 border-b-zinc-200 dark:border-b-zinc-500 items-center justify-center sticky top-0 z-10 h-16 w-full"
+        class_name="flex-col border border-zinc-100 dark:border-zinc-900 border-b-zinc-200 dark:border-b-zinc-700 items-center justify-center sticky top-0 z-10 h-16 w-full"
     )
 
 def feedback() -> rx.Component:
