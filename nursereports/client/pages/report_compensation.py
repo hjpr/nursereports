@@ -61,7 +61,7 @@ def compensation() -> rx.Component:
                             ),
                             rx.icon(
                                 "circle-alert",
-                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-500",
+                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
                             ),
                         ),
                         class_name="pl-4",
@@ -94,7 +94,7 @@ def compensation() -> rx.Component:
                         ),
                         rx.icon(
                             "circle-alert",
-                            class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-500",
+                            class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
                         ),
                     ),
                     class_name="flex-row justify-between w-full",
@@ -130,7 +130,7 @@ def compensation() -> rx.Component:
                                     ),
                                     rx.icon(
                                         "circle-alert",
-                                        class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-500",
+                                        class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
                                     ),
                                 ),
                                 class_name="flex-row justify-between w-full",
@@ -162,7 +162,7 @@ def compensation() -> rx.Component:
                                     ),
                                     rx.icon(
                                         "circle-alert",
-                                        class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-500",
+                                        class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
                                     ),
                                 ),
                                 class_name="flex-row justify-between w-full",
@@ -196,7 +196,7 @@ def compensation() -> rx.Component:
                             ),
                             rx.icon(
                                 "circle-alert",
-                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-500",
+                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
                             ),
                         ),
                         class_name="pl-4",
@@ -229,7 +229,7 @@ def compensation() -> rx.Component:
                             ),
                             rx.icon(
                                 "circle-alert",
-                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-500",
+                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
                             ),
                         ),
                         class_name="pl-4",
@@ -262,7 +262,7 @@ def compensation() -> rx.Component:
                             ),
                             rx.icon(
                                 "circle-alert",
-                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-500",
+                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
                             ),
                         ),
                         class_name="pl-4",
@@ -295,7 +295,7 @@ def compensation() -> rx.Component:
                             ),
                             rx.icon(
                                 "circle-alert",
-                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-500",
+                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
                             ),
                         ),
                         class_name="pl-4",
@@ -329,7 +329,7 @@ def compensation() -> rx.Component:
                             ),
                             rx.icon(
                                 "circle-alert",
-                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-500",
+                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
                             ),
                         ),
                         class_name="pl-4",
@@ -365,7 +365,7 @@ def compensation() -> rx.Component:
                             ),
                             rx.icon(
                                 "circle-alert",
-                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-500",
+                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
                             ),
                         ),
                         class_name="pl-4",
@@ -399,7 +399,7 @@ def compensation() -> rx.Component:
                             ),
                             rx.icon(
                                 "circle-alert",
-                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-500",
+                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
                             ),
                         ),
                         class_name="pl-4",
@@ -427,14 +427,21 @@ def compensation() -> rx.Component:
                     rx.text("Select benefits that are offered to you. (Optional)"),
                     rx.flex(
                         rx.cond(
-                            ReportState.comp_check_benefit_pto,
+                            (
+                                ReportState.comp_check_benefit_parental
+                                | ReportState.comp_check_benefit_insurance
+                                | ReportState.comp_check_benefit_pto
+                                | ReportState.comp_check_benefit_reimbursement
+                                | ReportState.comp_check_benefit_retirement
+                                | ReportState.comp_check_benefit_tuition
+                            ),
                             rx.icon(
                                 "circle-check-big",
                                 class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
                             ),
                             rx.icon(
                                 "circle-alert",
-                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-500",
+                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
                             ),
                         ),
                         class_name="pl-4",
@@ -558,7 +565,7 @@ def compensation() -> rx.Component:
                             ),
                             rx.icon(
                                 "circle-alert",
-                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-500",
+                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
                             ),
                         ),
                         class_name="pl-4",
@@ -630,7 +637,7 @@ def compensation() -> rx.Component:
                             ),
                             rx.icon(
                                 "circle-alert",
-                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-500",
+                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
                             ),
                         ),
                         class_name="pl-4",
@@ -683,25 +690,25 @@ def compensation() -> rx.Component:
             rx.cond(
                 ReportState.user_is_loading,
                 rx.flex(
-                    rx.icon("loader-circle", class_name="animate-spin dark:stroke-zinc-500"),
+                    rx.icon("loader-circle", class_name="animate-spin stroke-zinc-700 dark:stroke-zinc-500"),
                     class_name="flex-row items-center justify-center p-4 cursor-disabled",
                 ),
                 rx.flex(
                     rx.flex(
                         rx.flex(
-                            rx.icon("arrow-left", class_name="dark:stroke-zinc-500"),
+                            rx.icon("arrow-left", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
                             rx.text("Back", class_name="font-bold select-none"),
                             on_click=rx.redirect(
                                 f"/report/{ReportState.mode}/overview"
                             ),
                             class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer",
                         ),
-                        class_name="flex-col w-full active:bg-zinc-200 transition-colors duration-75",
+                        class_name="flex-col w-full active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75",
                     ),
                     rx.flex(
                         rx.flex(
                             rx.text("Next", class_name="font-bold select-none"),
-                            rx.icon("arrow-right", class_name="dark:stroke-zinc-500"),
+                            rx.icon("arrow-right", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
                             on_click=[
                                 ReportState.set_user_is_loading(True),
                                 ReportState.handle_submit_compensation,
@@ -709,7 +716,7 @@ def compensation() -> rx.Component:
                             ],
                             class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer",
                         ),
-                        class_name="flex-col w-full active:bg-zinc-200 transition-colors duration-75",
+                        class_name="flex-col w-full active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75",
                     ),
                     class_name="flex-row divide-x dark:divide-zinc-700 w-full",
                 ),
@@ -753,17 +760,17 @@ def calculator(label: str) -> rx.Component:
                         flex(
                             rx.text("1", class_name="px-2 text-2xl"),
                             on_click=ReportState.set_calculator_pay_value("1"),
-                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 dark:active:bg-zinc-700  transition-colors duration-75",
+                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75",
                         ),
                         flex(
                             rx.text("2", class_name="px-2 text-2xl"),
                             on_click=ReportState.set_calculator_pay_value("2"),
-                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 dark:active:bg-zinc-700  transition-colors duration-75",
+                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75",
                         ),
                         flex(
                             rx.text("3", class_name="px-2 text-2xl"),
                             on_click=ReportState.set_calculator_pay_value("3"),
-                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 dark:active:bg-zinc-700  transition-colors duration-75",
+                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75",
                         ),
                         class_name="flex-row space-x-2 w-full",
                     ),
@@ -771,17 +778,17 @@ def calculator(label: str) -> rx.Component:
                         flex(
                             rx.text("4", class_name="px-2 text-2xl"),
                             on_click=ReportState.set_calculator_pay_value("4"),
-                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none select-none active:bg-zinc-200 dark:active:bg-zinc-700  transition-colors duration-75",
+                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none select-none active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75",
                         ),
                         flex(
                             rx.text("5", class_name="px-2 text-2xl"),
                             on_click=ReportState.set_calculator_pay_value("5"),
-                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 dark:active:bg-zinc-700  transition-colors duration-75",
+                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75",
                         ),
                         flex(
                             rx.text("6", class_name="px-2 text-2xl"),
                             on_click=ReportState.set_calculator_pay_value("6"),
-                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 dark:active:bg-zinc-700  transition-colors duration-75",
+                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75",
                         ),
                         class_name="flex-row space-x-2 w-full",
                     ),
@@ -789,17 +796,17 @@ def calculator(label: str) -> rx.Component:
                         flex(
                             rx.text("7", class_name="px-2 text-2xl"),
                             on_click=ReportState.set_calculator_pay_value("7"),
-                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 dark:active:bg-zinc-700  transition-colors duration-75",
+                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75",
                         ),
                         flex(
                             rx.text("8", class_name="px-2 text-2xl"),
                             on_click=ReportState.set_calculator_pay_value("8"),
-                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 dark:active:bg-zinc-700  transition-colors duration-75",
+                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75",
                         ),
                         flex(
                             rx.text("9", class_name="px-2 text-2xl"),
                             on_click=ReportState.set_calculator_pay_value("9"),
-                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 dark:active:bg-zinc-700  transition-colors duration-75",
+                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75",
                         ),
                         class_name="flex-row space-x-2 w-full",
                     ),
@@ -807,12 +814,12 @@ def calculator(label: str) -> rx.Component:
                         flex(
                             rx.text("0", class_name="px-2 text-2xl"),
                             on_click=ReportState.set_calculator_pay_value("0"),
-                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 dark:active:bg-zinc-700  transition-colors duration-75",
+                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75",
                         ),
                         flex(
                             rx.icon("delete", class_name="dark:stroke-teal-600"),
                             on_click=ReportState.set_calculator_pay_value("clear"),
-                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none w-full active:bg-zinc-200 dark:active:bg-zinc-700  transition-colors duration-75",
+                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none w-full active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75",
                         ),
                         class_name="flex-row space-x-2 w-full",
                     ),

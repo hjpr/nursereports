@@ -52,7 +52,7 @@ def editing() -> rx.Component:
     )
 
 def staffing() -> rx.Component:
-    return rx.flex(
+    return flex(
         rx.flex(
             text("Staffing", class_name="text-2xl font-bold"),
             class_name="flex-col items-center bg-zinc-100 dark:bg-zinc-800 p-6 w-full",
@@ -66,8 +66,14 @@ def staffing() -> rx.Component:
                         rx.flex(
                             rx.cond(
                                 ReportState.staffing_select_ratio,
-                                rx.icon("circle-check-big", class_name="stroke-green-400"),
-                                rx.icon("circle-alert", class_name="stroke-zinc-200"),
+                                rx.icon(
+                                    "circle-check-big",
+                                    class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
+                                ),
+                                rx.icon(
+                                    "circle-alert",
+                                    class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
+                                ),
                             ),
                             class_name="pl-4"
                         ),
@@ -78,6 +84,7 @@ def staffing() -> rx.Component:
                     placeholder="- Select -",
                     value=ReportState.staffing_select_ratio,
                     position="popper",
+                    color_scheme="teal",
                     on_change=ReportState.set_staffing_select_ratio,
                     required=True,
                     size="3",
@@ -95,8 +102,14 @@ def staffing() -> rx.Component:
                         rx.flex(
                             rx.cond(
                                 ReportState.staffing_input_actual_ratio,
-                                rx.icon("circle-check-big", class_name="stroke-green-400"),
-                                rx.icon("circle-alert", class_name="stroke-zinc-200"),
+                                rx.icon(
+                                    "circle-check-big",
+                                    class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
+                                ),
+                                rx.icon(
+                                    "circle-alert",
+                                    class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
+                                ),
                             ),
                             class_name="pl-4"
                         ),
@@ -133,8 +146,14 @@ def staffing() -> rx.Component:
                         rx.flex(
                             rx.cond(
                                 ReportState.staffing_select_ratio_appropriate,
-                                rx.icon("circle-check-big", class_name="stroke-green-400"),
-                                rx.icon("circle-alert", class_name="stroke-zinc-200"),
+                                rx.icon(
+                                    "circle-check-big",
+                                    class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
+                                ),
+                                rx.icon(
+                                    "circle-alert",
+                                    class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
+                                ),
                             ),
                             class_name="pl-4"
                         ),
@@ -145,6 +164,7 @@ def staffing() -> rx.Component:
                         placeholder="- Select -",
                         value=ReportState.staffing_select_ratio_appropriate,
                         position="popper",
+                        color_scheme="teal",
                         on_change=ReportState.set_staffing_select_ratio_appropriate,
                         required=True,
                         size="3",
@@ -163,8 +183,14 @@ def staffing() -> rx.Component:
                         rx.flex(
                             rx.cond(
                                 ReportState.staffing_input_ideal_ratio,
-                                rx.icon("circle-check-big", class_name="stroke-green-400"),
-                                rx.icon("circle-alert", class_name="stroke-zinc-200"),
+                                rx.icon(
+                                    "circle-check-big",
+                                    class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
+                                ),
+                                rx.icon(
+                                    "circle-alert",
+                                    class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
+                                ),
                             ),
                             class_name="pl-4"
                         ),
@@ -199,8 +225,14 @@ def staffing() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.staffing_select_workload,
-                            rx.icon("circle-check-big", class_name="stroke-green-400"),
-                            rx.icon("circle-alert", class_name="stroke-zinc-200"),
+                            rx.icon(
+                                "circle-check-big",
+                                class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
+                            ),
+                            rx.icon(
+                                "circle-alert",
+                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
+                            ),
                         ),
                         class_name="pl-4"
                     ),
@@ -211,6 +243,7 @@ def staffing() -> rx.Component:
                     placeholder="- Select -",
                     value=ReportState.staffing_select_workload,
                     position="popper",
+                    color_scheme="teal",
                     on_change=ReportState.set_staffing_select_workload,
                     required=True,
                     size="3",
@@ -226,8 +259,14 @@ def staffing() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.staffing_select_rate_workload,
-                            rx.icon("circle-check-big", class_name="h-6 w-6 stroke-green-400"),
-                            rx.icon("circle-alert", class_name="h-6 w-6 stroke-zinc-200"),
+                            rx.icon(
+                                "circle-check-big",
+                                class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
+                            ),
+                            rx.icon(
+                                "circle-alert",
+                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
+                            ),
                         ),
                         class_name="pl-4"
                     ),
@@ -237,8 +276,8 @@ def staffing() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.staffing_select_rate_workload == 1,
-                            rx.icon("angry", class_name="h-10 w-10 fill-red-400"),
-                            rx.icon("angry", class_name="h-10 w-10 stroke-zinc-400"),
+                            rx.icon("angry", class_name="h-10 w-10 fill-red-400 stroke-[1.5] dark:stroke-zinc-700"),
+                            rx.icon("angry", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
                         ),
                         on_click=ReportState.set_staffing_select_rate_workload(1),
                         class_name="p-4 cursor-pointer",
@@ -246,8 +285,8 @@ def staffing() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.staffing_select_rate_workload == 2,
-                            rx.icon("frown", class_name="h-10 w-10 fill-orange-400"),
-                            rx.icon("frown", class_name="h-10 w-10 stroke-zinc-400"),
+                            rx.icon("frown", class_name="h-10 w-10 fill-orange-400 stroke-[1.5] dark:stroke-zinc-700"),
+                            rx.icon("frown", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
                         ),
                         on_click=ReportState.set_staffing_select_rate_workload(2),
                         class_name="p-4 cursor-pointer",
@@ -255,8 +294,8 @@ def staffing() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.staffing_select_rate_workload == 3,
-                            rx.icon("meh", class_name="h-10 w-10 fill-yellow-300"),
-                            rx.icon("meh", class_name="h-10 w-10 stroke-zinc-400"),
+                            rx.icon("meh", class_name="h-10 w-10 fill-yellow-300 stroke-[1.5] dark:stroke-zinc-700"),
+                            rx.icon("meh", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
                         ),
                         on_click=ReportState.set_staffing_select_rate_workload(3),
                         class_name="p-4 cursor-pointer",
@@ -264,8 +303,8 @@ def staffing() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.staffing_select_rate_workload == 4,
-                            rx.icon("smile", class_name="h-10 w-10 fill-green-400"),
-                            rx.icon("smile", class_name="h-10 w-10 stroke-zinc-400"),
+                            rx.icon("smile", class_name="h-10 w-10 fill-green-400 stroke-[1.5] dark:stroke-zinc-700"),
+                            rx.icon("smile", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
                         ),
                         on_click=ReportState.set_staffing_select_rate_workload(4),
                         class_name="p-4 cursor-pointer",
@@ -273,8 +312,8 @@ def staffing() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.staffing_select_rate_workload == 5,
-                            rx.icon("laugh", class_name="h-10 w-10 fill-blue-300"),
-                            rx.icon("laugh", class_name="h-10 w-10 stroke-zinc-400"),
+                            rx.icon("laugh", class_name="h-10 w-10 fill-blue-300 stroke-[1.5] dark:stroke-zinc-700"),
+                            rx.icon("laugh", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
                         ),
                         on_click=ReportState.set_staffing_select_rate_workload(5),
                         class_name="p-4 cursor-pointer",
@@ -291,8 +330,14 @@ def staffing() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.staffing_select_charge_present,
-                            rx.icon("circle-check-big", class_name="stroke-green-400"),
-                            rx.icon("circle-alert", class_name="stroke-zinc-200"),
+                            rx.icon(
+                                "circle-check-big",
+                                class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
+                            ),
+                            rx.icon(
+                                "circle-alert",
+                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
+                            ),
                         ),
                         class_name="pl-4"
                     ),
@@ -303,6 +348,7 @@ def staffing() -> rx.Component:
                     placeholder="- Select -",
                     value=ReportState.staffing_select_charge_present,
                     position="popper",
+                    color_scheme="teal",
                     on_change=ReportState.set_staffing_select_charge_present,
                     required=True,
                     size="3",
@@ -320,8 +366,14 @@ def staffing() -> rx.Component:
                         rx.flex(
                             rx.cond(
                                 ReportState.staffing_select_charge_assignment,
-                                rx.icon("circle-check-big", class_name="stroke-green-400"),
-                                rx.icon("circle-alert", class_name="stroke-zinc-200"),
+                                rx.icon(
+                                    "circle-check-big",
+                                    class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
+                                ),
+                                rx.icon(
+                                    "circle-alert",
+                                    class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
+                                ),
                             ),
                             class_name="pl-4"
                         ),
@@ -332,6 +384,7 @@ def staffing() -> rx.Component:
                         placeholder="- Select -",
                         value=ReportState.staffing_select_charge_assignment,
                         position="popper",
+                        color_scheme="teal",
                         on_change=ReportState.set_staffing_select_charge_assignment,
                         required=True,
                         size="3",
@@ -363,8 +416,14 @@ def staffing() -> rx.Component:
                                 | ReportState.staffing_check_educator
                             )
                             ,
-                            rx.icon("circle-check-big", class_name="h-6 w-6 stroke-green-400"),
-                            rx.icon("circle-check-big", class_name="h-6 w-6 stroke-zinc-200"),
+                            rx.icon(
+                                "circle-check-big",
+                                class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
+                            ),
+                            rx.icon(
+                                "circle-alert",
+                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
+                            ),
                         ),
                         class_name="pl-4"
                     ),
@@ -377,10 +436,12 @@ def staffing() -> rx.Component:
                                 rx.checkbox(
                                     on_change=ReportState.set_staffing_check_rapid_response,
                                     checked=ReportState.staffing_check_rapid_response,
+                                    color_scheme="teal",
                                     class_name="cursor-pointer"
                                 ),
                                 rx.text("Rapid Response"),
                                 on_click=ReportState.set_staffing_check_rapid_response(~ReportState.staffing_check_rapid_response),
+                                color_scheme="teal",
                                 class_name="flex-row flex-nowrap items-center space-x-2 cursor-pointer"
                             ),
                             class_name="flex-row p-4"
@@ -390,6 +451,7 @@ def staffing() -> rx.Component:
                                 rx.checkbox(
                                     on_change=ReportState.set_staffing_check_behavioral_response,
                                     checked=ReportState.staffing_check_behavioral_response,
+                                    color_scheme="teal",
                                     class_name="cursor-pointer"
                                 ),
                                 rx.text("Behavioral Response"),
@@ -403,6 +465,7 @@ def staffing() -> rx.Component:
                                 rx.checkbox(
                                     on_change=ReportState.set_staffing_check_transport,
                                     checked=ReportState.staffing_check_transport,
+                                    color_scheme="teal",
                                     class_name="cursor-pointer"
                                 ),
                                 rx.text("Transport"),
@@ -416,6 +479,7 @@ def staffing() -> rx.Component:
                                 rx.checkbox(
                                     on_change=ReportState.set_staffing_check_phlebotomy,
                                     checked=ReportState.staffing_check_phlebotomy,
+                                    color_scheme="teal",
                                     class_name="cursor-pointer"
                                 ),
                                 rx.text("Phlebotomy"),
@@ -429,6 +493,7 @@ def staffing() -> rx.Component:
                                 rx.checkbox(
                                     on_change=ReportState.set_staffing_check_cvad,
                                     checked=ReportState.staffing_check_cvad,
+                                    color_scheme="teal",
                                     class_name="cursor-pointer"
                                 ),
                                 rx.text("CVAD"),
@@ -442,6 +507,7 @@ def staffing() -> rx.Component:
                                 rx.checkbox(
                                     on_change=ReportState.set_staffing_check_ivt,
                                     checked=ReportState.staffing_check_ivt,
+                                    color_scheme="teal",
                                     class_name="cursor-pointer"
                                 ),
                                 rx.text("IV Team"),
@@ -455,6 +521,7 @@ def staffing() -> rx.Component:
                                 rx.checkbox(
                                     on_change=ReportState.set_staffing_check_wocn,
                                     checked=ReportState.staffing_check_wocn,
+                                    color_scheme="teal",
                                     class_name="cursor-pointer"
                                 ),
                                 rx.text("Wound Care"),
@@ -468,6 +535,7 @@ def staffing() -> rx.Component:
                                 rx.checkbox(
                                     on_change=ReportState.set_staffing_check_chaplain,
                                     checked=ReportState.staffing_check_chaplain,
+                                    color_scheme="teal",
                                     class_name="cursor-pointer"
                                 ),
                                 rx.text("Chaplain"),
@@ -481,6 +549,7 @@ def staffing() -> rx.Component:
                                 rx.checkbox(
                                     on_change=ReportState.set_staffing_check_educator,
                                     checked=ReportState.staffing_check_educator,
+                                    color_scheme="teal",
                                     class_name="cursor-pointer"
                                 ),
                                 rx.text("Educator"),
@@ -503,8 +572,14 @@ def staffing() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.staffing_select_overall,
-                            rx.icon("circle-check-big", class_name="h-6 w-6 stroke-green-400"),
-                            rx.icon("circle-alert", class_name="h-6 w-6 stroke-zinc-200"),
+                            rx.icon(
+                                "circle-check-big",
+                                class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
+                            ),
+                            rx.icon(
+                                "circle-alert",
+                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
+                            ),
                         ),
                         class_name="pl-4"
                     ),
@@ -514,8 +589,8 @@ def staffing() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.staffing_select_overall == 1,
-                            rx.icon("angry", class_name="h-10 w-10 fill-red-400"),
-                            rx.icon("angry", class_name="h-10 w-10 stroke-zinc-400"),
+                            rx.icon("angry", class_name="h-10 w-10 fill-red-400 stroke-[1.5] dark:stroke-zinc-700"),
+                            rx.icon("angry", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
                         ),
                         on_click=ReportState.set_staffing_select_overall(1),
                         class_name="p-4 cursor-pointer",
@@ -523,8 +598,8 @@ def staffing() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.staffing_select_overall == 2,
-                            rx.icon("frown", class_name="h-10 w-10 fill-orange-400"),
-                            rx.icon("frown", class_name="h-10 w-10 stroke-zinc-400"),
+                            rx.icon("frown", class_name="h-10 w-10 fill-orange-400 stroke-[1.5] dark:stroke-zinc-700"),
+                            rx.icon("frown", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
                         ),
                         on_click=ReportState.set_staffing_select_overall(2),
                         class_name="p-4 cursor-pointer",
@@ -532,8 +607,8 @@ def staffing() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.staffing_select_overall == 3,
-                            rx.icon("meh", class_name="h-10 w-10 fill-yellow-300"),
-                            rx.icon("meh", class_name="h-10 w-10 stroke-zinc-400"),
+                            rx.icon("meh", class_name="h-10 w-10 fill-yellow-300 stroke-[1.5] dark:stroke-zinc-700"),
+                            rx.icon("meh", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
                         ),
                         on_click=ReportState.set_staffing_select_overall(3),
                         class_name="p-4 cursor-pointer",
@@ -541,8 +616,8 @@ def staffing() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.staffing_select_overall == 4,
-                            rx.icon("smile", class_name="h-10 w-10 fill-green-400"),
-                            rx.icon("smile", class_name="h-10 w-10 stroke-zinc-400"),
+                            rx.icon("smile", class_name="h-10 w-10 fill-green-400 stroke-[1.5] dark:stroke-zinc-700"),
+                            rx.icon("smile", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
                         ),
                         on_click=ReportState.set_staffing_select_overall(4),
                         class_name="p-4 cursor-pointer",
@@ -550,8 +625,8 @@ def staffing() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.staffing_select_overall == 5,
-                            rx.icon("laugh", class_name="h-10 w-10 fill-blue-300"),
-                            rx.icon("laugh", class_name="h-10 w-10 stroke-zinc-400"),
+                            rx.icon("laugh", class_name="h-10 w-10 fill-blue-300 stroke-[1.5] dark:stroke-zinc-700"),
+                            rx.icon("laugh", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
                         ),
                         on_click=ReportState.set_staffing_select_overall(5),
                         class_name="p-4 cursor-pointer",
@@ -574,8 +649,14 @@ def staffing() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.staffing_input_comments,
-                            rx.icon("circle-check-big", class_name="h-6 w-6 stroke-green-400"),
-                            rx.icon("circle-check-big", class_name="h-6 w-6 stroke-zinc-200"),
+                            rx.icon(
+                                "circle-check-big",
+                                class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
+                            ),
+                            rx.icon(
+                                "circle-alert",
+                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
+                            ),
                         ),
                         class_name="pl-4"
                     ),
@@ -585,6 +666,7 @@ def staffing() -> rx.Component:
                     rx.text_area(
                         value=ReportState.staffing_input_comments,
                         placeholder="Do not enter personally identifiable information.",
+                        color_scheme="teal",
                         on_change=ReportState.set_staffing_input_comments,
                         on_blur=ReportState.set_staffing_input_comments,
                         height="10em",
@@ -627,18 +709,18 @@ def staffing() -> rx.Component:
             rx.cond(
                 ReportState.user_is_loading,
                 rx.flex(
-                    rx.icon("loader-circle", class_name="animate-spin"),
+                    rx.icon("loader-circle", class_name="animate-spin stroke-zinc-700 dark:stroke-zinc-500"),
                     class_name="flex-row items-center justify-center p-4 cursor-disabled"
                 ),
                 rx.flex(
                     rx.flex(
                         rx.flex(
-                            rx.icon("arrow-left"),
+                            rx.icon("arrow-left", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
                             rx.text("Back", class_name="font-bold select-none"),
                             on_click=rx.redirect(f"/report/{ReportState.mode}/assignment"),
                             class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer"
                         ),
-                        class_name="flex-col w-full active:bg-zinc-200 transition-colors duration-75"
+                        class_name="flex-col w-full active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75"
                     ),
                     rx.flex(
                         rx.flex(
@@ -654,21 +736,21 @@ def staffing() -> rx.Component:
                             ],
                             class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer"
                         ),
-                        class_name="flex-col w-full active:bg-zinc-200 transition-colors duration-75"
+                        class_name="flex-col w-full active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75"
                     ),
-                    class_name="flex-row divide-x w-full"
+                    class_name="flex-row divide-x dark:divide-zinc-700 w-full"
                 ),
             ),
-            class_name="flex-col dark:divide-zinc-500 space-y-2 divide-y w-full",
+            class_name="flex-col dark:divide-zinc-500 space-y-2 divide-y dark:divide-zinc-700 w-full",
         ),
-        class_name="flex-col border rounded shadow-lg dark:border-zinc-500 bg-zinc-100 dark:bg-zinc-800 divide-y w-full",
+        class_name="flex-col border rounded shadow-lg divide-y dark:divide-zinc-700 w-full",
     )
 
 def calculator(label:str) -> rx.Component:
     return rx.popover.root(
         rx.popover.trigger(
             rx.flex(
-                rx.icon("pencil", class_name="h-5 w-5"),
+                rx.icon("pencil", class_name="h-5 w-5 stroke-zinc-700 dark:stroke-zinc-500"),
                 on_click=[
                     ReportState.set_calculator_toggle_ratio(label),
                     ReportState.set_calculator_ratio_value("clear")
@@ -691,78 +773,78 @@ def calculator(label:str) -> rx.Component:
                         class_name="flex-row py-4 w-full"
                     ),
                     rx.flex(
-                        rx.flex(
+                        flex(
                             rx.text("1", class_name="px-2 text-2xl"),
                             on_click=ReportState.set_calculator_ratio_value("1"),
-                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 transition-colors duration-75"
+                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75"
                         ),
-                        rx.flex(
+                        flex(
                             rx.text("2", class_name="px-2 text-2xl"),
                             on_click=ReportState.set_calculator_ratio_value("2"),
-                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 transition-colors duration-75"
+                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75"
                         ),
-                        rx.flex(
+                        flex(
                             rx.text("3", class_name="px-2 text-2xl"),
                             on_click=ReportState.set_calculator_ratio_value("3"),
-                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 transition-colors duration-75"
+                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75"
                         ),
                         class_name="flex-row space-x-2 w-full"
                     ),
                     rx.flex(
-                        rx.flex(
+                        flex(
                             rx.text("4", class_name="px-2 text-2xl"),
                             on_click=ReportState.set_calculator_ratio_value("4"),
-                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none select-none active:bg-zinc-200 transition-colors duration-75"
+                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none select-none active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75"
                         ),
-                        rx.flex(
+                        flex(
                             rx.text("5", class_name="px-2 text-2xl"),
                             on_click=ReportState.set_calculator_ratio_value("5"),
-                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 transition-colors duration-75"
+                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75"
                         ),
-                        rx.flex(
+                        flex(
                             rx.text("6", class_name="px-2 text-2xl"),
                             on_click=ReportState.set_calculator_ratio_value("6"),
-                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 transition-colors duration-75"
+                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75"
                         ),
                         class_name="flex-row space-x-2 w-full"
                     ),
                     rx.flex(
-                        rx.flex(
+                        flex(
                             rx.text("7", class_name="px-2 text-2xl"),
                             on_click=ReportState.set_calculator_ratio_value("7"),
-                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 transition-colors duration-75"
+                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75"
                         ),
-                        rx.flex(
+                        flex(
                             rx.text("8", class_name="px-2 text-2xl"),
                             on_click=ReportState.set_calculator_ratio_value("8"),
-                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 transition-colors duration-75"
+                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75"
                         ),
-                        rx.flex(
+                        flex(
                             rx.text("9", class_name="px-2 text-2xl"),
                             on_click=ReportState.set_calculator_ratio_value("9"),
-                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 transition-colors duration-75"
+                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75"
                         ),
                         class_name="flex-row space-x-2 w-full"
                     ),
                     rx.flex(
-                        rx.flex(
+                        flex(
                             rx.text("0", class_name="px-2 text-2xl"),
                             on_click=ReportState.set_calculator_ratio_value("0"),
-                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 transition-colors duration-75"
+                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75"
                         ),
-                        rx.flex(
-                            rx.icon("delete"),
+                        flex(
+                            rx.icon("delete", class_name="dark:stroke-teal-600"),
                             on_click=ReportState.set_calculator_ratio_value("clear"),
-                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none w-full active:bg-zinc-200 transition-colors duration-75"
+                            class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none w-full active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75"
                         ),
                         class_name="flex-row space-x-2 w-full"
                     ),
                     rx.flex(
                         rx.popover.close(
-                            rx.flex(
-                                rx.text("Enter", class_name="text-xl"),
+                            flex(
+                                rx.text("Enter", class_name="text-xl font-bold text-teal-600"),
                                 on_click=ReportState.set_calculator_ratio_value("enter"),
-                                class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none w-full active:bg-zinc-200 transition-colors duration-75"
+                                class_name="flex-col items-center justify-center border rounded p-3 cursor-pointer select-none w-full active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75"
                             ),
                             class_name="w-full"
                         ),

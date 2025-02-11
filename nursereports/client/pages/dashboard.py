@@ -41,13 +41,13 @@ def content() -> rx.Component:
 
 
 def heading() -> rx.Component:
-    return flex(
+    return rx.flex(
         rx.flex(
             rx.icon("layout-dashboard", class_name="h-6 w-6 stroke-teal-800"),
             text("Dashboard", class_name="text-2xl font-bold"),
             class_name="bg-transparent flex-row items-center space-x-2",
         ),
-        class_name="flex-col items-center border rounded shadow-lg dark:border-zinc-500 bg-zinc-100 dark:bg-zinc-800 p-4 w-full",
+        class_name="flex-col items-center border rounded shadow-lg dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 p-4 w-full",
     )
 
 

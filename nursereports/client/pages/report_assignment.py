@@ -50,7 +50,7 @@ def editing() -> rx.Component:
     )
 
 def assignment() -> rx.Component:
-    return rx.flex(
+    return flex(
         rx.flex(
             text("Assignment", class_name="text-2xl font-bold"),
             class_name="flex-col items-center bg-zinc-100 dark:bg-zinc-800 p-6 w-full",
@@ -65,8 +65,14 @@ def assignment() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.assign_select_classify,
-                            rx.icon("circle-check-big", class_name="h-6 w-6 stroke-green-400"),
-                            rx.icon("circle-alert", class_name="h-6 w-6 stroke-zinc-200"),
+                            rx.icon(
+                                "circle-check-big",
+                                class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
+                            ),
+                            rx.icon(
+                                "circle-alert",
+                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
+                            ),
                         ),
                         class_name="pl-4"
                     ),
@@ -83,6 +89,7 @@ def assignment() -> rx.Component:
                     placeholder="- Select -",
                     value=ReportState.assign_select_classify,
                     position="popper",
+                    color_scheme="teal",
                     on_change=ReportState.set_assign_select_classify,
                     required=True,
                     size="3",
@@ -103,8 +110,14 @@ def assignment() -> rx.Component:
                                 rx.flex(
                                     rx.cond(
                                         ReportState.assign_select_unit,
-                                        rx.icon("circle-check-big", class_name="h-6 w-6 stroke-green-400"),
-                                        rx.icon("circle-alert", class_name="h-6 w-6 stroke-zinc-200"),
+                                        rx.icon(
+                                            "circle-check-big",
+                                            class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
+                                        ),
+                                        rx.icon(
+                                            "circle-alert",
+                                            class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
+                                        ),
                                     ),
                                     class_name="pl-4"
                                 ),
@@ -115,6 +128,7 @@ def assignment() -> rx.Component:
                                 placeholder="- Select -",
                                 value=ReportState.assign_select_unit,
                                 position="popper",
+                                color_scheme="teal",
                                 on_change=ReportState.set_assign_select_unit,
                                 required=True,
                                 size="3",
@@ -133,8 +147,14 @@ def assignment() -> rx.Component:
                                         rx.flex(
                                             rx.cond(
                                                 ReportState.assign_input_unit,
-                                                rx.icon("circle-check-big", class_name="h-6 w-6 stroke-green-400"),
-                                                rx.icon("circle-alert", class_name="h-6 w-6 stroke-zinc-200"),
+                                                rx.icon(
+                                                    "circle-check-big",
+                                                    class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
+                                                ),
+                                                rx.icon(
+                                                    "circle-alert",
+                                                    class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
+                                                ),
                                             ),
                                             class_name="pl-4"
                                         ),
@@ -144,6 +164,7 @@ def assignment() -> rx.Component:
                                         rx.input(
                                             value=ReportState.assign_input_unit,
                                             on_change=ReportState.set_assign_input_unit,
+                                            color_scheme="teal",
                                             required=True,
                                             max_length=50,
                                             size="3",
@@ -161,8 +182,14 @@ def assignment() -> rx.Component:
                                 rx.flex(
                                     rx.cond(
                                         ReportState.assign_select_acuity,
-                                        rx.icon("circle-check-big", class_name="h-6 w-6 stroke-green-400"),
-                                        rx.icon("circle-alert", class_name="h-6 w-6 stroke-zinc-200"),
+                                        rx.icon(
+                                            "circle-check-big",
+                                            class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
+                                        ),
+                                        rx.icon(
+                                            "circle-alert",
+                                            class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
+                                        ),
                                     ),
                                     class_name="pl-4"
                                 ),
@@ -173,6 +200,7 @@ def assignment() -> rx.Component:
                                 placeholder="- Select -",
                                 value=ReportState.assign_select_acuity,
                                 position="popper",
+                                color_scheme="teal",
                                 on_change=ReportState.set_assign_select_acuity,
                                 required=True,
                                 size="3",
@@ -180,7 +208,7 @@ def assignment() -> rx.Component:
                             ),
                             class_name="flex-col p-4 space-y-2 w-full",
                         ),
-                        class_name="flex-col divide-y w-full",
+                        class_name="flex-col divide-y dark:divide-zinc-700 w-full",
                     ),
                 ),
                 (
@@ -193,8 +221,14 @@ def assignment() -> rx.Component:
                                 rx.flex(
                                     rx.cond(
                                         ReportState.assign_select_area,
-                                        rx.icon("circle-check-big", class_name="h-6 w-6 stroke-green-400"),
-                                        rx.icon("circle-alert", class_name="h-6 w-6 stroke-zinc-200"),
+                                        rx.icon(
+                                            "circle-check-big",
+                                            class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
+                                        ),
+                                        rx.icon(
+                                            "circle-alert",
+                                            class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
+                                        ),
                                     ),
                                     class_name="pl-4"
                                 ),
@@ -205,6 +239,7 @@ def assignment() -> rx.Component:
                                 placeholder="- Select -",
                                 value=ReportState.assign_select_area,
                                 position="popper",
+                                color_scheme="teal",
                                 on_change=ReportState.set_assign_select_area,
                                 required=True,
                                 size="3",
@@ -220,8 +255,14 @@ def assignment() -> rx.Component:
                                     rx.flex(
                                         rx.cond(
                                             ReportState.assign_input_area,
-                                            rx.icon("circle-check-big", class_name="h-6 w-6 stroke-green-400"),
-                                            rx.icon("circle-alert", class_name="h-6 w-6 stroke-zinc-200"),
+                                            rx.icon(
+                                                "circle-check-big",
+                                                class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
+                                            ),
+                                            rx.icon(
+                                                "circle-alert",
+                                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
+                                            ),
                                         ),
                                         class_name="pl-4"
                                     ),
@@ -231,6 +272,7 @@ def assignment() -> rx.Component:
                                     rx.input(
                                         value=ReportState.assign_input_area,
                                         on_change=ReportState.set_assign_input_area,
+                                        color_scheme="teal",
                                         required=True,
                                         size="3",
                                         max_length=50,
@@ -241,7 +283,7 @@ def assignment() -> rx.Component:
                                 class_name="flex-col p-4 space-y-2 w-full",
                             ),
                         ),
-                        class_name="flex-col w-full",
+                        class_name="flex-col divide-y dark:divide-zinc-700 w-full",
                     ),
                 ),
                 (
@@ -254,8 +296,14 @@ def assignment() -> rx.Component:
                                 rx.flex(
                                     rx.cond(
                                         ReportState.assign_select_role,
-                                        rx.icon("circle-check-big", class_name="h-6 w-6 stroke-green-400"),
-                                        rx.icon("circle-alert", class_name="h-6 w-6 stroke-zinc-200"),
+                                        rx.icon(
+                                            "circle-check-big",
+                                            class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
+                                        ),
+                                        rx.icon(
+                                            "circle-alert",
+                                            class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
+                                        ),
                                     ),
                                     class_name="pl-4"
                                 ),
@@ -266,6 +314,7 @@ def assignment() -> rx.Component:
                                 placeholder="- Select -",
                                 value=ReportState.assign_select_role,
                                 position="popper",
+                                color_scheme="teal",
                                 on_change=ReportState.set_assign_select_role,
                                 required=True,
                                 size="3",
@@ -281,8 +330,14 @@ def assignment() -> rx.Component:
                                     rx.flex(
                                         rx.cond(
                                             ReportState.assign_input_role,
-                                            rx.icon("circle-check-big", class_name="h-6 w-6 stroke-green-400"),
-                                            rx.icon("circle-alert", class_name="h-6 w-6 stroke-zinc-200"),
+                                            rx.icon(
+                                                "circle-check-big",
+                                                class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
+                                            ),
+                                            rx.icon(
+                                                "circle-alert",
+                                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
+                                            ),
                                         ),
                                         class_name="pl-4"
                                     ),
@@ -292,6 +347,7 @@ def assignment() -> rx.Component:
                                     rx.input(
                                         value=ReportState.assign_input_role,
                                         on_change=ReportState.set_assign_input_role,
+                                        color_scheme="teal",
                                         required=True,
                                         size="3",
                                         max_length=50,
@@ -316,8 +372,14 @@ def assignment() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.assign_select_specialty_1,
-                            rx.icon("circle-check-big", class_name="h-6 w-6 stroke-green-400"),
-                            rx.icon("circle-check-big", class_name="h-6 w-6 stroke-zinc-200"),
+                            rx.icon(
+                                "circle-check-big",
+                                class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
+                            ),
+                            rx.icon(
+                                "circle-alert",
+                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
+                            ),
                         ),
                         class_name="pl-4"
                     ),
@@ -328,6 +390,7 @@ def assignment() -> rx.Component:
                     placeholder="- Select -",
                     value=ReportState.assign_select_specialty_1,
                     position="popper",
+                    color_scheme="teal",
                     on_change=ReportState.set_assign_select_specialty_1,
                     size="3",
                     width="100%",
@@ -337,6 +400,7 @@ def assignment() -> rx.Component:
                     placeholder="- Select -",
                     value=ReportState.assign_select_specialty_2,
                     position="popper",
+                    color_scheme="teal",
                     disabled=~ReportState.assign_select_specialty_1,
                     on_change=ReportState.set_assign_select_specialty_2,
                     size="3",
@@ -347,6 +411,7 @@ def assignment() -> rx.Component:
                     placeholder="- Select -",
                     value=ReportState.assign_select_specialty_3,
                     position="popper",
+                    color_scheme="teal",
                     disabled=~ReportState.assign_select_specialty_2,
                     on_change=ReportState.set_assign_select_specialty_3,
                     size="3",
@@ -374,8 +439,14 @@ def assignment() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.assign_select_rate_nurses,
-                            rx.icon("circle-check-big", class_name="h-6 w-6 stroke-green-400"),
-                            rx.icon("circle-alert", class_name="h-6 w-6 stroke-zinc-200"),
+                            rx.icon(
+                                "circle-check-big",
+                                class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
+                            ),
+                            rx.icon(
+                                "circle-alert",
+                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
+                            ),
                         ),
                         class_name="pl-4"
                     ),
@@ -385,8 +456,8 @@ def assignment() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.assign_select_rate_nurses == 1,
-                            rx.icon("angry", class_name="h-10 w-10 fill-red-400"),
-                            rx.icon("angry", class_name="h-10 w-10 stroke-zinc-400"),
+                            rx.icon("angry", class_name="h-10 w-10 fill-red-400 stroke-[1.5] dark:stroke-zinc-700"),
+                            rx.icon("angry", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
                         ),
                         on_click=ReportState.set_assign_select_rate_nurses(1),
                         class_name="p-4 cursor-pointer",
@@ -394,8 +465,8 @@ def assignment() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.assign_select_rate_nurses == 2,
-                            rx.icon("frown", class_name="h-10 w-10 fill-orange-400"),
-                            rx.icon("frown", class_name="h-10 w-10 stroke-zinc-400"),
+                            rx.icon("frown", class_name="h-10 w-10 fill-orange-400 stroke-[1.5] dark:stroke-zinc-700"),
+                            rx.icon("frown", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
                         ),
                         on_click=ReportState.set_assign_select_rate_nurses(2),
                         class_name="p-4 cursor-pointer",
@@ -403,8 +474,8 @@ def assignment() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.assign_select_rate_nurses == 3,
-                            rx.icon("meh", class_name="h-10 w-10 fill-yellow-300"),
-                            rx.icon("meh", class_name="h-10 w-10 stroke-zinc-400"),
+                            rx.icon("meh", class_name="h-10 w-10 fill-yellow-300 stroke-[1.5] dark:stroke-zinc-700"),
+                            rx.icon("meh", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
                         ),
                         on_click=ReportState.set_assign_select_rate_nurses(3),
                         class_name="p-4 cursor-pointer",
@@ -412,8 +483,8 @@ def assignment() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.assign_select_rate_nurses == 4,
-                            rx.icon("smile", class_name="h-10 w-10 fill-green-400"),
-                            rx.icon("smile", class_name="h-10 w-10 stroke-zinc-400"),
+                            rx.icon("smile", class_name="h-10 w-10 fill-green-400 stroke-[1.5] dark:stroke-zinc-700"),
+                            rx.icon("smile", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
                         ),
                         on_click=ReportState.set_assign_select_rate_nurses(4),
                         class_name="p-4 cursor-pointer",
@@ -421,8 +492,8 @@ def assignment() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.assign_select_rate_nurses == 5,
-                            rx.icon("laugh", class_name="h-10 w-10 fill-blue-300"),
-                            rx.icon("laugh", class_name="h-10 w-10 stroke-zinc-400"),
+                            rx.icon("laugh", class_name="h-10 w-10 fill-blue-300 stroke-[1.5] dark:stroke-zinc-700"),
+                            rx.icon("laugh", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
                         ),
                         on_click=ReportState.set_assign_select_rate_nurses(5),
                         class_name="p-4 cursor-pointer",
@@ -439,8 +510,14 @@ def assignment() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.assign_select_rate_nurse_aides,
-                            rx.icon("circle-check-big", class_name="h-6 w-6 stroke-green-400"),
-                            rx.icon("circle-alert", class_name="h-6 w-6 stroke-zinc-200"),
+                            rx.icon(
+                                "circle-check-big",
+                                class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
+                            ),
+                            rx.icon(
+                                "circle-alert",
+                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
+                            ),
                         ),
                         class_name="pl-4"
                     ),
@@ -450,8 +527,8 @@ def assignment() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.assign_select_rate_nurse_aides == 1,
-                            rx.icon("angry", class_name="h-10 w-10 fill-red-400"),
-                            rx.icon("angry", class_name="h-10 w-10 stroke-zinc-400"),
+                            rx.icon("angry", class_name="h-10 w-10 fill-red-400 stroke-[1.5] dark:stroke-zinc-700"),
+                            rx.icon("angry", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
                         ),
                         on_click=ReportState.set_assign_select_rate_nurse_aides(1),
                         class_name="p-4 cursor-pointer",
@@ -459,8 +536,8 @@ def assignment() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.assign_select_rate_nurse_aides == 2,
-                            rx.icon("frown", class_name="h-10 w-10 fill-orange-400"),
-                            rx.icon("frown", class_name="h-10 w-10 stroke-zinc-400"),
+                            rx.icon("frown", class_name="h-10 w-10 fill-orange-400 stroke-[1.5] dark:stroke-zinc-700"),
+                            rx.icon("frown", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
                         ),
                         on_click=ReportState.set_assign_select_rate_nurse_aides(2),
                         class_name="p-4 cursor-pointer",
@@ -468,8 +545,8 @@ def assignment() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.assign_select_rate_nurse_aides == 3,
-                            rx.icon("meh", class_name="h-10 w-10 fill-yellow-300"),
-                            rx.icon("meh", class_name="h-10 w-10 stroke-zinc-400"),
+                            rx.icon("meh", class_name="h-10 w-10 fill-yellow-300 stroke-[1.5] dark:stroke-zinc-700"),
+                            rx.icon("meh", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
                         ),
                         on_click=ReportState.set_assign_select_rate_nurse_aides(3),
                         class_name="p-4 cursor-pointer",
@@ -477,8 +554,8 @@ def assignment() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.assign_select_rate_nurse_aides == 4,
-                            rx.icon("smile", class_name="h-10 w-10 fill-green-400"),
-                            rx.icon("smile", class_name="h-10 w-10 stroke-zinc-400"),
+                            rx.icon("smile", class_name="h-10 w-10 fill-green-400 stroke-[1.5] dark:stroke-zinc-700"),
+                            rx.icon("smile", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
                         ),
                         on_click=ReportState.set_assign_select_rate_nurse_aides(4),
                         class_name="p-4 cursor-pointer",
@@ -486,8 +563,8 @@ def assignment() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.assign_select_rate_nurse_aides == 5,
-                            rx.icon("laugh", class_name="h-10 w-10 fill-blue-300"),
-                            rx.icon("laugh", class_name="h-10 w-10 stroke-zinc-400"),
+                            rx.icon("laugh", class_name="h-10 w-10 fill-blue-300 stroke-[1.5] dark:stroke-zinc-700"),
+                            rx.icon("laugh", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
                         ),
                         on_click=ReportState.set_assign_select_rate_nurse_aides(5),
                         class_name="p-4 cursor-pointer",
@@ -496,6 +573,7 @@ def assignment() -> rx.Component:
                 ),
                 class_name="flex-col space-y-2 p-4 w-full",
             ),
+
             # How is working with the physicians/practitioners where you are assigned?
             rx.flex(
                 rx.flex(
@@ -505,8 +583,14 @@ def assignment() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.assign_select_rate_physicians,
-                            rx.icon("circle-check-big", class_name="h-6 w-6 stroke-green-400"),
-                            rx.icon("circle-alert", class_name="h-6 w-6 stroke-zinc-200"),
+                            rx.icon(
+                                "circle-check-big",
+                                class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
+                            ),
+                            rx.icon(
+                                "circle-alert",
+                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
+                            ),
                         ),
                         class_name="pl-4"
                     ),
@@ -516,8 +600,8 @@ def assignment() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.assign_select_rate_physicians == 1,
-                            rx.icon("angry", class_name="h-10 w-10 fill-red-400"),
-                            rx.icon("angry", class_name="h-10 w-10 stroke-zinc-400"),
+                            rx.icon("angry", class_name="h-10 w-10 fill-red-400 stroke-[1.5] dark:stroke-zinc-700"),
+                            rx.icon("angry", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
                         ),
                         on_click=ReportState.set_assign_select_rate_physicians(1),
                         class_name="p-4 cursor-pointer",
@@ -525,8 +609,8 @@ def assignment() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.assign_select_rate_physicians == 2,
-                            rx.icon("frown", class_name="h-10 w-10 fill-orange-400"),
-                            rx.icon("frown", class_name="h-10 w-10 stroke-zinc-400"),
+                            rx.icon("frown", class_name="h-10 w-10 fill-orange-400 stroke-[1.5] dark:stroke-zinc-700"),
+                            rx.icon("frown", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
                         ),
                         on_click=ReportState.set_assign_select_rate_physicians(2),
                         class_name="p-4 cursor-pointer",
@@ -534,8 +618,8 @@ def assignment() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.assign_select_rate_physicians == 3,
-                            rx.icon("meh", class_name="h-10 w-10 fill-yellow-300"),
-                            rx.icon("meh", class_name="h-10 w-10 stroke-zinc-400"),
+                            rx.icon("meh", class_name="h-10 w-10 fill-yellow-300 stroke-[1.5] dark:stroke-zinc-700"),
+                            rx.icon("meh", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
                         ),
                         on_click=ReportState.set_assign_select_rate_physicians(3),
                         class_name="p-4 cursor-pointer",
@@ -543,8 +627,8 @@ def assignment() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.assign_select_rate_physicians == 4,
-                            rx.icon("smile", class_name="h-10 w-10 fill-green-400"),
-                            rx.icon("smile", class_name="h-10 w-10 stroke-zinc-400"),
+                            rx.icon("smile", class_name="h-10 w-10 fill-green-400 stroke-[1.5] dark:stroke-zinc-700"),
+                            rx.icon("smile", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
                         ),
                         on_click=ReportState.set_assign_select_rate_physicians(4),
                         class_name="p-4 cursor-pointer",
@@ -552,8 +636,8 @@ def assignment() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.assign_select_rate_physicians == 5,
-                            rx.icon("laugh", class_name="h-10 w-10 fill-blue-300"),
-                            rx.icon("laugh", class_name="h-10 w-10 stroke-zinc-400"),
+                            rx.icon("laugh", class_name="h-10 w-10 fill-blue-300 stroke-[1.5] dark:stroke-zinc-700"),
+                            rx.icon("laugh", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
                         ),
                         on_click=ReportState.set_assign_select_rate_physicians(5),
                         class_name="p-4 cursor-pointer",
@@ -562,6 +646,7 @@ def assignment() -> rx.Component:
                 ),
                 class_name="flex-col space-y-2 p-4 w-full",
             ),
+
             # How is working with your immediate management where you are assigned?
             rx.flex(
                 rx.flex(
@@ -569,8 +654,14 @@ def assignment() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.assign_select_rate_management,
-                            rx.icon("circle-check-big", class_name="h-6 w-6 stroke-green-400"),
-                            rx.icon("circle-alert", class_name="h-6 w-6 stroke-zinc-200"),
+                            rx.icon(
+                                "circle-check-big",
+                                class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
+                            ),
+                            rx.icon(
+                                "circle-alert",
+                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
+                            ),
                         ),
                         class_name="pl-4"
                     ),
@@ -580,8 +671,8 @@ def assignment() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.assign_select_rate_management == 1,
-                            rx.icon("angry", class_name="h-10 w-10 fill-red-400"),
-                            rx.icon("angry", class_name="h-10 w-10 stroke-zinc-400"),
+                            rx.icon("angry", class_name="h-10 w-10 fill-red-400 stroke-[1.5] dark:stroke-zinc-700"),
+                            rx.icon("angry", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
                         ),
                         on_click=ReportState.set_assign_select_rate_management(1),
                         class_name="p-4 cursor-pointer",
@@ -589,8 +680,8 @@ def assignment() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.assign_select_rate_management == 2,
-                            rx.icon("frown", class_name="h-10 w-10 fill-orange-400"),
-                            rx.icon("frown", class_name="h-10 w-10 stroke-zinc-400"),
+                            rx.icon("frown", class_name="h-10 w-10 fill-orange-400 stroke-[1.5] dark:stroke-zinc-700"),
+                            rx.icon("frown", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
                         ),
                         on_click=ReportState.set_assign_select_rate_management(2),
                         class_name="p-4 cursor-pointer",
@@ -598,8 +689,8 @@ def assignment() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.assign_select_rate_management == 3,
-                            rx.icon("meh", class_name="h-10 w-10 fill-yellow-300"),
-                            rx.icon("meh", class_name="h-10 w-10 stroke-zinc-400"),
+                            rx.icon("meh", class_name="h-10 w-10 fill-yellow-300 stroke-[1.5] dark:stroke-zinc-700"),
+                            rx.icon("meh", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
                         ),
                         on_click=ReportState.set_assign_select_rate_management(3),
                         class_name="p-4 cursor-pointer",
@@ -607,8 +698,8 @@ def assignment() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.assign_select_rate_management == 4,
-                            rx.icon("smile", class_name="h-10 w-10 fill-green-400"),
-                            rx.icon("smile", class_name="h-10 w-10 stroke-zinc-400"),
+                            rx.icon("smile", class_name="h-10 w-10 fill-green-400 stroke-[1.5] dark:stroke-zinc-700"),
+                            rx.icon("smile", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
                         ),
                         on_click=ReportState.set_assign_select_rate_management(4),
                         class_name="p-4 cursor-pointer",
@@ -616,8 +707,8 @@ def assignment() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.assign_select_rate_management == 5,
-                            rx.icon("laugh", class_name="h-10 w-10 fill-blue-300"),
-                            rx.icon("laugh", class_name="h-10 w-10 stroke-zinc-400"),
+                            rx.icon("laugh", class_name="h-10 w-10 fill-blue-300 stroke-[1.5] dark:stroke-zinc-700"),
+                            rx.icon("laugh", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
                         ),
                         on_click=ReportState.set_assign_select_rate_management(5),
                         class_name="p-4 cursor-pointer",
@@ -626,6 +717,7 @@ def assignment() -> rx.Component:
                 ),
                 class_name="flex-col space-y-2 p-4 w-full",
             ),
+
             # Would you recommend a friend or coworker to your current position?
             rx.flex(
                 rx.flex(
@@ -635,8 +727,14 @@ def assignment() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.assign_select_recommend,
-                            rx.icon("circle-check-big", class_name="h-6 w-6 stroke-green-400"),
-                            rx.icon("circle-alert", class_name="h-6 w-6 stroke-zinc-200"),
+                            rx.icon(
+                                "circle-check-big",
+                                class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
+                            ),
+                            rx.icon(
+                                "circle-alert",
+                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
+                            ),
                         ),
                         class_name="pl-4"
                     ),
@@ -647,6 +745,7 @@ def assignment() -> rx.Component:
                     placeholder="- Select -",
                     value=ReportState.assign_select_recommend,
                     position="popper",
+                    color_scheme="teal",
                     on_change=ReportState.set_assign_select_recommend,
                     required=True,
                     size="3",
@@ -663,8 +762,14 @@ def assignment() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.assign_select_overall,
-                            rx.icon("circle-check-big", class_name="h-6 w-6 stroke-green-400"),
-                            rx.icon("circle-alert", class_name="h-6 w-6 stroke-zinc-200"),
+                            rx.icon(
+                                "circle-check-big",
+                                class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
+                            ),
+                            rx.icon(
+                                "circle-alert",
+                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
+                            ),
                         ),
                         class_name="pl-4"
                     ),
@@ -674,8 +779,8 @@ def assignment() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.assign_select_overall == 1,
-                            rx.icon("angry", class_name="h-10 w-10 fill-red-400"),
-                            rx.icon("angry", class_name="h-10 w-10 stroke-zinc-400"),
+                            rx.icon("angry", class_name="h-10 w-10 fill-red-400 stroke-[1.5] dark:stroke-zinc-700"),
+                            rx.icon("angry", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
                         ),
                         on_click=ReportState.set_assign_select_overall(1),
                         class_name="p-4 cursor-pointer",
@@ -683,8 +788,8 @@ def assignment() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.assign_select_overall == 2,
-                            rx.icon("frown", class_name="h-10 w-10 fill-orange-400"),
-                            rx.icon("frown", class_name="h-10 w-10 stroke-zinc-400"),
+                            rx.icon("frown", class_name="h-10 w-10 fill-orange-400 stroke-[1.5] dark:stroke-zinc-700"),
+                            rx.icon("frown", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
                         ),
                         on_click=ReportState.set_assign_select_overall(2),
                         class_name="p-4 cursor-pointer",
@@ -692,8 +797,8 @@ def assignment() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.assign_select_overall == 3,
-                            rx.icon("meh", class_name="h-10 w-10 fill-yellow-300"),
-                            rx.icon("meh", class_name="h-10 w-10 stroke-zinc-400"),
+                            rx.icon("meh", class_name="h-10 w-10 fill-yellow-300 stroke-[1.5] dark:stroke-zinc-700"),
+                            rx.icon("meh", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
                         ),
                         on_click=ReportState.set_assign_select_overall(3),
                         class_name="p-4 cursor-pointer",
@@ -701,8 +806,8 @@ def assignment() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.assign_select_overall == 4,
-                            rx.icon("smile", class_name="h-10 w-10 fill-green-400"),
-                            rx.icon("smile", class_name="h-10 w-10 stroke-zinc-400"),
+                            rx.icon("smile", class_name="h-10 w-10 fill-green-400 stroke-[1.5] dark:stroke-zinc-700"),
+                            rx.icon("smile", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
                         ),
                         on_click=ReportState.set_assign_select_overall(4),
                         class_name="p-4 cursor-pointer",
@@ -710,8 +815,8 @@ def assignment() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.assign_select_overall == 5,
-                            rx.icon("laugh", class_name="h-10 w-10 fill-blue-300"),
-                            rx.icon("laugh", class_name="h-10 w-10 stroke-zinc-400"),
+                            rx.icon("laugh", class_name="h-10 w-10 fill-blue-300 stroke-[1.5] dark:stroke-zinc-700"),
+                            rx.icon("laugh", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
                         ),
                         on_click=ReportState.set_assign_select_overall(5),
                         class_name="p-4 cursor-pointer",
@@ -720,6 +825,7 @@ def assignment() -> rx.Component:
                 ),
                 class_name="flex-col space-y-2 p-4 w-full",
             ),
+
             # Any comments for your nursing peers about culture, management, or environment?
             rx.flex(
                 rx.flex(
@@ -732,8 +838,14 @@ def assignment() -> rx.Component:
                     rx.flex(
                         rx.cond(
                             ReportState.assign_input_comments,
-                            rx.icon("circle-check-big", class_name="h-6 w-6 stroke-green-400"),
-                            rx.icon("circle-check-big", class_name="h-6 w-6 stroke-zinc-200"),
+                            rx.icon(
+                                "circle-check-big",
+                                class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
+                            ),
+                            rx.icon(
+                                "circle-alert",
+                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
+                            ),
                         ),
                         class_name="pl-4"
                     ),
@@ -743,6 +855,7 @@ def assignment() -> rx.Component:
                     rx.text_area(
                         value=ReportState.assign_input_comments,
                         placeholder="Do not enter personally identifiable information.",
+                        color_scheme="teal",
                         on_change=ReportState.set_assign_input_comments,
                         on_blur=ReportState.set_assign_input_comments,
                         height="10em",
@@ -780,27 +893,28 @@ def assignment() -> rx.Component:
                 ),
                 class_name="flex-col space-y-2 p-4 w-full",
             ),
+
             # Navigation buttons
             rx.cond(
                 ReportState.user_is_loading,
                 rx.flex(
-                    rx.icon("loader-circle", class_name="animate-spin"),
+                    rx.icon("loader-circle", class_name="animate-spin stroke-zinc-700 dark:stroke-zinc-500"),
                     class_name="flex-row items-center justify-center p-4 cursor-disabled"
                 ),
                 rx.flex(
                     rx.flex(
                         rx.flex(
-                            rx.icon("arrow-left"),
+                            rx.icon("arrow-left", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
                             rx.text("Back", class_name="font-bold select-none"),
                             on_click=rx.redirect(f"/report/{ReportState.mode}/compensation"),
                             class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer",
                         ),
-                        class_name="flex-col w-full active:bg-zinc-200 transition-colors duration-75",
+                        class_name="flex-col w-full active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75",
                     ),
                     rx.flex(
                         rx.flex(
                             rx.text("Next", class_name="font-bold select-none"),
-                            rx.icon("arrow-right"),
+                            rx.icon("arrow-right", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
                             on_click=[
                                 ReportState.set_user_is_loading(True),
                                 ReportState.handle_submit_assignment,
@@ -808,14 +922,14 @@ def assignment() -> rx.Component:
                             ],
                             class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer",
                         ),
-                        class_name="flex-col w-full active:bg-zinc-200 transition-colors duration-75",
+                        class_name="flex-col w-full active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75",
                     ),
-                    class_name="flex-row divide-x w-full",
+                    class_name="flex-row divide-x dark:divide-zinc-700 w-full",
                 ),
             ),
-            class_name="flex-col dark:divide-zinc-500 space-y-2 divide-y w-full",
+            class_name="flex-col dark:divide-zinc-500 space-y-2 divide-y dark:divide-zinc-700 w-full",
         ),
-        class_name="flex-col border rounded shadow-lg dark:border-zinc-500 bg-zinc-100 dark:bg-zinc-800 divide-y w-full",
+        class_name="flex-col border rounded shadow-lg dark:border-zinc-500 bg-zinc-100 dark:bg-zinc-800 divide-y dark:divide-zinc-700 w-full",
     )
 
 

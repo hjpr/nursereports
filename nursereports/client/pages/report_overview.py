@@ -153,7 +153,7 @@ def hospital_info() -> rx.Component:
                     ReportState.mode,
                     (
                         "edit", rx.flex(
-                            rx.icon("arrow-left"),
+                            rx.icon("arrow-left", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
                             rx.text("Back", class_name="font-bold select-none"),
                             on_click=rx.redirect("/dashboard"),
                             class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer"
@@ -164,13 +164,13 @@ def hospital_info() -> rx.Component:
                         rx.cond(
                             UserState.user_needs_onboarding,
                             rx.flex(
-                                rx.icon("arrow-left", class_name="dark:stroke-zinc-500"),
+                                rx.icon("arrow-left", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
                                 rx.text("Back", class_name="font-bold select-none"),
                                 on_click=rx.redirect("/search/hospital"),
                                 class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer"
                             ),
                             rx.flex(
-                                rx.icon("arrow-left", class_name="dark:stroke-zinc-500"),
+                                rx.icon("arrow-left", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
                                 rx.text("Back", class_name="font-bold select-none"),
                                 on_click=rx.redirect(f"/hospital/{ReportState.hospital_id}"),
                                 class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer"
@@ -183,7 +183,7 @@ def hospital_info() -> rx.Component:
             rx.flex(
                 rx.flex(
                     rx.text("Next", class_name="font-bold select-none"),
-                    rx.icon("arrow-right", class_name="dark:stroke-zinc-500"),
+                    rx.icon("arrow-right", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
                     on_click=rx.redirect(f"/report/{ReportState.mode}/compensation"),
                     class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer"
                 ),

@@ -117,7 +117,7 @@ class UserState(AuthState):
             num_pages_list = [ page for page in range(1, num_pages + 1) ]
 
             # Build dict.
-            paginated_hospitals = { number: [] for number in num_pages_list}
+            paginated_hospitals = { number: [] for number in num_pages_list } 
 
             # Fill dict.
             current_page = 1
@@ -143,7 +143,7 @@ class UserState(AuthState):
             num_pages_list = [ page for page in range(1, num_pages + 1) ]
 
             # Build dict.
-            paginated_reports = { number: [] for number in num_pages_list}
+            paginated_reports = { number: [] for number in num_pages_list }
 
             # Sort by date.
             sorted_reports = sorted(self.user_reports, key=lambda report: report["modified_at"] or report["created_at"], reverse=True)

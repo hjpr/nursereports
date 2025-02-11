@@ -126,7 +126,7 @@ def search_results() -> rx.Component:
         rx.cond(
             SearchState.search_is_loading,
             rx.flex(
-                rx.icon("loader-circle", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
+                rx.icon("loader-circle", class_name="animate-spin stroke-zinc-700 dark:stroke-zinc-500"),
                 class_name="flex-col items-center justify-center min-h-24 w-full",
             ),
             rx.cond(
