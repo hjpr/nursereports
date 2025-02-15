@@ -5,7 +5,7 @@ import reflex as rx
 
 FLEX_CLASSES = "flex bg-zinc-50 dark:bg-zinc-900 dark:border-zinc-700"
 ICON_CLASSES = "text-zinc-700 dark:text-zinc-50"
-INPUT_CLASSES = "border border-solid border-zinc-300 dark:border-zinc-500 ring-0 bg-zinc-100 dark:bg-zinc-800"
+INPUT_CLASSES = "border border-solid border-zinc-300 dark:border-zinc-700 ring-0 bg-zinc-100 dark:bg-zinc-800"
 LINK_CLASSES = "text-zinc-700 dark:text-zinc-50 hover:text-zinc-700 dark:hover:text-zinc-50 cursor-pointer"
 OUTLINE_BUTTON_CLASSES = "bg-zinc-50 border border-solid border-zinc-300 text-zinc-700 dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-50 cursor-pointer"
 SOLID_BUTTON_CLASSES = "bg-teal-600 dark:bg-teal-700 cursor-pointer"

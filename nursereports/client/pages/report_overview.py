@@ -1,6 +1,5 @@
 from ..components import (
     flex,
-    footer,
     navbar,
     login_protected,
     text,
@@ -14,8 +13,8 @@ import reflex as rx
     route="/report/[report_mode]/overview",
     title="Nurse Reports",
     on_load=[
-        BaseState.event_state_auth_flow,
-        BaseState.event_state_access_flow("login"),
+        BaseState.event_state_refresh_login,
+        BaseState.event_state_requires_login,
         ReportState.event_state_report_flow,
     ],
 )
@@ -24,7 +23,7 @@ def overview_page() -> rx.Component:
     return rx.flex(
         navbar(),
         content(),
-        class_name="flex-col items-center dark:bg-zinc-900 min-h-screen"
+        class_name="flex-col items-center dark:bg-zinc-900 min-h-screen w-full"
     )
 
 def content() -> rx.Component:

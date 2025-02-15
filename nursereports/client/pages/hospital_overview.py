@@ -20,13 +20,9 @@ import reflex as rx
     route="/hospital/[cms_id]",
     title="Nurse Reports",
     on_load=[
-        BaseState.event_state_auth_flow,
-        BaseState.event_state_access_flow("report"),
+        BaseState.event_state_refresh_login,
+        BaseState.event_state_requires_report,
         HospitalState.event_state_load_hospital_info,
-        HospitalState.event_state_load_report_info,
-        HospitalState.event_state_load_pay_info,
-        HospitalState.event_state_load_unit_info,
-        HospitalState.event_state_load_review_info,
     ],
 )
 @report_protected
@@ -410,7 +406,7 @@ def experience_slider() -> rx.Component:
                     )
                 )
             ),
-            class_name="flex-col md:flex-row items-center px-6 py-2 w-full"
+            class_name="flex-col md:flex-row items-center p-4 w-full"
         ),
         flex(
             text("0 YEARS", class_name="text-xs pr-4 text-nowrap"),
@@ -450,7 +446,7 @@ def reviews() -> rx.Component:
     return flex(
         rx.flex(
             rx.flex(
-                rx.icon("stethoscope", class_name="stroke-zinc-700 dark:stroke-teal-800 h-6 w-6"),
+                rx.icon("message-circle", class_name="stroke-zinc-700 dark:stroke-teal-800 h-6 w-6"),
                 text("Reviews", class_name="font-bold text-2xl"),
                 class_name="flex-row items-center space-x-2",
             ),
@@ -480,34 +476,109 @@ def reviews() -> rx.Component:
             ),
         ),
 
-        # Units grades.
+        # REVIEWS RATING
         rx.cond(
             HospitalState.units_areas_roles_for_units,
             # If there are units to select.
             flex(
-                flex(
-                    convert_to_large_emoji(HospitalState.selected_unit_info["comp_overall"]),
-                    rx.spacer(),
-                    rx.text("COMPENSATION", class_name="text-sm"),
-                    class_name="flex-row-reverse md:flex-col items-center justify-center px-6 py-4 md:space-y-1 w-full",
+                # COMPENSATION POPOVER / RATING
+                rx.popover.root(
+                    rx.popover.trigger(
+                        flex(
+                            convert_to_large_emoji(HospitalState.selected_unit_info["comp_overall"]),
+                            rx.spacer(),
+                            rx.flex(
+                                rx.text("COMPENSATION", class_name="text-sm select-none"),
+                                rx.icon("circle-help", class_name="stroke-zinc-700 dark:stroke-zinc-700"),
+                                class_name="md:flex-col space-x-2 md:space-x-0 space-y-0 md:space-y-2 items-center"
+                            ),
+                            class_name="flex-row-reverse md:flex-col items-center justify-center px-6 py-4 md:space-y-1 w-full active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75 cursor-pointer",
+                        ),
+                    ),
+                    rx.popover.content(
+                        rx.flex(
+                            rx.text("Compensation is a subjective nurse-rated score."),
+                            rx.text("This score suggests how satisifed nurses are with their overall pay and benefits package."),
+                            class_name="space-y-2 flex-col max-w-sm"
+                        ),
+                        align="center",
+                        class_name="dark:bg-zinc-800"
+                    )
                 ),
-                flex(
-                    convert_to_large_emoji(HospitalState.selected_unit_info["assign_overall"]),
-                    rx.spacer(),
-                    rx.text("ASSIGNMENT", class_name="text-sm"),
-                    class_name="flex-row-reverse md:flex-col items-center justify-center px-6 py-4 md:space-y-1 w-full",
+
+                # ASSIGNMENT POPOVER / RATING
+                rx.popover.root(
+                    rx.popover.trigger(
+                        flex(
+                            convert_to_large_emoji(HospitalState.selected_unit_info["assign_overall"]),
+                            rx.spacer(),
+                            rx.flex(
+                                rx.text("ASSIGNMENT", class_name="text-sm select-none"),
+                                rx.icon("circle-help", class_name="stroke-zinc-700 dark:stroke-zinc-700"),
+                                class_name="md:flex-col space-x-2 md:space-x-0 space-y-0 md:space-y-2 items-center"
+                            ),
+                            class_name="flex-row-reverse md:flex-col items-center justify-center px-6 py-4 md:space-y-1 w-full active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75 cursor-pointer",
+                        ),
+                    ),
+                    rx.popover.content(
+                        rx.flex(
+                            rx.text("Assignment is a subjective nurse-rated score."),
+                            rx.text("This score strongly tracks workplace culture and day-to-day experience alongside aides, co-workers, management, physicians, etc."),
+                            class_name="space-y-2 flex-col max-w-sm"
+                        ),
+                        align="center",
+                        class_name="dark:bg-zinc-800"
+                    )
                 ),
-                flex(
-                    convert_to_large_emoji(HospitalState.selected_unit_info["staff_overall"]),
-                    rx.spacer(),
-                    rx.text("STAFFING", class_name="text-sm"),
-                    class_name="flex-row-reverse md:flex-col items-center justify-center px-6 py-4 md:space-y-1 w-full",
+
+                # STAFFING POPVER / RATING
+                rx.popover.root(
+                    rx.popover.trigger(
+                        flex(
+                            convert_to_large_emoji(HospitalState.selected_unit_info["staff_overall"]),
+                            rx.spacer(),
+                            rx.flex(
+                                rx.text("STAFFING", class_name="text-sm select-none"),
+                                rx.icon("circle-help", class_name="stroke-zinc-700 dark:stroke-zinc-700"),
+                                class_name="md:flex-col space-x-2 md:space-x-0 space-y-0 md:space-y-2 items-center"
+                            ),
+                            class_name="flex-row-reverse md:flex-col items-center justify-center px-6 py-4 md:space-y-1 w-full active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75 cursor-pointer",
+                        ),
+                    ),
+                    rx.popover.content(
+                        rx.flex(
+                            rx.text("Staffing is a subjective nurse-rated score."),
+                            rx.text("This is an indicator of how fair ratios and daily workloads might feel as a result of staffing decisions."),
+                            class_name="space-y-2 flex-col max-w-sm"
+                        ),
+                        align="center",
+                        class_name="dark:bg-zinc-800"
+                    )
                 ),
-                flex(
-                    convert_to_large_emoji(HospitalState.selected_unit_info["overall"]),
-                    rx.spacer(),
-                    rx.text("OVERALL", class_name="text-sm font-bold"),
-                    class_name="flex-row-reverse md:flex-col items-center justify-center px-6 py-4 md:space-y-1 w-full",
+
+                # OVERALL POPOVER / RATING
+                rx.popover.root(
+                    rx.popover.trigger(
+                        flex(
+                            convert_to_large_emoji(HospitalState.selected_unit_info["overall"]),
+                            rx.spacer(),
+                            rx.flex(
+                                rx.text("OVERALL", class_name="text-sm font-bold select-none"),
+                                rx.icon("circle-help", class_name="stroke-zinc-700 dark:stroke-zinc-700"),
+                                class_name="md:flex-col space-x-2 md:space-x-0 space-y-0 md:space-y-2 items-center"
+                            ),
+                            class_name="flex-row-reverse md:flex-col items-center justify-center px-6 py-4 md:space-y-1 w-full active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75 cursor-pointer",
+                        ),
+                    ),
+                    rx.popover.content(
+                        rx.flex(
+                            rx.text("This is an average using compensation, assignment, and staffing scores."),
+                            rx.text("This suggests the general satisfaction with the workplace across the major categories."),
+                            class_name="space-y-2 flex-col max-w-sm"
+                        ),
+                        align="center",
+                        class_name="dark:bg-zinc-800"
+                    )
                 ),
                 class_name="flex-col md:flex-row items-center justify-between divide-y md:divide-y-0 md:divide-x dark:divide-zinc-700 w-full",
             ),
@@ -518,7 +589,7 @@ def reviews() -> rx.Component:
         ),
         rx.flex(
             rx.text("Comments", class_name="text-xl"),
-            class_name="flex justify-start p-4 w-full"
+            class_name="flex-col md:flex-row items-center md:justify-start p-4 w-full"
         ),
         comments(),
         class_name="flex-col items-center border rounded shadow-lg divide-y dark:divide-zinc-700 w-full"

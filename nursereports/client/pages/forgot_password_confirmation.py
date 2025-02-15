@@ -3,7 +3,6 @@ from ..components import (
     text,
     solid_button
 )
-from ...states import BaseState
 
 import reflex as rx
 
@@ -11,7 +10,6 @@ import reflex as rx
 @rx.page(
     route="/login/forgot-password/confirmation",
     title="Nurse Reports",
-    on_load=BaseState.event_state_auth_flow,
 )
 def forgot_password_confirmation_page() -> rx.Component:
     return flex(

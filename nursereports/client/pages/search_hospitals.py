@@ -16,8 +16,8 @@ import reflex as rx
     title="Search",
     route="/search/hospital",
     on_load=[
-        BaseState.event_state_auth_flow,
-        BaseState.event_state_access_flow("login"),
+        BaseState.event_state_refresh_login,
+        BaseState.event_state_requires_login,
     ],
 )
 @login_protected

@@ -8,8 +8,8 @@ import reflex as rx
     route="/onboard",
     title="Nurse Reports",
     on_load=[
-        BaseState.event_state_auth_flow,
-        BaseState.event_state_access_flow("login"),
+        BaseState.event_state_refresh_login,
+        BaseState.event_state_requires_login,
         OnboardState.event_state_onboard_flow,
     ],
 )

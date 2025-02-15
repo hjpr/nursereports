@@ -1,11 +1,10 @@
 from ..components import navbar, footer, flex, text
-from ...states import BaseState
 
 import reflex as rx
 
 
 @rx.page(
-    route="/about-us", title="Nurse Reports", on_load=BaseState.event_state_auth_flow
+    route="/about-us", title="Nurse Reports"
 )
 def about_us_page() -> rx.Component:
     return flex(

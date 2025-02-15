@@ -5,12 +5,12 @@ from ..components import(
     link,
     solid_button
 )
-from ...states import BaseState, UserState
+from ...states import UserState
 
 import reflex as rx
 
 
-@rx.page(route="/login", title="Nurse Reports", on_load=BaseState.event_state_auth_flow)
+@rx.page(route="/login", title="Nurse Reports")
 def login_page() -> rx.Component:
     return flex(
         content(),
@@ -24,7 +24,7 @@ def content() -> rx.Component:
         flex(rx.divider(), class_name="pb-3 w-full"),
         create_account(),
         login(),
-        class_name="flex-col items-center rounded shadow-lg p-8 space-y-4 w-full max-w-md",
+        class_name="flex-col items-center border dark:border-zinc-700 rounded shadow-lg p-8 space-y-4 w-full max-w-md",
     )
 
 
@@ -53,7 +53,7 @@ def create_account() -> rx.Component:
             on_click=rx.redirect("/create-account"),
             class_name="text-teal-700 cursor-pointer",
         ),
-        class_name="flex-col bg-zinc-100 dark:bg-zinc-800 border border-solid border-zinc-300 dark:border-zinc-500 rounded items-center p-2 w-full",
+        class_name="flex-col bg-zinc-100 dark:bg-zinc-800 border border-solid border-zinc-300 dark:border-zinc-700 rounded items-center p-2 w-full",
     )
 
 

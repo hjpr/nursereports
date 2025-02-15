@@ -51,7 +51,7 @@ class UserState(AuthState):
     user_contact_email_time: int = 0
     user_recovery_email_time: int = 0
 
-    @rx.var(cache=True)
+    @rx.var
     def user_claims(self) -> dict[str, str]:
         """
         Pull claims from JWT if valid, authenticated, and not expired.
@@ -72,31 +72,36 @@ class UserState(AuthState):
             logger.critical(e)
             return {}
 
-    @rx.var(cache=True)
+    @rx.var
     def user_claims_id(self) -> str | None:
         return self.user_claims.get("sub")
 
-    @rx.var(cache=True)
+    @rx.var
     def user_claims_email(self) -> str | None:
         return self.user_claims.get("email")
 
-    @rx.var(cache=True)
+    @rx.var
     def user_claims_issued_by(self) -> str | None:
         return self.user_claims.get("iss")
 
-    @rx.var(cache=True)
+    @rx.var
     def user_claims_issued_at(self) -> int | None:
+        """Formatted as seconds since epoch."""
         return self.user_claims.get("iat")
 
-    @rx.var(cache=True)
+    @rx.var
     def user_claims_expires_at(self) -> int | None:
+        """Formatted as seconds since epoch."""
         return self.user_claims.get("exp")
 
-    @rx.var(cache=True)
+    @rx.var
     def user_claims_authenticated(self) -> bool:
-        return True if self.user_claims.get("aud") == "authenticated" else False
+        if self.user_claims:
+            return True if self.user_claims.get("aud") == "authenticated" else False
+        else:
+            return False
 
-    @rx.var(cache=True)
+    @rx.var
     def user_claims_expiring(self) -> bool:
         if self.user_claims_authenticated:
             current_time = int(time.time())
@@ -107,8 +112,11 @@ class UserState(AuthState):
     
     @rx.var(cache=True)
     def user_needs_onboarding(self) -> bool:
-        return True if self.user_info.get("account").get("status") == "onboard" else False
-    
+        if self.user_info:
+            return True if self.user_info.get("account").get("status") == "onboard" else False
+        else:
+            return True
+        
     @rx.var()
     def paginated_saved_hospitals(self) -> list[dict]:
         if len(self.user_saved_hospitals) > self.MAX_HOSPITALS_DISPLAYED:
@@ -160,11 +168,11 @@ class UserState(AuthState):
         else:
             return sorted(self.user_reports, key=lambda report: report["modified_at"] or report["created_at"], reverse=True)
 
-    @rx.var(cache=True)
+    @rx.var
     def num_hospital_pages(self) -> int:
         return math.ceil(len(self.user_saved_hospitals) / self.MAX_HOSPITALS_DISPLAYED)
     
-    @rx.var(cache=True)
+    @rx.var
     def num_report_pages(self) -> int:
         return math.ceil(len(self.user_reports) / self.MAX_REPORTS_DISPLAYED)
     

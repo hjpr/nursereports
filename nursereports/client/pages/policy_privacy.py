@@ -1,19 +1,15 @@
 from ..components import(
     flex,
     text,
-    input,
-    link,
     solid_button
 )
-from ...states import BaseState
 
 import reflex as rx
 
 
 @rx.page(
     route="/policy/privacy",
-    title="Nurse Reports",
-    on_load=BaseState.event_state_auth_flow,
+    title="Nurse Reports"
 )
 def privacy_policy_page() -> rx.Component:
     return flex(

@@ -1,6 +1,5 @@
 from ..components import (
     flex,
-    footer,
     login_protected,
     navbar,
     text
@@ -14,8 +13,8 @@ import reflex as rx
     route="/report/[report_mode]/complete",
     title="Nurse Reports",
     on_load=[
-        BaseState.event_state_auth_flow,
-        BaseState.event_state_access_flow("login"),
+        BaseState.event_state_refresh_login,
+        BaseState.event_state_requires_login,
     ],
 )
 @login_protected
@@ -40,12 +39,12 @@ def content() -> rx.Component:
 def header() -> rx.Component:
     return rx.flex(
         rx.text(
-            "Like saving a few slices of pepperoni for night shift.",
+            "Just like saving a few slices of pepperoni for night shift...",
             class_name="font-bold text-center text-4xl text-zinc-700",
 
         ),
         rx.text(
-            """You're a team player! Every report adds to transparency and
+            """...You're a team player! Every report adds to transparency and
             accountability across the US. Don't forget to share this site
             with your friends and colleagues by using the social links below.
             """,

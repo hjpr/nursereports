@@ -12,8 +12,7 @@ import reflex as rx
 
 @rx.page(
     route="/login/forgot-password",
-    title="Nurse Reports",
-    on_load=BaseState.event_state_auth_flow,
+    title="Nurse Reports"
 )
 def forgot_password_page() -> rx.Component:
     return flex(

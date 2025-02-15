@@ -3,13 +3,12 @@ from ..components import (
     text,
     solid_button
 )
-from ...states import BaseState
 
 import reflex as rx
 
 
 @rx.page(
-    route="/policy/ai", title="Nurse Reports", on_load=BaseState.event_state_auth_flow
+    route="/policy/ai", title="Nurse Reports"
 )
 def ai_policy_page() -> rx.Component:
     return flex(

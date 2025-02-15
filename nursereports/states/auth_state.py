@@ -18,17 +18,6 @@ class AuthState(rx.State):
         secure=True,
     )
 
-    def set_tokens(self, url: str) -> Iterable[Callable]:
-        try:
-            yield rx.toast.info("Logging you in...")
-            fragment = url.split("#")[1]
-            self.access_token = fragment.split("&")[0].split("=")[1]
-            self.refresh_token = fragment.split("&")[4].split("=")[1]
-            yield rx.redirect("/dashboard")
-        except Exception as e:
-            logger.critical(e)
-            yield rx.redirect("Invalid tokens passed in URL.")
-
     def refresh_access_token(self) -> Iterable[Callable]:
         """
         Refresh JWT token using refresh token.

@@ -1,6 +1,5 @@
 from . import constants_types
-from ..states import PageState
-from ..server.exceptions import RequestFailed
+from ..states import HospitalState, PageState
 from ..server.secrets import groq_key
 from ..server.supabase import (
     supabase_user_edit_report,
@@ -1042,6 +1041,7 @@ class ReportState(PageState):
 
             # Redirect user to the completed page for fireworks!
             self.reset()
+            yield HospitalState.reset() # In case user navigates back to same hospital as reported. Forces info refresh.
             return rx.redirect(f"/report/{self.mode}/complete")
 
         except Exception as e:
@@ -1049,7 +1049,7 @@ class ReportState(PageState):
             yield rx.toast.error(
                 "Failed to submit report to database.", close_button=True
             )
-            yield ReportState.set_user_is_loading(False)
+            return ReportState.set_user_is_loading(False)
 
     def moderate_user_entries(self) -> None:
         """

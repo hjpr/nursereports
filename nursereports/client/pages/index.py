@@ -14,14 +14,14 @@ import reflex as rx
 @rx.page(
     route="/",
     title="Nurse Reports",
-    on_load=BaseState.event_state_auth_flow,
+    on_load=BaseState.event_state_handle_sso_redirect
 )
 def index_page() -> rx.Component:
     return rx.flex(
         navbar(),
         content(),
         footer(),
-        class_name="flex-col items-center w-full",
+        class_name="flex-col items-center dark:bg-zinc-900 w-full min-h-screen",
     )
 
 

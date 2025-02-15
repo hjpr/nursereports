@@ -59,7 +59,6 @@ class HospitalState(UserState):
 
     # User selectable fields.
     selected_unit: str = "Hospital Overall"
-    selected_pay_tab: str = "staff"
     selected_experience: int = 4
     selected_hospital_average: str = "Full-time"
     selected_state_average: str = "Full-time"
@@ -67,11 +66,11 @@ class HospitalState(UserState):
     # Pagination for sections.
     current_review_page: int = 1
 
-    @rx.var(cache=True)
+    @rx.var
     def has_report_info(self) -> bool:
         return True if len(self.report_info) > 0 else False
 
-    @rx.var(cache=True)
+    @rx.var
     def hosp_id(self) -> str | None:
         """
         Returns hosp_id if page param hosp_id is a valid CMS ID format.
@@ -85,17 +84,15 @@ class HospitalState(UserState):
             cms_is_valid = bool(re.match(r"^[a-zA-Z0-9]{5,6}$", hosp_id))
         return hosp_id if cms_is_valid else None
 
-    @rx.var(cache=True)
+    @rx.var
     def ft_pay_hospital_formatted(self) -> dict:
         """
         Round and format extrapolated full-time hospital pay data to $XX.XX
         """
         if self.extrapolated_ft_pay_hospital:
-            rounded_hourly = round(
-                self.extrapolated_ft_pay_hospital.get(self.selected_experience), 2
-            )
-            formatted_hourly = "{:.2f}".format(rounded_hourly)
-            rounded_yearly = round(rounded_hourly * 36 * 52)
+            hourly = self.extrapolated_ft_pay_hospital.get(self.selected_experience)
+            formatted_hourly = "{:.2f}".format(hourly)
+            rounded_yearly = round(hourly * 36 * 52)
             formatted_yearly = "{:,}".format(rounded_yearly)
             return {
                 "hourly": f"${formatted_hourly}",
@@ -104,7 +101,7 @@ class HospitalState(UserState):
         else:
             return {}
 
-    @rx.var(cache=True)
+    @rx.var
     def ft_pay_state_formatted(self) -> dict:
         """
         Round and format extrapolated full-time state hospital pay data to $XX.XX
@@ -123,17 +120,15 @@ class HospitalState(UserState):
         else:
             return {}
 
-    @rx.var(cache=True)
+    @rx.var
     def pt_pay_hospital_formatted(self) -> dict:
         """
         Round and format extrapolated part-time hospital pay data to $XX.XX
         """
         if self.extrapolated_pt_pay_hospital:
-            rounded_hourly = round(
-                self.extrapolated_pt_pay_hospital.get(self.selected_experience), 2
-            )
-            formatted_hourly = "{:.2f}".format(rounded_hourly)
-            rounded_yearly = round(rounded_hourly * 36 * 52)
+            hourly = self.extrapolated_pt_pay_hospital.get(self.selected_experience)
+            formatted_hourly = "{:.2f}".format(hourly)
+            rounded_yearly = round(hourly * 36 * 52)
             formatted_yearly = "{:,}".format(rounded_yearly)
             return {
                 "hourly": f"${formatted_hourly}",
@@ -142,7 +137,7 @@ class HospitalState(UserState):
         else:
             return {}
 
-    @rx.var(cache=True)
+    @rx.var
     def pt_pay_state_formatted(self) -> dict:
         """
         Round and format extrapolated part-time state pay data to $XX.XX
@@ -161,7 +156,7 @@ class HospitalState(UserState):
         else:
             return {}
 
-    @rx.var(cache=True)
+    @rx.var
     def selected_unit_info(self) -> dict[str, str]:
         """
         If user has a unit selected in the unit grades section, show scores
@@ -181,7 +176,7 @@ class HospitalState(UserState):
         # Otherwise if no matches, user hasn't selected anything and we return hospital overall.
         return matched_dict if matched_dict else self.overall_hospital_scores
 
-    @rx.var(cache=True)
+    @rx.var
     def filtered_review_info(self) -> list[dict]:
         """
         Used to display all reviews if no filters are selected, or filtered reviews
@@ -199,7 +194,7 @@ class HospitalState(UserState):
 
         return matched_list if matched_list else self.review_info
 
-    @rx.var(cache=True)
+    @rx.var
     def paginated_review_info(self) -> list[dict]:
         """
         Takes the filtered review info and paginates into a dict where user can
@@ -226,7 +221,7 @@ class HospitalState(UserState):
         else:
             return self.filtered_review_info
 
-    @rx.var(cache=True)
+    @rx.var
     def num_review_pages(self) -> int:
         num_pages = math.ceil(len(self.filtered_review_info) / self.MAX_REVIEWS_DISPLAYED)
         return num_pages
@@ -243,13 +238,21 @@ class HospitalState(UserState):
     def set_slider(self, value) -> None:
         self.selected_experience = value[0]
 
-    def event_state_load_hospital_info(self) -> Iterable[Callable]:
+    def event_state_load_hospital_info(self) -> Callable | None:
         """
         Load hospital data into state from supabase.
         """
         try:
-            # Reset all our hospital state variables for a clean slate.
-            self.reset()
+            # If user is opening hospital info already loaded, skip load.
+            if self.hospital_info:
+                if self.hospital_info["hosp_id"] != self.hosp_id:
+                    self.reset()
+                else:
+                    self.selected_hospital_average = "Full-time"
+                    self.selected_state_average = "Full-time"
+                    self.selected_experience = 4
+                    self.selected_unit = "Hospital Overall"
+                    return
 
             # As long as CMS ID appears to be valid, try to get hospital info.
             if self.hosp_id:
@@ -260,34 +263,31 @@ class HospitalState(UserState):
                 self.hospital_info["hosp_state"] = abbr_to_state_dict.get(
                     self.hospital_info["hosp_state_abbr"]
                 )
+                self.load_report_info()
+                self.load_pay_info()
+                self.load_unit_info()
+                self.load_review_info()
 
             # Otherwise send user back to dashboard.
             else:
-                yield rx.redirect("/dashboard")
+                return rx.redirect("/dashboard")
 
         except RequestFailed as e:
             logger.error(e)
-            yield rx.toast.error("Failed to retrieve report data from backend.")
+            return rx.toast.error("Failed to retrieve data from backend.")
         except Exception as e:
             logger.error(e)
-            yield rx.toast.error("Unexpected behavior while loading hospital info.")
+            return rx.toast.error("Error while loading hospital info.")
 
-    def event_state_load_report_info(self) -> Iterable[Callable]:
+    def load_report_info(self) -> None:
         """
         Load report data into state from supabase.
         """
-        try:
-            self.report_info = supabase_get_hospital_report_data(
-                self.access_token, self.hosp_id
-            )
-        except RequestFailed as e:
-            logger.critical(e)
-            yield rx.toast.error("Failed to retrieve review data from backend.")
-        except Exception as e:
-            logger.error(e)
-            yield rx.toast.error("Unexpected behavior while loading report info.")
+        self.report_info = supabase_get_hospital_report_data(
+            self.access_token, self.hosp_id
+        )
 
-    def event_state_load_pay_info(self) -> Iterable[Callable]:
+    def load_pay_info(self) -> None:
         """
         Pulls pay data out of report_info and processes data to partition into
         user digestible chunks for display.
@@ -522,7 +522,7 @@ class HospitalState(UserState):
         }
         return final_pay_dict
 
-    def event_state_load_unit_info(self) -> Iterable[Callable]:
+    def load_unit_info(self) -> None:
         try:
             if self.report_info:
                 # Create full dataframe and format.
@@ -572,8 +572,6 @@ class HospitalState(UserState):
                     .cast(pl.Int8)
                     .alias("overall")
                 )
-
-                pprint.pp(refined_df)
 
                 sorted_units = refined_df.select(pl.col("unit")).to_dict()
                 sorted_units = sorted(
@@ -737,7 +735,7 @@ class HospitalState(UserState):
             traceback.print_exc()
             logger.critical(e)
 
-    def event_state_load_review_info(self) -> Iterable[Callable]:
+    def load_review_info(self) -> None:
         try:
             if self.report_info:
                 review_df = (
@@ -820,7 +818,6 @@ class HospitalState(UserState):
 
         except Exception as e:
             logger.critical(e)
-            yield rx.toast.error("Whoops! Couldn't save reviews to state.")
 
     def event_state_like_unlike_review(
         self, review_to_edit: dict[str, str | list | bool]

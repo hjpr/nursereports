@@ -1,10 +1,9 @@
-from ...states import BaseState
 
 import reflex as rx
 
 
 @rx.page(
-    route="/donate", title="Nurse Reports", on_load=BaseState.event_state_auth_flow
+    route="/donate", title="Nurse Reports"
 )
 def donate_page() -> rx.Component:
     return rx.flex(
