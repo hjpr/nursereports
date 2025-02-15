@@ -56,16 +56,13 @@ class HospitalState(UserState):
     units_areas_roles_for_units: list[str]
     units_areas_roles_hospital_scores: list[dict]
     overall_hospital_scores: dict
-    units_areas_roles_for_reviews: list[str]
 
     # User selectable fields.
-    selected_unit: str = ""
+    selected_unit: str = "Hospital Overall"
     selected_pay_tab: str = "staff"
     selected_experience: int = 4
     selected_hospital_average: str = "Full-time"
     selected_state_average: str = "Full-time"
-    review_filter_units_areas_roles: str
-    review_sorted: str = "Most Recent"
 
     # Pagination for sections.
     current_review_page: int = 1
@@ -178,7 +175,7 @@ class HospitalState(UserState):
                 for d in self.units_areas_roles_hospital_scores
                 if d.get("units_areas_roles") == self.selected_unit
             ),
-            None,
+            None
         )
 
         # Otherwise if no matches, user hasn't selected anything and we return hospital overall.
@@ -190,33 +187,17 @@ class HospitalState(UserState):
         Used to display all reviews if no filters are selected, or filtered reviews
         if user has selected filters.
         """
-        # Load all reviews to show if no filters selected.
-        filtered_review_items = self.review_info
+        matched_list = [review for review in self.review_info if review.get("units_areas_roles", "") == self.selected_unit]
 
-        # Populate filtered_review_items with unit and area_role present.
-        if self.review_filter_units_areas_roles and self.review_info:
-            filtered_review_items = [
-                review
-                for review in self.review_info
-                if self.review_filter_units_areas_roles == review.get("units_areas_roles", "")
-            ]
+        # If reviews, sort by time submitted.
+        if matched_list:
+            matched_list = sorted(
+                matched_list,
+                key=lambda review: datetime.fromisoformat(review["timestamp"]),
+                reverse=True,
+            )
 
-        # Filter for "Most Recent" and/or "Most Helpful" if user has selected filters.
-        if self.review_sorted and self.review_info:
-            if self.review_sorted == "Most Recent":
-                filtered_review_items = sorted(
-                    filtered_review_items,
-                    key=lambda review: datetime.fromisoformat(review["timestamp"]),
-                    reverse=True,
-                )
-            # if self.review_sorted == "Most Helpful":
-            #     filtered_review_items = sorted(
-            #         filtered_review_items,
-            #         key=lambda review: review["likes_number"],
-            #         reverse=True,
-            #     )
-
-        return filtered_review_items
+        return matched_list if matched_list else self.review_info
 
     @rx.var(cache=True)
     def paginated_review_info(self) -> list[dict]:
@@ -592,6 +573,8 @@ class HospitalState(UserState):
                     .alias("overall")
                 )
 
+                pprint.pp(refined_df)
+
                 sorted_units = refined_df.select(pl.col("unit")).to_dict()
                 sorted_units = sorted(
                     list(unit for unit in set(sorted_units["unit"]) if unit)
@@ -608,7 +591,7 @@ class HospitalState(UserState):
                 )
 
                 self.units_areas_roles_for_units = (
-                    sorted_units + sorted_areas + sorted_roles
+                    ["Hospital Overall"] + sorted_units + sorted_areas + sorted_roles
                 )
 
                 # Calc average scores for entire hospital.
@@ -813,23 +796,6 @@ class HospitalState(UserState):
                     )
                 )
 
-                pprint.pp(refined_df)
-
-                sorted_units = refined_df.select(pl.col("unit")).to_dict()
-                sorted_units = sorted(
-                    list(unit for unit in set(sorted_units["unit"]) if unit)
-                )
-
-                sorted_areas = refined_df.select(pl.col("area")).to_dict()
-                sorted_areas = sorted(
-                    list(area for area in set(sorted_areas["area"]) if area)
-                )
-
-                sorted_roles = refined_df.select(pl.col("role")).to_dict()
-                sorted_roles = sorted(
-                    list(role for role in set(sorted_roles["role"]) if role)
-                )
-
                 refined_df = (
                     refined_df.select(
                         pl.coalesce(
@@ -850,9 +816,6 @@ class HospitalState(UserState):
                 )
 
                 # Add all to units_areas_roles list for user select.
-                self.units_areas_roles_for_reviews = (
-                    sorted_units + sorted_areas + sorted_roles
-                )
                 self.review_info = refined_df.to_dicts()
 
         except Exception as e:

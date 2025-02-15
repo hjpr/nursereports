@@ -23,9 +23,8 @@ def complete_page() -> rx.Component:
     return rx.flex(
         navbar(),
         content(),
-        footer(),
         fireworks(),
-        class_name="flex-col items-center min-h-svh",
+        class_name="flex-col items-center dark:bg-zinc-900 min-h-screen w-full"
     )
 
 

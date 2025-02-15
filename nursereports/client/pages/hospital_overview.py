@@ -35,7 +35,7 @@ def hospital_overview() -> rx.Component:
         navbar(),
         content(),
         footer(),
-        class_name="flex-col items-center min-h-svh",
+        class_name="flex-col items-center dark:bg-zinc-900 min-h-svh",
     )
 
 
@@ -44,7 +44,6 @@ def content() -> rx.Component:
             heading(),
             staff_pay(),
             travel_pay(),
-            units_roles(),
             reviews(),
             class_name="flex-col items-center space-y-4 md:space-y-12 px-4 py-4 md:py-20 w-full max-w-screen-md",
     )
@@ -69,13 +68,13 @@ def heading() -> rx.Component:
                     loading=~rx.State.is_hydrated
                 ),
                 rx.skeleton(
-                    text(HospitalState.hospital_info["hosp_addr"], class_name="text-sm"),
+                    text(HospitalState.hospital_info["hosp_addr"], class_name="text-md"),
                     loading=~rx.State.is_hydrated
                     ),
                 rx.skeleton(
                     text(
                         f'{HospitalState.hospital_info["hosp_city"]}, {HospitalState.hospital_info["hosp_state_abbr"]} {HospitalState.hospital_info["hosp_zip"]}',
-                        class_name="text-sm"
+                        class_name="text-md"
                     ),
                     loading=~rx.State.is_hydrated
                 ),
@@ -116,7 +115,7 @@ def staff_pay() -> rx.Component:
             class_name="flex-col items-start bg-zinc-100 dark:bg-zinc-800 p-2 w-full"
         ),
         hospital_average(),
-        state_average(),
+        # state_average(),
         experience_slider(),
         class_name="flex-col items-center border rounded shadow-lg divide-y dark:divide-zinc-700 w-full"
     )
@@ -124,15 +123,17 @@ def staff_pay() -> rx.Component:
 def hospital_average() -> rx.Component:
     return flex(
         flex(
-            text("Hospital Average", class_name="text-lg"),
-            rx.spacer(),
+            rx.flex(
+                text("Hospital Average", class_name="text-xl"),
+                class_name="flex justify-center md:justify-start w-full"
+            ),
             rx.segmented_control.root(
                 rx.segmented_control.item("Full-time", value="Full-time"),
                 rx.segmented_control.item("Part-time", value="Part-time"),
                 on_change=HospitalState.setvar("selected_hospital_average"),
                 value=HospitalState.selected_hospital_average
             ),
-            class_name="flex-col md:flex-row items-center px-6 py-2 space-y-1 md:space-y-0 w-full"
+            class_name="flex-col md:flex-row items-center p-4 space-y-4 md:space-y-0 w-full"
         ),
         flex(
             # Displays hourly pay.
@@ -389,21 +390,21 @@ def state_average() -> rx.Component:
 def experience_slider() -> rx.Component:
     return flex(
         flex(
-            text("Experience -", class_name="text-lg text-nowrap"),
+            text("Experience -", class_name="text-xl text-nowrap"),
             flex(
                 rx.cond(
                     HospitalState.selected_experience <= 25,
                     rx.skeleton(
                         text(
                             f"{HospitalState.selected_experience} year(s)",
-                            class_name="text-lg text-nowrap pl-1"
+                            class_name="text-xl text-nowrap pl-1"
                         ),
                         loading=~rx.State.is_hydrated
                     ),
                     rx.skeleton(
                         text(
                             "More than 25 years",
-                            class_name="text-lg text-nowrap pl-1"
+                            class_name="text-xl text-nowrap pl-1"
                         ),
                         loading=~rx.State.is_hydrated
                     )
@@ -445,12 +446,12 @@ def travel_pay() -> rx.Component:
     )
 
 
-def units_roles() -> rx.Component:
+def reviews() -> rx.Component:
     return flex(
         rx.flex(
             rx.flex(
                 rx.icon("stethoscope", class_name="stroke-zinc-700 dark:stroke-teal-800 h-6 w-6"),
-                text("Units/Roles", class_name="font-bold text-2xl"),
+                text("Reviews", class_name="font-bold text-2xl"),
                 class_name="flex-row items-center space-x-2",
             ),
         class_name="flex-col items-start bg-zinc-100 dark:bg-zinc-800 p-2 w-full"
@@ -460,27 +461,22 @@ def units_roles() -> rx.Component:
         rx.cond(
             HospitalState.units_areas_roles_for_units,
             flex(
-                rx.cond(
-                    HospitalState.selected_unit,
-                    text(HospitalState.selected_unit, class_name="text-xl"),
-                    text("Hospital Overall", class_name="text-xl")
+                rx.flex(
+                    text(HospitalState.selected_unit, class_name="font-bold text-xl"),
+                    class_name="flex justify-center md:justify-start w-full"
                 ),
-                rx.spacer(),
                 flex(
                     rx.select(
                         HospitalState.units_areas_roles_for_units,
                         placeholder="Hospital Overall",
                         value=HospitalState.selected_unit,
-                        label="Units/Areas/Roles",
+                        position="popper",
                         color_scheme="teal",
                         on_change=HospitalState.set_selected_unit,
                     ),
-                    solid_button(
-                        "Reset", on_click=HospitalState.set_selected_unit("")
-                    ),
-                    class_name="flex-row space-x-2",
+                    class_name="flex-row space-x-4",
                 ),
-                class_name="flex-col md:flex-row items-center px-6 py-2 space-y-1 md:space-y-0 w-full"
+                class_name="flex-col md:flex-row items-center p-4 space-y-4 md:space-y-0 w-full"
             ),
         ),
 
@@ -520,70 +516,12 @@ def units_roles() -> rx.Component:
                 class_name="flex-col items-center p-6 w-full",
             ),
         ),
-
-        # # Unit rank subheader and filters.
-        # rx.cond(
-        #     HospitalState.units_areas_roles_hospital_scores,
-        #     flex(
-        #         text("Rankings", class_name="text-lg"),
-        #         class_name="flex-col md:flex-row items-center px-6 py-2 space-y-1 md:space-y-0 w-full"
-        #     ),
-        # ),
-
-        # # Unit/Role rankings section.
-        # rx.cond(
-        #     HospitalState.units_areas_roles_hospital_scores,
-        #     flex(
-        #         flex(
-        #             rx.flex(
-        #                 rx.text("Unit/Role", class_name="text-xs text-center truncate uppercase p-2 w-[80%]"),
-        #                 class_name="divide-x dark:divide-zinc-500 w-[40%]"
-        #             ),
-        #             rx.text("Compensation", class_name="text-xs text-center truncate uppercase p-2 w-[15%]"),
-        #             rx.text("Assignment", class_name="text-xs text-center truncate uppercase p-2 w-[15%]"),
-        #             rx.text("Staffing", class_name="text-xs text-center truncate uppercase p-2 w-[15%]"),
-        #             rx.text("Overall", class_name="text-xs text-center truncate uppercase p-2 w-[15%]"),
-        #             class_name="flex-row items-center divide-x dark:divide-zinc-500 w-full"
-        #         ),
-        #         ranked_items(),
-        #         class_name="flex-col divide-y dark:divide-zinc-500 w-full"
-        #     ),
-        # ),
-        class_name="flex-col items-center border rounded shadow-lg divide-y dark:divide-zinc-700 w-full"
-    )
-
-def ranked_items() -> rx.Component:
-    return rx.foreach(HospitalState.units_areas_roles_hospital_scores, rank_item)
-
-def rank_item(unit_area_role:dict) -> rx.Component:
-    """
-    Renders units displayed in the unit rankings section. If a unit is selected, highlights
-    that element's bg.
-    """
-    return rx.cond(
-        HospitalState.selected_unit == unit_area_role["units_areas_roles"],
         rx.flex(
-            rx.flex(
-                rx.text(unit_area_role["units_areas_roles"], class_name="text-sm font-bold text-center truncate p-2 w-[80%]"),
-                class_name="divide-x dark:divide-zinc-500 w-[40%]"
-            ),
-            rx.flex(convert_to_small_emoji(unit_area_role["comp_overall"]), class_name="flex justify-center p-2 w-[15%]"),
-            rx.flex(convert_to_small_emoji(unit_area_role["assign_overall"]), class_name="flex justify-center p-2 w-[15%]"),
-            rx.flex(convert_to_small_emoji(unit_area_role["staff_overall"]), class_name="flex justify-center p-2 w-[15%]"),
-            rx.flex(convert_to_small_emoji(unit_area_role["overall"]), class_name="flex justify-center p-2 w-[15%]"),
-            class_name="flex-row bg-zinc-100 dark:bg-zinc-700 items-center divide-x dark:divide-zinc-500 w-full"
+            rx.text("Comments", class_name="text-xl"),
+            class_name="flex justify-start p-4 w-full"
         ),
-        rx.flex(
-            rx.flex(
-                rx.text(unit_area_role["units_areas_roles"], class_name="text-sm text-center truncate p-2 w-[80%]"),
-                class_name="divide-x dark:divide-zinc-500 w-[40%]"
-            ),
-            rx.flex(convert_to_small_emoji(unit_area_role["comp_overall"]), class_name="flex justify-center p-2 w-[15%]"),
-            rx.flex(convert_to_small_emoji(unit_area_role["assign_overall"]), class_name="flex justify-center p-2 w-[15%]"),
-            rx.flex(convert_to_small_emoji(unit_area_role["staff_overall"]), class_name="flex justify-center p-2 w-[15%]"),
-            rx.flex(convert_to_small_emoji(unit_area_role["overall"]), class_name="flex justify-center p-2 w-[15%]"),
-            class_name="flex-row items-center divide-x dark:divide-zinc-500 w-full"
-        )
+        comments(),
+        class_name="flex-col items-center border rounded shadow-lg divide-y dark:divide-zinc-700 w-full"
     )
 
 def convert_to_large_emoji(rating: str) -> rx.Component:
@@ -596,31 +534,9 @@ def convert_to_large_emoji(rating: str) -> rx.Component:
         (5, rx.icon("laugh", class_name="h-10 w-10 fill-blue-300 stroke-[1.5] dark:stroke-zinc-700")),
     )
 
-def convert_to_small_emoji(rating: str) -> rx.Component:
-    return rx.match(
-        rating,
-        (1, rx.icon("angry", class_name="h-6 w-6 fill-red-400")),
-        (2, rx.icon("frown", class_name="h-6 w-6 fill-orange-400")),
-        (3, rx.icon("meh", class_name="h-6 w-6 fill-yellow-200")),
-        (4, rx.icon("smile", class_name="h-6 w-6 fill-green-500")),
-        (5, rx.icon("laugh", class_name="h-6 w-6 fill-blue-300")),
-    )
-
-def reviews() -> rx.Component: 
-    """Free response section."""
-    return flex(
-        rx.flex(
-            rx.flex(
-                rx.icon("speech", class_name="stroke-zinc-700 dark:stroke-teal-800 h-6 w-6"),
-                text("Reviews", class_name="font-bold text-2xl"),
-                class_name="flex-row items-center space-x-2",
-            ),
-            class_name="flex-col items-start bg-zinc-100 dark:bg-zinc-800 p-2 w-full"
-        ),
-        rx.cond(
-            HospitalState.review_info,
-            review_filters()
-        ),
+def comments() -> rx.Component: 
+    """Comments section."""
+    return rx.flex(
         rx.cond(
             HospitalState.review_info,
             # REVIEWS PRESENT
@@ -659,44 +575,8 @@ def reviews() -> rx.Component:
                 class_name="flex-row divide-x dark:divide-zinc-700 w-full"
             ),
         ),
-        class_name="flex-col items-center border rounded shadow-lg divide-y dark:divide-zinc-700 w-full"
+        class_name="flex-col items-center divide-y dark:divide-zinc-700 w-full"
     )
-
-
-def review_filters() -> rx.Component:
-    return flex(
-        rx.select(
-            HospitalState.units_areas_roles_for_reviews,
-            value=HospitalState.review_filter_units_areas_roles,
-            placeholder="All units/areas/roles",
-            label="Select a unit/area/role",
-            size="2",
-            color_scheme="teal",
-            on_change=HospitalState.set_review_filter_units_areas_roles,
-            width=["100%", "100%", "auto", "auto", "auto"]
-        ),
-        rx.select(
-            ["Most Recent", "Most Helpful"],
-            value=HospitalState.review_sorted,
-            placeholder="Sort by",
-            label="Select a sort method",
-            size="2",
-            color_scheme="teal",
-            on_change=HospitalState.set_review_sorted,
-            width=["100%", "100%", "auto", "auto", "auto"]
-        ),
-        solid_button(
-            rx.text("Clear filters"),
-            size="2",
-            on_click=[
-                HospitalState.set_review_filter_units_areas_roles(""),
-                HospitalState.set_review_sorted(""),
-            ],
-            width=["100%", "100%", "auto", "auto", "auto"]
-        ),
-        class_name="flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 items-center justify-center p-2 w-full"
-    )
-
 
 def response_card(review: dict[str, str]) -> rx.Component:
     """

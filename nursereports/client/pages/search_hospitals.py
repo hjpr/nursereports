@@ -26,7 +26,7 @@ def search_page() -> rx.Component:
         navbar(),
         content(),
         footer(),
-        class_name="flex-col items-center min-h-screen",
+        class_name="flex-col items-center dark:bg-zinc-900 min-h-screen",
     )
 
 

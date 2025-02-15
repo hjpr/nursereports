@@ -26,7 +26,7 @@ def dashboard_page() -> rx.Component:
         navbar(),
         content(),
         footer(),
-        class_name="flex-col items-center w-full",
+        class_name="flex-col dark:bg-zinc-900 items-center w-full",
     )
 
 

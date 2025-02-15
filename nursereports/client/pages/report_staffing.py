@@ -29,7 +29,6 @@ def staffing_page() -> rx.Component:
     return rx.flex(
         navbar(),
         content(),
-        footer(),
         class_name="flex-col items-center w-full"
     )
 

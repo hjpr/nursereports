@@ -24,8 +24,7 @@ def overview_page() -> rx.Component:
     return rx.flex(
         navbar(),
         content(),
-        footer(),
-        class_name="flex-col items-center"
+        class_name="flex-col items-center dark:bg-zinc-900 min-h-screen"
     )
 
 def content() -> rx.Component:
