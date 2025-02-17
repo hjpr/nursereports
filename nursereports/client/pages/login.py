@@ -58,24 +58,24 @@ def create_account() -> rx.Component:
 
 
 def login() -> rx.Component:
-    return rx.form(
+    return flex(
+        text(
+            "Login to your account",
+            class_name="text-xl pt-8 font-bold text-zinc-700",
+        ),
         flex(
-            text(
-                "Login to your account",
-                class_name="text-xl pt-8 font-bold text-zinc-700",
-            ),
             flex(
-                flex(
-                    text("Email", size="2", class_name="pb-1"),
-                    input(
-                        placeholder="Enter email",
-                        name="email",
-                        size="3",
-                        class_name="w-full",
-                        color_scheme="teal"
-                    ),
-                    class_name="flex-col w-full",
+                text("Email", size="2", class_name="pb-1"),
+                input(
+                    placeholder="Enter email",
+                    name="email",
+                    size="3",
+                    class_name="w-full",
+                    color_scheme="teal"
                 ),
+                class_name="flex-col w-full",
+            ),
+            rx.form(
                 flex(
                     text("Password", class_name="text-sm"),
                     input(
@@ -103,43 +103,43 @@ def login() -> rx.Component:
                     ),
                     class_name="flex-col items-center pt-5 space-y-6 w-full",
                 ),
-                class_name="flex-col items-center space-y-6 w-full",
+                on_submit=[
+                    UserState.setvar("user_is_loading", True),
+                    UserState.event_state_submit_login
+                ],
+                reset_on_submit=False,
             ),
-            flex(
-                rx.divider(),
-                text("OR", size="2", padding="6px", white_space="nowrap"),
-                rx.divider(),
-                class_name="flex-row items-center pt-4 space-x-4 w-full",
-            ),
-            flex(
-                rx.button(
-                    rx.image(src="/sso/google_sso.png", class_name="h-16 w-16"),
-                    variant="ghost",
-                    loading=UserState.user_is_loading,
-                    class_name="h-16 w-16 cursor-pointer",
-                    on_click=UserState.event_state_login_with_sso("google"),
-                ),
-                rx.button(
-                    rx.image(src="/sso/facebook_sso.png", class_name="h-16 w-16"),
-                    variant="ghost",
-                    loading=UserState.user_is_loading,
-                    class_name="h-16 w-16 cursor-pointer",
-                    on_click=UserState.event_state_login_with_sso("facebook"),
-                ),
-                rx.button(
-                    rx.image(src="/sso/linkedin_sso.png", class_name="h-16 w-16"),
-                    variant="ghost",
-                    loading=UserState.user_is_loading,
-                    class_name="h-16 w-16 cursor-pointer",
-                    on_click=UserState.event_state_login_with_sso("linkedin_oidc"),
-                ),
-                class_name="flex-row justify-center pt-3 pb-6 space-x-14 w-full",
-            ),
-            class_name="flex-col items-center space-y-8 w-full",
+            class_name="flex-col items-center space-y-6 w-full",
         ),
-        on_submit=[
-            UserState.setvar("user_is_loading", True),
-            UserState.event_state_submit_login
-        ],
-        reset_on_submit=False,
+        flex(
+            rx.divider(),
+            text("OR", size="2", padding="6px", white_space="nowrap"),
+            rx.divider(),
+            class_name="flex-row items-center pt-4 space-x-4 w-full",
+        ),
+        flex(
+            rx.button(
+                rx.image(src="/sso/google_sso.png", class_name="h-16 w-16"),
+                variant="ghost",
+                loading=UserState.user_is_loading,
+                class_name="h-16 w-16 cursor-pointer",
+                on_click=UserState.event_state_login_with_sso("google"),
+            ),
+            rx.button(
+                rx.image(src="/sso/facebook_sso.png", class_name="h-16 w-16"),
+                variant="ghost",
+                loading=UserState.user_is_loading,
+                class_name="h-16 w-16 cursor-pointer",
+                on_click=UserState.event_state_login_with_sso("facebook"),
+            ),
+            rx.button(
+                rx.image(src="/sso/linkedin_sso.png", class_name="h-16 w-16"),
+                variant="ghost",
+                loading=UserState.user_is_loading,
+                class_name="h-16 w-16 cursor-pointer",
+                on_click=UserState.event_state_login_with_sso("linkedin_oidc"),
+            ),
+            class_name="flex-row justify-center pt-3 pb-6 space-x-14 w-full",
+        ),
+        class_name="flex-col items-center space-y-8 w-full",
     )
