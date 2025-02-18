@@ -32,10 +32,6 @@ class AuthState(rx.State):
             logger.critical(e)
             yield rx.toast.error("Unable to refresh credentials.")
 
-    def clear_tokens(self) -> Iterable[Callable]:
-        self.access_token = ""
-        self.refresh_token = ""
-
     def event_state_logout(self) -> Iterable[Callable]:
         """
         Send to root and reset all state vars.

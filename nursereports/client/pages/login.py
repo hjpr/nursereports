@@ -5,12 +5,12 @@ from ..components import(
     link,
     solid_button
 )
-from ...states import UserState
+from ...states import BaseState, UserState
 
 import reflex as rx
 
 
-@rx.page(route="/login", title="Nurse Reports")
+@rx.page(route="/login", title="Nurse Reports", on_load=BaseState.event_state_check_expired_login)
 def login_page() -> rx.Component:
     return flex(
         content(),
