@@ -72,7 +72,7 @@ class BaseState(UserState):
                 self.get_user_info()
 
                 # Send user to appropriate part of site.
-                yield from self.redirect_user_to_location()
+                yield self.redirect_user_to_location()
 
         except Exception:
             traceback.print_exc()

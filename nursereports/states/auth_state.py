@@ -18,19 +18,19 @@ class AuthState(rx.State):
         secure=True,
     )
 
-    def refresh_access_token(self) -> Iterable[Callable]:
+    def refresh_access_token(self) -> Callable | None:
         """
         Refresh JWT token using refresh token.
         """
         try:
-            access_token = self.access_token
-            refresh_token = self.refresh_token
-            tokens = supabase_get_new_access_token(access_token, refresh_token)
+            # Use our old tokens to request new access and refresh tokens.
+            tokens = supabase_get_new_access_token(self.access_token, self.refresh_token)
             self.access_token = tokens.get("access_token", "")
             self.refresh_token = tokens.get("refresh_token", "")
+            return None
         except Exception as e:
             logger.critical(e)
-            yield rx.toast.error("Unable to refresh credentials.")
+            return rx.toast.error("Unable to refresh credentials.")
 
     def event_state_logout(self) -> Iterable[Callable]:
         """
@@ -38,4 +38,4 @@ class AuthState(rx.State):
         """
         yield rx.redirect("/")
         yield self.reset()
-        yield rx.toast.success("Logged out.")
+        return rx.toast.error("Logged out.")

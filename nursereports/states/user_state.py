@@ -213,6 +213,8 @@ class UserState(AuthState):
             # Disable login attempts while request is out.
             self.user_is_loading = True
 
+            logger.critical(auth_data)
+
             if auth_data.get("email") and auth_data.get("password"):
                 # Grab auth data from form submission.
                 email = auth_data.get("email")
@@ -229,7 +231,7 @@ class UserState(AuthState):
                 self.get_user_info()
 
                 # Send to proper page.
-                yield from self.redirect_user_to_location()
+                yield self.redirect_user_to_location()
 
             # If either email or password are missing.
             else:
@@ -239,7 +241,7 @@ class UserState(AuthState):
             self.user_is_loading = False
 
         except Exception as e:
-            logger.warning(str(e))
+            traceback.print_exc()
             yield rx.toast.error(str(e))
             self.user_is_loading = False
 

@@ -556,6 +556,8 @@ class ReportState(PageState):
     def assign_input_comments_chars_left(self) -> int:
         if self.assign_input_comments:
             return 1000 - len(self.assign_input_comments)
+        else:
+            return 1000
 
     def handle_submit_assignment(self) -> Callable | Iterable[Callable]:
         # Check all our values for completion.
@@ -799,6 +801,8 @@ class ReportState(PageState):
     def staffing_input_comments_chars_left(self) -> int:
         if self.staffing_input_comments:
             return 1000 - len(self.staffing_input_comments)
+        else:
+            return 1000
 
     def handle_submit_staffing(self) -> Callable | Iterable[Callable]:
         # Check our values for completion.
