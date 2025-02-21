@@ -37,6 +37,9 @@ class UserState(AuthState):
     MAX_HOSPITALS_DISPLAYED = 5
     MAX_REPORTS_DISPLAYED = 5
 
+    # If user login expires during state event, save url here.
+    restore_page_after_login: str = ""
+
     # Used to display loading wheel for user UI events.
     user_is_loading: bool = False
 
@@ -109,6 +112,14 @@ class UserState(AuthState):
             seconds_to_expiration = expires_at - current_time
             return True if seconds_to_expiration <= 900 else False
         return False
+    
+    @rx.var
+    def user_claims_expired(self) -> bool:
+        if self.user_claims_authenticated:
+            time_left = self.user_claims_expires_at - int(time.time())
+            return True if time_left <= 0 else False
+        else:
+            return False
     
     @rx.var(cache=True)
     def user_needs_onboarding(self) -> bool:
@@ -202,6 +213,8 @@ class UserState(AuthState):
             # Disable login attempts while request is out.
             self.user_is_loading = True
 
+            logger.critical(auth_data)
+
             if auth_data.get("email") and auth_data.get("password"):
                 # Grab auth data from form submission.
                 email = auth_data.get("email")
@@ -218,7 +231,7 @@ class UserState(AuthState):
                 self.get_user_info()
 
                 # Send to proper page.
-                yield from self.redirect_user_to_onboard_or_dashboard()
+                yield self.redirect_user_to_location()
 
             # If either email or password are missing.
             else:
@@ -228,7 +241,7 @@ class UserState(AuthState):
             self.user_is_loading = False
 
         except Exception as e:
-            logger.warning(str(e))
+            traceback.print_exc()
             yield rx.toast.error(str(e))
             self.user_is_loading = False
 
@@ -548,13 +561,17 @@ class UserState(AuthState):
             logger.error(e)
             yield rx.toast.error(e)
 
-    def redirect_user_to_onboard_or_dashboard(self) -> Iterable[Callable]:
+    def redirect_user_to_location(self) -> Callable:
         """
-        Used after login to push user to be onboarded, or to the dashboard.
+        Used after login to push user to be onboarded, dashboard, or restores the page
+        they were on when login expired.
         """
+        if self.restore_page_after_login:
+            logger.debug(f"Sending user back to {self.restore_page_after_login}")
+            return rx.redirect(self.restore_page_after_login)
         if self.user_needs_onboarding:
             logger.debug(f"Sending {self.user_claims_id} to onboard.")
-            yield rx.redirect("/onboard")
+            return rx.redirect("/onboard")
         else:
             logger.debug(f"Sending {self.user_claims_id} to dashboard.")
-            yield rx.redirect("/dashboard")
+            return rx.redirect("/dashboard")

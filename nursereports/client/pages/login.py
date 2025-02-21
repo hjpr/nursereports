@@ -5,12 +5,12 @@ from ..components import(
     link,
     solid_button
 )
-from ...states import UserState
+from ...states import BaseState, UserState
 
 import reflex as rx
 
 
-@rx.page(route="/login", title="Nurse Reports")
+@rx.page(route="/login", title="Nurse Reports", on_load=BaseState.event_state_check_expired_login)
 def login_page() -> rx.Component:
     return flex(
         content(),
@@ -64,18 +64,18 @@ def login() -> rx.Component:
             class_name="text-xl pt-8 font-bold text-zinc-700",
         ),
         flex(
-            flex(
-                text("Email", size="2", class_name="pb-1"),
-                input(
-                    placeholder="Enter email",
-                    name="email",
-                    size="3",
-                    class_name="w-full",
-                    color_scheme="teal"
-                ),
-                class_name="flex-col w-full",
-            ),
             rx.form(
+                flex(
+                    text("Email", size="2", class_name="pb-1"),
+                    input(
+                        placeholder="Enter email",
+                        name="email",
+                        size="3",
+                        class_name="w-full",
+                        color_scheme="teal"
+                    ),
+                    class_name="flex-col w-full",
+                ),
                 flex(
                     text("Password", class_name="text-sm"),
                     input(

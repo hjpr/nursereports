@@ -67,7 +67,6 @@ def share() -> rx.Component:
                     text("Facebook", class_name="font-bold select-none"),
                     on_click=rx.redirect(
                         "https://www.facebook.com/sharer/sharer.php?u=https://nursereports.org&amp;src=sdkpreparse",
-                        external=True,
                     ),
                     class_name="flex-row items-center justify-center space-x-4 p-4 cursor-pointer",
                 ),
@@ -79,7 +78,6 @@ def share() -> rx.Component:
                     text("Twitter", class_name="font-bold select-none"),
                     on_click=rx.redirect(
                         "https://twitter.com/intent/post?text=Nationwide hospital reporting built by nurses for nurses.&url=https%3A%2F%2Fnursereports.org",
-                        external=True,
                     ),
                     class_name="flex-row items-center justify-center space-x-4 p-4 cursor-pointer",
                 ),
@@ -91,7 +89,6 @@ def share() -> rx.Component:
                     text("LinkedIn", class_name="font-bold select-none"),
                     on_click=rx.redirect(
                         "https://www.linkedin.com/sharing/share-offsite/?url=https://nursereports.org",
-                        external=True,
                     ),
                     class_name="flex-row items-center justify-center space-x-4 p-4 cursor-pointer",
                 ),

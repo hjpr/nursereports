@@ -45,12 +45,12 @@ class HospitalState(UserState):
     contract_pay: list[dict]
 
     # Are there less than 10 reports?
-    ft_pay_hospital_info_limited: bool
-    pt_pay_hospital_info_limited: bool
-    ft_pay_state_info_limited: bool
-    pt_pay_state_info_limited: bool
-    contract_pay_info_hospital_limited: bool
-    contract_pay_info_state_limited: bool
+    ft_pay_hospital_info_limited: bool = False
+    pt_pay_hospital_info_limited: bool = False
+    ft_pay_state_info_limited: bool = False
+    pt_pay_state_info_limited: bool = False
+    contract_pay_info_hospital_limited: bool = False
+    contract_pay_info_state_limited: bool = False
 
     # Units/areas/roles pulled from reports.
     units_areas_roles_for_units: list[str]
