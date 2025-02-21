@@ -3,6 +3,7 @@ from ..states import HospitalState, PageState
 from ..server.secrets import groq_key
 from ..server.supabase import (
     supabase_user_edit_report,
+    supabase_user_patch_report,
     supabase_get_full_report_info,
     supabase_get_hospital_info,
     supabase_submit_full_report,
@@ -1115,7 +1116,7 @@ class ReportState(PageState):
                     data = {}
                     data["report_id"] = self.report_id
                     data["moderation"] = self.report_dict.get("moderation").copy()
-                    supabase_user_edit_report(self.access_token, data)
+                    supabase_user_patch_report(self.access_token, data)
                 else:
                     logger.debug(
                         f"Entries for report {self.report_id} by {self.user_claims_id} are cleared by {ai_moderation_model}"

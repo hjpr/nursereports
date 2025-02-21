@@ -74,7 +74,7 @@ def supabase_submit_full_report(access_token: str, report: dict[str, any]) -> No
 
 def supabase_user_edit_report(access_token: str, report: dict[str, any]) -> None:
     """
-    Edits an existing report in /reports via a user
+    Edits an existing full report in /reports via a user
 
     Args:
         access_token: str - jwt object of user
@@ -97,7 +97,32 @@ def supabase_user_edit_report(access_token: str, report: dict[str, any]) -> None
     else:
         rich.inspect(response)
         raise RequestFailed("Request to submit report to database failed.")
+    
+def supabase_user_patch_report(access_token: str, report: dict[str, any]) -> None:
+    """
+    Patches an existing report in /reports via a user
 
+    Args:
+        access_token: str - jwt object of user
+        report: dict - contains fields to update
+
+    Exceptions:
+        RequestFailed: request to database failed.
+    """
+    url = f"{api_url}/rest/v1/reports?report_id=eq.{report['report_id']}"
+    data = json.dumps(report)
+    headers = {
+        "apikey": api_key,
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json",
+        "Prefer": "return=minimal",
+    }
+    response = httpx.patch(url=url, headers=headers, data=data)
+    if response.is_success:
+        logger.debug(f"Successfully patched report {report['report_id']} via user request.")
+    else:
+        rich.inspect(response)
+        raise RequestFailed("Request to submit report to database failed.")
 
 def supabase_admin_edit_report(report: dict[str, any]) -> None:
     """
