@@ -1041,7 +1041,7 @@ class ReportState(PageState):
 
             # Redirect user to the completed page for fireworks!
             self.reset()
-            yield HospitalState.reset() # In case user navigates back to same hospital as reported. Forces info refresh.
+            yield HospitalState.user_completed_report() # In case user navigates back to same hospital as reported. Forces info refresh.
             return rx.redirect(f"/report/{self.mode}/complete")
 
         except Exception as e:
@@ -1121,4 +1121,6 @@ class ReportState(PageState):
                     f"{self.user_claims_id} hasn't entered any content to be moderated."
                 )
         except Exception:
+            import traceback
+            traceback.print_exc()
             logger.warning(f"Moderation for {self.user_claims_id} failed.")

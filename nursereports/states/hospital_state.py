@@ -238,6 +238,10 @@ class HospitalState(UserState):
     def set_slider(self, value) -> None:
         self.selected_experience = value[0]
 
+    def user_completed_report(self) -> None:
+        """When user completes a report, reset hospital variables so all reports are refreshed on page visit."""
+        self.reset()
+
     def event_state_load_hospital_info(self) -> Callable | None:
         """
         Load hospital data into state from supabase.
