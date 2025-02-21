@@ -1113,6 +1113,7 @@ class ReportState(PageState):
                         "User entries were either flagged or unmoderated. Sending updates to database."
                     )
                     data = {}
+                    data["report_id"] = self.report_id
                     data["moderation"] = self.report_dict.get("moderation").copy()
                     supabase_user_edit_report(self.access_token, data)
                 else:
