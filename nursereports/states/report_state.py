@@ -1080,9 +1080,9 @@ class ReportState(PageState):
                                 You moderate entries for a nurse review site. Entries may contain location data about where nurse works at hospital.
                                 Entries may also contain comments nurses are allowed to share to their peers about pay, staffing, or work environment.
                                 Output responses as JSON. Under key 'flagged', output a 1 for invalid entries flagged for containing violence, protected
-                                health info, off-topic entries, spam, racism, sexism, or doxxing otherwise if valid output a 0. Profanity and content
-                                conveying strong emotions is acceptable given it's on topic. Under key 'reason', if entry is flagged
-                                give brief rationale otherwise output ''.
+                                health info, off-topic entries, nonsensical content, spam, advertisements, racism, sexism, or doxxing otherwise if valid
+                                output a 0. Profanity and content conveying strong emotions is acceptable given it's on topic. Under key 'reason', if
+                                entry is flagged give brief rationale otherwise output ''.
                                 """),
                         },
                         {
