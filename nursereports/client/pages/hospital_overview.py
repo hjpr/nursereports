@@ -47,36 +47,36 @@ def content() -> rx.Component:
 
 def heading() -> rx.Component:
     return flex(
-        rx.flex(
-            rx.flex(
-                rx.icon("hospital", class_name="h-6 w-6 stroke-zinc-700 dark:stroke-teal-800"),
-                text("Hospital Overview", class_name="text-2xl font-bold"),
-                class_name="flex-row items-center space-x-2"
-            ),
-            class_name="flex-col items-center bg-zinc-100 dark:bg-zinc-800 p-4 w-full"
-        ),
+        # rx.flex(
+        #     rx.flex(
+        #         rx.icon("hospital", class_name="h-6 w-6 stroke-zinc-700 dark:stroke-teal-800"),
+        #         text("Hospital Overview", class_name="text-2xl font-bold"),
+        #         class_name="flex-row items-center space-x-2"
+        #     ),
+        #     class_name="flex-col items-center bg-zinc-100 dark:bg-zinc-800 p-4 w-full"
+        # ),
 
         # Hospital information section.
         rx.flex(
             rx.flex(
                 rx.skeleton(
-                    text(HospitalState.hospital_info["hosp_name"], class_name="font-bold text-center text-2xl"),
+                    text(HospitalState.hospital_info["hosp_name"], class_name="font-bold text-center text-3xl"),
                     loading=~rx.State.is_hydrated
                 ),
                 rx.skeleton(
-                    text(HospitalState.hospital_info["hosp_addr"], class_name="text-md"),
+                    text(HospitalState.hospital_info["hosp_addr"], class_name="text-xl"),
                     loading=~rx.State.is_hydrated
                     ),
                 rx.skeleton(
                     text(
                         f'{HospitalState.hospital_info["hosp_city"]}, {HospitalState.hospital_info["hosp_state_abbr"]} {HospitalState.hospital_info["hosp_zip"]}',
-                        class_name="text-md"
+                        class_name="text-xl"
                     ),
                     loading=~rx.State.is_hydrated
                 ),
                 class_name="flex-col items-center space-y-1 w-full",
             ),
-            class_name="p-4 w-full"
+            class_name="p-6 w-full"
         ),
 
         # Hospital buttons.

@@ -183,15 +183,6 @@ class HospitalState(UserState):
         if user has selected filters.
         """
         matched_list = [review for review in self.review_info if review.get("units_areas_roles", "") == self.selected_unit]
-
-        # If reviews, sort by time submitted.
-        if matched_list:
-            matched_list = sorted(
-                matched_list,
-                key=lambda review: datetime.fromisoformat(review["timestamp"]),
-                reverse=True,
-            )
-
         return matched_list if matched_list else self.review_info
 
     @rx.var
@@ -201,9 +192,15 @@ class HospitalState(UserState):
         flip between sets of reviews. If there aren't enough reviews to paginate,
         then return a dict with reviews under page 1.
         """
-        if len(self.filtered_review_info) > self.MAX_REVIEWS_DISPLAYED:
+        # Sort all reports by time submitted.
+        sorted_list = sorted(
+            self.filtered_review_info,
+            key=lambda review: datetime.fromisoformat(review["timestamp"]),
+            reverse=True,
+        )
+        if len(sorted_list) > self.MAX_REVIEWS_DISPLAYED:
             # Determine number of pages.
-            num_pages = math.ceil(len(self.filtered_review_info) / self.MAX_REVIEWS_DISPLAYED)
+            num_pages = math.ceil(len(sorted_list) / self.MAX_REVIEWS_DISPLAYED)
             num_pages_list = [page for page in range(1, (num_pages + 1))]
 
             # Build dict.
@@ -211,7 +208,7 @@ class HospitalState(UserState):
 
             # Fill dict.
             current_page = 1
-            for review in self.filtered_review_info:
+            for review in sorted_list:
                 if len(paginated_reports[current_page]) >= self.MAX_REVIEWS_DISPLAYED:
                     current_page += 1
                 paginated_reports[current_page].append(review)
@@ -219,7 +216,7 @@ class HospitalState(UserState):
             return paginated_reports.get(self.current_review_page)
 
         else:
-            return self.filtered_review_info
+            return sorted_list
 
     @rx.var
     def num_review_pages(self) -> int:
