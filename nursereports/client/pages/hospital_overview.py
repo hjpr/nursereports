@@ -76,7 +76,7 @@ def heading() -> rx.Component:
                 ),
                 class_name="flex-col items-center space-y-1 w-full",
             ),
-            class_name="p-6 w-full"
+            class_name="p-8 w-full"
         ),
 
         # Hospital buttons.
