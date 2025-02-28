@@ -121,7 +121,7 @@ def dashboard_trash(hospital: dict[str, str]) -> rx.Component:
         rx.popover.trigger(
             flex(
                 rx.skeleton(
-                    rx.icon("trash-2", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
+                    rx.icon("trash-2", class_name="h-5 w-5 stroke-zinc-700 dark:stroke-zinc-500"),
                     loading=~rx.State.is_hydrated,
                     class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 cursor-pointer",
                 ), 
@@ -154,7 +154,7 @@ def dashboard_trash(hospital: dict[str, str]) -> rx.Component:
 def dashboard_arrow(hospital: dict[str, str]) -> rx.Component:
     return rx.flex(
         rx.skeleton(
-            rx.icon("arrow-right", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
+            rx.icon("arrow-right", class_name=" h-5 w-5 stroke-zinc-700 dark:stroke-zinc-500"),
             loading=~rx.State.is_hydrated,
             class_name="bg-transparent text-zinc-700 border border-solid border-zinc-300 cursor-pointer"
         ),

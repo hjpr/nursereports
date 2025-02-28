@@ -50,7 +50,7 @@ def report_item_dashboard(report: dict) -> rx.Component:
             # Edit button.
             rx.flex(
                 rx.skeleton(
-                    rx.icon("pencil", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
+                    rx.icon("pencil", class_name="h-5 w-5 stroke-zinc-700 dark:stroke-zinc-500"),
                     loading=~rx.State.is_hydrated,
                 ),
                 on_click=ReportState.event_state_edit_user_report(
@@ -69,7 +69,7 @@ def report_item_dashboard_remove_report(report: dict[str, str]) -> rx.Component:
             flex(
                 rx.skeleton(
                     outline_button(
-                        rx.icon("trash-2", class_name="h-5 w-5"),
+                        rx.icon("trash-2", class_name="h-4 w-4"),
                     ),
                     loading=~rx.State.is_hydrated,
                 )

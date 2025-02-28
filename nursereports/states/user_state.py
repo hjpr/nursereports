@@ -96,6 +96,22 @@ class UserState(AuthState):
     def user_claims_expires_at(self) -> int | None:
         """Formatted as seconds since epoch."""
         return self.user_claims.get("exp")
+    
+    @rx.var
+    def user_info_specialties(self) -> list:
+        return self.user_info.get("professional", {}).get("specialty", [])
+    
+    @rx.var
+    def user_info_license_type(self) -> str:
+        return self.user_info.get("professional", {}).get("license_type", "")
+    
+    @rx.var
+    def user_info_license_state(self) -> str:
+        return self.user_info.get("professional", {}).get("license_state", "")
+    
+    @rx.var
+    def user_info_experience(self) -> int:
+        return self.user_info.get("professional", {}).get("experience", 0)
 
     @rx.var
     def user_claims_authenticated(self) -> bool:
@@ -212,8 +228,6 @@ class UserState(AuthState):
         try:
             # Disable login attempts while request is out.
             self.user_is_loading = True
-
-            logger.critical(auth_data)
 
             if auth_data.get("email") and auth_data.get("password"):
                 # Grab auth data from form submission.

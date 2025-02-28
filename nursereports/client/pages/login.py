@@ -108,6 +108,7 @@ def login() -> rx.Component:
                     UserState.event_state_submit_login
                 ],
                 reset_on_submit=False,
+                class_name="space-y-6"
             ),
             class_name="flex-col items-center space-y-6 w-full",
         ),

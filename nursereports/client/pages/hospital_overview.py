@@ -105,7 +105,7 @@ def staff_pay() -> rx.Component:
         rx.flex(
             rx.flex(
                 rx.icon("banknote", class_name="stroke-zinc-700 dark:stroke-teal-800 h-6 w-6"),
-                text("Staff Pay", class_name="font-bold text-2xl"),
+                text("Staff Pay", class_name="text-xl font-bold"),
                 class_name="flex-row items-center space-x-2",
             ),
             class_name="flex-col items-start bg-zinc-100 dark:bg-zinc-800 p-2 w-full"
@@ -429,7 +429,7 @@ def travel_pay() -> rx.Component:
         rx.flex(
             rx.flex(
                 rx.icon("plane", class_name="stroke-zinc-700 dark:stroke-teal-800 h-6 w-6"),
-                text("Travel Pay", class_name="font-bold text-2xl"),
+                text("Travel Pay", class_name="text-xl font-bold"),
                 class_name="flex-row items-center space-x-2",
             ),
             class_name="flex-col items-start bg-zinc-100 dark:bg-zinc-800 p-2 w-full"
@@ -447,7 +447,7 @@ def reviews() -> rx.Component:
         rx.flex(
             rx.flex(
                 rx.icon("message-circle", class_name="stroke-zinc-700 dark:stroke-teal-800 h-6 w-6"),
-                text("Reviews", class_name="font-bold text-2xl"),
+                text("Reviews", class_name="text-xl font-bold"),
                 class_name="flex-row items-center space-x-2",
             ),
         class_name="flex-col items-start bg-zinc-100 dark:bg-zinc-800 p-2 w-full"
@@ -498,7 +498,7 @@ def reviews() -> rx.Component:
                     rx.popover.content(
                         rx.flex(
                             rx.text("Compensation is a subjective nurse-rated score."),
-                            rx.text("This score suggests how satisifed nurses are with their overall pay and benefits package."),
+                            rx.text("This score suggests how satisfied nurses are with their overall pay and benefits package."),
                             class_name="space-y-2 flex-col max-w-sm"
                         ),
                         align="center",
