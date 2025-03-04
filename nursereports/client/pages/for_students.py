@@ -54,7 +54,7 @@ def student_text() -> rx.Component:
             class_name="leading-relaxed",
         ),
         text(
-            "Although the hospital doesn't want to talk about it, pay is also extremely important to new graduates. You are coming out of school with student loans, car payments, and housing costs after not being able to work a full time job while in school. No one wants to look at their first paycheck - work a grueling few months - and question what they got themselves into. We'll provide a comprehensive list of pay data alongside information on culture and experience to help you find a first job that balances pay, culture, and workplace satisfaction. All of this starts with you taking five minutes to submit a simple report. We'll do the rest.",
+            "Although the hospital doesn't want to talk about it, pay is also extremely important to new graduates. You are coming out of school with student loans, car payments, and housing costs after not being able to work a full time job while in school. No one wants to look at their first paycheck - work a grueling few months - and question what they got themselves into. We'll provide a comprehensive list of pay data alongside information on culture and experience to help you find a first job that balances pay, culture, and workplace satisfaction. The only thing we ask is that once you get hired you take five minutes to submit a report. We'll do the rest.",
             class_name="leading-relaxed",
         ),
         text("- JM", class_name="pt-8"),
