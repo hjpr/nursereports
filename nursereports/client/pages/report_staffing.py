@@ -1,6 +1,5 @@
 from ..components import (
     flex,
-    footer,
     login_protected,
     navbar,
     text

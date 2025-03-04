@@ -1,15 +1,15 @@
-from .tailwind import flex, link
+from .tailwind import link
 from ...states import BaseState, NavbarState, UserState
 
 import reflex as rx
 
 
 def footer() -> rx.Component:
-    return flex(
-        flex(
-            flex(
-                flex(
-                    flex(
+    return rx.flex(
+        rx.flex(
+            rx.flex(
+                rx.flex(
+                    rx.flex(
                         rx.image(src="/vector/square-activity.svg", class_name="h-7 w-7 mb-1"),
                         rx.text(
                             "Nurse", 
@@ -23,7 +23,7 @@ def footer() -> rx.Component:
                         ),
                         class_name="flex-row items-center w-full",
                     ),
-                    flex(
+                    rx.flex(
                         rx.icon("instagram", color="grey", cursor="pointer"),
                         rx.icon("facebook", color="grey", cursor="pointer"),
                         rx.icon("linkedin", color="grey", cursor="pointer"),
@@ -31,8 +31,8 @@ def footer() -> rx.Component:
                     ),
                     class_name="flex-col justify-between mb-16 w-full min-h-24 md:min-h-32"
                 ),
-                flex(
-                    flex(
+                rx.flex(
+                    rx.flex(
                         link(
                             "Staff",
                             href=f"{BaseState.host_address}/for-staff",
@@ -59,7 +59,7 @@ def footer() -> rx.Component:
                         ),
                         class_name="flex-col space-y-4 w-full"
                     ),
-                    flex(
+                    rx.flex(
                         link(
                             "About Us",
                             href=f"{BaseState.host_address}/about-us",
@@ -93,15 +93,15 @@ def footer() -> rx.Component:
                 ),
                 class_name="flex-col md:flex-row p-8 w-full min-h-32"
             ),
-            flex(
-                flex(
+            rx.flex(
+                rx.flex(
                     rx.icon("copyright", class_name="h-4 w-4"),
-                    rx.text("2024 Nurse Reports", class_name="text-sm pl-4"),
+                    rx.text("2025 Nurse Reports", class_name="text-sm pl-4"),
                     class_name="flex-row items-center text-zinc-400"
                 ),
                 class_name="flex-col items-center w-full"
             ),
             class_name="flex-col space-y-8 w-full max-w-screen-md"
         ),
-        class_name="flex-col items-center justify-start border border-solid border-zinc-100 border-t-zinc-200 dark:border-zinc-900 dark:border-t-zinc-700 py-20 w-full"
+        class_name="flex-col items-center justify-start border border-solid border-zinc-100 border-t-zinc-200 dark:border-zinc-900 dark:border-t-zinc-700 bg-zinc-50 dark:bg-zinc-800 py-20 w-full"
     )

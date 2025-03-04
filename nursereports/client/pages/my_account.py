@@ -40,7 +40,7 @@ def heading() -> rx.Component:
             text("My Account", class_name="text-2xl font-bold"),
             class_name="bg-transparent flex-row items-center space-x-2",
         ),
-        class_name="flex-col items-center border rounded shadow-lg dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 p-4 w-full",
+        class_name="flex-col items-center border dark:border-zinc-700 rounded shadow-lg bg-zinc-100 dark:bg-zinc-800 p-4 w-full",
     )
 
 def account() -> rx.Component:
@@ -73,7 +73,7 @@ def account() -> rx.Component:
                     rx.text(f"License Type: {UserState.user_info_license_type}", class_name="text-sm"),
                     rx.text(f"License State: {UserState.user_info_license_state}", class_name="text-sm"),
                     rx.text(f"Experience: {UserState.user_info_experience}", class_name="text-sm"),
-                    class_name="flex-col space-y-2 p-4 w-full"
+                    class_name="flex-col space-y-2 p-8 w-full"
                 ),
                 rx.flex(
                     rx.text("Specialties", class_name="font-bold"),
@@ -84,23 +84,24 @@ def account() -> rx.Component:
                         UserState.user_info_specialties,
                         lambda x: rx.badge(x, color_scheme="teal", class_name="mr-2")
                     ),
-                    class_name="flex-row inline space-y-2 p-4 w-full"
+                    class_name="flex-row inline space-y-2 p-8 w-full"
                 ),
-                class_name="flex-col divide-y w-full"
+                class_name="flex-col divide-y dark:divide-zinc-700 w-full"
             ),
 
-            class_name="flex-col md:flex-row divide-y md:divide-y-0 md:divide-x w-full"
+            class_name="flex-col md:flex-row divide-y md:divide-y-0 md:divide-x dark:divide-zinc-700 w-full"
         ),
         logout(),
-        class_name="flex-col border rounded shadow-lg dark:border-zinc-500 bg-zinc-100 dark:bg-zinc-800 divide-y w-full",
+        class_name="flex-col border rounded shadow-lg bg-zinc-100 dark:bg-zinc-800 divide-y dark:divide-zinc-700 w-full",
     )
 
 def logout() -> rx.Component:
     return rx.flex(
         rx.flex(
-            rx.text("Log out", class_name="font-bold select-none"),
-            on_click=rx.redirect("/logout/user"),
-            class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer"
+            text("Logout", class_name="font-bold"),
+            rx.icon("log-out", class_name="h-5 w-5 stroke-teal-600 dark:stroke-teal-500"),
+            class_name="flex-row items-center justify-center space-x-4 p-4",
         ),
+        on_click=rx.redirect("/logout/user"),
         class_name="flex-col w-full active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75"
     )
