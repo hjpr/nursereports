@@ -23,8 +23,10 @@ def content() -> rx.Component:
             image(),
             class_name="flex-col-reverse md:flex-col gap-10 md:gap-12 w-full max-w-[700px]",
         ),
+        tldr(),
         traveler_text(),
-        class_name="flex-col items-center px-8 py-16 md:pt-24 md:pb-48 space-y-8 md:space-y-12 w-full max-w-screen-lg",
+        cta(),
+        class_name="flex-col items-center px-8 py-16 md:pt-24 md:pb-48 space-y-12 md:space-y-16 w-full max-w-screen-lg",
     )
 
 
@@ -45,6 +47,20 @@ def image() -> rx.Component:
     )
 
 
+def tldr() -> rx.Component:
+    return rx.flex(
+        rx.flex(text("TLDR:"), class_name="bg-zinc-50 dark:bg-zinc-800 p-4 w-full"),
+        rx.flex(
+            text(
+                "NurseReports.org creates full hospital transparency by allowing travel nurses to share detailed information on pay, culture, and experience. Compare rates between areas adjusted for cost-of-living to make sure you are taking the right contract. Before your final decision, you can also make sure you know what you are walking into with reports down to the unit, area, or job title.",
+                class_name="leading-relaxed",
+            ),
+            class_name="p-4 w-full",
+        ),
+        class_name="flex-col border rounded border-zinc-200 dark:border-zinc-700 divide-y dark:divide-zinc-700 w-full max-w-[700px]",
+    )
+
+
 def traveler_text() -> rx.Component:
     return rx.flex(
         text(
@@ -59,6 +75,20 @@ def traveler_text() -> rx.Component:
             "Travelers offer a straightforward and unique perspective into the positions they work. We want to offer you a unique set of tools to help you make the best decision for your next assignment. Details that allow you to maximize your pay, and give you details down to the unit-level to ensure you know what you are walking into. All of this starts with you taking five minutes to submit a simple report. We'll do the rest.",
             class_name="leading-relaxed",
         ),
-        text("- JM", class_name="pt-8"),
         class_name="flex-col space-y-6 text-zinc-700 w-full max-w-[700px]",
+    )
+
+
+def cta() -> rx.Component:
+    return rx.flex(
+        rx.flex(
+            text("Get Started", class_name="text-xl"),
+            rx.icon(
+                "chevron-right",
+                class_name="h-7 w-7 stroke-zinc-800 dark:stroke-teal-700",
+            ),
+            class_name="flex-row items-center justify-center gap-2 p-4 w-full",
+        ),
+        on_click=rx.redirect("/create-account"),
+        class_name="flex-col border rounded border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 w-full max-w-[700px] active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75 cursor-pointer",
     )

@@ -21,7 +21,7 @@ def navbar() -> rx.Component:
             ),
             class_name="flex-row items-center justify-between p-3 w-full max-w-screen-xl",
         ),
-        class_name="flex-col border border-zinc-100 dark:border-zinc-900 border-b-zinc-200 dark:border-b-zinc-700 bg-zinc-50 dark:bg-zinc-800 items-center justify-center sticky top-0 z-10 h-16 w-full",
+        class_name="flex-col border border-zinc-100 dark:border-zinc-900 border-b-zinc-200 dark:border-b-zinc-700 bg-zinc-100/50 backdrop-blur-lg dark:bg-zinc-700/50 items-center justify-center sticky top-0 z-10 h-16 w-full",
     )
 
 

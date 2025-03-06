@@ -21,8 +21,10 @@ def content() -> rx.Component:
             image(),
             class_name="flex-col-reverse md:flex-col gap-10 md:gap-12 w-full max-w-[700px]",
         ),
+        tldr(),
         student_text(),
-        class_name="flex-col items-center px-8 py-16 md:pt-24 md:pb-48 space-y-8 md:space-y-12 w-full max-w-screen-lg",
+        cta(),
+        class_name="flex-col items-center px-8 py-16 md:pt-24 md:pb-48 space-y-12 md:space-y-16 w-full max-w-screen-lg",
     )
 
 
@@ -43,6 +45,20 @@ def image() -> rx.Component:
     )
 
 
+def tldr() -> rx.Component:
+    return rx.flex(
+        rx.flex(text("TLDR:"), class_name="bg-zinc-50 dark:bg-zinc-800 p-4 w-full"),
+        rx.flex(
+            text(
+                "NurseReports.org creates full hospital transparency by allowing students to view detailed information on pay, culture, and experience. Before you walk into your first job, know and compare details across all your hospitals of interest. After getting hired, submit a report to let your fellow nurses get the inside scoop.",
+                class_name="leading-relaxed",
+            ),
+            class_name="p-4 w-full",
+        ),
+        class_name="flex-col border rounded border-zinc-200 dark:border-zinc-700 divide-y dark:divide-zinc-700 w-full max-w-[700px]",
+    )
+
+
 def student_text() -> rx.Component:
     return rx.flex(
         text(
@@ -54,9 +70,23 @@ def student_text() -> rx.Component:
             class_name="leading-relaxed",
         ),
         text(
-            "Although the hospital doesn't want to talk about it, pay is also extremely important to new graduates. You are coming out of school with student loans, car payments, and housing costs after not being able to work a full time job while in school. No one wants to look at their first paycheck - work a grueling few months - and question what they got themselves into. We'll provide a comprehensive list of pay data alongside information on culture and experience to help you find a first job that balances pay, culture, and workplace satisfaction. The only thing we ask is that once you get hired you take five minutes to submit a report. We'll do the rest.",
+            "Although the hospital doesn't want to talk about it, pay is also extremely important to new graduates. Coming out of school with student loans, car payments, and housing costs after not being able to work a full time job can be incredibly overwhelming. No one wants to look at their first paycheck - work a grueling few months - and question what they got themselves into. We'll provide a comprehensive list of pay data alongside information on culture and experience to help you find a first job that balances pay, culture, and workplace satisfaction. The only thing we ask is that once you get hired you take five minutes to submit a report. We'll do the rest.",
             class_name="leading-relaxed",
         ),
-        text("- JM", class_name="pt-8"),
         class_name="flex-col space-y-6 text-zinc-700 w-full max-w-[700px]",
+    )
+
+
+def cta() -> rx.Component:
+    return rx.flex(
+        rx.flex(
+            text("Get Started", class_name="text-xl"),
+            rx.icon(
+                "chevron-right",
+                class_name="h-7 w-7 stroke-zinc-800 dark:stroke-teal-700",
+            ),
+            class_name="flex-row items-center justify-center gap-2 p-4 w-full",
+        ),
+        on_click=rx.redirect("/create-account"),
+        class_name="flex-col border rounded border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 w-full max-w-[700px] active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75 cursor-pointer",
     )
