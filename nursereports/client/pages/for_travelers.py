@@ -32,7 +32,7 @@ def content() -> rx.Component:
 
 def header() -> rx.Component:
     return rx.flex(
-        text("For Travel Nurses.", class_name="text-4xl font-bold"),
+        text("For Travel Nurses", class_name="text-4xl font-bold"),
         class_name="flex-col items-start md:items-center text-lg w-full",
     )
 
@@ -49,7 +49,7 @@ def image() -> rx.Component:
 
 def tldr() -> rx.Component:
     return rx.flex(
-        rx.flex(text("TLDR:"), class_name="bg-zinc-50 dark:bg-zinc-800 p-4 w-full"),
+        rx.flex(text("TLDR;"), class_name="bg-zinc-50 dark:bg-zinc-800 p-4 w-full"),
         rx.flex(
             text(
                 "NurseReports.org creates full hospital transparency by allowing travel nurses to share detailed information on pay, culture, and experience. Compare rates between areas adjusted for cost-of-living to make sure you are taking the right contract. Before your final decision, you can also make sure you know what you are walking into with reports down to the unit, area, or job title.",

@@ -60,6 +60,5 @@ def about_text() -> rx.Component:
             "I've worked on this project solo for almost 4 years, but I use 'us' to describe just how many people have shaped and contributed to this project. I'll also rely on you - the bedside nurse - to help me build an ecosystem through data, where you and your colleagues can get real-time info on pay, unit culture, staffing, and much more.",
             class_name="leading-relaxed",
         ),
-        text("JM", class_name="pt-8"),
         class_name="flex-col space-y-6 text-zinc-700 w-full max-w-[700px]",
     )

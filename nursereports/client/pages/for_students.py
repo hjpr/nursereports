@@ -30,7 +30,7 @@ def content() -> rx.Component:
 
 def header() -> rx.Component:
     return rx.flex(
-        text("For Nursing Students.", class_name="text-4xl font-bold"),
+        text("For Nursing Students", class_name="text-4xl font-bold"),
         class_name="flex-col items-start md:items-center text-lg w-full",
     )
 
@@ -47,7 +47,7 @@ def image() -> rx.Component:
 
 def tldr() -> rx.Component:
     return rx.flex(
-        rx.flex(text("TLDR:"), class_name="bg-zinc-50 dark:bg-zinc-800 p-4 w-full"),
+        rx.flex(text("TLDR;"), class_name="bg-zinc-50 dark:bg-zinc-800 p-4 w-full"),
         rx.flex(
             text(
                 "NurseReports.org creates full hospital transparency by allowing students to view detailed information on pay, culture, and experience. Before you walk into your first job, know and compare details across all your hospitals of interest. After getting hired, submit a report to let your fellow nurses get the inside scoop.",

@@ -29,13 +29,13 @@ def content() -> rx.Component:
 
 def header() -> rx.Component:
     return flex(
-        rx.icon("mail", class_name="h-12 w-12"),
+        rx.icon("mail", class_name="h-12 w-12 stroke-zinc-700"),
         text("Contact Us", class_name="text-3xl font-bold"),
         flex(rx.divider(), class_name="py-6 md:display-none w-full"),
         flex(
-            rx.icon("instagram", class_name="h-10 md:h-8 w-10 md:w-8 cursor-pointer"),
-            rx.icon("facebook", class_name="h-10 md:h-8 w-10 md:w-8 cursor-pointer"),
-            rx.icon("linkedin", class_name="h-10 md:h-8 w-10 md:w-8 cursor-pointer"),
+            rx.icon("instagram", class_name="h-10 md:h-8 w-10 md:w-8 stroke-teal-700 cursor-pointer"),
+            rx.icon("facebook", class_name="h-10 md:h-8 w-10 md:w-8 stroke-teal-700 cursor-pointer"),
+            rx.icon("linkedin", class_name="h-10 md:h-8 w-10 md:w-8 stroke-teal-700 cursor-pointer"),
             class_name="flex-row items-center justify-center space-x-12 w-full",
         ),
         class_name="flex-col items-center p-8 mb-4 space-y-4 w-full",

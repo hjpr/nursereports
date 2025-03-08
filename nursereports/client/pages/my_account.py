@@ -98,10 +98,10 @@ def account() -> rx.Component:
 def logout() -> rx.Component:
     return rx.flex(
         rx.flex(
-            text("Logout", class_name="font-bold"),
+            text("Logout", class_name="font-bold select-none"),
             rx.icon("log-out", class_name="h-5 w-5 stroke-teal-600 dark:stroke-teal-500"),
             class_name="flex-row items-center justify-center space-x-4 p-4",
         ),
         on_click=rx.redirect("/logout/user"),
-        class_name="flex-col w-full active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75"
+        class_name="flex-col w-full active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75 cursor-pointer"
     )

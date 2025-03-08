@@ -28,7 +28,7 @@ def content() -> rx.Component:
 
 def header() -> rx.Component:
     return rx.flex(
-        text("For Staff Nurses.", class_name="text-4xl font-bold"),
+        text("For Staff Nurses", class_name="text-4xl font-bold"),
         class_name="flex-col items-start md:items-center text-lg w-full",
     )
 
@@ -45,7 +45,7 @@ def image() -> rx.Component:
 def tldr() -> rx.Component:
     return rx.flex(
         rx.flex(
-            text("TLDR:"),
+            text("TLDR;"),
             class_name="bg-zinc-50 dark:bg-zinc-800 p-4 w-full"
         ),
         rx.flex(

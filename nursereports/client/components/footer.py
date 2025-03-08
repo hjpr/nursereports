@@ -32,32 +32,29 @@ def footer() -> rx.Component:
                     class_name="flex-col justify-between mb-16 w-full min-h-24 md:min-h-32"
                 ),
                 rx.flex(
-                    rx.flex(
-                        link(
-                            "Staff",
-                            href=f"{BaseState.host_address}/for-staff",
-                            size="2",
-                            cursor="pointer",
+                    rx.cond(
+                        ~UserState.user_claims_authenticated,
+                        rx.flex(
+                            link(
+                                "Staff",
+                                href=f"{BaseState.host_address}/for-staff",
+                                size="2",
+                                cursor="pointer",
+                            ),
+                            link(
+                                "Travelers",
+                                href=f"{BaseState.host_address}/for-travelers",
+                                size="2",
+                                cursor="pointer",
+                            ),
+                            link(
+                                "Students",
+                                href=f"{BaseState.host_address}/for-students",
+                                size="2",
+                                cursor="pointer",
+                            ),
+                            class_name="flex-col space-y-4 w-full"
                         ),
-                        link(
-                            "Travelers",
-                            href=f"{BaseState.host_address}/for-travelers",
-                            size="2",
-                            cursor="pointer",
-                        ),
-                        link(
-                            "Students",
-                            href=f"{BaseState.host_address}/for-students",
-                            size="2",
-                            cursor="pointer",
-                        ),
-                        link(
-                            "Donate",
-                            href=f"{BaseState.host_address}/donate",
-                            size="2",
-                            cursor="pointer"
-                        ),
-                        class_name="flex-col space-y-4 w-full"
                     ),
                     rx.flex(
                         link(
@@ -65,15 +62,6 @@ def footer() -> rx.Component:
                             href=f"{BaseState.host_address}/about-us",
                             size="2",
                             cursor="pointer"
-                        ),
-                        rx.cond(
-                            UserState.user_claims_authenticated,
-                            link(
-                                "Feedback",
-                                size="2",
-                                cursor="pointer",
-                                on_click=NavbarState.set_show_feedback(True)
-                            ),
                         ),
                         link(
                             "Contact Us",
@@ -84,6 +72,12 @@ def footer() -> rx.Component:
                         link(
                             "Roadmap",
                             href=f"{BaseState.host_address}/roadmap",
+                            size="2",
+                            cursor="pointer"
+                        ),
+                        link(
+                            "Donate",
+                            href=f"{BaseState.host_address}/donate",
                             size="2",
                             cursor="pointer"
                         ),
