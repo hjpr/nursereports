@@ -121,7 +121,7 @@ def map() -> rx.Component:
             rx.flex(
                 text("Refine user experience via user feedback after hard launch."),
                 text("Research user requested features to be added in Major Feature Release #2."),
-                class_name="flex-col p-2"
+                class_name="flex-col space-y-2 p-2"
             ),
             class_name="flex-col divide-y dark:divide-zinc-700 border dark:border-zinc-700 rounded shadow-lg"
         ),
@@ -189,7 +189,7 @@ def map() -> rx.Component:
             rx.flex(
                 text("Refine user experience via user feedback after Major Feature Release #1."),
                 text("Research user requested features to be added in Major Feature Release #3."),
-                class_name="flex-col p-2"
+                class_name="flex-col space-y-2 p-2"
             ),
             class_name="flex-col divide-y dark:divide-zinc-700 border dark:border-zinc-700 rounded shadow-lg"
         ),
