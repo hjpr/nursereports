@@ -1,0 +1,16 @@
+[project]
+name = "nursereports"
+version = "0.8.0"
+description = "A transparency tool for US nurses."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "dotenv>=0.9.9",
+    "groq>=0.18.0",
+    "humanize>=4.12.1",
+    "loguru>=0.7.3",
+    "numpy>=2.2.3",
+    "polars>=1.24.0",
+    "pyjwt>=2.10.1",
+    "reflex==0.6.8",
+]
