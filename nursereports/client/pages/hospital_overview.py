@@ -447,7 +447,12 @@ def reviews() -> rx.Component:
         rx.flex(
             rx.flex(
                 rx.icon("message-circle", class_name="stroke-zinc-700 dark:stroke-teal-800 h-6 w-6"),
-                text("Reviews", class_name="text-xl font-bold"),
+                rx.flex(
+                    text("Reviews", class_name="text-xl font-bold"),
+                    text("-", class_name="text-xl font-bold"),
+                    text(HospitalState.selected_unit, class_name="font-bold text-xl"),
+                    class_name="space-x-2"
+                ),
                 class_name="flex-row items-center space-x-2",
             ),
         class_name="flex-col items-start bg-zinc-100 dark:bg-zinc-800 p-2 w-full"
@@ -457,20 +462,24 @@ def reviews() -> rx.Component:
         rx.cond(
             HospitalState.units_areas_roles_for_units,
             flex(
-                rx.flex(
-                    text(HospitalState.selected_unit, class_name="font-bold text-xl"),
-                    class_name="flex justify-center md:justify-start w-full"
-                ),
                 flex(
-                    rx.select(
-                        HospitalState.units_areas_roles_for_units,
-                        placeholder="Hospital Overall",
-                        value=HospitalState.selected_unit,
-                        position="popper",
-                        color_scheme="teal",
-                        on_change=HospitalState.set_selected_unit,
+                    rx.flex(
+                        text("Select: "),
+                        class_name="flex justify-center items-center whitespace-nowrap w-auto"
                     ),
-                    class_name="flex-row space-x-4",
+                    rx.flex(
+                        rx.select(
+                            HospitalState.units_areas_roles_for_units,
+                            placeholder="Hospital Overall",
+                            value=HospitalState.selected_unit,
+                            position="popper",
+                            color_scheme="teal",
+                            on_change=HospitalState.set_selected_unit,
+                            width="100%"
+                        ),
+                        class_name="w-full"
+                    ),
+                    class_name="flex-row space-x-4 w-full",
                 ),
                 class_name="flex-col md:flex-row items-center p-4 space-y-4 md:space-y-0 w-full"
             ),
@@ -586,10 +595,6 @@ def reviews() -> rx.Component:
                 rx.text("No reports yet, check back later!"),
                 class_name="flex-col items-center p-6 w-full",
             ),
-        ),
-        rx.flex(
-            rx.text("Comments", class_name="text-xl"),
-            class_name="flex-col md:flex-row items-center md:justify-start p-4 w-full"
         ),
         comments(),
         class_name="flex-col items-center border rounded shadow-lg divide-y dark:divide-zinc-700 w-full"
