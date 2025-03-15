@@ -622,7 +622,7 @@ requires-dist = [
     { name = "numpy", specifier = ">=2.2.3" },
     { name = "polars", specifier = ">=1.24.0" },
     { name = "pyjwt", specifier = ">=2.10.1" },
-    { name = "reflex", specifier = "==0.6.8" },
+    { name = "reflex", specifier = "==0.7.2" },
 ]
 
 [[package]]
@@ -864,7 +864,7 @@ wheels = [
 
 [[package]]
 name = "reflex"
-version = "0.6.8"
+version = "0.7.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "alembic" },
@@ -884,7 +884,6 @@ dependencies = [
     { name = "python-multipart" },
     { name = "python-socketio" },
     { name = "redis" },
-    { name = "reflex-chakra" },
     { name = "reflex-hosting-cli" },
     { name = "rich" },
     { name = "setuptools" },
@@ -898,21 +897,9 @@ dependencies = [
     { name = "wheel" },
     { name = "wrapt" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/3a/8c/e42af826dc935f12a6486806a944725f292bb1591facc23290247028974a/reflex-0.6.8.tar.gz", hash = "sha256:cc6892e235902b6c86bc64ee6c0459d7c73f9ffedbc37f91d8b48de76a74a688", size = 524828 }
+sdist = { url = "https://files.pythonhosted.org/packages/4b/69/a8288b498bdf68e3db6df11a7506d99bd907e004fe8c650363fe206d4755/reflex-0.7.2.tar.gz", hash = "sha256:1f21965321cd1145f426414b2dad7b059c16c1b219d339defd04a158d20ede80", size = 552004 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/21/7a/b94b35921fc2039f5229cc746fbf1d80c55440599f2dce937abbab7f8d40/reflex-0.6.8-py3-none-any.whl", hash = "sha256:958f4e81eff1eccd553200dc80b93980b5888dd712bbf51f436d4d245037acec", size = 767050 },
-]
-
-[[package]]
-name = "reflex-chakra"
-version = "0.6.3"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "reflex" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/52/8c/31767bcf2beddf11fd527eb90292967bc6381c6b0bb5ecfa809723171e83/reflex_chakra-0.6.3.tar.gz", hash = "sha256:ff7c1c7638809c99104997bffbf861793c832f6d2288e30bd4ace65fec0f40e3", size = 74808 }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/49/04/06e44c586410fde41e0bb0dcdf39a66106926b85c01944f06ba6e074461d/reflex_chakra-0.6.3-py3-none-any.whl", hash = "sha256:f3b92ba399451986ae5d09341265ca1e134edfdc2fab3a57ea83b7f652469d9a", size = 174748 },
+    { url = "https://files.pythonhosted.org/packages/94/9e/d46205ccbe4d584346d74aa3cea601f23d16c01d022af1e8a5626552d830/reflex-0.7.2-py3-none-any.whl", hash = "sha256:a08241f826ab194504177d63671107d6d9137cfe5572dd1323bd265a3e547329", size = 836935 },
 ]
 
 [[package]]

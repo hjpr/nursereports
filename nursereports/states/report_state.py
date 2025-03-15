@@ -251,19 +251,19 @@ class ReportState(PageState):
     # COMPENSATION
     #################################################################
 
-    comp_select_emp_type: constants_types.ValidEmploymentType
-    comp_select_pay_type: constants_types.ValidPayType
+    comp_select_emp_type: str = ""
+    comp_select_pay_type: str = ""
     comp_input_pay_hourly: int = 0
     comp_input_pay_weekly: int = 0
     comp_input_pay_night: int = 0
     comp_input_pay_weekend: int = 0
     comp_input_pay_weekend_night: int = 0
-    input_calculator: constants_types.ValidCalculatorInputType
+    input_calculator: str = ""
     calculator_pay_value: str = "0"
-    comp_select_shift: constants_types.ValidShiftType
-    comp_select_weekly_shifts: constants_types.ValidWeeklyShiftsType
-    comp_select_hospital_experience: constants_types.ValidHospitalExperienceType
-    comp_select_total_experience: constants_types.ValidHospitalExperienceType
+    comp_select_shift: str = ""
+    comp_select_weekly_shifts: str = ""
+    comp_select_hospital_experience: str = ""
+    comp_select_total_experience: str = ""
     comp_check_benefit_pto: bool = False
     comp_check_benefit_parental: bool = False
     comp_check_benefit_insurance: bool = False
@@ -491,22 +491,22 @@ class ReportState(PageState):
     # ASSIGNMENT
     #################################################################
 
-    assign_select_classify: constants_types.ValidClassifyType
+    assign_select_classify: str = ""
     assign_select_unit: str = ""
     assign_select_area: str = ""
     assign_select_role: str = ""
     assign_input_unit: str = ""
     assign_input_area: str = ""
     assign_input_role: str = ""
-    assign_select_acuity: constants_types.ValidAcuityType
-    assign_select_specialty_1: constants_types.ValidSpecialtyType
-    assign_select_specialty_2: constants_types.ValidSpecialtyType
-    assign_select_specialty_3: constants_types.ValidSpecialtyType
+    assign_select_acuity: str = ""
+    assign_select_specialty_1: str = ""
+    assign_select_specialty_2: str = ""
+    assign_select_specialty_3: str = ""
     assign_select_rate_nurses: int = 0
     assign_select_rate_nurse_aides: int = 0
     assign_select_rate_physicians: int = 0
     assign_select_rate_management: int = 0
-    assign_select_recommend: constants_types.ValidYesNoType
+    assign_select_recommend: str = ""
     assign_select_overall: int = 0
     assign_input_comments: str = ""
 
@@ -741,16 +741,16 @@ class ReportState(PageState):
     # STAFFING
     #################################################################
 
-    staffing_select_ratio: constants_types.ValidYesNoType
+    staffing_select_ratio: str = ""
     staffing_input_actual_ratio: int = 0
-    staffing_select_ratio_appropriate: constants_types.ValidRatioType
+    staffing_select_ratio_appropriate: str = ""
     staffing_input_ideal_ratio: int = 0
-    calculator_toggle_ratio: constants_types.ValidCalculatorToggleRatioType
+    calculator_toggle_ratio: str = ""
     calculator_ratio_value: str = ""
-    staffing_select_workload: constants_types.ValidWorkloadType
+    staffing_select_workload: str = ""
     staffing_select_rate_workload: int = 0
-    staffing_select_charge_present: constants_types.ValidYesNoType
-    staffing_select_charge_assignment: constants_types.ValidChargeAssignmentType
+    staffing_select_charge_present: str = ""
+    staffing_select_charge_assignment: str = ""
     staffing_check_rapid_response: bool = False
     staffing_check_behavioral_response: bool = False
     staffing_check_transport: bool = False

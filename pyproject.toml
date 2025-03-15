@@ -12,5 +12,5 @@ dependencies = [
     "numpy>=2.2.3",
     "polars>=1.24.0",
     "pyjwt>=2.10.1",
-    "reflex==0.6.8",
+    "reflex==0.7.2",
 ]
