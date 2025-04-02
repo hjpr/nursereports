@@ -16,7 +16,6 @@ import reflex as rx
     title="Search",
     route="/search/hospital",
     on_load=[
-        BaseState.event_state_refresh_login,
         BaseState.event_state_requires_login,
     ],
 )
@@ -29,14 +28,12 @@ def search_page() -> rx.Component:
         class_name="flex-col items-center dark:bg-zinc-900 min-h-screen",
     )
 
-
 def content() -> rx.Component:
     return rx.flex(
         search(),
         search_results(),
         class_name="flex-col flex-grow items-center space-y-4 md:space-y-12 px-4 py-4 md:py-20 w-full max-w-screen-md h-full"
     )
-
 
 def search() -> rx.Component:
     return flex(
@@ -119,7 +116,6 @@ def search_filters() -> rx.Component:
         ),
         class_name="flex-col items-center divide-y dark:divide-zinc-700 w-full",
     )
-
 
 def search_results() -> rx.Component:
     return flex(

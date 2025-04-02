@@ -8,7 +8,6 @@ import reflex as rx
     route="/report/[report_mode]/compensation",
     title="Nurse Reports",
     on_load=[
-        BaseState.event_state_refresh_login,
         BaseState.event_state_requires_login,
         ReportState.event_state_report_flow,
     ],

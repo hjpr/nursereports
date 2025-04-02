@@ -72,7 +72,7 @@ def logo() -> rx.Component:
                 rx.text(
                     "Nurse",
                     on_click=rx.cond(
-                        UserState.user_claims_authenticated,
+                        AuthState.user_is_authenticated,
                         rx.redirect("/dashboard"),
                         rx.redirect("/"),
                     ),
@@ -81,7 +81,7 @@ def logo() -> rx.Component:
                 rx.text(
                     "N",
                     on_click=rx.cond(
-                        UserState.user_claims_authenticated,
+                        AuthState.user_is_authenticated,
                         rx.redirect("/dashboard"),
                         rx.redirect("/"),
                     ),
@@ -90,7 +90,7 @@ def logo() -> rx.Component:
                 rx.text(
                     "Reports",
                     on_click=rx.cond(
-                        UserState.user_claims_authenticated,
+                        AuthState.user_is_authenticated,
                         rx.redirect("/dashboard"),
                         rx.redirect("/"),
                     ),
@@ -99,7 +99,7 @@ def logo() -> rx.Component:
                 rx.text(
                     "R",
                     on_click=rx.cond(
-                        UserState.user_claims_authenticated,
+                        AuthState.user_is_authenticated,
                         rx.redirect("/dashboard"),
                         rx.redirect("/"),
                     ),
@@ -114,7 +114,7 @@ def logo() -> rx.Component:
 
 def links() -> rx.Component:
     return rx.cond(
-        UserState.user_claims_authenticated,
+        AuthState.user_is_authenticated,
         # Nothing displayed if user is authenticated.
         rx.flex(),
         # Links displayed if user not authenticated.
@@ -146,7 +146,7 @@ def links() -> rx.Component:
 
 def search() -> rx.Component:
     return rx.cond(
-        UserState.user_claims_authenticated,
+        AuthState.user_is_authenticated,
         # Shows search if user is logged in
         flex(
             outline_button(
@@ -164,7 +164,7 @@ def search() -> rx.Component:
 
 def dashboard() -> rx.Component:
     return rx.cond(
-        (UserState.user_claims_authenticated & ~UserState.user_needs_onboarding),
+        (AuthState.user_is_authenticated & ~UserState.user_needs_onboarding),
         # Show dashboard if user is logged in.
         flex(
             rx.tooltip(
@@ -184,7 +184,7 @@ def dashboard() -> rx.Component:
 
 def login_or_account() -> rx.Component:
     return rx.cond(
-        UserState.user_claims_authenticated,
+        AuthState.user_is_authenticated,
         # Show account if user is logged in.
         flex(
             rx.tooltip(
@@ -209,7 +209,7 @@ def login_or_account() -> rx.Component:
 
 def mobile_menu() -> rx.Component:
     return rx.cond(
-        UserState.user_claims_authenticated,
+        AuthState.user_is_authenticated,
         # Show mobile menu for logged in users.
         rx.cond(
             ~UserState.user_needs_onboarding,
@@ -253,7 +253,7 @@ def mobile_menu() -> rx.Component:
                                         rx.icon("log-out", class_name="h-5 w-5 stroke-teal-600 dark:stroke-teal-500"),
                                         class_name="flex-row items-center space-x-4",
                                     ),
-                                    on_click=BaseState.event_state_logout,
+                                    on_click=AuthState.logout,
                                     class_name="flex p-8 w-full active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75 cursor-pointer",
                                 ),
                                 class_name="flex-col divide-y dark:divide-zinc-700 w-full",
@@ -289,7 +289,7 @@ def mobile_menu() -> rx.Component:
                                         link(
                                             "Logout",
                                             class_name="text-zinc-700 cursor-pointer",
-                                            on_click=AuthState.event_state_logout,
+                                            on_click=AuthState.logout,
                                         ),
                                         rx.icon("log-out", class_name="text-zinc-700"),
                                         class_name="space-x-4",

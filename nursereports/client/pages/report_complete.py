@@ -13,7 +13,6 @@ import reflex as rx
     route="/report/[report_mode]/complete",
     title="Nurse Reports",
     on_load=[
-        BaseState.event_state_refresh_login,
         BaseState.event_state_requires_login,
     ],
 )

@@ -19,40 +19,6 @@ class BaseState(UserState):
         current_location = self.router.page.path
         return current_location
 
-    def event_state_refresh_login(self) -> Callable | None:
-        """Runs on_load prior to every page that may need login information."""
-        try:
-            if self.user_claims_authenticated and not self.user_claims_expired:
-                # Only SSO has refresh_token, so attempt to refresh if conditions available.
-                if (
-                    self.user_claims_expiring
-                    and self.access_token
-                    and self.refresh_token
-                ):
-                    self.refresh_access_token()
-                else:
-                    return None
-            if self.user_claims_authenticated and self.user_claims_expired:
-                # Set current page into stored url
-                self.restore_page_after_login = self.router.page.full_raw_path
-                self.access_token = ""
-                self.refresh_token = ""
-
-                return rx.redirect("/login")
-
-        except Exception:
-            traceback.print_exc()
-            return rx.toast.error("Error refreshing tokens.")
-        
-    def event_state_check_expired_login(self) -> Callable | None:
-        try:
-            if self.restore_page_after_login:
-                return rx.toast.error("Session expired. Please login again.")
-            else:
-                return None
-        except Exception:
-            traceback.print_exc()
-
     def event_state_handle_sso_redirect(self) -> Iterable[Callable]:
         """Checks if there are tokens in url to pull into state."""
         try:
@@ -81,7 +47,7 @@ class BaseState(UserState):
     def event_state_requires_login(self) -> Callable:
         """Requires user to be logged in or redirects back to index."""
         try:
-            if not self.user_claims_authenticated:
+            if not self.user_is_authenticated:
                 return rx.redirect("/")
 
         except Exception:
@@ -94,7 +60,7 @@ class BaseState(UserState):
             if self.user_needs_onboarding:
                 return rx.redirect("/onboard")
 
-            if not self.user_claims_authenticated:
+            if not self.user_is_authenticated:
                 return rx.redirect("/")
 
         except Exception:

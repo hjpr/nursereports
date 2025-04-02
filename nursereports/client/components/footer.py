@@ -1,5 +1,5 @@
 from .tailwind import link
-from ...states import BaseState, NavbarState, UserState
+from ...states import AuthState, BaseState
 
 import reflex as rx
 
@@ -33,7 +33,7 @@ def footer() -> rx.Component:
                 ),
                 rx.flex(
                     rx.cond(
-                        ~UserState.user_claims_authenticated,
+                        ~AuthState.user_is_authenticated,
                         rx.flex(
                             link(
                                 "Staff",

@@ -5,12 +5,12 @@ from ..components import(
     link,
     solid_button
 )
-from ...states import BaseState, UserState
+from ...states import AuthState, UserState
 
 import reflex as rx
 
 
-@rx.page(route="/login", title="Nurse Reports", on_load=BaseState.event_state_check_expired_login)
+@rx.page(route="/login", title="Nurse Reports")
 def login_page() -> rx.Component:
     return flex(
         content(),
@@ -93,7 +93,7 @@ def login() -> rx.Component:
                         "Login",
                         type="submit",
                         size="3",
-                        loading=UserState.user_is_loading,
+                        loading=AuthState.is_loading,
                         class_name="w-full",
                     ),
                     link(
@@ -103,10 +103,7 @@ def login() -> rx.Component:
                     ),
                     class_name="flex-col items-center pt-5 space-y-6 w-full",
                 ),
-                on_submit=[
-                    UserState.setvar("user_is_loading", True),
-                    UserState.event_state_submit_login
-                ],
+                on_submit=AuthState.login_with_password(),
                 reset_on_submit=False,
                 class_name="space-y-6"
             ),
@@ -122,21 +119,21 @@ def login() -> rx.Component:
             rx.button(
                 rx.image(src="/sso/google_sso.png", class_name="h-16 w-16"),
                 variant="ghost",
-                loading=UserState.user_is_loading,
+                loading=AuthState.is_loading,
                 class_name="h-16 w-16 cursor-pointer",
                 on_click=UserState.event_state_login_with_sso("google"),
             ),
             rx.button(
                 rx.image(src="/sso/facebook_sso.png", class_name="h-16 w-16"),
                 variant="ghost",
-                loading=UserState.user_is_loading,
+                loading=AuthState.is_loading,
                 class_name="h-16 w-16 cursor-pointer",
                 on_click=UserState.event_state_login_with_sso("facebook"),
             ),
             rx.button(
                 rx.image(src="/sso/linkedin_sso.png", class_name="h-16 w-16"),
                 variant="ghost",
-                loading=UserState.user_is_loading,
+                loading=AuthState.is_loading,
                 class_name="h-16 w-16 cursor-pointer",
                 on_click=UserState.event_state_login_with_sso("linkedin_oidc"),
             ),

@@ -1,41 +1,48 @@
-from ..server.supabase import supabase_get_new_access_token
-
-from loguru import logger
-from typing import Callable, Iterable
 
 import reflex as rx
+import rich
+
+from httpx import HTTPStatusError
+from rich.console import Console
+from .user_state import UserState
+from typing import Callable, Iterable
+
+console = Console()
 
 
-class AuthState(rx.State):
-    access_token: str = rx.Cookie(
-        name="access_token",
-        same_site="strict",
-        secure=True,
-    )
-    refresh_token: str = rx.Cookie(
-        name="refresh_token",
-        same_site="strict",
-        secure=True,
-    )
+class AuthState(UserState):
 
-    def refresh_access_token(self) -> Callable | None:
+    def login_with_password(self, auth_data: dict) -> Iterable[Callable]:
         """
-        Refresh JWT token using refresh token.
+        Handles the on_submit event from the login page. Retrieves necessary user info.
         """
         try:
-            # Use our old tokens to request new access and refresh tokens.
-            tokens = supabase_get_new_access_token(self.access_token, self.refresh_token)
-            self.access_token = tokens.get("access_token", "")
-            self.refresh_token = tokens.get("refresh_token", "")
-            return None
-        except Exception as e:
-            logger.critical(e)
-            return rx.toast.error("Unable to refresh credentials.")
+            yield AuthState.setvar("is_loading", True)
 
-    def event_state_logout(self) -> Iterable[Callable]:
-        """
-        Send to root and reset all state vars.
-        """
-        yield rx.redirect("/")
-        yield self.reset()
-        return rx.toast.error("Logged out.")
+            if auth_data.get("email") and auth_data.get("password"):
+                email = auth_data.get("email")
+                password = auth_data.get("password")
+                self.sign_in_with_password(email=email, password=password)
+                yield UserState.get_user_info()
+                yield UserState.get_user_hospital_info()
+                yield UserState.get_user_reports()
+                yield rx.redirect("/")
+            else:
+                yield rx.toast.error("Both fields are required.")
+
+            yield AuthState.setvar("is_loading", False)
+
+        except HTTPStatusError as e:
+            yield rx.toast.error(e.response.json()["msg"])
+            yield AuthState.setvar("is_loading", False)
+        except Exception:
+            console.print_exception(show_locals=True)
+            yield rx.toast.error("Login failed.")
+            yield AuthState.setvar("is_loading", False)
+
+    def logout(self) -> Callable | None:
+        try:
+            self.log_out()
+            return rx.redirect("/")
+        except Exception as e:
+            return rx.toast.error(str(e))

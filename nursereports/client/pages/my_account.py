@@ -4,7 +4,7 @@ from ..components import (
     navbar,
     text,
 )
-from ...states import BaseState, UserState
+from ...states import AuthState, BaseState, UserState
 
 import reflex as rx
 
@@ -13,7 +13,6 @@ import reflex as rx
     route="/my-account",
     title="Nurse Reports",
     on_load=[
-        BaseState.event_state_refresh_login,
         BaseState.event_state_requires_login
     ]
 )
@@ -52,12 +51,12 @@ def account() -> rx.Component:
                 rx.avatar(size="7", fallback="RN", color_scheme="teal", class_name="mb-4"),
                 rx.flex(
                     rx.icon("mail", class_name="h-4 w-4 stroke-zinc-700"),
-                    rx.text(UserState.user_claims_email, class_name="text-sm"),
+                    rx.text(AuthState.user_email, class_name="text-sm"),
                     class_name="flex-row items-center space-x-4 w-full"
                 ),
                 rx.flex(
                     rx.icon("square-user-round", class_name="h-4 w-4 stroke-zinc-700"),
-                    rx.text(UserState.user_claims_id, class_name="text-sm"),
+                    rx.text(AuthState.user_id, class_name="text-sm"),
                     class_name="space-x-4 w-full"
                 ),
                 class_name="flex-col p-8 space-y-2 w-full"

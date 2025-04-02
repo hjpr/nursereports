@@ -15,24 +15,24 @@ from ..server.supabase import (
     supabase_update_user_info,
     supabase_update_last_login
 )
-from ..states.auth_state import AuthState
+from suplex import Suplex
 
-from datetime import datetime
-from loguru import logger
+from datetime import datetime, timezone
+from rich.console import Console
 from typing import Callable, Iterable
 
 import copy
 import humanize
-import jwt
 import math
-import pprint
 import rich
 import reflex as rx
 import time
 import traceback
 
+console = Console()
 
-class UserState(AuthState):
+
+class UserState(Suplex):
 
     MAX_HOSPITALS_DISPLAYED = 5
     MAX_REPORTS_DISPLAYED = 5
@@ -53,49 +53,6 @@ class UserState(AuthState):
     # User rate limits.
     user_contact_email_time: int = 0
     user_recovery_email_time: int = 0
-
-    @rx.var
-    def user_claims(self) -> dict[str, str]:
-        """
-        Pull claims from JWT if valid, authenticated, and not expired.
-        """
-        try:
-            if self.access_token:
-                claims = jwt.decode(
-                    self.access_token,
-                    jwt_key,
-                    audience="authenticated",
-                    algorithms=["HS256"],
-                )
-                return claims
-            else:
-                return {}
-
-        except Exception as e:
-            logger.critical(e)
-            return {}
-
-    @rx.var
-    def user_claims_id(self) -> str | None:
-        return self.user_claims.get("sub")
-
-    @rx.var
-    def user_claims_email(self) -> str | None:
-        return self.user_claims.get("email")
-
-    @rx.var
-    def user_claims_issued_by(self) -> str | None:
-        return self.user_claims.get("iss")
-
-    @rx.var
-    def user_claims_issued_at(self) -> int | None:
-        """Formatted as seconds since epoch."""
-        return self.user_claims.get("iat")
-
-    @rx.var
-    def user_claims_expires_at(self) -> int | None:
-        """Formatted as seconds since epoch."""
-        return self.user_claims.get("exp")
     
     @rx.var
     def user_info_specialties(self) -> list:
@@ -112,30 +69,6 @@ class UserState(AuthState):
     @rx.var
     def user_info_experience(self) -> int:
         return self.user_info.get("professional", {}).get("experience", 0)
-
-    @rx.var
-    def user_claims_authenticated(self) -> bool:
-        if self.user_claims:
-            return True if self.user_claims.get("aud") == "authenticated" else False
-        else:
-            return False
-
-    @rx.var
-    def user_claims_expiring(self) -> bool:
-        if self.user_claims_authenticated:
-            current_time = int(time.time())
-            expires_at = self.user_claims_expires_at
-            seconds_to_expiration = expires_at - current_time
-            return True if seconds_to_expiration <= 900 else False
-        return False
-    
-    @rx.var
-    def user_claims_expired(self) -> bool:
-        if self.user_claims_authenticated:
-            time_left = self.user_claims_expires_at - int(time.time())
-            return True if time_left <= 0 else False
-        else:
-            return False
     
     @rx.var(cache=True)
     def user_needs_onboarding(self) -> bool:
@@ -221,43 +154,6 @@ class UserState(AuthState):
         if self.current_report_page > 1:
             self.current_report_page -= 1
 
-    def event_state_submit_login(self, auth_data: dict) -> Iterable[Callable]:
-        """
-        Handles the on_submit event from the login page.
-        """
-        try:
-            # Disable login attempts while request is out.
-            self.user_is_loading = True
-
-            if auth_data.get("email") and auth_data.get("password"):
-                # Grab auth data from form submission.
-                email = auth_data.get("email")
-                password = auth_data.get("password")
-
-                # Get JWT using provided auth data.
-                tokens = supabase_login_with_email(email, password)
-                self.access_token = tokens.get("access_token")
-
-                # Set login to current time.
-                supabase_update_last_login(self.access_token, self.user_claims_id)
-
-                # Get user data.
-                self.get_user_info()
-
-                # Send to proper page.
-                yield self.redirect_user_to_location()
-
-            # If either email or password are missing.
-            else:
-                yield rx.toast.error("Both fields are required.")
-
-            # Re-enable login attempts after requests.
-            self.user_is_loading = False
-
-        except Exception as e:
-            traceback.print_exc()
-            yield rx.toast.error(str(e))
-            self.user_is_loading = False
 
     def event_state_create_account(self, auth_data: dict) -> Iterable[Callable]:
         """
@@ -292,7 +188,7 @@ class UserState(AuthState):
                 yield rx.toast.error("All fields must be completed.", close_button=True)
 
         except Exception as e:
-            logger.error(e)
+            console.print_exception(show_locals=True)
             yield rx.toast.error(str(e), close_button=True)
             self.user_is_loading = False
 
@@ -305,69 +201,91 @@ class UserState(AuthState):
             yield rx.redirect(f"{api_url}/auth/v1/authorize?provider={provider}")
 
         except Exception as e:
-            logger.error(e)
+            console.print_exception(show_locals=True)
             yield rx.toast.error(
                 str(e),
                 close_button=True,
             )
             self.user_is_loading = False
 
-    def create_new_user(self) -> None:
-        """
-        Create new user in remote database and save to local state.
-        """
-        supabase_create_initial_user_info(self.access_token, self.user_claims_id)
-        user_info = supabase_get_user_info(self.access_token)
-        self.user_info = user_info
-
     def get_user_info(self) -> None:
         """
-        Refreshes exising user's info in state, or creates new user if user info missing.
+        Get user info or create entry in /users table if user info missing (1st login)
         """
-        # Set user info to state or create new user
-        user_info = supabase_get_user_info(self.access_token)
+        # Get user info or create entry in /users
+        user_info = self.query.table("users").select("*").eq("id", self.user_id).execute()
         if user_info:
-            self.user_info = user_info
+            self.user_info = user_info[0]
         else:
-            self.create_new_user()
+            user_info = {
+                "id": self.user_id,
+                "modified_at": None,
+                "last_login": str(datetime.now(timezone.utc).isoformat(timespec="seconds")),
+                "account": {
+                    "created_at": str(datetime.now(timezone.utc).isoformat(timespec="seconds")),
+                    "status": "onboard",
+                    "trust": 0,
+                    "membership": "free",
+                    "browsers": []
+                },
+                "professional": {
+                    "license_type": "",
+                    "license_number": "",
+                    "license_state": "",
+                    "specialty": [],
+                    "experience": 0
+                },
+                "reports": {
+                    "ids": [],
+                    "num_full": 0,
+                    "num_flag": 0,
+                    "num_pay": 0
+                },
+                "engagement": {
+                    "likes": 0,
+                    "tags": 0,
+                    "referrals": []
+                },
+                "preferences": {
+                    "email": "",
+                    "mobile": "",
+                    "dark_mode": False,
+                    "status_opt_in": False,
+                    "update_opt_in": False,
+                    "social_opt_in": False,
+                },
+                "saved": {
+                    "jobs": [],
+                    "hospitals": []
+                }
+            }
+            self.query.table("users").upsert(user_info).execute()
 
-        # Get all users saved hospital information.
-        self.get_user_saved_hospitals()
-
-        # Get all user reports.
-        self.get_user_reports()
-
-    def get_user_saved_hospitals(self) -> None:
-        """Get or refresh saved hospitals."""
+    def get_user_hospital_info(self) -> None:
+        """
+        If user has saved hospital, populate info with hospital details.
+        """
         saved_hospital_list = self.user_info.get("saved", {}).get("hospitals", [])
-        if saved_hospital_list:
-            retrieved_hospitals = supabase_populate_saved_hospital_details(
-                self.access_token, saved_hospital_list
-            )
+        complete_hospital_info = []
 
-            # Format hospital cities from all caps to 'title' case.
-            for hospital in retrieved_hospitals:
+        if saved_hospital_list:
+            complete_hospital_info = self.query.table("hospitals").select(
+                "hosp_name,hosp_state,hosp_city,hosp_id,hosp_addr"
+            ).in_("hosp_id", saved_hospital_list).execute()
+
+            for hospital in complete_hospital_info:
                 hospital["hosp_city"] = hospital["hosp_city"].title()
                 hospital["hosp_addr"] = hospital["hosp_addr"].title()
-            self.user_saved_hospitals = retrieved_hospitals
-        else:
-            self.user_saved_hospitals = []
+        
+        self.user_saved_hospitals = complete_hospital_info
 
     def get_user_reports(self) -> None:
         """
-        Get or refresh user reports. Data structure is different as these reports are used for the reports section
-        of the dashboard and the rx.foreach method can't parse nested dicts.
-        report: dict
-            report_id: str
-            hospital_id: str
-            area: str
-            unit: str
-            role: str
-            hospital_city: str
-            hospital_state: str
+        Get all user reports.
         """
-        reports = supabase_get_user_reports(self.access_token, self.user_claims_id)
-
+        reports = self.query.table("reports").select(
+            "report_id,hospital_id,assignment,hospital,created_at,modified_at"
+            ).eq("user_id", self.user_id).execute()
         if reports:
             for report in reports:
                 # Format from nested -> top-level for access via rx.foreach
@@ -380,8 +298,8 @@ class UserState(AuthState):
                 # Format timestamps
                 report["time_ago"] = humanize.naturaltime(datetime.fromisoformat(report["created_at"]))
                 if report["modified_at"]:
-                    report["time_ago"] = humanize.naturaltime(datetime.fromisoformat(report["modified_at"]))
-
+                    report["time_ago"] = humanize.naturaltime(datetime.fromisoformat(report["modified_at"])) 
+        
         self.user_reports = reports
 
     def update_user_info_and_sync_locally(

@@ -20,7 +20,6 @@ import reflex as rx
     route="/hospital/[cms_id]",
     title="Nurse Reports",
     on_load=[
-        BaseState.event_state_refresh_login,
         BaseState.event_state_requires_report,
         HospitalState.event_state_load_hospital_info,
     ],

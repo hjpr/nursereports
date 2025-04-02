@@ -1,4 +1,4 @@
-from ...states import UserState
+from ...states import AuthState, UserState
 
 import functools
 import reflex as rx
@@ -14,13 +14,13 @@ def spacer(**props) -> rx.Component:
 def login_protected(page) -> rx.Component:
     @functools.wraps(page)
     def _wrapper() -> rx.Component:
-        return rx.cond(UserState.user_claims_authenticated, page(), rx.box("This resource is protected. Please login to access."))
+        return rx.cond(AuthState.user_is_authenticated, page(), rx.box("This resource is protected. Please login to access."))
 
     return _wrapper
 
 def report_protected(page) -> rx.Component:
     @functools.wraps(page)
     def _wrapper() -> rx.Component:
-        return rx.cond((UserState.user_claims_authenticated & ~UserState.user_needs_onboarding), page(), rx.box("This resource is protected. Requires submitting a report to access."))
+        return rx.cond((AuthState.user_is_authenticated & ~UserState.user_needs_onboarding), page(), rx.box("This resource is protected. Requires submitting a report to access."))
 
     return _wrapper
