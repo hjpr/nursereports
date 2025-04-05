@@ -2,18 +2,10 @@ from ..server.exceptions import RequestFailed
 from ..server.mailgun import mailgun_send_email
 from ..server.secrets import api_url, jwt_key
 from ..server.supabase import (
-    supabase_create_initial_user_info,
     supabase_create_account_with_email,
     supabase_delete_user_report,
-    supabase_get_hospital_info,
-    supabase_get_user_info,
-    supabase_get_user_modified_at_timestamp,
-    supabase_get_user_reports,
-    supabase_login_with_email,
-    supabase_populate_saved_hospital_details,
     supabase_recover_password,
     supabase_update_user_info,
-    supabase_update_last_login
 )
 from suplex import Suplex
 
@@ -24,7 +16,6 @@ from typing import Callable, Iterable
 import copy
 import humanize
 import math
-import rich
 import reflex as rx
 import time
 import traceback
@@ -153,60 +144,6 @@ class UserState(Suplex):
     def previous_report_page(self) -> None:
         if self.current_report_page > 1:
             self.current_report_page -= 1
-
-
-    def event_state_create_account(self, auth_data: dict) -> Iterable[Callable]:
-        """
-        Handles the on_submit event from the create-account page.
-        """
-        try:
-            self.user_is_loading = True
-
-            if (
-                auth_data.get("create_account_email")
-                and auth_data.get("create_account_password")
-                and auth_data.get("create_account_password_confirm")
-            ):
-                # Grab auth data from form submission.
-                email = auth_data.get("create_account_email")
-                password = auth_data.get("create_account_password")
-                password_confirm = auth_data.get("create_account_password_confirm")
-
-                # Check if passwords match
-                if password != password_confirm:
-                    self.user_is_loading = False
-                    return rx.toast.error("Passwords do not match.", close_button=True)
-
-                # Create account from auth data.
-                supabase_create_account_with_email(email, password)
-
-                # Reset variables and redirect to the link confirmation page.
-                yield rx.redirect("/login/confirm")
-
-            else:
-                self.user_is_loading = False
-                yield rx.toast.error("All fields must be completed.", close_button=True)
-
-        except Exception as e:
-            console.print_exception(show_locals=True)
-            yield rx.toast.error(str(e), close_button=True)
-            self.user_is_loading = False
-
-    def event_state_login_with_sso(self, provider: str) -> Iterable[Callable]:
-        """
-        Navigate to Supabase SSO endpoint.
-        """
-        try:
-            # Supabase API endpoint for SSO auth.
-            yield rx.redirect(f"{api_url}/auth/v1/authorize?provider={provider}")
-
-        except Exception as e:
-            console.print_exception(show_locals=True)
-            yield rx.toast.error(
-                str(e),
-                close_button=True,
-            )
-            self.user_is_loading = False
 
     def get_user_info(self) -> None:
         """
@@ -338,18 +275,6 @@ class UserState(Suplex):
             )
             self.user_info.update(synced_data)
 
-    def local_user_data_synced_with_remote(self) -> bool:
-        """
-        Check modified_at timestamps to ensure user_info is in sync locally -> supabase.
-        """
-        remote_modified_at_timestamp = supabase_get_user_modified_at_timestamp(self.access_token)["modified_at"]
-        local_modified_at_timestamp = self.user_info["modified_at"]
-        return (
-            True
-            if remote_modified_at_timestamp == local_modified_at_timestamp
-            else False
-        )
-
     def event_state_add_hospital(self, hosp_id: str) -> Iterable[Callable]:
         """
         Add a user selected hospital to user's saved hospital list.
@@ -455,38 +380,6 @@ class UserState(Suplex):
             else:
                 yield rx.toast.error(
                     f"You must wait {abs(wait_time)} second(s) to submit a message."
-                )
-
-        except Exception as e:
-            logger.error(e)
-            yield rx.toast.error(e)
-
-    def event_state_recover_password(self, recover_dict: dict) -> Iterable[Callable]:
-        """
-        Recovers password via password recovery page. User must wait 1 min between submissions.
-        """
-        try:
-            current_time = int(time.time())
-            wait_interval = 120
-            wait_time = (
-                int(current_time - wait_interval) - self.user_recovery_email_time
-            )
-            email = recover_dict.get("email")
-
-            # Check that wait interval isn't sooner than 1 min.
-            if wait_time >= 0:
-                if email:
-                    yield supabase_recover_password(email)
-                    yield rx.redirect(
-                        "/login/forgot-password/confirmation", replace=True
-                    )
-                    self.user_recovery_email_time = current_time
-                else:
-                    raise Exception("Enter a valid email address")
-
-            else:
-                yield rx.toast.error(
-                    f"You must wait {abs(wait_time)} second(s) to make another recovery attempt."
                 )
 
         except Exception as e:
