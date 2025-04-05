@@ -1,10 +1,7 @@
 from ..server.exceptions import RequestFailed
 from ..server.mailgun import mailgun_send_email
-from ..server.secrets import api_url, jwt_key
 from ..server.supabase import (
-    supabase_create_account_with_email,
     supabase_delete_user_report,
-    supabase_recover_password,
     supabase_update_user_info,
 )
 from suplex import Suplex
@@ -43,54 +40,48 @@ class UserState(Suplex):
 
     # User rate limits.
     user_contact_email_time: int = 0
-    user_recovery_email_time: int = 0
     
     @rx.var
-    def user_info_specialties(self) -> list:
-        return self.user_info.get("professional", {}).get("specialty", [])
+    def user_info_specialties(self) -> list | None:
+        return self.user_info.get("professional", {}).get("specialty")
     
     @rx.var
-    def user_info_license_type(self) -> str:
-        return self.user_info.get("professional", {}).get("license_type", "")
+    def user_info_license_type(self) -> str | None:
+        return self.user_info.get("professional", {}).get("license_type")
     
     @rx.var
-    def user_info_license_state(self) -> str:
-        return self.user_info.get("professional", {}).get("license_state", "")
+    def user_info_license_state(self) -> str | None:
+        return self.user_info.get("professional", {}).get("license_state")
     
     @rx.var
-    def user_info_experience(self) -> int:
-        return self.user_info.get("professional", {}).get("experience", 0)
+    def user_info_experience(self) -> int | None:
+        return self.user_info.get("professional", {}).get("experience")
     
-    @rx.var(cache=True)
+    @rx.var
     def user_needs_onboarding(self) -> bool:
         if self.user_info:
-            return True if self.user_info.get("account").get("status") == "onboard" else False
+            return True if self.user_info.get("account").get("status", "") == "onboard" else False
         else:
             return True
         
-    @rx.var()
+    @rx.var
     def paginated_saved_hospitals(self) -> list[dict]:
         if len(self.user_saved_hospitals) > self.MAX_HOSPITALS_DISPLAYED:
-            # Determine number of pages.
-            num_pages = math.ceil(len(self.user_saved_hospitals) / self.MAX_HOSPITALS_DISPLAYED)
-            num_pages_list = [ page for page in range(1, num_pages + 1) ]
+            number_of_pages = math.ceil(len(self.user_saved_hospitals) / self.MAX_HOSPITALS_DISPLAYED)
+            list_of_pages = [ page for page in range(1, number_of_pages + 1) ]
 
-            # Build dict.
-            paginated_hospitals = { number: [] for number in num_pages_list } 
-
-            # Fill dict.
+            paginated_hospitals = { number: [] for number in list_of_pages } 
             current_page = 1
             for hospital in self.user_saved_hospitals:
                 if len(paginated_hospitals[current_page]) >= self.MAX_HOSPITALS_DISPLAYED:
                     current_page += 1
                 paginated_hospitals[current_page].append(hospital)
-            
+
             return paginated_hospitals.get(self.current_hospital_page)
-        
         else:
             return self.user_saved_hospitals
         
-    @rx.var()
+    @rx.var
     def paginated_user_reports(self) -> list[dict]:
         """
         Paginates the list of dicts and returns the associated page. Also sorts so that
@@ -145,7 +136,7 @@ class UserState(Suplex):
         if self.current_report_page > 1:
             self.current_report_page -= 1
 
-    def get_user_info(self) -> None:
+    def get_user_info(self) -> Iterable[Callable]:
         """
         Get user info or create entry in /users table if user info missing (1st login)
         """
