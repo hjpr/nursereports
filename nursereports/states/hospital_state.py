@@ -1,27 +1,22 @@
-import numpy as np
-import polars as pl
-import re
-import reflex as rx
 
 from ..client.components.dicts import abbr_to_state_dict
 from ..states.user_state import UserState
-from ..server.supabase.hospital_requests import (
-    supabase_get_hospital_overview_info,
-    supabase_get_hospital_report_data,
-)
-from ..server.supabase.report_requests import supabase_admin_edit_report
 from ..server.exceptions import RequestFailed
-
 from datetime import datetime
 from loguru import logger
+from rich.console import Console
 from typing import Any, Callable, Iterable
 
 import copy
 import humanize
 import math
-import rich
-import pprint
+import numpy as np
+import polars as pl
+import re
+import reflex as rx
 import traceback
+
+console = Console()
 
 
 class HospitalState(UserState):
@@ -68,7 +63,9 @@ class HospitalState(UserState):
 
     @rx.var
     def has_report_info(self) -> bool:
-        return True if len(self.report_info) > 0 else False
+        if self.report_info and len(self.report_info) > 0:
+            return True
+        return False
 
     @rx.var
     def hosp_id(self) -> str | None:
@@ -239,7 +236,7 @@ class HospitalState(UserState):
         """When user completes a report, reset hospital variables so all reports are refreshed on page visit."""
         self.reset()
 
-    def event_state_load_hospital_info(self) -> Callable | None:
+    def load_hospital_info(self) -> Callable | None:
         """
         Load hospital data into state from supabase.
         """
@@ -257,9 +254,7 @@ class HospitalState(UserState):
 
             # As long as CMS ID appears to be valid, try to get hospital info.
             if self.hosp_id:
-                self.hospital_info = supabase_get_hospital_overview_info(
-                    self.access_token, self.hosp_id
-                )
+                self.hospital_info = self.query.table("hospitals").select("*").eq("hosp_id", self.hosp_id).execute()[0]
                 self.hospital_info["hosp_state_abbr"] = self.hospital_info["hosp_state"]
                 self.hospital_info["hosp_state"] = abbr_to_state_dict.get(
                     self.hospital_info["hosp_state_abbr"]
@@ -273,140 +268,133 @@ class HospitalState(UserState):
             else:
                 return rx.redirect("/dashboard")
 
-        except RequestFailed as e:
-            logger.error(e)
+        except RequestFailed:
+            console.print_exception()
             return rx.toast.error("Failed to retrieve data from backend.")
-        except Exception as e:
-            logger.error(e)
+        except Exception:
+            console.print_exception()
             return rx.toast.error("Error while loading hospital info.")
 
     def load_report_info(self) -> None:
         """
         Load report data into state from supabase.
         """
-        self.report_info = supabase_get_hospital_report_data(
-            self.access_token, self.hosp_id
-        )
+        self.report_info = self.query.table("reports").select("*").eq("hospital_id", self.hosp_id).execute()
 
     def load_pay_info(self) -> None:
         """
         Pulls pay data out of report_info and processes data to partition into
         user digestible chunks for display.
         """
-        try:
-            if self.report_info:
-                # Copy reports into a dataframe.
-                pay_df = pl.DataFrame(copy.deepcopy(self.report_info))
+        if self.report_info:
+            # Copy reports into a dataframe.
+            pay_df = pl.DataFrame(copy.deepcopy(self.report_info))
 
-                # Create our full time pay dictionary with columns hourly and total.
-                ft_pay_hospital_df = (
-                    pay_df.filter(
-                        pl.col("compensation").struct.field("emp_type") == "Full-time"
-                    )
-                    .select(
-                        [
-                            pl.col("compensation")
-                            .struct.field("pay")
-                            .struct.field("hourly"),
-                            pl.col("compensation")
-                            .struct.field("experience")
-                            .struct.field("total"),
-                        ]
-                    )
-                    .sort(by=pl.col("total"))
+            # Create our full time pay dictionary with columns hourly and total.
+            ft_pay_hospital_df = (
+                pay_df.filter(
+                    pl.col("compensation").struct.field("emp_type") == "Full-time"
                 )
-
-                # Remove outliers.
-                ft_pay_hospital_df = self.remove_pay_outliers(
-                    ft_pay_hospital_df, "hourly"
+                .select(
+                    [
+                        pl.col("compensation")
+                        .struct.field("pay")
+                        .struct.field("hourly"),
+                        pl.col("compensation")
+                        .struct.field("experience")
+                        .struct.field("total"),
+                    ]
                 )
+                .sort(by=pl.col("total"))
+            )
 
-                # Flatten entries for years into an average.
-                ft_pay_hospital_df = self.flatten_pay(
-                    ft_pay_hospital_df, "total", "hourly"
+            # Remove outliers.
+            ft_pay_hospital_df = self.remove_pay_outliers(
+                ft_pay_hospital_df, "hourly"
+            )
+
+            # Flatten entries for years into an average.
+            ft_pay_hospital_df = self.flatten_pay(
+                ft_pay_hospital_df, "total", "hourly"
+            )
+
+            # Set full time pay limited flag if less than 10 reports.
+            self.ft_pay_hospital_info_limited = bool(len(ft_pay_hospital_df) < 10)
+
+            # Quadratic interpolation as long as we have more than 2 reports.
+            self.extrapolated_ft_pay_hospital = self.linear_regression_pay(
+                ft_pay_hospital_df, "total", "hourly"
+            )
+            logger.debug(f"Pulled {len(ft_pay_hospital_df)} full time report(s).")
+
+            # Part time pay data and interpolation.
+            pt_pay_hospital_df = (
+                pay_df.filter(
+                    pl.col("compensation").struct.field("emp_type") == "Part-time"
                 )
-
-                # Set full time pay limited flag if less than 10 reports.
-                self.ft_pay_hospital_info_limited = bool(len(ft_pay_hospital_df) < 10)
-
-                # Quadratic interpolation as long as we have more than 2 reports.
-                self.extrapolated_ft_pay_hospital = self.linear_regression_pay(
-                    ft_pay_hospital_df, "total", "hourly"
+                .select(
+                    [
+                        pl.col("compensation")
+                        .struct.field("pay")
+                        .struct.field("hourly"),
+                        pl.col("compensation")
+                        .struct.field("experience")
+                        .struct.field("total"),
+                    ]
                 )
-                logger.debug(f"Pulled {len(ft_pay_hospital_df)} full time report(s).")
+                .sort(by=pl.col("total"))
+            )
 
-                # Part time pay data and interpolation.
-                pt_pay_hospital_df = (
-                    pay_df.filter(
-                        pl.col("compensation").struct.field("emp_type") == "Part-time"
-                    )
-                    .select(
-                        [
-                            pl.col("compensation")
-                            .struct.field("pay")
-                            .struct.field("hourly"),
-                            pl.col("compensation")
-                            .struct.field("experience")
-                            .struct.field("total"),
-                        ]
-                    )
-                    .sort(by=pl.col("total"))
+            # Remove outliers.
+            pt_pay_hospital_df = self.remove_pay_outliers(
+                pt_pay_hospital_df, "hourly"
+            )
+
+            # Flatten entries for years into an average.
+            pt_pay_hospital_df = self.flatten_pay(
+                pt_pay_hospital_df, "total", "hourly"
+            )
+
+            # Set part time pay limited flag if less than 10 reports.
+            self.pt_pay_hospital_info_limited = bool(len(pt_pay_hospital_df) < 10)
+
+            # Perform our linear regression.
+            self.extrapolated_pt_pay_hospital = self.linear_regression_pay(
+                pt_pay_hospital_df, "total", "hourly"
+            )
+            logger.debug(f"Pulled {len(pt_pay_hospital_df)} part time report(s).")
+
+            # Contract pay data and averaged pay.
+            contract_pay_df = (
+                pay_df.filter(
+                    pl.col("compensation").struct.field("emp_type") == "Contract"
                 )
-
-                # Remove outliers.
-                pt_pay_hospital_df = self.remove_pay_outliers(
-                    pt_pay_hospital_df, "hourly"
+                .select(
+                    [
+                        pl.col("compensation")
+                        .struct.field("pay")
+                        .struct.field("weekly"),
+                        pl.col("created_at"),
+                    ]
                 )
+                .sort(by=pl.col("created_at"))
+            )
 
-                # Flatten entries for years into an average.
-                pt_pay_hospital_df = self.flatten_pay(
-                    pt_pay_hospital_df, "total", "hourly"
+            # Check if more than 10 contract pay reports.
+            self.contract_pay_info_hospital_limited = bool(
+                len(contract_pay_df) < 10
+            )
+
+            # Average contract pay data.
+            if len(contract_pay_df) > 0:
+                self.simple_average_pay(contract_pay_df, "weekly")
+                logger.debug(
+                    f"Pulled {len(contract_pay_df)} contract report(s) and averaged them."
                 )
-
-                # Set part time pay limited flag if less than 10 reports.
-                self.pt_pay_hospital_info_limited = bool(len(pt_pay_hospital_df) < 10)
-
-                # Perform our linear regression.
-                self.extrapolated_pt_pay_hospital = self.linear_regression_pay(
-                    pt_pay_hospital_df, "total", "hourly"
+            else:
+                console.print(
+                    "No contract pay data present to be loaded to state..."
                 )
-                logger.debug(f"Pulled {len(pt_pay_hospital_df)} part time report(s).")
-
-                # Contract pay data and averaged pay.
-                contract_pay_df = (
-                    pay_df.filter(
-                        pl.col("compensation").struct.field("emp_type") == "Contract"
-                    )
-                    .select(
-                        [
-                            pl.col("compensation")
-                            .struct.field("pay")
-                            .struct.field("weekly"),
-                            pl.col("created_at"),
-                        ]
-                    )
-                    .sort(by=pl.col("created_at"))
-                )
-
-                # Check if more than 10 contract pay reports.
-                self.contract_pay_info_hospital_limited = bool(
-                    len(contract_pay_df) < 10
-                )
-
-                # Average contract pay data.
-                if len(contract_pay_df) > 0:
-                    self.simple_average_pay(contract_pay_df, "weekly")
-                    logger.debug(
-                        f"Pulled {len(contract_pay_df)} contract report(s) and averaged them."
-                    )
-                else:
-                    logger.debug(
-                        "No contract pay data present to be loaded to state..."
-                    )
-
-        except Exception as e:
-            traceback.print_exc()
-            logger.critical(e)
 
     @staticmethod
     def remove_pay_outliers(
@@ -820,35 +808,35 @@ class HospitalState(UserState):
         except Exception as e:
             logger.critical(e)
 
-    def event_state_like_unlike_review(
-        self, review_to_edit: dict[str, str | list | bool]
-    ) -> Iterable[Callable]:
-        """
-        Edits the report in the database at /report and then saves the changes
-        to the state to reflect those changes in the review section of hospital
-        overview.
-        """
-        try:
-            if self.user_info["user_id"] in review_to_edit["likes"]:
-                review_to_edit["likes"].remove(self.user_info["user_id"])
-            else:
-                review_to_edit["likes"].append(self.user_info["user_id"])
-            review_to_edit = {
-                "report_id": review_to_edit["report_id"],
-                "likes": review_to_edit["likes"],
-            }
-            supabase_admin_edit_report(review_to_edit)
+    # def event_state_like_unlike_review(
+    #     self, review_to_edit: dict[str, str | list | bool]
+    # ) -> Iterable[Callable]:
+    #     """
+    #     Edits the report in the database at /report and then saves the changes
+    #     to the state to reflect those changes in the review section of hospital
+    #     overview.
+    #     """
+    #     try:
+    #         if self.user_info["user_id"] in review_to_edit["likes"]:
+    #             review_to_edit["likes"].remove(self.user_info["user_id"])
+    #         else:
+    #             review_to_edit["likes"].append(self.user_info["user_id"])
+    #         review_to_edit = {
+    #             "report_id": review_to_edit["report_id"],
+    #             "likes": review_to_edit["likes"],
+    #         }
+    #         supabase_admin_edit_report(review_to_edit)
 
-            for review in self.review_info:
-                if review["report_id"] == review_to_edit["report_id"]:
-                    review["likes"] = review_to_edit["likes"]
-                    review["likes_number"] = len(review_to_edit["likes"])
-                    review["user_has_liked"] = (
-                        self.user_info["user_id"] in review_to_edit["likes"]
-                    )
+    #         for review in self.review_info:
+    #             if review["report_id"] == review_to_edit["report_id"]:
+    #                 review["likes"] = review_to_edit["likes"]
+    #                 review["likes_number"] = len(review_to_edit["likes"])
+    #                 review["user_has_liked"] = (
+    #                     self.user_info["user_id"] in review_to_edit["likes"]
+    #                 )
 
-        except RequestFailed:
-            rx.toast.error("Error providing review feedback.")
+    #     except RequestFailed:
+    #         rx.toast.error("Error providing review feedback.")
 
     def redirect_to_hospital_overview(self, hosp_id: str) -> Iterable[Callable]:
         return rx.redirect(f"/hospital/{hosp_id}")

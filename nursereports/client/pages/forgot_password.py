@@ -5,7 +5,7 @@ from ..components import (
     input,
     text
 )
-from ...states import BaseState, UserState
+from ...states import AuthState, UserState
 
 import reflex as rx
 
@@ -77,7 +77,7 @@ def forgot_password() -> rx.Component:
             ),
             class_name="flex-col items-center space-y-6 w-full",
         ),
-        on_submit=BaseState.event_state_recover_password,
+        on_submit=AuthState.recover_password(),
         reset_on_submit=True,
     )
 

@@ -21,7 +21,7 @@ import reflex as rx
     title="Nurse Reports",
     on_load=[
         BaseState.event_state_requires_report,
-        HospitalState.event_state_load_hospital_info,
+        HospitalState.load_hospital_info,
     ],
 )
 @report_protected

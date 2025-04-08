@@ -5,7 +5,7 @@ from ..components import(
     link,
     solid_button
 )
-from ...states import UserState
+from ...states import AuthState, UserState
 
 import reflex as rx
 
@@ -143,5 +143,5 @@ def create_account() -> rx.Component:
             ),
             class_name="flex-col items-center space-y-8 w-full",
         ),
-        on_submit=UserState.event_state_create_account,
+        on_submit=AuthState.create_account(),
     )
