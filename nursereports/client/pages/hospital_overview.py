@@ -119,7 +119,7 @@ def hospital_average() -> rx.Component:
     return flex(
         flex(
             rx.flex(
-                text("Hospital Average", class_name="text-xl"),
+                text("Hospital Average", class_name="text-lg"),
                 class_name="flex justify-center md:justify-start w-full"
             ),
             rx.segmented_control.root(
@@ -496,7 +496,7 @@ def reviews() -> rx.Component:
                             convert_to_large_emoji(HospitalState.selected_unit_info["comp_overall"]),
                             rx.spacer(),
                             rx.flex(
-                                rx.text("COMPENSATION", class_name="text-sm select-none"),
+                                rx.text("Compensation", class_name="text-sm select-none"),
                                 rx.icon("circle-help", class_name="stroke-zinc-700 dark:stroke-zinc-700"),
                                 class_name="md:flex-col space-x-2 md:space-x-0 space-y-0 md:space-y-2 items-center"
                             ),
@@ -505,8 +505,7 @@ def reviews() -> rx.Component:
                     ),
                     rx.popover.content(
                         rx.flex(
-                            rx.text("Compensation is a subjective nurse-rated score."),
-                            rx.text("This score suggests how satisfied nurses are with their overall pay and benefits package."),
+                            rx.text("How satisfied nurses are with their overall pay and benefits package."),
                             class_name="space-y-2 flex-col max-w-sm"
                         ),
                         align="center",
@@ -521,7 +520,7 @@ def reviews() -> rx.Component:
                             convert_to_large_emoji(HospitalState.selected_unit_info["assign_overall"]),
                             rx.spacer(),
                             rx.flex(
-                                rx.text("ASSIGNMENT", class_name="text-sm select-none"),
+                                rx.text("Assignment", class_name="text-sm select-none"),
                                 rx.icon("circle-help", class_name="stroke-zinc-700 dark:stroke-zinc-700"),
                                 class_name="md:flex-col space-x-2 md:space-x-0 space-y-0 md:space-y-2 items-center"
                             ),
@@ -530,8 +529,7 @@ def reviews() -> rx.Component:
                     ),
                     rx.popover.content(
                         rx.flex(
-                            rx.text("Assignment is a subjective nurse-rated score."),
-                            rx.text("This score strongly tracks workplace culture and day-to-day experience alongside aides, co-workers, management, physicians, etc."),
+                            rx.text("How workplace culture and the day-to-day experience at assignment feels."),
                             class_name="space-y-2 flex-col max-w-sm"
                         ),
                         align="center",
@@ -546,7 +544,7 @@ def reviews() -> rx.Component:
                             convert_to_large_emoji(HospitalState.selected_unit_info["staff_overall"]),
                             rx.spacer(),
                             rx.flex(
-                                rx.text("STAFFING", class_name="text-sm select-none"),
+                                rx.text("Staffing", class_name="text-sm select-none"),
                                 rx.icon("circle-help", class_name="stroke-zinc-700 dark:stroke-zinc-700"),
                                 class_name="md:flex-col space-x-2 md:space-x-0 space-y-0 md:space-y-2 items-center"
                             ),
@@ -555,8 +553,7 @@ def reviews() -> rx.Component:
                     ),
                     rx.popover.content(
                         rx.flex(
-                            rx.text("Staffing is a subjective nurse-rated score."),
-                            rx.text("This is an indicator of how fair ratios and daily workloads might feel as a result of staffing decisions."),
+                            rx.text("How ratios and workloads feel as a result of staffing decisions."),
                             class_name="space-y-2 flex-col max-w-sm"
                         ),
                         align="center",
@@ -571,7 +568,7 @@ def reviews() -> rx.Component:
                             convert_to_large_emoji(HospitalState.selected_unit_info["overall"]),
                             rx.spacer(),
                             rx.flex(
-                                rx.text("OVERALL", class_name="text-sm font-bold select-none"),
+                                rx.text("Overall", class_name="text-sm select-none"),
                                 rx.icon("circle-help", class_name="stroke-zinc-700 dark:stroke-zinc-700"),
                                 class_name="md:flex-col space-x-2 md:space-x-0 space-y-0 md:space-y-2 items-center"
                             ),
@@ -580,8 +577,7 @@ def reviews() -> rx.Component:
                     ),
                     rx.popover.content(
                         rx.flex(
-                            rx.text("This is an average using compensation, assignment, and staffing scores."),
-                            rx.text("This suggests the general satisfaction with the workplace across the major categories."),
+                            rx.text("The total experience across compensation, assignment, and staffing."),
                             class_name="space-y-2 flex-col max-w-sm"
                         ),
                         align="center",
@@ -670,7 +666,7 @@ def response_card(review: dict[str, str]) -> rx.Component:
     return flex(
         rx.flex(
             flex(
-                rx.text(review["units_areas_roles"], class_name="text-lg"),
+                rx.text(review["units_areas_roles"], class_name="text-md font-bold"),
                 rx.spacer(),
                 flex(
                     text(review["time_ago"], class_name="text-xs uppercase"),
@@ -690,7 +686,7 @@ def response_card(review: dict[str, str]) -> rx.Component:
                     review["staff_comments"],
                     flex(text(review["staffing_comments"]), width="100%"),
                 ),
-                class_name="flex-col space-y-1 p-4 w-full"
+                class_name="flex-col space-y-1 w-full"
             ),
             # flex(
             #     rx.cond(
@@ -725,7 +721,7 @@ def response_card(review: dict[str, str]) -> rx.Component:
             #     ),
             #     class_name="flex-row items-center justify-end w-full",
             # ),
-            class_name="flex-col w-full",
+            class_name="flex-col space-y-2 w-full",
         ),
         class_name="p-4 w-full",
     )

@@ -1,11 +1,12 @@
 from ..client.components.dicts import cities_by_state, state_to_abbr_dict
 from ..states import AuthState
 
-from loguru import logger
+from rich.console import Console
 from typing import Callable, Iterable
 
 import reflex as rx
 
+console = Console()
 
 class SearchState(AuthState):
     last_searched_state: str
@@ -54,6 +55,8 @@ class SearchState(AuthState):
                 )
             ):
                 # Clear last search results.
+                yield SearchState.setvar("search_is_loading", True)
+
                 self.search_results = []
 
                 # Get results from database.
@@ -73,9 +76,12 @@ class SearchState(AuthState):
                 # Set the results to state.
                 self.search_results = search_results
 
-        except Exception as e:
-            logger.warning(e)
+                yield SearchState.setvar("search_is_loading", False)
+
+        except Exception:
+            console.print_exception()
             yield rx.toast.error("Failed to retrieve search results.")
+            yield SearchState.setvar("search_is_loading", False)
 
     def clear_search_results(self) -> None:
         self.selected_city = ""

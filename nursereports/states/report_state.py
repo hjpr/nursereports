@@ -12,14 +12,16 @@ from ..server.supabase import (
 from datetime import datetime, timezone
 from loguru import logger
 from groq import Groq
+from rich.console import Console
 from typing import Callable, Iterable, Literal
 
 import copy
 import json
 import uuid
-import pprint
 import reflex as rx
 import textwrap
+
+console = Console()
 
 
 class ReportState(PageState):
@@ -60,39 +62,53 @@ class ReportState(PageState):
             else:
                 yield rx.redirect("/dashboard")
 
-    def event_state_edit_user_report(self, report_id: str, hospital_id: str) -> Iterable[Callable]:
+    def edit_user_report(self, report_id: str, hosp_id: str) -> Iterable[Callable]:
         """
         Loads report data into state for user to make edits.
         """
         try:
-            logger.debug(f"{self.user_claims_id} is attempting to edit {report_id} for {hospital_id}")
+            yield ReportState.setvar("is_loading", True)
             # Reset all report variables.
             self.reset()
 
             # Populate other report details to state.
             self.report_id = report_id
-            self.hospital_id = hospital_id
+            self.hospital_id = hosp_id
 
             # Load report to edit into state.
-            report = supabase_get_full_report_info(self.access_token, report_id)
+            report = (
+                self.query.table("reports")
+                .select("*")
+                .eq("report_id", report_id)
+                .execute()[0]
+            )
 
             # Load hospital info into state.
-            self.hospital_info = supabase_get_hospital_info(
-                self.access_token, self.hospital_id
+            self.hospital_info = (
+                self.query.table("hospitals")
+                .select("*")
+                .eq("hosp_id", hosp_id)
+                .execute()[0]
             )
 
             # Set available units/areas/roles for user selection to state.
-            self.hospital_units = list(self.hospital_info.get("departments", {}).get("units", []))
+            self.hospital_units = list(
+                self.hospital_info.get("departments", {}).get("units", [])
+            )
             self.hospital_units.append("I don't see my unit")
-            self.hospital_areas = list(self.hospital_info.get("departments", {}).get("areas", []))
+            self.hospital_areas = list(
+                self.hospital_info.get("departments", {}).get("areas", [])
+            )
             self.hospital_areas.append("I don't see my area")
-            self.hospital_roles = list(self.hospital_info.get("departments", {}).get("roles", []))
+            self.hospital_roles = list(
+                self.hospital_info.get("departments", {}).get("roles", [])
+            )
             self.hospital_roles.append("I don't see my role")
 
             # Set up report_dict
             self.report_dict["report_id"] = self.report_id
             self.report_dict["hospital_id"] = self.hospital_id
-            self.report_dict["user_id"] = self.user_claims_id
+            self.report_dict["user_id"] = self.user_id
             self.report_dict["user"] = {
                 "professional": copy.deepcopy(report["user"]["professional"]),
                 "trust": report["user"]["trust"],
@@ -107,7 +123,9 @@ class ReportState(PageState):
             self.report_dict["assignment"] = {}
             self.report_dict["staffing"] = {}
 
-            self.report_dict["created_at"] = str(datetime.now(timezone.utc).isoformat(timespec="seconds"))
+            self.report_dict["created_at"] = str(
+                datetime.now(timezone.utc).isoformat(timespec="seconds")
+            )
             self.report_dict["submitted_at"] = report["submitted_at"]
 
             # Set compensation to state.
@@ -117,56 +135,114 @@ class ReportState(PageState):
             self.comp_input_pay_weekly = report["compensation"]["pay"]["weekly"]
             self.comp_input_pay_night = report["compensation"]["pay"]["night"]
             self.comp_input_pay_weekend = report["compensation"]["pay"]["weekend"]
-            self.comp_input_pay_weekend_night = report["compensation"]["pay"]["weekend_night"]
+            self.comp_input_pay_weekend_night = report["compensation"]["pay"][
+                "weekend_night"
+            ]
             self.comp_select_shift = report["compensation"]["shift"]
             self.comp_select_weekly_shifts = report["compensation"]["weekly_shifts"]
             hospital_experience = str(report["compensation"]["experience"]["hospital"])
             total_experience = str(report["compensation"]["experience"]["total"])
-            self.comp_select_hospital_experience = hospital_experience if hospital_experience != "26" else "More than 25 years"
-            self.comp_select_total_experience = total_experience if total_experience != "26" else "More than 25 years"
+            self.comp_select_hospital_experience = (
+                hospital_experience
+                if hospital_experience != "26"
+                else "More than 25 years"
+            )
+            self.comp_select_total_experience = (
+                total_experience if total_experience != "26" else "More than 25 years"
+            )
 
             self.comp_check_benefit_pto = report["compensation"]["benefits"]["pto"]
-            self.comp_check_benefit_parental = report["compensation"]["benefits"]["parental_leave"]
-            self.comp_check_benefit_insurance = report["compensation"]["benefits"]["insurance"]
-            self.comp_check_benefit_retirement = report["compensation"]["benefits"]["retirement"]
-            self.comp_check_benefit_reimbursement = report["compensation"]["benefits"]["reimbursement"]
-            self.comp_check_benefit_tuition = report["compensation"]["benefits"]["tuition"]
+            self.comp_check_benefit_parental = report["compensation"]["benefits"][
+                "parental_leave"
+            ]
+            self.comp_check_benefit_insurance = report["compensation"]["benefits"][
+                "insurance"
+            ]
+            self.comp_check_benefit_retirement = report["compensation"]["benefits"][
+                "retirement"
+            ]
+            self.comp_check_benefit_reimbursement = report["compensation"]["benefits"][
+                "reimbursement"
+            ]
+            self.comp_check_benefit_tuition = report["compensation"]["benefits"][
+                "tuition"
+            ]
             self.comp_select_overall = report["compensation"]["ratings"]["overall"]
             self.comp_input_comments = report["compensation"]["comments"]
 
             # Set assignment to state.
             self.assign_select_classify = report["assignment"]["classify"]
-            self.assign_select_unit = "I don't see my unit" if report["assignment"]["unit"]["entered_unit"] else report["assignment"]["unit"]["selected_unit"]
+            self.assign_select_unit = (
+                "I don't see my unit"
+                if report["assignment"]["unit"]["entered_unit"]
+                else report["assignment"]["unit"]["selected_unit"]
+            )
             self.assign_input_unit = report["assignment"]["unit"]["entered_unit"]
-            self.assign_select_area = "I don't see my area" if report["assignment"]["area"]["entered_area"] else report["assignment"]["area"]["selected_area"]
+            self.assign_select_area = (
+                "I don't see my area"
+                if report["assignment"]["area"]["entered_area"]
+                else report["assignment"]["area"]["selected_area"]
+            )
             self.assign_input_area = report["assignment"]["area"]["entered_area"]
-            self.assign_select_role = "I don't see my role" if report["assignment"]["role"]["entered_role"] else report["assignment"]["role"]["selected_role"]
+            self.assign_select_role = (
+                "I don't see my role"
+                if report["assignment"]["role"]["entered_role"]
+                else report["assignment"]["role"]["selected_role"]
+            )
             self.assign_input_role = report["assignment"]["role"]["entered_role"]
             self.assign_select_acuity = report["assignment"]["unit"]["acuity"]
-            self.assign_select_specialty_1 = report["assignment"]["specialty"]["specialty_1"]
-            self.assign_select_specialty_2 = report["assignment"]["specialty"]["specialty_2"]
-            self.assign_select_specialty_3 = report["assignment"]["specialty"]["specialty_3"]
+            self.assign_select_specialty_1 = report["assignment"]["specialty"][
+                "specialty_1"
+            ]
+            self.assign_select_specialty_2 = report["assignment"]["specialty"][
+                "specialty_2"
+            ]
+            self.assign_select_specialty_3 = report["assignment"]["specialty"][
+                "specialty_3"
+            ]
             self.assign_select_rate_nurses = report["assignment"]["ratings"]["nurses"]
-            self.assign_select_rate_nurse_aides = report["assignment"]["ratings"]["nurse_aides"]
-            self.assign_select_rate_physicians = report["assignment"]["ratings"]["physicians"]
-            self.assign_select_rate_management = report["assignment"]["ratings"]["management"]
+            self.assign_select_rate_nurse_aides = report["assignment"]["ratings"][
+                "nurse_aides"
+            ]
+            self.assign_select_rate_physicians = report["assignment"]["ratings"][
+                "physicians"
+            ]
+            self.assign_select_rate_management = report["assignment"]["ratings"][
+                "management"
+            ]
             self.assign_select_recommend = report["assignment"]["recommend"]
             self.assign_select_overall = report["assignment"]["ratings"]["overall"]
             self.assign_input_comments = report["assignment"]["comments"]
 
             # Set staffing to state.
             self.staffing_select_ratio = report["staffing"]["ratio"]["has_ratio"]
-            self.staffing_input_actual_ratio = report["staffing"]["ratio"]["actual_ratio"]
-            self.staffing_select_ratio_appropriate = report["staffing"]["ratio"]["is_appropriate"]
+            self.staffing_input_actual_ratio = report["staffing"]["ratio"][
+                "actual_ratio"
+            ]
+            self.staffing_select_ratio_appropriate = report["staffing"]["ratio"][
+                "is_appropriate"
+            ]
             self.staffing_input_ideal_ratio = report["staffing"]["ratio"]["ideal_ratio"]
             self.staffing_select_workload = report["staffing"]["workload"]["amount"]
-            self.staffing_select_rate_workload = report["staffing"]["workload"]["eos_rating"]
-            self.staffing_select_charge_present = report["staffing"]["charge"]["has_charge"]
-            self.staffing_select_charge_assignment = report["staffing"]["charge"]["takes_patients"]
-            self.staffing_check_rapid_response = report["staffing"]["resources"]["rapid_response"]
-            self.staffing_check_behavioral_response = report["staffing"]["resources"]["behavioral_response"]
+            self.staffing_select_rate_workload = report["staffing"]["workload"][
+                "eos_rating"
+            ]
+            self.staffing_select_charge_present = report["staffing"]["charge"][
+                "has_charge"
+            ]
+            self.staffing_select_charge_assignment = report["staffing"]["charge"][
+                "takes_patients"
+            ]
+            self.staffing_check_rapid_response = report["staffing"]["resources"][
+                "rapid_response"
+            ]
+            self.staffing_check_behavioral_response = report["staffing"]["resources"][
+                "behavioral_response"
+            ]
             self.staffing_check_transport = report["staffing"]["resources"]["transport"]
-            self.staffing_check_phlebotomy = report["staffing"]["resources"]["phlebotomy"]
+            self.staffing_check_phlebotomy = report["staffing"]["resources"][
+                "phlebotomy"
+            ]
             self.staffing_check_cvad = report["staffing"]["resources"]["cvad"]
             self.staffing_check_ivt = report["staffing"]["resources"]["iv_team"]
             self.staffing_check_wocn = report["staffing"]["resources"]["wocn"]
@@ -177,12 +253,12 @@ class ReportState(PageState):
 
             # Navigate to the first page of report edit page.
             yield rx.redirect("/report/edit/compensation")
-            yield ReportState.set_user_is_loading(False)
+            yield ReportState.setvar("is_loading", False)
 
-        except Exception as e:
-            logger.critical(str(e))
+        except Exception:
+            console.print_exception()
             yield rx.toast.error("Error while retrieving report details.")
-            yield ReportState.set_user_is_loading(False)
+            yield ReportState.setvar("is_loading", False)
 
     def event_state_create_full_report(self, hospital_id: str) -> Iterable[Callable]:
         """
@@ -204,11 +280,17 @@ class ReportState(PageState):
             )
 
             # Set available units/areas/roles for user selection to state.
-            self.hospital_units = list(self.hospital_info.get("departments", {}).get("units", []))
+            self.hospital_units = list(
+                self.hospital_info.get("departments", {}).get("units", [])
+            )
             self.hospital_units.append("I don't see my unit")
-            self.hospital_areas = list(self.hospital_info.get("departments", {}).get("areas", []))
+            self.hospital_areas = list(
+                self.hospital_info.get("departments", {}).get("areas", [])
+            )
             self.hospital_areas.append("I don't see my area")
-            self.hospital_roles = list(self.hospital_info.get("departments", {}).get("roles", []))
+            self.hospital_roles = list(
+                self.hospital_info.get("departments", {}).get("roles", [])
+            )
             self.hospital_roles.append("I don't see my role")
 
             # Set user dict data to state.
@@ -228,14 +310,16 @@ class ReportState(PageState):
                 "city": self.hospital_info.get("hosp_city", ""),
                 "state": self.hospital_info.get("hosp_state", ""),
                 "zip": self.hospital_info.get("hosp_zip", ""),
-                "county": self.hospital_info.get("hosp_county", "")
+                "county": self.hospital_info.get("hosp_county", ""),
             }
             self.report_dict["moderation"] = {"flagged": 0, "reason": ""}
             self.report_dict["compensation"] = {}
             self.report_dict["assignment"] = {}
             self.report_dict["staffing"] = {}
             self.report_dict["social"] = {"likes": {}, "comments": {}, "tags": {}}
-            self.report_dict["created_at"] = str(datetime.now(timezone.utc).isoformat(timespec="seconds"))
+            self.report_dict["created_at"] = str(
+                datetime.now(timezone.utc).isoformat(timespec="seconds")
+            )
             self.report_dict["submitted_at"] = None
 
             # Redirect to first page of full report.
@@ -957,16 +1041,22 @@ class ReportState(PageState):
                 )
 
             # Ensures that no report UUID's conflict. Submit either full report or update existing report.
-            report = supabase_get_full_report_info(self.access_token, self.report_dict["report_id"])
+            report = supabase_get_full_report_info(
+                self.access_token, self.report_dict["report_id"]
+            )
 
             # If report and report matches user ID, we'll assume user is attempting to edit unless physics suspends and the UUID clashes.
             if report and report["user_id"]:
-                self.report_dict["modified_at"] = str(datetime.now(timezone.utc).isoformat(timespec="seconds"))
+                self.report_dict["modified_at"] = str(
+                    datetime.now(timezone.utc).isoformat(timespec="seconds")
+                )
                 supabase_user_edit_report(self.access_token, self.report_dict)
 
             # If report not present then user is submitting a new report.
             if not report:
-                self.report_dict["submitted_at"] = str(datetime.now(timezone.utc).isoformat(timespec="seconds"))
+                self.report_dict["submitted_at"] = str(
+                    datetime.now(timezone.utc).isoformat(timespec="seconds")
+                )
                 supabase_submit_full_report(self.access_token, self.report_dict)
 
             # Update user data with relevant info once report is submitted.
@@ -998,7 +1088,9 @@ class ReportState(PageState):
             updated_num = num_full_reports + 1
 
             hospitals = self.user_info.get("saved", {}).get("hospitals", [])
-            updated_hospitals = list(set(hospitals) | set([self.report_dict["hospital_id"]]))
+            updated_hospitals = list(
+                set(hospitals) | set([self.report_dict["hospital_id"]])
+            )
 
             self.update_user_info_and_sync_locally(
                 data={
@@ -1008,7 +1100,7 @@ class ReportState(PageState):
                         "experience": updated_experience,
                     },
                     "reports": {"ids": updated_ids, "num_full": updated_num},
-                    "saved" : {"hospitals": updated_hospitals}
+                    "saved": {"hospitals": updated_hospitals},
                 }
             )
 
@@ -1046,7 +1138,7 @@ class ReportState(PageState):
 
             # Redirect user to the completed page for fireworks!
             self.reset()
-            yield HospitalState.user_completed_report() # In case user navigates back to same hospital as reported. Forces info refresh.
+            yield HospitalState.user_completed_report()  # In case user navigates back to same hospital as reported. Forces info refresh.
             return rx.redirect(f"/report/{self.mode}/complete")
 
         except Exception as e:
@@ -1128,5 +1220,6 @@ class ReportState(PageState):
                 )
         except Exception:
             import traceback
+
             traceback.print_exc()
             logger.warning(f"Moderation for {self.user_claims_id} failed.")

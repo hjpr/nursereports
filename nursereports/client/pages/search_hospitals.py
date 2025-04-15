@@ -103,11 +103,7 @@ def search_filters() -> rx.Component:
                 rx.flex(
                     rx.icon("search", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
                     text("Search", class_name="font-bold select-none"),
-                    on_click=[
-                        SearchState.set_search_is_loading(True),
-                        SearchState.event_state_search,
-                        SearchState.set_search_is_loading(False),
-                    ],
+                    on_click=SearchState.event_state_search,
                     class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer"
                 ),
                 class_name="flex-col w-full active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75"

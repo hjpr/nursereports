@@ -61,8 +61,8 @@ def map() -> rx.Component:
                 class_name="flex-row bg-zinc-50 dark:bg-zinc-800"
             ),
             rx.flex(
-                text("Non public launch for refinement and feature testing.",),
-                class_name="p-2"
+                text("- Non public launch for refinement and feature testing.",),
+                class_name="p-4"
             ),
             class_name="flex-col divide-y dark:divide-zinc-700 border dark:border-zinc-700 rounded shadow-lg"
         ),
@@ -90,8 +90,8 @@ def map() -> rx.Component:
                 class_name="flex-row bg-zinc-50 dark:bg-zinc-800"
             ),
             rx.flex(
-                text("Public launch with basic features, and grassroots social media campaign."),
-                class_name="p-2"
+                text("- Public launch with basic features, and grassroots social media campaign."),
+                class_name="p-4"
             ),
             class_name="flex-col divide-y dark:divide-zinc-700 border dark:border-zinc-700 rounded shadow-lg"
         ),
@@ -119,9 +119,9 @@ def map() -> rx.Component:
                 class_name="flex-row bg-zinc-50 dark:bg-zinc-800"
             ),
             rx.flex(
-                text("Refine user experience via user feedback after hard launch."),
-                text("Research user requested features to be added in Major Feature Release #2."),
-                class_name="flex-col space-y-2 p-2"
+                text("- Refine user experience via user feedback after hard launch."),
+                text("- Research user requested features to be added in Major Feature Release #2."),
+                class_name="flex-col space-y-2 p-4"
             ),
             class_name="flex-col divide-y dark:divide-zinc-700 border dark:border-zinc-700 rounded shadow-lg"
         ),
@@ -150,16 +150,16 @@ def map() -> rx.Component:
             ),
             rx.flex(
                 rx.flex(
-                    text("Hospital Comparison feature."),
+                    text("- Hospital Comparison feature."),
                     text("Select up to three hospitals to compare stats side by side.", class_name="pl-4 italic"),
                     class_name="flex-col"
                 ),
                 rx.flex(
-                    text("State Rankings feature."),
+                    text("- State Rankings feature."),
                     text("Find the best hospitals in each state ranked by pay or overall experience.", class_name="pl-4 italic"),
                     class_name="flex-col"
                 ),
-                class_name="flex-col space-y-2 p-2"
+                class_name="flex-col space-y-2 p-4"
             ),
             class_name="flex-col divide-y dark:divide-zinc-700 border dark:border-zinc-700 rounded shadow-lg"
         ),
@@ -187,9 +187,9 @@ def map() -> rx.Component:
                 class_name="flex-row bg-zinc-50 dark:bg-zinc-800"
             ),
             rx.flex(
-                text("Refine user experience via user feedback after Major Feature Release #1."),
-                text("Research user requested features to be added in Major Feature Release #3."),
-                class_name="flex-col space-y-2 p-2"
+                text("- Refine user experience via user feedback after Major Feature Release #1."),
+                text("- Research user requested features to be added in Major Feature Release #3."),
+                class_name="flex-col space-y-2 p-4"
             ),
             class_name="flex-col divide-y dark:divide-zinc-700 border dark:border-zinc-700 rounded shadow-lg"
         ),
@@ -217,9 +217,9 @@ def map() -> rx.Component:
                 class_name="flex-row bg-zinc-50 dark:bg-zinc-800"
             ),
             rx.flex(
-                text("Cost-of-living features."),
+                text("- Cost-of-living features."),
                 text("Tie into API allowing adjusted cost-of-living comparisons. Pending funding/sponsorship requirements.", class_name="pl-4 italic"),
-                class_name="flex-col p-2"
+                class_name="flex-col p-4"
             ),
             class_name="flex-col divide-y dark:divide-zinc-700 border dark:border-zinc-700 rounded shadow-lg"
         ),
@@ -238,7 +238,7 @@ def map() -> rx.Component:
                 rx.flex(
                     text("Major Feature Release #3", class_name="text-lg font-bold"),
                     text("April 2026", class_name="text-sm uppercase"),
-                    class_name="flex-col p-2 w-full"
+                    class_name="flex-col p-4 w-full"
                 ),
                 rx.flex(
                     rx.icon("circle", class_name="stroke-zinc-200 dark:stroke-zinc-700"),
@@ -247,9 +247,9 @@ def map() -> rx.Component:
                 class_name="flex-row bg-zinc-50 dark:bg-zinc-800"
             ),
             rx.flex(
-                text("Research Portal"),
+                text("- Research Portal"),
                 text("Enable nursing schools, professional nursing orgs, and research centers API access to anonymized reports for Quality Improvement research.", class_name="pl-4 italic"),
-                class_name="flex-col p-2"
+                class_name="flex-col p-4"
             ),
             class_name="flex-col divide-y dark:divide-zinc-700 border dark:border-zinc-700 rounded shadow-lg"
         ),

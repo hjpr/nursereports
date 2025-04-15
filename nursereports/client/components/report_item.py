@@ -53,7 +53,7 @@ def report_item_dashboard(report: dict) -> rx.Component:
                     rx.icon("pencil", class_name="h-5 w-5 stroke-zinc-700 dark:stroke-zinc-500"),
                     loading=~rx.State.is_hydrated,
                 ),
-                on_click=ReportState.event_state_edit_user_report(
+                on_click=ReportState.edit_user_report(
                             report["report_id"], report["hospital_id"]
                 ),
                 class_name="flex-col items-center justify-center w-16 md:w-24 active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75 cursor-pointer"

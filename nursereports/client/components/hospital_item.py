@@ -43,13 +43,17 @@ def hospital_item_search(hospital: dict[str, str]) -> rx.Component:
                 rx.flex(
                     rx.tooltip(
                         rx.skeleton(
-                            rx.icon("list-plus", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
+                            rx.button(
+                                rx.icon("list-plus", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
+                                class_name="w-full h-full p-0 bg-zinc-50 active:bg-zinc-100 dark:active:bg-zinc-700 transition-colors duration-75 cursor-pointer",
+                                loading=UserState.user_is_loading,
+                                on_click=UserState.add_hospital_to_user_list(hospital['hosp_id']),
+                            ),
                             loading=~rx.State.is_hydrated
                         ),
                         content="Add to Saved Hospitals"
                     ),
-                    on_click=UserState.event_state_add_hospital(hospital['hosp_id']),
-                    class_name="flex-col items-center justify-center w-16 md:w-24 active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75 cursor-pointer"
+                    class_name="flex-col items-center justify-center w-16 md:w-24"
                 ),
             ),
             # Go to report button
@@ -88,7 +92,7 @@ def hospital_item_dashboard(hospital: dict[str, str]) -> rx.Component:
             rx.skeleton(
                 text(
                     f"{hospital['hosp_name']}",
-                    class_name="text-md md:text-lg font-bold text-zinc-700 truncate"
+                    class_name="text-md font-bold text-zinc-700 truncate"
                 ),
                 loading=~rx.State.is_hydrated
             ),
@@ -137,7 +141,8 @@ def dashboard_trash(hospital: dict[str, str]) -> rx.Component:
                             "Delete",
                             color_scheme="ruby",
                             class_name="w-full cursor-pointer",
-                            on_click=UserState.event_state_remove_hospital(hospital['hosp_id'])
+                            loading=UserState.user_is_loading,
+                            on_click=UserState.remove_hospital_from_saved(hospital['hosp_id']),
                         ),
                         outline_button(
                             "Cancel",

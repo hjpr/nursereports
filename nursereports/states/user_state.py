@@ -2,26 +2,23 @@ from ..server.exceptions import RequestFailed
 from ..server.mailgun import mailgun_send_email
 from ..server.supabase import (
     supabase_delete_user_report,
-    supabase_update_user_info,
 )
-from suplex import Suplex
 
 from datetime import datetime, timezone
 from rich.console import Console
 from typing import Callable, Iterable
+from suplex import Suplex
 
 import copy
 import humanize
 import math
 import reflex as rx
 import time
-import traceback
 
 console = Console()
 
 
 class UserState(Suplex):
-
     MAX_HOSPITALS_DISPLAYED = 5
     MAX_REPORTS_DISPLAYED = 5
 
@@ -40,47 +37,56 @@ class UserState(Suplex):
 
     # User rate limits.
     user_contact_email_time: int = 0
-    
+
     @rx.var
     def user_info_specialties(self) -> list | None:
         return self.user_info.get("professional", {}).get("specialty")
-    
+
     @rx.var
     def user_info_license_type(self) -> str | None:
         return self.user_info.get("professional", {}).get("license_type")
-    
+
     @rx.var
     def user_info_license_state(self) -> str | None:
         return self.user_info.get("professional", {}).get("license_state")
-    
+
     @rx.var
     def user_info_experience(self) -> int | None:
         return self.user_info.get("professional", {}).get("experience")
-    
+
     @rx.var
     def user_needs_onboarding(self) -> bool:
         if self.user_info:
-            return True if self.user_info.get("account").get("status", "") == "onboard" else False
+            return (
+                True
+                if self.user_info.get("account").get("status", "") == "onboard"
+                else False
+            )
         else:
             return True
-        
+
     @rx.var
     def paginated_saved_hospitals(self) -> list[dict]:
         if len(self.user_saved_hospitals) > self.MAX_HOSPITALS_DISPLAYED:
-            number_of_pages = math.ceil(len(self.user_saved_hospitals) / self.MAX_HOSPITALS_DISPLAYED)
-            list_of_pages = [ page for page in range(1, number_of_pages + 1) ]
+            number_of_pages = math.ceil(
+                len(self.user_saved_hospitals) / self.MAX_HOSPITALS_DISPLAYED
+            )
+            list_of_pages = [page for page in range(1, number_of_pages + 1)]
 
-            paginated_hospitals = { number: [] for number in list_of_pages } 
+            paginated_hospitals = {number: [] for number in list_of_pages}
             current_page = 1
             for hospital in self.user_saved_hospitals:
-                if len(paginated_hospitals[current_page]) >= self.MAX_HOSPITALS_DISPLAYED:
+                if (
+                    len(paginated_hospitals[current_page])
+                    >= self.MAX_HOSPITALS_DISPLAYED
+                ):
                     current_page += 1
                 paginated_hospitals[current_page].append(hospital)
 
             return paginated_hospitals.get(self.current_hospital_page)
         else:
             return self.user_saved_hospitals
-        
+
     @rx.var
     def paginated_user_reports(self) -> list[dict]:
         """
@@ -90,13 +96,17 @@ class UserState(Suplex):
         if len(self.user_reports) > self.MAX_REPORTS_DISPLAYED:
             # Determine number of pages.
             num_pages = math.ceil(len(self.user_reports) / self.MAX_REPORTS_DISPLAYED)
-            num_pages_list = [ page for page in range(1, num_pages + 1) ]
+            num_pages_list = [page for page in range(1, num_pages + 1)]
 
             # Build dict.
-            paginated_reports = { number: [] for number in num_pages_list }
+            paginated_reports = {number: [] for number in num_pages_list}
 
             # Sort by date.
-            sorted_reports = sorted(self.user_reports, key=lambda report: report["modified_at"] or report["created_at"], reverse=True)
+            sorted_reports = sorted(
+                self.user_reports,
+                key=lambda report: report["modified_at"] or report["created_at"],
+                reverse=True,
+            )
 
             # Fill dict.
             current_page = 1
@@ -106,23 +116,29 @@ class UserState(Suplex):
                 paginated_reports[current_page].append(report)
 
             return paginated_reports.get(self.current_report_page)
-        
+
         else:
-            return sorted(self.user_reports, key=lambda report: report["modified_at"] or report["created_at"], reverse=True)
+            return sorted(
+                self.user_reports,
+                key=lambda report: report["modified_at"] or report["created_at"],
+                reverse=True,
+            )
 
     @rx.var
     def num_hospital_pages(self) -> int:
         return math.ceil(len(self.user_saved_hospitals) / self.MAX_HOSPITALS_DISPLAYED)
-    
+
     @rx.var
     def num_report_pages(self) -> int:
         return math.ceil(len(self.user_reports) / self.MAX_REPORTS_DISPLAYED)
-    
+
     def next_hospital_page(self) -> None:
-        num_pages = math.ceil(len(self.user_saved_hospitals) / self.MAX_HOSPITALS_DISPLAYED)
+        num_pages = math.ceil(
+            len(self.user_saved_hospitals) / self.MAX_HOSPITALS_DISPLAYED
+        )
         if self.current_hospital_page < num_pages:
             self.current_hospital_page += 1
-    
+
     def previous_hospital_page(self) -> None:
         if self.current_hospital_page > 1:
             self.current_hospital_page -= 1
@@ -141,39 +157,36 @@ class UserState(Suplex):
         Get user info or create entry in /users table if user info missing (1st login)
         """
         # Get user info or create entry in /users
-        user_info = self.query.table("users").select("*").eq("id", self.user_id).execute()
+        user_info = (
+            self.query.table("users").select("*").eq("id", self.user_id).execute()
+        )
         if user_info:
             self.user_info = user_info[0]
         else:
             user_info = {
                 "id": self.user_id,
                 "modified_at": None,
-                "last_login": str(datetime.now(timezone.utc).isoformat(timespec="seconds")),
+                "last_login": str(
+                    datetime.now(timezone.utc).isoformat(timespec="seconds")
+                ),
                 "account": {
-                    "created_at": str(datetime.now(timezone.utc).isoformat(timespec="seconds")),
+                    "created_at": str(
+                        datetime.now(timezone.utc).isoformat(timespec="seconds")
+                    ),
                     "status": "onboard",
                     "trust": 0,
                     "membership": "free",
-                    "browsers": []
+                    "browsers": [],
                 },
                 "professional": {
                     "license_type": "",
                     "license_number": "",
                     "license_state": "",
                     "specialty": [],
-                    "experience": 0
+                    "experience": 0,
                 },
-                "reports": {
-                    "ids": [],
-                    "num_full": 0,
-                    "num_flag": 0,
-                    "num_pay": 0
-                },
-                "engagement": {
-                    "likes": 0,
-                    "tags": 0,
-                    "referrals": []
-                },
+                "reports": {"ids": [], "num_full": 0, "num_flag": 0, "num_pay": 0},
+                "engagement": {"likes": 0, "tags": 0, "referrals": []},
                 "preferences": {
                     "email": "",
                     "mobile": "",
@@ -182,10 +195,7 @@ class UserState(Suplex):
                     "update_opt_in": False,
                     "social_opt_in": False,
                 },
-                "saved": {
-                    "jobs": [],
-                    "hospitals": []
-                }
+                "saved": {"jobs": [], "hospitals": []},
             }
             self.query.table("users").upsert(user_info).execute()
 
@@ -197,40 +207,60 @@ class UserState(Suplex):
         complete_hospital_info = []
 
         if saved_hospital_list:
-            complete_hospital_info = self.query.table("hospitals").select(
-                "hosp_name,hosp_state,hosp_city,hosp_id,hosp_addr"
-            ).in_("hosp_id", saved_hospital_list).execute()
+            complete_hospital_info = (
+                self.query.table("hospitals")
+                .select("hosp_name,hosp_state,hosp_city,hosp_id,hosp_addr")
+                .in_("hosp_id", saved_hospital_list)
+                .execute()
+            )
 
             for hospital in complete_hospital_info:
                 hospital["hosp_city"] = hospital["hosp_city"].title()
                 hospital["hosp_addr"] = hospital["hosp_addr"].title()
-        
+
         self.user_saved_hospitals = complete_hospital_info
 
     def get_user_reports(self) -> None:
         """
         Get all user reports.
         """
-        reports = self.query.table("reports").select("report_id,hospital_id,assignment,hospital,created_at,modified_at").eq("user_id", self.user_id).execute()
+        reports = (
+            self.query.table("reports")
+            .select("report_id,hospital_id,assignment,hospital,created_at,modified_at")
+            .eq("user_id", self.user_id)
+            .execute()
+        )
         if reports:
             for report in reports:
                 # Format from nested -> top-level for access via rx.foreach
-                report["area"] = report["assignment"]["area"]["selected_area"] + report["assignment"]["area"]["entered_area"]
-                report["unit"] = report["assignment"]["unit"]["selected_unit"] + report["assignment"]["unit"]["entered_unit"]
-                report["role"] = report["assignment"]["role"]["selected_role"] + report["assignment"]["role"]["entered_role"]
+                report["area"] = (
+                    report["assignment"]["area"]["selected_area"]
+                    + report["assignment"]["area"]["entered_area"]
+                )
+                report["unit"] = (
+                    report["assignment"]["unit"]["selected_unit"]
+                    + report["assignment"]["unit"]["entered_unit"]
+                )
+                report["role"] = (
+                    report["assignment"]["role"]["selected_role"]
+                    + report["assignment"]["role"]["entered_role"]
+                )
                 report["hospital_city"] = report["hospital"]["city"].title()
                 report["hospital_state"] = report["hospital"]["state"]
 
                 # Format timestamps
-                report["time_ago"] = humanize.naturaltime(datetime.fromisoformat(report["created_at"]))
+                report["time_ago"] = humanize.naturaltime(
+                    datetime.fromisoformat(report["created_at"])
+                )
                 if report["modified_at"]:
-                    report["time_ago"] = humanize.naturaltime(datetime.fromisoformat(report["modified_at"])) 
-        
+                    report["time_ago"] = humanize.naturaltime(
+                        datetime.fromisoformat(report["modified_at"])
+                    )
+
         self.user_reports = reports
 
     def update_user_info_and_sync_locally(
-        self, 
-        data: dict[str, any]
+        self, data: dict[str, any]
     ) -> Iterable[Callable]:
         """
         Provide user info data to update to remote database, then save to local state.
@@ -257,14 +287,15 @@ class UserState(Suplex):
                 data_to_sync[key] = user_info[key]
 
         if data_to_sync:
-            synced_data = supabase_update_user_info(
-                self.access_token, 
-                self.user_claims_id, 
-                data_to_sync
+            user = (
+                self.query.table("users")
+                .update(data_to_sync)
+                .eq("id", self.user_id)
+                .execute()
             )
-            self.user_info.update(synced_data)
+            self.user_info.update(user[0])
 
-    def event_state_add_hospital(self, hosp_id: str) -> Iterable[Callable]:
+    def add_hospital_to_user_list(self, hosp_id: str) -> Iterable[Callable]:
         """
         Add a user selected hospital to user's saved hospital list.
         """
@@ -275,48 +306,71 @@ class UserState(Suplex):
 
             # Check for duplicates.
             if hosp_id in self.user_info["saved"]["hospitals"]:
-                return rx.toast.error("Hospital is already in saved hospitals.", close_button=True)
+                return rx.toast.error(
+                    "Hospital is already in saved hospitals.", close_button=True
+                )
 
-            # Add to list.
+            yield UserState.setvar("user_is_loading", True)
+
             data = {
-                "saved": {
-                    "hospitals": self.user_info["saved"]["hospitals"] + [hosp_id]
-                }
+                "saved": {"hospitals": self.user_info["saved"]["hospitals"] + [hosp_id]}
             }
+            # Save to supabase, and pull new info into user state.
             self.update_user_info_and_sync_locally(data)
-            yield rx.toast.success("Hospital added to 'Saved Hospitals'.", close_button=True)
+            hospital_to_add = (
+                self.query.table("hospitals")
+                .select("hosp_name,hosp_state,hosp_city,hosp_id,hosp_addr")
+                .eq("hosp_id", hosp_id)
+                .execute()[0]
+            )
+            self.user_saved_hospitals.append(hospital_to_add)
+
+            yield rx.toast.success(
+                "Hospital added to 'Saved Hospitals'.", close_button=True
+            )
+            yield UserState.setvar("user_is_loading", False)
 
         except RequestFailed as e:
+            console.print_exception()
             yield rx.toast.error(str(e), close_buttons=True)
-        except Exception as e:
-            traceback.print_exc()
-            logger.critical(str(e))
+            yield UserState.setvar("user_is_loading", False)
+        except Exception:
+            console.print_exception()
             yield rx.toast.error("Unable to save hospital to list.", close_button=True)
+            yield UserState.setvar("user_is_loading", False)
 
-    def event_state_remove_hospital(self, hosp_id: str) -> Iterable[Callable]:
+    def remove_hospital_from_saved(self, hosp_id: str) -> Iterable[Callable]:
         """
         Removes a selected hospital from user's saved hospital list.
         """
         try:
+            yield UserState.setvar("user_is_loading", True)
+
             # Make a new list not including selected hospital.
             updated_hospitals = [
                 h for h in self.user_info["saved"]["hospitals"] if h != hosp_id
             ]
+            data = {"saved": {"hospitals": updated_hospitals}}
 
-            # Sent to database and update local info.
-            data = {
-                "saved": {
-                    "hospitals": updated_hospitals
-                }
-            }
+            # Remove hospital from saved hospital list
+            new_user_saved_hospitals = []
+            for hospital in self.user_saved_hospitals:
+                if hospital["hosp_id"] != hosp_id:
+                    new_user_saved_hospitals.append(hospital)
+
             self.update_user_info_and_sync_locally(data)
-            self.get_user_saved_hospitals()
+            self.user_saved_hospitals = new_user_saved_hospitals
+
             yield rx.toast.success("Hospital removed from 'Saved Hospitals'")
+            yield UserState.setvar("user_is_loading", False)
 
         except RequestFailed as e:
+            console.print_exception()
             yield rx.toast.error(str(e))
-        except Exception as e:
-            logger.critical(str(e))
+            yield UserState.setvar("user_is_loading", False)
+        except Exception:
+            console.print_exception()
+            yield UserState.setvar("user_is_loading", False)
 
     def event_state_remove_report(self, report_id: str) -> Iterable[Callable]:
         """
