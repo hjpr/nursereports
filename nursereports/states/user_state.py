@@ -211,9 +211,7 @@ class UserState(Suplex):
         """
         Get all user reports.
         """
-        reports = self.query.table("reports").select(
-            "report_id,hospital_id,assignment,hospital,created_at,modified_at"
-            ).eq("user_id", self.user_id).execute()
+        reports = self.query.table("reports").select("report_id,hospital_id,assignment,hospital,created_at,modified_at").eq("user_id", self.user_id).execute()
         if reports:
             for report in reports:
                 # Format from nested -> top-level for access via rx.foreach

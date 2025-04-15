@@ -5,7 +5,7 @@ from ..server.exceptions import RequestFailed
 from datetime import datetime
 from loguru import logger
 from rich.console import Console
-from typing import Any, Callable, Iterable
+from typing import Any, Callable, Dict, List, Iterable
 
 import copy
 import humanize
@@ -24,20 +24,21 @@ class HospitalState(UserState):
     MAX_REVIEWS_DISPLAYED = 10
 
     # Full info for each section.
-    hospital_info: dict[str, Any]
-    report_info: list[dict]
-    review_info: list[dict]
+    hospital_info: Dict[str, Any]
+    report_info: List[Dict[str, Any]]
+    review_info: List[Dict[str, Any]]
+    overall_hospital_scores: Dict[str, Any]
 
     # Dicts of pay values extrapolated over experience.
-    extrapolated_ft_pay_hospital: dict
-    extrapolated_pt_pay_hospital: dict
-    extrapolated_ft_pay_state: dict
-    extrapolated_pt_pay_state: dict
+    extrapolated_ft_pay_hospital: Dict[int, float]
+    extrapolated_pt_pay_hospital: Dict[int, float]
+    extrapolated_ft_pay_state: Dict[int, float]
+    extrapolated_pt_pay_state: Dict[int, float]
 
     # Dicts of averaged contract pay.
-    averaged_contract_pay_hospital: dict
-    averaged_contract_pay_state: dict
-    contract_pay: list[dict]
+    averaged_contract_pay_hospital: Dict[str, Any]
+    averaged_contract_pay_state: Dict[str, Any]
+    contract_pay: List[Dict[str, Any]]
 
     # Are there less than 10 reports?
     ft_pay_hospital_info_limited: bool = False
@@ -48,9 +49,9 @@ class HospitalState(UserState):
     contract_pay_info_state_limited: bool = False
 
     # Units/areas/roles pulled from reports.
-    units_areas_roles_for_units: list[str]
-    units_areas_roles_hospital_scores: list[dict]
-    overall_hospital_scores: dict
+    units_areas_roles_for_units: List[str]
+    units_areas_roles_hospital_scores: List[Dict[str, Any]]
+    overall_hospital_scores: Dict[str, Any]
 
     # User selectable fields.
     selected_unit: str = "Hospital Overall"
@@ -135,7 +136,7 @@ class HospitalState(UserState):
             return {}
 
     @rx.var
-    def pt_pay_state_formatted(self) -> dict:
+    def pt_pay_state_formatted(self) -> Dict[str, str]:
         """
         Round and format extrapolated part-time state pay data to $XX.XX
         """
@@ -154,7 +155,7 @@ class HospitalState(UserState):
             return {}
 
     @rx.var
-    def selected_unit_info(self) -> dict[str, str]:
+    def selected_unit_info(self) -> Dict[str, str | int]:
         """
         If user has a unit selected in the unit grades section, show scores
         for that unit. Hospital scores are stored as list of dicts, overall score
@@ -174,7 +175,7 @@ class HospitalState(UserState):
         return matched_dict if matched_dict else self.overall_hospital_scores
 
     @rx.var
-    def filtered_review_info(self) -> list[dict]:
+    def filtered_review_info(self) -> List[Dict[str, str]]:
         """
         Used to display all reviews if no filters are selected, or filtered reviews
         if user has selected filters.
@@ -183,7 +184,7 @@ class HospitalState(UserState):
         return matched_list if matched_list else self.review_info
 
     @rx.var
-    def paginated_review_info(self) -> list[dict]:
+    def paginated_review_info(self) -> List[Dict[str, str]]:
         """
         Takes the filtered review info and paginates into a dict where user can
         flip between sets of reviews. If there aren't enough reviews to paginate,

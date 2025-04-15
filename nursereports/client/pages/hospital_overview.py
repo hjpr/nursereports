@@ -37,7 +37,7 @@ def hospital_overview() -> rx.Component:
 def content() -> rx.Component:
     return rx.flex(
             heading(),
-            staff_pay(),
+            pay(),
             travel_pay(),
             reviews(),
             class_name="flex-col items-center space-y-4 md:space-y-12 px-4 py-4 md:py-20 w-full max-w-screen-md",
@@ -99,12 +99,12 @@ def heading() -> rx.Component:
     )
 
 
-def staff_pay() -> rx.Component:
+def pay() -> rx.Component:
     return flex(
         rx.flex(
             rx.flex(
                 rx.icon("banknote", class_name="stroke-zinc-700 dark:stroke-teal-800 h-6 w-6"),
-                text("Staff Pay", class_name="text-xl font-bold"),
+                text("Pay", class_name="text-xl font-bold"),
                 class_name="flex-row items-center space-x-2",
             ),
             class_name="flex-col items-start bg-zinc-100 dark:bg-zinc-800 p-2 w-full"
