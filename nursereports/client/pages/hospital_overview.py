@@ -107,7 +107,7 @@ def pay() -> rx.Component:
                 text("Pay", class_name="text-xl font-bold"),
                 class_name="flex-row items-center space-x-2",
             ),
-            class_name="flex-col items-start bg-zinc-100 dark:bg-zinc-800 p-2 w-full"
+            class_name="flex-col items-start bg-zinc-100 dark:bg-zinc-800 px-4 py-2 w-full"
         ),
         hospital_average(),
         # state_average(),
@@ -122,131 +122,128 @@ def hospital_average() -> rx.Component:
                 text("Hospital Average", class_name="text-lg"),
                 class_name="flex justify-center md:justify-start w-full"
             ),
-            rx.segmented_control.root(
-                rx.segmented_control.item("Full-time", value="Full-time"),
-                rx.segmented_control.item("Part-time", value="Part-time"),
-                on_change=HospitalState.setvar("selected_hospital_average"),
-                value=HospitalState.selected_hospital_average
-            ),
-            class_name="flex-col md:flex-row items-center p-4 space-y-4 md:space-y-0 w-full"
+            class_name="flex-col md:flex-row items-center px-4 py-2 w-full"
         ),
         flex(
-            # Displays hourly pay.
-            rx.match(
-                HospitalState.selected_hospital_average,
-               ("Full-time",
-                    flex(
-                        rx.cond(
-                            HospitalState.extrapolated_ft_pay_hospital,
-                            rx.skeleton(
-                                text(HospitalState.ft_pay_hospital_formatted['hourly'], class_name="text-2xl"),
-                                loading=~rx.State.is_hydrated
-                            ),
-                            rx.skeleton(
-                                rx.icon("ban", class_name="h-7 w-7 stroke-zinc-200 m-1"),
-                                loading=~rx.State.is_hydrated
-                            )
+            # Full-time hospital pay
+            flex(
+                flex(
+                    text("Full-time", class_name="text-lg"),
+                    class_name="w-full"
+                ),
+                rx.cond(
+                    HospitalState.extrapolated_ft_pay_hospital,
+                    rx.skeleton(
+                        flex(
+                            text(HospitalState.ft_pay_hospital_formatted['hourly'], class_name="text-lg"),
+                            text("/ hr", class_name="text-lg"),
+                            class_name="flex-row justify-center items-center space-x-1 w-full"
                         ),
-                        text("HOURLY", class_name="text-xs"),
-                        class_name="flex-col items-center p-4 w-full"
-                    )
-               ),
-               ("Part-time", 
-                    flex(
-                        rx.cond(
-                            HospitalState.extrapolated_pt_pay_hospital,
-                            rx.skeleton(
-                                text(HospitalState.pt_pay_hospital_formatted['hourly'], class_name="text-2xl"),
-                                loading=~rx.State.is_hydrated
-                            ),
-                            rx.skeleton(
-                                rx.icon("ban", class_name="h-7 w-7 stroke-zinc-200 m-1"),
-                                loading=~rx.State.is_hydrated
-                            )
-                        ),
-                        text("HOURLY", class_name="text-xs"),
-                        class_name="flex-col items-center p-4 w-full"
+                        loading=~rx.State.is_hydrated
+                    ),
+                    rx.skeleton(
+                        rx.icon("ban", class_name="h-7 w-7 stroke-zinc-200 m-1"),
+                        loading=~rx.State.is_hydrated
                     )
                 ),
-            ),
-            # Displays yearly pay.
-            rx.match(
-                HospitalState.selected_hospital_average,
-               ("Full-time",
-                    flex(
-                        rx.cond(
-                            HospitalState.extrapolated_ft_pay_hospital,
-                            rx.skeleton(
-                                text(HospitalState.ft_pay_hospital_formatted["yearly"], class_name="text-2xl"),
-                                loading=~rx.State.is_hydrated
-                            ),
-                            rx.skeleton(
-                                rx.icon("ban", class_name="h-7 w-7 stroke-zinc-200 m-1"),
-                                loading=~rx.State.is_hydrated
-                            )
+                rx.cond(
+                    HospitalState.extrapolated_ft_pay_hospital,
+                    rx.skeleton(
+                        flex(
+                            text(HospitalState.ft_pay_hospital_formatted["yearly"], class_name="text-lg"),
+                            text("/ yr", class_name="text-lg"),
+                            class_name="flex-row justify-end items-center space-x-1 w-full"
                         ),
-                        text("YEARLY", class_name="text-xs"),
-                        class_name="flex-col items-center p-4 w-full"
+                        loading=~rx.State.is_hydrated
                     ),
+                    rx.skeleton(
+                        rx.icon("ban", class_name="h-7 w-7 stroke-zinc-200 m-1"),
+                        loading=~rx.State.is_hydrated
+                    )
                 ),
-               ("Part-time",
-                    flex(
-                        rx.cond(
-                            HospitalState.extrapolated_pt_pay_hospital,
-                            rx.skeleton(
-                                text(HospitalState.pt_pay_hospital_formatted["yearly"], class_name="text-2xl"),
-                                loading=~rx.State.is_hydrated
-                            ),
-                            rx.skeleton(
-                                rx.icon("ban", class_name="h-7 w-7 stroke-zinc-200 m-1"),
-                                loading=~rx.State.is_hydrated
-                            )
-                        ),
-                        text("YEARLY", class_name="text-xs"),
-                        class_name="flex-col items-center p-4 w-full"
-                    ),
-                )
+                class_name="flex-row items-end px-8 py-2 w-full"
             ),
-            class_name="flex-row divide-x dark:divide-zinc-700 w-full"
+            class_name="w-full"
+        ),
+        flex(
+            # Part-time hospital pay
+            flex(
+                flex(
+                    text("Part-time", class_name="text-lg w-"),
+                    class_name="w-full"
+                ),
+                rx.cond(
+                    HospitalState.extrapolated_pt_pay_hospital,
+                    rx.skeleton(
+                        flex(
+                            text(HospitalState.pt_pay_hospital_formatted['hourly'], class_name="text-lg"),
+                            text("/ hr", class_name="text-lg"),
+                            class_name="flex-row justify-center items-center space-x-1 w-full"
+                        ),
+                        loading=~rx.State.is_hydrated
+                    ),
+                    rx.skeleton(
+                        rx.icon("ban", class_name="h-7 w-7 stroke-zinc-200 m-1"),
+                        loading=~rx.State.is_hydrated
+                    )
+                ),
+                rx.cond(
+                    HospitalState.extrapolated_pt_pay_hospital,
+                    rx.skeleton(
+                        flex(
+                            text(HospitalState.pt_pay_hospital_formatted["yearly"], class_name="text-lg"),
+                            text("/ yr", class_name="text-lg"),
+                            class_name="flex-row justify-end items-center space-x-1 w-full"
+                        ),
+                        loading=~rx.State.is_hydrated
+                    ),
+                    rx.skeleton(
+                        rx.icon("ban", class_name="h-7 w-7 stroke-zinc-200 m-1"),
+                        loading=~rx.State.is_hydrated
+                    )
+                ),
+                class_name="flex-row items-end px-8 py-2 w-full"
+            ),
+            class_name="w-full"
         ),
 
-        # Callouts
-        rx.cond(
-            (HospitalState.selected_hospital_average == "Full-time") &
-            (HospitalState.ft_pay_hospital_info_limited) &
-            (HospitalState.extrapolated_ft_pay_hospital),
-            flex(
-                rx.icon("triangle-alert", class_name="h-3 w-3 stroke-orange-500"),
-                rx.text("LIMITED DATA. ESTIMATES MAY BE OFF.", class_name="text-xs text-orange-500"),
-                class_name="flex-row items-center justify-center p-1 space-x-2 w-full"
-            )
-        ),
-        rx.cond(
-            (HospitalState.selected_hospital_average == "Part-time") &
-            (HospitalState.pt_pay_hospital_info_limited) &
-            (HospitalState.extrapolated_pt_pay_hospital),
-            flex(
-                rx.icon("triangle-alert", class_name="h-3 w-3 stroke-orange-500"),
-                rx.text("LIMITED DATA. ESTIMATES MAY BE OFF.", class_name="text-xs text-orange-500"),
-                class_name="flex-row items-center justify-center p-1 space-x-2 w-full"
-            )
-        ),
-        rx.cond(
-            (HospitalState.selected_hospital_average == "Full-time") & (~HospitalState.extrapolated_ft_pay_hospital),
-            rx.flex(
-                rx.icon("ban", class_name="h-3 w-3 stroke-rose-500"),
-                rx.text("NO PAY DATA AVAILABLE YET.", class_name="text-xs text-rose-500"),
-                class_name="flex-row items-center justify-center p-1 space-x-2 w-full"
-            )
-        ),
-        rx.cond(
-            (HospitalState.selected_hospital_average == "Part-time") & (~HospitalState.extrapolated_pt_pay_hospital),
-            flex(
-                rx.icon("ban", class_name="h-3 w-3 stroke-rose-500"),
-                rx.text("NO PAY DATA AVAILABLE YET.", class_name="text-xs text-rose-500"),
-                class_name="flex-row items-center justify-center p-1 space-x-2 w-full"
-            )
-        ),
+        # # Callouts
+        # rx.cond(
+        #     (HospitalState.selected_hospital_average == "Full-time") &
+        #     (HospitalState.ft_pay_hospital_info_limited) &
+        #     (HospitalState.extrapolated_ft_pay_hospital),
+        #     flex(
+        #         rx.icon("triangle-alert", class_name="h-3 w-3 stroke-orange-500"),
+        #         rx.text("LIMITED DATA. ESTIMATES MAY BE OFF.", class_name="text-xs text-orange-500"),
+        #         class_name="flex-row items-center justify-center p-1 space-x-2 w-full"
+        #     )
+        # ),
+        # rx.cond(
+        #     (HospitalState.selected_hospital_average == "Part-time") &
+        #     (HospitalState.pt_pay_hospital_info_limited) &
+        #     (HospitalState.extrapolated_pt_pay_hospital),
+        #     flex(
+        #         rx.icon("triangle-alert", class_name="h-3 w-3 stroke-orange-500"),
+        #         rx.text("LIMITED DATA. ESTIMATES MAY BE OFF.", class_name="text-xs text-orange-500"),
+        #         class_name="flex-row items-center justify-center p-1 space-x-2 w-full"
+        #     )
+        # ),
+        # rx.cond(
+        #     (HospitalState.selected_hospital_average == "Full-time") & (~HospitalState.extrapolated_ft_pay_hospital),
+        #     rx.flex(
+        #         rx.icon("ban", class_name="h-3 w-3 stroke-rose-500"),
+        #         rx.text("NO PAY DATA AVAILABLE YET.", class_name="text-xs text-rose-500"),
+        #         class_name="flex-row items-center justify-center p-1 space-x-2 w-full"
+        #     )
+        # ),
+        # rx.cond(
+        #     (HospitalState.selected_hospital_average == "Part-time") & (~HospitalState.extrapolated_pt_pay_hospital),
+        #     flex(
+        #         rx.icon("ban", class_name="h-3 w-3 stroke-rose-500"),
+        #         rx.text("NO PAY DATA AVAILABLE YET.", class_name="text-xs text-rose-500"),
+        #         class_name="flex-row items-center justify-center p-1 space-x-2 w-full"
+        #     )
+        # ),
         class_name="flex-col items-center divide-y dark:divide-zinc-700 w-full"
     )
 
@@ -385,27 +382,27 @@ def state_average() -> rx.Component:
 def experience_slider() -> rx.Component:
     return flex(
         flex(
-            text("Experience -", class_name="text-xl text-nowrap"),
+            text("Experience -", class_name="text-lg text-nowrap"),
             flex(
                 rx.cond(
                     HospitalState.selected_experience <= 25,
                     rx.skeleton(
                         text(
                             f"{HospitalState.selected_experience} year(s)",
-                            class_name="text-xl text-nowrap pl-1"
+                            class_name="text-lg text-nowrap pl-1"
                         ),
                         loading=~rx.State.is_hydrated
                     ),
                     rx.skeleton(
                         text(
                             "More than 25 years",
-                            class_name="text-xl text-nowrap pl-1"
+                            class_name="text-lg text-nowrap pl-1"
                         ),
                         loading=~rx.State.is_hydrated
                     )
                 )
             ),
-            class_name="flex-col md:flex-row items-center p-4 w-full"
+            class_name="flex-col md:flex-row items-center px-4 py-2 w-full"
         ),
         flex(
             text("0 YEARS", class_name="text-xs pr-4 text-nowrap"),
