@@ -5,7 +5,6 @@ from ..server.supabase import (
     supabase_user_edit_report,
     supabase_user_patch_report,
     supabase_get_full_report_info,
-    supabase_get_hospital_info,
     supabase_submit_full_report,
     supabase_update_hospital_departments,
 )
@@ -260,11 +259,13 @@ class ReportState(PageState):
             yield rx.toast.error("Error while retrieving report details.")
             yield ReportState.setvar("is_loading", False)
 
-    def event_state_create_full_report(self, hospital_id: str) -> Iterable[Callable]:
+    def make_full_report(self, hospital_id: str) -> Iterable[Callable]:
         """
         Resets and prepares report state for user to make a new report.
         """
         try:
+            yield ReportState.setvar("is_loading", True)
+
             # Reset all report variables.
             self.reset()
 
@@ -275,9 +276,7 @@ class ReportState(PageState):
             self.hospital_id = hospital_id
 
             # Get hospital info by CMS ID and set to state.
-            self.hospital_info = supabase_get_hospital_info(
-                self.access_token, self.hospital_id
-            )
+            self.hospital_info = self.query.table("hospitals").select("*").eq("hosp_id", self.hospital_id).execute()[0]
 
             # Set available units/areas/roles for user selection to state.
             self.hospital_units = list(
@@ -296,7 +295,7 @@ class ReportState(PageState):
             # Set user dict data to state.
             self.report_dict["report_id"] = self.report_id
             self.report_dict["hospital_id"] = self.hospital_id
-            self.report_dict["user_id"] = self.user_claims_id
+            self.report_dict["user_id"] = self.user_id
             self.report_dict["user"] = {
                 "professional": copy.deepcopy(self.user_info["professional"]),
                 "trust": self.user_info["account"]["trust"],
@@ -324,12 +323,12 @@ class ReportState(PageState):
 
             # Redirect to first page of full report.
             yield rx.redirect("/report/full-report/overview")
-            yield ReportState.set_user_is_loading(False)
+            yield ReportState.setvar("is_loading", False)
 
-        except Exception as e:
-            logger.critical(str(e))
+        except Exception:
+            console.print_exception()
             yield rx.toast.error("Error while setting up new report.")
-            yield ReportState.set_user_is_loading(False)
+            yield ReportState.setvar("is_loading", False)
 
     #################################################################
     # COMPENSATION

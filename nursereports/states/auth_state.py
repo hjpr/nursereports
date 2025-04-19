@@ -1,4 +1,3 @@
-
 from httpx import HTTPStatusError
 from rich.console import Console
 from .user_state import UserState
@@ -11,7 +10,6 @@ console = Console()
 
 
 class AuthState(UserState):
-
     recovery_email_timeout: int
 
     def login_with_password(self, auth_data: dict) -> Iterable[Callable]:
@@ -27,17 +25,20 @@ class AuthState(UserState):
                 yield UserState.get_user_info()
                 yield UserState.get_user_hospital_info()
                 yield UserState.get_user_reports()
-                yield rx.redirect("/")
+                yield UserState.redirect_user_to_location()
             else:
                 yield rx.toast.error("Both fields are required.")
             yield AuthState.setvar("is_loading", False)
 
         except HTTPStatusError as e:
+            console.print_exception()
             yield rx.toast.error(e.response.json()["msg"])
+            self.log_out(options={"scope": "local"})
             yield AuthState.setvar("is_loading", False)
         except Exception:
-            console.print_exception(show_locals=True)
+            console.print_exception()
             yield rx.toast.error("Login failed.")
+            self.log_out(options={"scope": "local"})
             yield AuthState.setvar("is_loading", False)
 
     def login_with_sso(self, provider: str) -> Iterable[Callable]:
@@ -46,7 +47,7 @@ class AuthState(UserState):
         """
         try:
             yield AuthState.setvar("is_loading", True)
-            redirect_url = AuthState.sign_in_with_oauth(provider=provider)
+            redirect_url = self.sign_in_with_oauth(provider=provider)
             yield rx.redirect(redirect_url)
             yield AuthState.setvar("is_loading", False)
 
@@ -69,7 +70,7 @@ class AuthState(UserState):
             password_confirm = auth_data.get("create_account_password_confirm")
             if password != password_confirm:
                 raise ValueError("Passwords do not match.")
-            
+
             self.sign_up(email=email, password=password)
             yield rx.redirect("/login/confirm")
             yield AuthState.setvar("is_loading", False)
@@ -95,14 +96,12 @@ class AuthState(UserState):
 
             current_time = int(time.time())
             wait_interval = 120
-            wait_time = (
-                int(current_time - wait_interval) - AuthState.get_var_value("recovery_email_timeout")
+            wait_time = int(current_time - wait_interval) - AuthState.get_var_value(
+                "recovery_email_timeout"
             )
             if wait_time >= 0:
                 self.reset_password_email(email=email)
-                yield rx.redirect(
-                    "/login/forgot-password/confirmation", replace=True
-                )
+                yield rx.redirect("/login/forgot-password/confirmation", replace=True)
                 self.recovery_email_timeout = current_time
             else:
                 yield rx.toast.error(
@@ -115,8 +114,8 @@ class AuthState(UserState):
             yield AuthState.setvar("is_loading", False)
         except Exception as e:
             console.print_exception(show_locals=True)
-            yield rx.toast.error(e)  
-            yield AuthState.setvar("is_loading", False)    
+            yield rx.toast.error(e)
+            yield AuthState.setvar("is_loading", False)
 
     def logout(self) -> Iterable[Callable] | None:
         try:
@@ -127,8 +126,10 @@ class AuthState(UserState):
 
         except HTTPStatusError as e:
             yield rx.toast.error(e.response.json()["msg"])
-            yield AuthState.setvar("is_loading", False)  
+            yield rx.redirect("/")
+            yield AuthState.setvar("is_loading", False)
         except Exception as e:
             console.print_exception(show_locals=True)
             yield rx.toast.error(str(e))
+            yield rx.redirect("/")
             yield AuthState.setvar("is_loading", False)

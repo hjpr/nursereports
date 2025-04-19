@@ -1,10 +1,12 @@
 from ..server.supabase import supabase_update_last_login
 from ..states.user_state import UserState
+from rich.console import Console
 from typing import Callable, Iterable
 
 import reflex as rx
 import traceback
 
+console = Console()
 
 class BaseState(UserState):
 
@@ -46,7 +48,7 @@ class BaseState(UserState):
                 yield self.redirect_user_to_location()
 
         except Exception:
-            traceback.print_exc()
+            console.print_exception()
             return rx.toast.error("Error handling SSO redirect.")
 
     def event_state_requires_login(self) -> Callable:
@@ -56,7 +58,7 @@ class BaseState(UserState):
                 return rx.redirect("/")
 
         except Exception:
-            traceback.print_exc()
+            console.print_exception()
             return rx.redirect("/")
 
     def event_state_requires_report(self) -> Callable:
@@ -69,5 +71,5 @@ class BaseState(UserState):
                 return rx.redirect("/")
 
         except Exception:
-            traceback.print_exc()
+            console.print_exception()
             return rx.redirect("/")

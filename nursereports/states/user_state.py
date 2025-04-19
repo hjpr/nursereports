@@ -157,9 +157,8 @@ class UserState(Suplex):
         Get user info or create entry in /users table if user info missing (1st login)
         """
         # Get user info or create entry in /users
-        user_info = (
-            self.query.table("users").select("*").eq("id", self.user_id).execute()
-        )
+        query = self.query.table("users").select("*").eq("id", self.user_id)
+        user_info = query.execute()
         if user_info:
             self.user_info = user_info[0]
         else:
@@ -197,7 +196,8 @@ class UserState(Suplex):
                 },
                 "saved": {"jobs": [], "hospitals": []},
             }
-            self.query.table("users").upsert(user_info).execute()
+            query = self.query.table("users").upsert(user_info)
+            query.execute()
 
     def get_user_hospital_info(self) -> None:
         """
@@ -207,13 +207,12 @@ class UserState(Suplex):
         complete_hospital_info = []
 
         if saved_hospital_list:
-            complete_hospital_info = (
+            query = (
                 self.query.table("hospitals")
                 .select("hosp_name,hosp_state,hosp_city,hosp_id,hosp_addr")
                 .in_("hosp_id", saved_hospital_list)
-                .execute()
             )
-
+            complete_hospital_info = query.execute()
             for hospital in complete_hospital_info:
                 hospital["hosp_city"] = hospital["hosp_city"].title()
                 hospital["hosp_addr"] = hospital["hosp_addr"].title()
@@ -224,12 +223,12 @@ class UserState(Suplex):
         """
         Get all user reports.
         """
-        reports = (
+        query = (
             self.query.table("reports")
             .select("report_id,hospital_id,assignment,hospital,created_at,modified_at")
             .eq("user_id", self.user_id)
-            .execute()
         )
+        reports = query.execute()
         if reports:
             for report in reports:
                 # Format from nested -> top-level for access via rx.foreach
@@ -287,19 +286,21 @@ class UserState(Suplex):
                 data_to_sync[key] = user_info[key]
 
         if data_to_sync:
-            user = (
+            query = (
                 self.query.table("users")
                 .update(data_to_sync)
                 .eq("id", self.user_id)
-                .execute()
             )
-            self.user_info.update(user[0])
+            user = query.execute()[0]
+            self.user_info.update(user)
 
     def add_hospital_to_user_list(self, hosp_id: str) -> Iterable[Callable]:
         """
         Add a user selected hospital to user's saved hospital list.
         """
         try:
+            yield UserState.setvar("user_is_loading", True)
+            
             # Limit saved hospital list length to 30 items.
             if len(self.user_info["saved"]["hospitals"]) >= 30:
                 return rx.toast.error("Maximum number of saved hospitals reached. (30)")
@@ -310,19 +311,17 @@ class UserState(Suplex):
                     "Hospital is already in saved hospitals.", close_button=True
                 )
 
-            yield UserState.setvar("user_is_loading", True)
-
             data = {
                 "saved": {"hospitals": self.user_info["saved"]["hospitals"] + [hosp_id]}
             }
             # Save to supabase, and pull new info into user state.
             self.update_user_info_and_sync_locally(data)
-            hospital_to_add = (
+            query = (
                 self.query.table("hospitals")
                 .select("hosp_name,hosp_state,hosp_city,hosp_id,hosp_addr")
                 .eq("hosp_id", hosp_id)
-                .execute()[0]
             )
+            hospital_to_add = query.execute()[0]
             self.user_saved_hospitals.append(hospital_to_add)
 
             yield rx.toast.success(
@@ -391,9 +390,11 @@ class UserState(Suplex):
             yield rx.toast.success("Removed report from our database.")
 
         except RequestFailed as e:
+            console.print_exception()
             yield rx.toast.error(str(e))
         except Exception as e:
-            logger.critical(str(e))
+            console.print_exception()
+            yield rx.toast.error(f"Backend error - {e}")
 
     def event_state_contact_us_submit(self, contact_dict: dict) -> Iterable[Callable]:
         """
@@ -426,8 +427,8 @@ class UserState(Suplex):
                 )
 
         except Exception as e:
-            logger.error(e)
-            yield rx.toast.error(e)
+            console.print_exception()
+            yield rx.toast.error(f"Backend error {e}")
 
     def redirect_user_to_location(self) -> Callable:
         """
@@ -435,11 +436,8 @@ class UserState(Suplex):
         they were on when login expired.
         """
         if self.restore_page_after_login:
-            logger.debug(f"Sending user back to {self.restore_page_after_login}")
             return rx.redirect(self.restore_page_after_login)
         if self.user_needs_onboarding:
-            logger.debug(f"Sending {self.user_claims_id} to onboard.")
             return rx.redirect("/onboard")
         else:
-            logger.debug(f"Sending {self.user_claims_id} to dashboard.")
             return rx.redirect("/dashboard")
