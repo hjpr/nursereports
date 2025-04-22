@@ -467,7 +467,7 @@ requires-dist = [
     { name = "numpy", specifier = ">=2.2.3" },
     { name = "polars", specifier = ">=1.24.0" },
     { name = "pyjwt", specifier = ">=2.10.1" },
-    { name = "reflex", specifier = ">=0.7.7" },
+    { name = "reflex", specifier = ">=0.7.8" },
     { name = "suplex", specifier = ">=0.1.9" },
 ]
 
@@ -673,7 +673,7 @@ wheels = [
 
 [[package]]
 name = "reflex"
-version = "0.7.7"
+version = "0.7.8"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "alembic" },
@@ -698,9 +698,9 @@ dependencies = [
     { name = "uvicorn" },
     { name = "wrapt" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/d3/03/d2e83fa1c573a1d11b18f1a533e012731f65fb3adebc5c9cf8d86afc10ad/reflex-0.7.7.tar.gz", hash = "sha256:eb7eb28a1dc76c8721bec332be353bce6adfe68a464870f7e431d2d32a9d11b6", size = 558890 }
+sdist = { url = "https://files.pythonhosted.org/packages/bf/50/0042fa13869687ef0d00e9c642bce570dfc1f1fc320cea6087e1de61c7a8/reflex-0.7.8.tar.gz", hash = "sha256:b7d17d8c734238f1d2b744a3a8e46b6410280e2b606909234332e5fa76b82c6d", size = 558376 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d1/58/bb966efa9489bae0bd2829c90b131b27676157251edebb0b0b420870ef02/reflex-0.7.7-py3-none-any.whl", hash = "sha256:5fc9b1a099382b5f8d8e55447066af571f71ea143cbb2a8e367d91ae9bdbc539", size = 847435 },
+    { url = "https://files.pythonhosted.org/packages/31/a8/29b5c858ad75bba32d9e5630a44deaea76ddec6915a08abb05f2e220aa06/reflex-0.7.8-py3-none-any.whl", hash = "sha256:790d7380299b67b584edc076eb5d8730ec86ef7e885a1d64a2046ff34323b03e", size = 847009 },
 ]
 
 [[package]]
