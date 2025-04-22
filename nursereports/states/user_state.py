@@ -158,9 +158,9 @@ class UserState(Suplex):
         """
         # Get user info or create entry in /users
         query = self.query.table("users").select("*").eq("id", self.user_id)
-        user_info = query.execute()
+        user_info = query.execute()[0]
         if user_info:
-            self.user_info = user_info[0]
+            self.user_info = user_info
         else:
             user_info = {
                 "id": self.user_id,
@@ -303,13 +303,13 @@ class UserState(Suplex):
             
             # Limit saved hospital list length to 30 items.
             if len(self.user_info["saved"]["hospitals"]) >= 30:
+                yield UserState.setvar("user_is_loading", False)
                 return rx.toast.error("Maximum number of saved hospitals reached. (30)")
 
             # Check for duplicates.
             if hosp_id in self.user_info["saved"]["hospitals"]:
-                return rx.toast.error(
-                    "Hospital is already in saved hospitals.", close_button=True
-                )
+                yield UserState.setvar("user_is_loading", False)
+                return rx.toast.error("Hospital is already in saved hospitals.")
 
             data = {
                 "saved": {"hospitals": self.user_info["saved"]["hospitals"] + [hosp_id]}
@@ -322,20 +322,20 @@ class UserState(Suplex):
                 .eq("hosp_id", hosp_id)
             )
             hospital_to_add = query.execute()[0]
+            hospital_to_add["hosp_city"] = hospital_to_add["hosp_city"].title()
+            hospital_to_add["hosp_addr"] = hospital_to_add["hosp_addr"].title()
             self.user_saved_hospitals.append(hospital_to_add)
 
-            yield rx.toast.success(
-                "Hospital added to 'Saved Hospitals'.", close_button=True
-            )
+            yield rx.toast.success("Hospital added to 'Saved Hospitals'.")
             yield UserState.setvar("user_is_loading", False)
 
         except RequestFailed as e:
             console.print_exception()
-            yield rx.toast.error(str(e), close_buttons=True)
+            yield rx.toast.error(str(e))
             yield UserState.setvar("user_is_loading", False)
         except Exception:
             console.print_exception()
-            yield rx.toast.error("Unable to save hospital to list.", close_button=True)
+            yield rx.toast.error("Unable to save hospital to list.")
             yield UserState.setvar("user_is_loading", False)
 
     def remove_hospital_from_saved(self, hosp_id: str) -> Iterable[Callable]:

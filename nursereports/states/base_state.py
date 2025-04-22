@@ -1,10 +1,9 @@
-from ..server.supabase import supabase_update_last_login
+from datetime import datetime, timezone
 from ..states.user_state import UserState
 from rich.console import Console
 from typing import Callable, Iterable
 
 import reflex as rx
-import traceback
 
 console = Console()
 
@@ -31,7 +30,6 @@ class BaseState(UserState):
         try:
             url = self.router.page.raw_path
 
-            # If user coming from a redirect url containing access and refresh tokens.
             if ("access_token" in url) and ("refresh_token" in url):
                 # Format is wonky, just assume this is right. Trust me bro.
                 fragment = url.split("#")[1]
@@ -39,12 +37,12 @@ class BaseState(UserState):
                 self.refresh_token = fragment.split("&")[4].split("=")[1]
 
                 # For active monthly users purpose.
-                supabase_update_last_login(self.access_token, self.user_claims_id)
+                data = {"last_login": str(datetime.now(timezone.utc).isoformat(timespec="seconds"))}
+                query = self.query.table("users").update(data=data).eq("id", self.user_id)
+                query.execute() # Already going to get user info, no need to return user data.
 
-                # We have to retrieve all our user info.
                 self.get_user_info()
 
-                # Send user to appropriate part of site.
                 yield self.redirect_user_to_location()
 
         except Exception:

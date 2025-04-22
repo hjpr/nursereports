@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from loguru import logger
 from groq import Groq
 from rich.console import Console
-from typing import Callable, Iterable, Literal
+from typing import Any, Callable, Iterable, Literal
 
 import copy
 import json
@@ -33,7 +33,7 @@ class ReportState(PageState):
     hospital_id: str
 
     # Dict of hospital data pulled from /hospital.
-    hospital_info: dict[str, str | int | list]
+    hospital_info: dict[str, Any]
 
     # Generated uuid for the current report.
     report_id: str

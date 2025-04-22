@@ -52,10 +52,11 @@ class AuthState(UserState):
             yield AuthState.setvar("is_loading", False)
 
         except HTTPStatusError as e:
+            console.print_exception()
             yield rx.toast.error(e.response.json()["msg"])
             yield AuthState.setvar("is_loading", False)
         except Exception as e:
-            console.print_exception(show_locals=True)
+            console.print_exception()
             yield rx.toast.error(str(e), close_button=True)
             yield AuthState.setvar("is_loading", False)
 
@@ -76,10 +77,11 @@ class AuthState(UserState):
             yield AuthState.setvar("is_loading", False)
 
         except HTTPStatusError as e:
+            console.print_exception()
             yield rx.toast.error(e.response.json()["msg"])
             yield AuthState.setvar("is_loading", False)
         except Exception as e:
-            console.print_exception(show_locals=True)
+            console.print_exception()
             yield rx.toast.error(str(e), close_button=True)
             yield AuthState.setvar("is_loading", False)
 
@@ -110,10 +112,11 @@ class AuthState(UserState):
             yield AuthState.setvar("is_loading", False)
 
         except HTTPStatusError as e:
+            console.print_exception()
             yield rx.toast.error(e.response.json()["msg"])
             yield AuthState.setvar("is_loading", False)
         except Exception as e:
-            console.print_exception(show_locals=True)
+            console.print_exception()
             yield rx.toast.error(e)
             yield AuthState.setvar("is_loading", False)
 
@@ -125,11 +128,12 @@ class AuthState(UserState):
             yield AuthState.setvar("is_loading", False)
 
         except HTTPStatusError as e:
+            console.print_exception()
             yield rx.toast.error(e.response.json()["msg"])
             yield rx.redirect("/")
             yield AuthState.setvar("is_loading", False)
         except Exception as e:
-            console.print_exception(show_locals=True)
+            console.print_exception()
             yield rx.toast.error(str(e))
             yield rx.redirect("/")
             yield AuthState.setvar("is_loading", False)

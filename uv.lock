@@ -468,7 +468,7 @@ requires-dist = [
     { name = "polars", specifier = ">=1.24.0" },
     { name = "pyjwt", specifier = ">=2.10.1" },
     { name = "reflex", specifier = ">=0.7.7" },
-    { name = "suplex", specifier = "==0.1.8b0" },
+    { name = "suplex", specifier = ">=0.1.9" },
 ]
 
 [[package]]
@@ -821,7 +821,7 @@ wheels = [
 
 [[package]]
 name = "suplex"
-version = "0.1.8b0"
+version = "0.1.9"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "dotenv" },
@@ -829,9 +829,9 @@ dependencies = [
     { name = "pyjwt" },
     { name = "reflex" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/31/43/d45b41d89ae401dd0d142c4f582fa76a6776287904095db540ef209482ca/suplex-0.1.8b0.tar.gz", hash = "sha256:b23fc19232c4c513d287730ddf6a0e4dceab2bcd62ad1d77cb0f6092af4d7c2f", size = 15215 }
+sdist = { url = "https://files.pythonhosted.org/packages/df/ce/5cc9abe91b66685a025ba8d1085ac54b2dcba1b455ddfaec1b7a384905e8/suplex-0.1.9.tar.gz", hash = "sha256:8bfcb20f65b19a87e3aa31449a1d2bb2773449009e316e43e738c5e3588cb19a", size = 15227 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e3/ce/e4f9415b08e88875682b9ff6e68f99b1a6c00e3e73a089180f0d0969835e/suplex-0.1.8b0-py3-none-any.whl", hash = "sha256:a1837f485dde7e356d6f6ba04150cc8e1bc5e43e3b85fb8749a70abfc70c83b0", size = 15896 },
+    { url = "https://files.pythonhosted.org/packages/79/e5/2f006e03c15cdd17c4034ef11964fa3da4998d21496aa302c67b11267207/suplex-0.1.9-py3-none-any.whl", hash = "sha256:2efb957776fce70d1b64561be86b63a141def926e56f6025a580c405b85ed940", size = 15895 },
 ]
 
 [[package]]

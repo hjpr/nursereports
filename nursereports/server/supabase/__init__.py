@@ -1,5 +1,4 @@
 from .auth_requests import *
-from .feedback_requests import *
 from .hospital_requests import *
 from .rate_limit_requests import *
 from .report_requests import *

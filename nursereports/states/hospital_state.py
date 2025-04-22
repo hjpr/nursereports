@@ -3,7 +3,6 @@ from ..client.components.dicts import abbr_to_state_dict
 from ..states.user_state import UserState
 from ..server.exceptions import RequestFailed
 from datetime import datetime
-from loguru import logger
 from rich.console import Console
 from typing import Any, Callable, Dict, List, Iterable
 
@@ -14,7 +13,6 @@ import numpy as np
 import polars as pl
 import re
 import reflex as rx
-import traceback
 
 console = Console()
 
@@ -255,7 +253,8 @@ class HospitalState(UserState):
 
             # As long as CMS ID appears to be valid, try to get hospital info.
             if self.hosp_id:
-                self.hospital_info = self.query.table("hospitals").select("*").eq("hosp_id", self.hosp_id).execute()[0]
+                query = self.query.table("hospitals").select("*").eq("hosp_id", self.hosp_id)
+                self.hospital_info = query.execute()[0]
                 self.hospital_info["hosp_state_abbr"] = self.hospital_info["hosp_state"]
                 self.hospital_info["hosp_state"] = abbr_to_state_dict.get(
                     self.hospital_info["hosp_state_abbr"]
@@ -280,7 +279,8 @@ class HospitalState(UserState):
         """
         Load report data into state from supabase.
         """
-        self.report_info = self.query.table("reports").select("*").eq("hospital_id", self.hosp_id).execute()
+        query = self.query.table("reports").select("*").eq("hospital_id", self.hosp_id)
+        self.report_info = query.execute()
 
     def load_pay_info(self) -> None:
         """
@@ -326,7 +326,7 @@ class HospitalState(UserState):
             self.extrapolated_ft_pay_hospital = self.linear_regression_pay(
                 ft_pay_hospital_df, "total", "hourly"
             )
-            logger.debug(f"Pulled {len(ft_pay_hospital_df)} full time report(s).")
+            console.print(f"Pulled {len(ft_pay_hospital_df)} full time report(s).")
 
             # Part time pay data and interpolation.
             pt_pay_hospital_df = (
@@ -363,7 +363,7 @@ class HospitalState(UserState):
             self.extrapolated_pt_pay_hospital = self.linear_regression_pay(
                 pt_pay_hospital_df, "total", "hourly"
             )
-            logger.debug(f"Pulled {len(pt_pay_hospital_df)} part time report(s).")
+            console.print(f"Pulled {len(pt_pay_hospital_df)} part time report(s).")
 
             # Contract pay data and averaged pay.
             contract_pay_df = (
@@ -389,7 +389,7 @@ class HospitalState(UserState):
             # Average contract pay data.
             if len(contract_pay_df) > 0:
                 self.simple_average_pay(contract_pay_df, "weekly")
-                logger.debug(
+                console.print(
                     f"Pulled {len(contract_pay_df)} contract report(s) and averaged them."
                 )
             else:
@@ -405,7 +405,7 @@ class HospitalState(UserState):
         Removes outliers from DataFrame. Requires at least 4 entries.
         """
         if len(df_to_clean) < 4:
-            logger.debug("Not enough entries to remove outliers.")
+            console.print("Not enough entries to remove outliers.")
             return df_to_clean
 
         y_values = df_to_clean[y_name].to_numpy()
@@ -425,7 +425,7 @@ class HospitalState(UserState):
         filtered_df = df_to_clean.filter(
             (df_to_clean[y_name] >= lower_bound) & (df_to_clean[y_name] <= upper_bound)
         )
-        logger.debug(
+        console.print(
             f"Dropped {len(df_to_clean) - len(filtered_df)} report(s) as outliers."
         )
         return filtered_df
@@ -445,7 +445,7 @@ class HospitalState(UserState):
         averaged_y = [np.mean(y[x == val]) for val in unique_x]
 
         flattened_df = pl.DataFrame({x_name: unique_x, y_name: averaged_y})
-        logger.debug(
+        console.print(
             f"Flattened by {df_to_flatten.height - flattened_df.height} report(s)."
         )
         return flattened_df
@@ -721,9 +721,8 @@ class HospitalState(UserState):
                     units_areas_roles_scores_df.to_dicts()
                 )
 
-        except Exception as e:
-            traceback.print_exc()
-            logger.critical(e)
+        except Exception:
+            console.print_exception()
 
     def load_review_info(self) -> None:
         try:
@@ -806,8 +805,8 @@ class HospitalState(UserState):
                 # Add all to units_areas_roles list for user select.
                 self.review_info = refined_df.to_dicts()
 
-        except Exception as e:
-            logger.critical(e)
+        except Exception:
+            console.print_exception()
 
     # def event_state_like_unlike_review(
     #     self, review_to_edit: dict[str, str | list | bool]

@@ -5,7 +5,7 @@ from ..components import (
     report_protected,
     text,
 )
-from ...states import BaseState, HospitalState, ReportState
+from ...states import BaseState, HospitalState, ReportState, UserState
 
 import reflex as rx
 
@@ -89,6 +89,7 @@ def heading() -> rx.Component:
             rx.flex(
                 rx.icon("list-plus", class_name="stroke-zinc-700"),
                 text("Add to Watchlist"),
+                on_click=UserState.add_hospital_to_user_list(HospitalState.hosp_id),
                 class_name="flex-row justify-center p-4 space-x-2 w-full active:bg-zinc-200 transition-colors duration-75 cursor-pointer"
             ),
             class_name="flex-col md:flex-row items-center justify-center divide-y md:divide-x md:divide-y-0 w-full",
