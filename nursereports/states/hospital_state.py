@@ -253,8 +253,7 @@ class HospitalState(UserState):
 
             # As long as CMS ID appears to be valid, try to get hospital info.
             if self.hosp_id:
-                query = self.query.table("hospitals").select("*").eq("hosp_id", self.hosp_id)
-                self.hospital_info = query.execute()[0]
+                self.hospital_info = self.query().table("hospitals").select("*").eq("hosp_id", self.hosp_id).execute()[0]
                 self.hospital_info["hosp_state_abbr"] = self.hospital_info["hosp_state"]
                 self.hospital_info["hosp_state"] = abbr_to_state_dict.get(
                     self.hospital_info["hosp_state_abbr"]
@@ -279,8 +278,7 @@ class HospitalState(UserState):
         """
         Load report data into state from supabase.
         """
-        query = self.query.table("reports").select("*").eq("hospital_id", self.hosp_id)
-        self.report_info = query.execute()
+        self.report_info = self.query().table("reports").select("*").eq("hospital_id", self.hosp_id).execute()
 
     def load_pay_info(self) -> None:
         """

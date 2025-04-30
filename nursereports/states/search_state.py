@@ -62,8 +62,7 @@ class SearchState(AuthState):
                 # Get results from database.
                 hosp_city = self.selected_city
                 hosp_state = state_to_abbr_dict[self.selected_state]
-                query = self.query.table("hospitals").select("*").ilike("hosp_city", hosp_city).ilike("hosp_state", hosp_state)
-                search_results = query.execute()
+                search_results = self.query().table("hospitals").select("*").ilike("hosp_city", hosp_city).ilike("hosp_state", hosp_state).execute()
 
                 # Set the last searched state/city
                 self.last_searched_state = self.selected_state

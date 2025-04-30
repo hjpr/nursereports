@@ -75,20 +75,10 @@ class ReportState(PageState):
             self.hospital_id = hosp_id
 
             # Load report to edit into state.
-            report = (
-                self.query.table("reports")
-                .select("*")
-                .eq("report_id", report_id)
-                .execute()[0]
-            )
+            report = self.query().table("reports").select("*").eq("report_id", report_id).execute()[0]
 
             # Load hospital info into state.
-            self.hospital_info = (
-                self.query.table("hospitals")
-                .select("*")
-                .eq("hosp_id", hosp_id)
-                .execute()[0]
-            )
+            self.hospital_info = self.query().table("hospitals").select("*").eq("hosp_id", hosp_id).execute()[0]
 
             # Set available units/areas/roles for user selection to state.
             self.hospital_units = list(
@@ -276,7 +266,7 @@ class ReportState(PageState):
             self.hospital_id = hospital_id
 
             # Get hospital info by CMS ID and set to state.
-            self.hospital_info = self.query.table("hospitals").select("*").eq("hosp_id", self.hospital_id).execute()[0]
+            self.hospital_info = self.query().table("hospitals").select("*").eq("hosp_id", self.hospital_id).execute()[0]
 
             # Set available units/areas/roles for user selection to state.
             self.hospital_units = list(
@@ -1036,7 +1026,6 @@ class ReportState(PageState):
             ):
                 return rx.toast.error(
                     "Data corrupted. Recheck report for completion. If this persists, please contact support.",
-                    close_button=True,
                 )
 
             # Ensures that no report UUID's conflict. Submit either full report or update existing report.
@@ -1142,10 +1131,8 @@ class ReportState(PageState):
 
         except Exception as e:
             logger.warning(e)
-            yield rx.toast.error(
-                "Failed to submit report to database.", close_button=True
-            )
-            return ReportState.set_user_is_loading(False)
+            yield rx.toast.error("Failed to submit report to database.")
+            yield ReportState.setvar("user_is_loading", False)
 
     def moderate_user_entries(self) -> None:
         """
@@ -1215,10 +1202,7 @@ class ReportState(PageState):
 
             else:
                 logger.debug(
-                    f"{self.user_claims_id} hasn't entered any content to be moderated."
+                    f"{self.user_id} hasn't entered any content to be moderated."
                 )
         except Exception:
-            import traceback
-
-            traceback.print_exc()
-            logger.warning(f"Moderation for {self.user_claims_id} failed.")
+            console.print_exception()

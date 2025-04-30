@@ -21,12 +21,10 @@ class NavbarState(BaseState):
                 "email": self.user_email,
                 "user_id": self.user_id,
             }
-            query = self.query.table("feedback").insert(data)
-            query.execute()
-
+            self.query().table("feedback").insert(data).execute()
+            
             yield rx.toast.success("Your feedback will be reviewed shortly.")
             yield NavbarState.setvar("is_loading", True)
-
         except ValueError as e:
             yield rx.toast.error(str(e))
         except Exception as e:

@@ -157,8 +157,10 @@ class UserState(Suplex):
         Get user info or create entry in /users table if user info missing (1st login)
         """
         # Get user info or create entry in /users
-        query = self.query.table("users").select("*").eq("id", self.user_id)
-        user_info = query.execute()[0]
+        user_info = (
+            self.query().table("users").select("*").eq("id", self.user_id).execute()[0]
+        )
+
         if user_info:
             self.user_info = user_info
         else:
@@ -196,8 +198,7 @@ class UserState(Suplex):
                 },
                 "saved": {"jobs": [], "hospitals": []},
             }
-            query = self.query.table("users").upsert(user_info)
-            query.execute()
+            self.query().table("users").upsert(user_info).execute()
 
     def get_user_hospital_info(self) -> None:
         """
@@ -207,12 +208,13 @@ class UserState(Suplex):
         complete_hospital_info = []
 
         if saved_hospital_list:
-            query = (
-                self.query.table("hospitals")
+            complete_hospital_info = (
+                self.query()
+                .table("hospitals")
                 .select("hosp_name,hosp_state,hosp_city,hosp_id,hosp_addr")
-                .in_("hosp_id", saved_hospital_list)
+                .in_("hosp_id", saved_hospital_list).execute()
             )
-            complete_hospital_info = query.execute()
+
             for hospital in complete_hospital_info:
                 hospital["hosp_city"] = hospital["hosp_city"].title()
                 hospital["hosp_addr"] = hospital["hosp_addr"].title()
@@ -223,12 +225,13 @@ class UserState(Suplex):
         """
         Get all user reports.
         """
-        query = (
-            self.query.table("reports")
+        reports = (
+            self.query()
+            .table("reports")
             .select("report_id,hospital_id,assignment,hospital,created_at,modified_at")
-            .eq("user_id", self.user_id)
+            .eq("user_id", self.user_id).execute()
         )
-        reports = query.execute()
+
         if reports:
             for report in reports:
                 # Format from nested -> top-level for access via rx.foreach
@@ -286,12 +289,9 @@ class UserState(Suplex):
                 data_to_sync[key] = user_info[key]
 
         if data_to_sync:
-            query = (
-                self.query.table("users")
-                .update(data_to_sync)
-                .eq("id", self.user_id)
+            user = (
+                self.query().table("users").update(data_to_sync).eq("id", self.user_id).execute()[0]
             )
-            user = query.execute()[0]
             self.user_info.update(user)
 
     def add_hospital_to_user_list(self, hosp_id: str) -> Iterable[Callable]:
@@ -300,7 +300,7 @@ class UserState(Suplex):
         """
         try:
             yield UserState.setvar("user_is_loading", True)
-            
+
             # Limit saved hospital list length to 30 items.
             if len(self.user_info["saved"]["hospitals"]) >= 30:
                 yield UserState.setvar("user_is_loading", False)
@@ -316,12 +316,13 @@ class UserState(Suplex):
             }
             # Save to supabase, and pull new info into user state.
             self.update_user_info_and_sync_locally(data)
-            query = (
-                self.query.table("hospitals")
+            hospital_to_add = (
+                self.query()
+                .table("hospitals")
                 .select("hosp_name,hosp_state,hosp_city,hosp_id,hosp_addr")
                 .eq("hosp_id", hosp_id)
+                .execute()[0]
             )
-            hospital_to_add = query.execute()[0]
             hospital_to_add["hosp_city"] = hospital_to_add["hosp_city"].title()
             hospital_to_add["hosp_addr"] = hospital_to_add["hosp_addr"].title()
             self.user_saved_hospitals.append(hospital_to_add)
