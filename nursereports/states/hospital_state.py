@@ -1,4 +1,3 @@
-
 from ..client.components.dicts import abbr_to_state_dict
 from ..states.user_state import UserState
 from ..server.exceptions import RequestFailed
@@ -18,7 +17,6 @@ console = Console()
 
 
 class HospitalState(UserState):
-
     MAX_REVIEWS_DISPLAYED = 10
 
     # Full info for each section.
@@ -166,7 +164,7 @@ class HospitalState(UserState):
                 for d in self.units_areas_roles_hospital_scores
                 if d.get("units_areas_roles") == self.selected_unit
             ),
-            None
+            None,
         )
 
         # Otherwise if no matches, user hasn't selected anything and we return hospital overall.
@@ -178,7 +176,11 @@ class HospitalState(UserState):
         Used to display all reviews if no filters are selected, or filtered reviews
         if user has selected filters.
         """
-        matched_list = [review for review in self.review_info if review.get("units_areas_roles", "") == self.selected_unit]
+        matched_list = [
+            review
+            for review in self.review_info
+            if review.get("units_areas_roles", "") == self.selected_unit
+        ]
         return matched_list if matched_list else self.review_info
 
     @rx.var
@@ -200,7 +202,7 @@ class HospitalState(UserState):
             num_pages_list = [page for page in range(1, (num_pages + 1))]
 
             # Build dict.
-            paginated_reports = { number: [] for number in num_pages_list}
+            paginated_reports = {number: [] for number in num_pages_list}
 
             # Fill dict.
             current_page = 1
@@ -216,11 +218,15 @@ class HospitalState(UserState):
 
     @rx.var
     def num_review_pages(self) -> int:
-        num_pages = math.ceil(len(self.filtered_review_info) / self.MAX_REVIEWS_DISPLAYED)
+        num_pages = math.ceil(
+            len(self.filtered_review_info) / self.MAX_REVIEWS_DISPLAYED
+        )
         return num_pages
 
     def next_review_page(self) -> None:
-        num_pages = math.ceil(len(self.filtered_review_info) / self.MAX_REVIEWS_DISPLAYED)
+        num_pages = math.ceil(
+            len(self.filtered_review_info) / self.MAX_REVIEWS_DISPLAYED
+        )
         if self.current_review_page < num_pages:
             self.current_review_page += 1
 
@@ -253,7 +259,13 @@ class HospitalState(UserState):
 
             # As long as CMS ID appears to be valid, try to get hospital info.
             if self.hosp_id:
-                self.hospital_info = self.query().table("hospitals").select("*").eq("hosp_id", self.hosp_id).execute()[0]
+                self.hospital_info = (
+                    self.query()
+                    .table("hospitals")
+                    .select("*")
+                    .eq("hosp_id", self.hosp_id)
+                    .execute()[0]
+                )
                 self.hospital_info["hosp_state_abbr"] = self.hospital_info["hosp_state"]
                 self.hospital_info["hosp_state"] = abbr_to_state_dict.get(
                     self.hospital_info["hosp_state_abbr"]
@@ -278,7 +290,13 @@ class HospitalState(UserState):
         """
         Load report data into state from supabase.
         """
-        self.report_info = self.query().table("reports").select("*").eq("hospital_id", self.hosp_id).execute()
+        self.report_info = (
+            self.query()
+            .table("reports")
+            .select("*")
+            .eq("hospital_id", self.hosp_id)
+            .execute()
+        )
 
     def load_pay_info(self) -> None:
         """
@@ -308,14 +326,10 @@ class HospitalState(UserState):
             )
 
             # Remove outliers.
-            ft_pay_hospital_df = self.remove_pay_outliers(
-                ft_pay_hospital_df, "hourly"
-            )
+            ft_pay_hospital_df = self.remove_pay_outliers(ft_pay_hospital_df, "hourly")
 
             # Flatten entries for years into an average.
-            ft_pay_hospital_df = self.flatten_pay(
-                ft_pay_hospital_df, "total", "hourly"
-            )
+            ft_pay_hospital_df = self.flatten_pay(ft_pay_hospital_df, "total", "hourly")
 
             # Set full time pay limited flag if less than 10 reports.
             self.ft_pay_hospital_info_limited = bool(len(ft_pay_hospital_df) < 10)
@@ -345,14 +359,10 @@ class HospitalState(UserState):
             )
 
             # Remove outliers.
-            pt_pay_hospital_df = self.remove_pay_outliers(
-                pt_pay_hospital_df, "hourly"
-            )
+            pt_pay_hospital_df = self.remove_pay_outliers(pt_pay_hospital_df, "hourly")
 
             # Flatten entries for years into an average.
-            pt_pay_hospital_df = self.flatten_pay(
-                pt_pay_hospital_df, "total", "hourly"
-            )
+            pt_pay_hospital_df = self.flatten_pay(pt_pay_hospital_df, "total", "hourly")
 
             # Set part time pay limited flag if less than 10 reports.
             self.pt_pay_hospital_info_limited = bool(len(pt_pay_hospital_df) < 10)
@@ -380,9 +390,7 @@ class HospitalState(UserState):
             )
 
             # Check if more than 10 contract pay reports.
-            self.contract_pay_info_hospital_limited = bool(
-                len(contract_pay_df) < 10
-            )
+            self.contract_pay_info_hospital_limited = bool(len(contract_pay_df) < 10)
 
             # Average contract pay data.
             if len(contract_pay_df) > 0:
@@ -391,9 +399,7 @@ class HospitalState(UserState):
                     f"Pulled {len(contract_pay_df)} contract report(s) and averaged them."
                 )
             else:
-                console.print(
-                    "No contract pay data present to be loaded to state..."
-                )
+                console.print("No contract pay data present to be loaded to state...")
 
     @staticmethod
     def remove_pay_outliers(
@@ -521,20 +527,38 @@ class HospitalState(UserState):
                     # Flatten unit/area/role structs to unit/area/role columns as strings.
                     pl.coalesce(
                         [
-                            pl.col("assignment").struct.field("unit").struct.field("entered_unit").replace("", None),
-                            pl.col("assignment").struct.field("unit").struct.field("selected_unit").replace("", None),
+                            pl.col("assignment")
+                            .struct.field("unit")
+                            .struct.field("entered_unit")
+                            .replace("", None),
+                            pl.col("assignment")
+                            .struct.field("unit")
+                            .struct.field("selected_unit")
+                            .replace("", None),
                         ]
                     ).alias("unit"),
                     pl.coalesce(
                         [
-                            pl.col("assignment").struct.field("area").struct.field("entered_area").replace("", None),
-                            pl.col("assignment").struct.field("area").struct.field("selected_area").replace("", None),
+                            pl.col("assignment")
+                            .struct.field("area")
+                            .struct.field("entered_area")
+                            .replace("", None),
+                            pl.col("assignment")
+                            .struct.field("area")
+                            .struct.field("selected_area")
+                            .replace("", None),
                         ]
                     ).alias("area"),
                     pl.coalesce(
                         [
-                            pl.col("assignment").struct.field("role").struct.field("entered_role").replace("", None),
-                            pl.col("assignment").struct.field("role").struct.field("selected_role").replace("", None),
+                            pl.col("assignment")
+                            .struct.field("role")
+                            .struct.field("entered_role")
+                            .replace("", None),
+                            pl.col("assignment")
+                            .struct.field("role")
+                            .struct.field("selected_role")
+                            .replace("", None),
                         ]
                     ).alias("role"),
                     pl.col("compensation")
@@ -725,47 +749,63 @@ class HospitalState(UserState):
     def load_review_info(self) -> None:
         try:
             if self.report_info:
-                review_df = (
-                    pl.DataFrame(copy.deepcopy(self.report_info))
-                )
+                review_df = pl.DataFrame(copy.deepcopy(self.report_info))
 
                 refined_df = (
-                    review_df
-                    .select(
+                    review_df.select(
                         pl.coalesce(
                             [
-                                pl.col("assignment").struct.field("unit").struct.field("entered_unit").replace("", None),
-                                pl.col("assignment").struct.field("unit").struct.field("selected_unit").replace("", None),
+                                pl.col("assignment")
+                                .struct.field("unit")
+                                .struct.field("entered_unit")
+                                .replace("", None),
+                                pl.col("assignment")
+                                .struct.field("unit")
+                                .struct.field("selected_unit")
+                                .replace("", None),
                             ]
                         ).alias("unit"),
                         pl.coalesce(
                             [
-                                pl.col("assignment").struct.field("area").struct.field("entered_area").replace("", None),
-                                pl.col("assignment").struct.field("area").struct.field("selected_area").replace("", None),
+                                pl.col("assignment")
+                                .struct.field("area")
+                                .struct.field("entered_area")
+                                .replace("", None),
+                                pl.col("assignment")
+                                .struct.field("area")
+                                .struct.field("selected_area")
+                                .replace("", None),
                             ]
                         ).alias("area"),
                         pl.coalesce(
                             [
-                                pl.col("assignment").struct.field("role").struct.field("entered_role").replace("", None),
-                                pl.col("assignment").struct.field("role").struct.field("selected_role").replace("", None),
+                                pl.col("assignment")
+                                .struct.field("role")
+                                .struct.field("entered_role")
+                                .replace("", None),
+                                pl.col("assignment")
+                                .struct.field("role")
+                                .struct.field("selected_role")
+                                .replace("", None),
                             ]
                         ).alias("role"),
-
-                        pl.col("compensation").struct.field("comments").alias("comp_comments").replace("", None),
-                        pl.col("assignment").struct.field("comments").alias("assign_comments").replace("", None),
-                        pl.col("staffing").struct.field("comments").alias("staff_comments").replace("", None),
+                        pl.col("compensation")
+                        .struct.field("comments")
+                        .alias("comp_comments")
+                        .replace("", None),
+                        pl.col("assignment")
+                        .struct.field("comments")
+                        .alias("assign_comments")
+                        .replace("", None),
+                        pl.col("staffing")
+                        .struct.field("comments")
+                        .alias("staff_comments")
+                        .replace("", None),
                         pl.col("social").struct.field("likes").alias("likes"),
                         pl.col("social").struct.field("tags").alias("tags"),
-
-                        pl.when(
-                            pl.col("modified_at").is_not_null()
-                        )
-                        .then(
-                            pl.col("modified_at").alias("timestamp")
-                        )
-                        .otherwise(
-                            pl.col("submitted_at").alias("timestamp")
-                        )
+                        pl.when(pl.col("modified_at").is_not_null())
+                        .then(pl.col("modified_at").alias("timestamp"))
+                        .otherwise(pl.col("submitted_at").alias("timestamp")),
                     )
                     .filter(
                         pl.any_horizontal(
@@ -777,27 +817,26 @@ class HospitalState(UserState):
                         )
                     )
                     .with_columns(
-                        pl.col("timestamp").map_elements(lambda ts: humanize.naturaltime(datetime.fromisoformat(ts)), return_dtype=pl.String).alias("time_ago")
+                        pl.col("timestamp")
+                        .map_elements(
+                            lambda ts: humanize.naturaltime(datetime.fromisoformat(ts)),
+                            return_dtype=pl.String,
+                        )
+                        .alias("time_ago")
                     )
                 )
 
-                refined_df = (
-                    refined_df.select(
-                        pl.coalesce(
-                            [
-                                pl.col("unit"),
-                                pl.col("area"),
-                                pl.col("role")
-                            ]
-                        ).alias("units_areas_roles"),
-                        pl.col("comp_comments"),
-                        pl.col("assign_comments"),
-                        pl.col("staff_comments"),
-                        pl.col("likes"),
-                        pl.col("tags"),
-                        pl.col("timestamp"),
-                        pl.col("time_ago")
-                    )
+                refined_df = refined_df.select(
+                    pl.coalesce([pl.col("unit"), pl.col("area"), pl.col("role")]).alias(
+                        "units_areas_roles"
+                    ),
+                    pl.col("comp_comments"),
+                    pl.col("assign_comments"),
+                    pl.col("staff_comments"),
+                    pl.col("likes"),
+                    pl.col("tags"),
+                    pl.col("timestamp"),
+                    pl.col("time_ago"),
                 )
 
                 # Add all to units_areas_roles list for user select.

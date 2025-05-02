@@ -212,7 +212,8 @@ class UserState(Suplex):
                 self.query()
                 .table("hospitals")
                 .select("hosp_name,hosp_state,hosp_city,hosp_id,hosp_addr")
-                .in_("hosp_id", saved_hospital_list).execute()
+                .in_("hosp_id", saved_hospital_list)
+                .execute()
             )
 
             for hospital in complete_hospital_info:
@@ -229,7 +230,8 @@ class UserState(Suplex):
             self.query()
             .table("reports")
             .select("report_id,hospital_id,assignment,hospital,created_at,modified_at")
-            .eq("user_id", self.user_id).execute()
+            .eq("user_id", self.user_id)
+            .execute()
         )
 
         if reports:
@@ -290,7 +292,11 @@ class UserState(Suplex):
 
         if data_to_sync:
             user = (
-                self.query().table("users").update(data_to_sync).eq("id", self.user_id).execute()[0]
+                self.query()
+                .table("users")
+                .update(data_to_sync)
+                .eq("id", self.user_id)
+                .execute()[0]
             )
             self.user_info.update(user)
 

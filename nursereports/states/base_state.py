@@ -7,8 +7,8 @@ import reflex as rx
 
 console = Console()
 
-class BaseState(UserState):
 
+class BaseState(UserState):
     @rx.var
     def host_address(self) -> str:
         """
@@ -37,9 +37,15 @@ class BaseState(UserState):
                 self.refresh_token = fragment.split("&")[4].split("=")[1]
 
                 # For active monthly users purpose.
-                data = {"last_login": str(datetime.now(timezone.utc).isoformat(timespec="seconds"))}
-                query = self.query.table("users").update(data=data).eq("id", self.user_id)
-                query.execute() # Already going to get user info, no need to return user data.
+                data = {
+                    "last_login": str(
+                        datetime.now(timezone.utc).isoformat(timespec="seconds")
+                    )
+                }
+                query = (
+                    self.query.table("users").update(data=data).eq("id", self.user_id)
+                )
+                query.execute()  # Already going to get user info, no need to return user data.
 
                 self.get_user_info()
 
