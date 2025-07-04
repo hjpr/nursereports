@@ -7,8 +7,8 @@ import reflex as rx
 
 console = Console()
 
-class BaseState(UserState):
 
+class BaseState(UserState):
     @rx.var
     def host_address(self) -> str:
         """
