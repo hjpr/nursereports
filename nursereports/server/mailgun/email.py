@@ -21,5 +21,5 @@ def mailgun_send_email(sender: str , recipient: str | list, subject: str, text: 
         logger.debug(f"{sender} sent email to {recipient} successfully.")
     else:
         rich.inspect(response)
-        logger.critical(f"{sender} failed to send email to {recipient} successfully.")
+        logger.critical(f"{sender} failed to send email to {recipient}")
         raise Exception("Email API error.")

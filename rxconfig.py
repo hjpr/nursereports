@@ -12,7 +12,9 @@ jwt_secret = os.getenv("jwt_secret")
 config = rx.Config(
     app_name="nursereports",
     api_url='http://localhost:8000',
-    tailwind={},
+    plugins=[
+        rx.plugins.TailwindV4Plugin()
+    ],
     show_built_with_reflex=False,
     suplex={
         "api_url": api_url,

@@ -157,7 +157,7 @@ class UserState(Suplex):
         Get user info or create entry in /users table if user info missing (1st login)
         """
         # Get user info or create entry in /users
-        query = self.query.table("users").select("*").eq("id", self.user_id)
+        query = self.query().table("users").select("*").eq("id", self.user_id)
         user_info = query.execute()[0]
         if user_info:
             self.user_info = user_info
@@ -196,7 +196,7 @@ class UserState(Suplex):
                 },
                 "saved": {"jobs": [], "hospitals": []},
             }
-            query = self.query.table("users").upsert(user_info)
+            query = self.query().table("users").upsert(user_info)
             query.execute()
 
     def get_user_hospital_info(self) -> None:
@@ -208,7 +208,7 @@ class UserState(Suplex):
 
         if saved_hospital_list:
             query = (
-                self.query.table("hospitals")
+                self.query().table("hospitals")
                 .select("hosp_name,hosp_state,hosp_city,hosp_id,hosp_addr")
                 .in_("hosp_id", saved_hospital_list)
             )
@@ -224,7 +224,7 @@ class UserState(Suplex):
         Get all user reports.
         """
         query = (
-            self.query.table("reports")
+            self.query().table("reports")
             .select("report_id,hospital_id,assignment,hospital,created_at,modified_at")
             .eq("user_id", self.user_id)
         )
@@ -287,7 +287,7 @@ class UserState(Suplex):
 
         if data_to_sync:
             query = (
-                self.query.table("users")
+                self.query().table("users")
                 .update(data_to_sync)
                 .eq("id", self.user_id)
             )
@@ -317,7 +317,7 @@ class UserState(Suplex):
             # Save to supabase, and pull new info into user state.
             self.update_user_info_and_sync_locally(data)
             query = (
-                self.query.table("hospitals")
+                self.query().table("hospitals")
                 .select("hosp_name,hosp_state,hosp_city,hosp_id,hosp_addr")
                 .eq("hosp_id", hosp_id)
             )

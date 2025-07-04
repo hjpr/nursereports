@@ -21,7 +21,7 @@ class NavbarState(BaseState):
                 "email": self.user_email,
                 "user_id": self.user_id,
             }
-            query = self.query.table("feedback").insert(data)
+            query = self.query().table("feedback").insert(data)
             query.execute()
 
             yield rx.toast.success("Your feedback will be reviewed shortly.")
