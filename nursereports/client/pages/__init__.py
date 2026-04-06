@@ -10,7 +10,7 @@ from .for_travelers import for_travelers_page
 from .forgot_password import forgot_password_page
 from .forgot_password_confirmation import forgot_password_confirmation_page
 from .hospital_overview import hospital_overview
-from .index import index_page
+from .refactor.index import index_page # Refactoring
 from .login import login_page
 from .logout import logout_page
 from .my_account import my_account_page

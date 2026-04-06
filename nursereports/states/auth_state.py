@@ -29,4 +29,4 @@ class AuthState(Suplex):
             pass
         yield rx.redirect("/")
         yield self.reset()
-        return rx.toast.error("Logged out.")
+        return rx.toast.success("Logged out.")

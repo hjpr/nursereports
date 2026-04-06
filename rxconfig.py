@@ -8,8 +8,17 @@ load_dotenv()
 
 config = rx.Config(
     app_name="nursereports",
+    plugins=[
+        rx.plugins.TailwindV4Plugin(
+            config={
+                "darkMode": "class",
+                "plugins": ["@tailwindcss/typography@0.5.19"],
+            }
+        ),
+        rx.plugins.SitemapPlugin(),
+    ],
+    state_auto_setters=True,
     api_url='http://localhost:8000',
-    tailwind={},
     show_built_with_reflex=False,
     suplex={
         "api_url": os.getenv("api_url"),

@@ -21,7 +21,7 @@ def index_page() -> rx.Component:
         navbar(),
         content(),
         footer(),
-        class_name="flex-col items-center dark:bg-zinc-900 w-full min-h-screen",
+        class_name="flex-col items-center dark:bg-zinc-900 w-full min-h-svh",
     )
 
 
@@ -32,7 +32,7 @@ def content() -> rx.Component:
         sponsors(),
         info_header(),
         info_cards(),
-        class_name="flex-col items-center space-y-24 px-8 py-24 w-full",
+        class_name="flex-col items-center space-y-24 py-24 w-full",
     )
 
 
@@ -68,7 +68,7 @@ def header() -> rx.Component:
             ),
             class_name="flex-col space-y-10 w-full md:max-w-screen-sm",
         ),
-        class_name="flex-col items-center w-full",
+        class_name="flex-col items-center px-8 w-full",
     )
 
 
@@ -76,9 +76,9 @@ def header_image() -> rx.Component:
     return rx.flex(
         flex(
             text("PLACEHOLDER", class_name="text-xs"),
-            class_name="items-center justify-center bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-500 rounded-lg shadow-lg aspect-square md:aspect-video justify-center h-full w-full",
+            class_name="items-center justify-center bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-500 rounded-lg shadow-lg aspect-square md:aspect-video h-full w-full max-w-screen-md",
         ),
-        class_name="flex w-full max-w-screen-md",
+        class_name="flex-col items-center px-8 w-full",
     )
 
 
@@ -125,7 +125,7 @@ def info_header() -> rx.Component:
             ),
             class_name="flex-col items-center justify-center space-y-10 w-full max-w-screen-sm",
         ),
-        class_name="flex-col items-center py-8 w-full",
+        class_name="flex-col items-center px-8 py-8 w-full",
     )
 
 
@@ -181,7 +181,7 @@ def info_cards_top() -> rx.Component:
             ),
             class_name="flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 w-full max-w-screen-lg",
         ),
-        class_name="flex-col items-center md:px-4 py-2 w-full",
+        class_name="flex-col items-center px-4 md:px-8 py-2 w-full",
     )
 
 
@@ -233,5 +233,5 @@ def info_cards_bottom() -> rx.Component:
             ),
             class_name="flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 w-full max-w-screen-lg",
         ),
-        class_name="flex-col items-center md:px-4 py-2 w-full",
+        class_name="flex-col items-center px-4 md:px-8 py-2 w-full",
     )

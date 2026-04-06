@@ -124,7 +124,10 @@ def login() -> rx.Component:
                 variant="ghost",
                 loading=UserState.user_is_loading,
                 class_name="h-16 w-16 cursor-pointer",
-                on_click=UserState.event_state_login_with_sso("google"),
+                on_click=[
+                    UserState.set_user_is_loading(True),
+                    UserState.event_state_login_with_sso("google")
+                ]
             ),
             rx.button(
                 rx.image(src="/sso/facebook_sso.png", class_name="h-16 w-16"),

@@ -118,49 +118,52 @@ def leave() -> rx.Component:
 def fireworks() -> rx.Component:
     return rx.flex(
         rx.script(
-            src="https://cdn.jsdelivr.net/npm/@tsparticles/confetti@3.0.3/tsparticles.confetti.bundle.min.js",
-            on_ready=rx.call_script(
-                """
-                const duration = 4 * 1000,
-                animationEnd = Date.now() + duration,
-                defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+            """
+            (function() {
+                var s = document.createElement('script');
+                s.src = 'https://cdn.jsdelivr.net/npm/@tsparticles/confetti@3.0.3/tsparticles.confetti.bundle.min.js';
+                s.onload = function() {
+                    const duration = 4 * 1000,
+                    animationEnd = Date.now() + duration,
+                    defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
 
-                function randomInRange(min, max) {
-                return Math.random() * (max - min) + min;
-                }
+                    function randomInRange(min, max) {
+                    return Math.random() * (max - min) + min;
+                    }
 
-                const interval = setInterval(function() {
-                const timeLeft = animationEnd - Date.now();
+                    const interval = setInterval(function() {
+                    const timeLeft = animationEnd - Date.now();
 
-                if (timeLeft <= 0) {
-                    return clearInterval(interval);
-                }
+                    if (timeLeft <= 0) {
+                        return clearInterval(interval);
+                    }
 
-                const particleCount = 60 * (timeLeft / duration);
+                    const particleCount = 60 * (timeLeft / duration);
 
-                // since particles fall down, start a bit higher than random
-                confetti(
-                    Object.assign({}, defaults, {
-                    particleCount,
-                    origin: { x: randomInRange(0.1, 0.4), y: Math.random() - 0.2 },
-                    startVelocity: 20,
-                    gravity: 0.1,
-                    decay: 0.8,
-                    ticks: 200
-                    })
-                );
-                confetti(
-                    Object.assign({}, defaults, {
-                    particleCount,
-                    origin: { x: randomInRange(0.6, 0.9), y: Math.random() - 0.2 },
-                    startVelocity: 40,
-                    gravity: 0.1,
-                    decay: 0.8,
-                    ticks: 200
-                    })
-                );
-                }, 250);
-                """
-            ),
+                    confetti(
+                        Object.assign({}, defaults, {
+                        particleCount,
+                        origin: { x: randomInRange(0.1, 0.4), y: Math.random() - 0.2 },
+                        startVelocity: 20,
+                        gravity: 0.1,
+                        decay: 0.8,
+                        ticks: 200
+                        })
+                    );
+                    confetti(
+                        Object.assign({}, defaults, {
+                        particleCount,
+                        origin: { x: randomInRange(0.6, 0.9), y: Math.random() - 0.2 },
+                        startVelocity: 40,
+                        gravity: 0.1,
+                        decay: 0.8,
+                        ticks: 200
+                        })
+                    );
+                    }, 250);
+                };
+                document.head.appendChild(s);
+            })();
+            """
         )
     )

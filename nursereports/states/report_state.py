@@ -8,7 +8,6 @@ from typing import Callable, Iterable, Literal
 import copy
 import json
 import uuid
-import pprint
 import reflex as rx
 import textwrap
 
@@ -25,7 +24,7 @@ class ReportState(PageState):
     hospital_id: str
 
     # Dict of hospital data pulled from /hospital.
-    hospital_info: dict[str, str | int | list]
+    hospital_info: dict[str, str | int | list | dict]
 
     # Generated uuid for the current report.
     report_id: str
@@ -41,7 +40,10 @@ class ReportState(PageState):
 
     @rx.var
     def mode(self) -> Literal["", "edit", "full-report", "pay-report", "red-flag"]:
-        return self.router.page.params.get("report_mode", "")
+        """
+        Param for setting the type of report to perform
+        """
+        return self.report_mode
 
     def event_state_report_flow(self) -> Iterable[Callable]:
         """

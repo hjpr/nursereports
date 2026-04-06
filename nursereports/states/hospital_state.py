@@ -68,7 +68,7 @@ class HospitalState(UserState):
         """
         Returns hosp_id if page param hosp_id is a valid CMS ID format.
         """
-        hosp_id = self.router.page.params.get("cms_id")
+        hosp_id = self.cms_id
         cms_is_valid = False
         if hosp_id:
             cms_is_valid = bool(re.match(r"^[a-zA-Z0-9]{5,6}$", hosp_id))
@@ -135,7 +135,7 @@ class HospitalState(UserState):
             return {}
 
     @rx.var
-    def selected_unit_info(self) -> dict[str, str]:
+    def selected_unit_info(self) -> dict[str, str | int]:
         matched_dict = next(
             (
                 d

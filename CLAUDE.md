@@ -18,18 +18,18 @@ pytest nursereports/tests/
 pytest nursereports/tests/states/test_state.py
 ```
 
-Requires a `.env` file with: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_JWT_KEY`, `SUPABASE_ADMIN_KEY`, `GROQ_KEY`, `MAILGUN_URL`, `MAILGUN_API_KEY`.
+Requires a `.env` file with: `api_url`, `api_key`, `jwt_secret`, `service_role` (Suplex/Supabase), `GROQ_KEY`, `MAILGUN_URL`, `MAILGUN_API_KEY`.
 
 ## Architecture
 
-**Stack:** Reflex 0.7.2 (Python full-stack reactive framework) + Supabase (Postgres + Auth) + Tailwind CSS. Package management via `uv`.
+**Stack:** Reflex (Python full-stack reactive framework) + Supabase (Postgres + Auth) + Tailwind CSS v4. Package management via `uv`.
 
 ### State Hierarchy
 
 Reflex uses a class-based state tree. The inheritance chain determines what vars/events are accessible:
 
 ```
-rx.State
+Suplex (rx.State subclass)
   └── AuthState          # JWT access/refresh tokens in secure cookies
         └── UserState    # User claims (from JWT), user info, saved hospitals, report history
               └── BaseState    # Router utilities, login redirect, SSO token parsing
@@ -61,7 +61,7 @@ Multi-step form across 3 pages (compensation → staffing → assignment), all s
 
 ### Backend Layer
 
-`nursereports/server/supabase/` contains thin wrappers around Supabase REST API calls (via `httpx` + `suplex` library). Functions are organized by domain: `auth_requests.py`, `users_requests.py`, `report_requests.py`, `hospital_requests.py`, etc. Admin operations use `SUPABASE_ADMIN_KEY`; user operations use the user's JWT.
+Database access uses the `suplex` library directly within state classes via `self.query().table(...).select(...).execute()`. There is no separate `server/supabase/` wrapper layer. Server utilities are in `nursereports/server/`: `exceptions/` (custom exception types), `mailgun/` (email sending), `middleware/` (Reflex middleware).
 
 ### Key Files
 
@@ -70,4 +70,4 @@ Multi-step form across 3 pages (compensation → staffing → assignment), all s
 - `nursereports/states/` — All state classes
 - `nursereports/client/pages/` — All page components (~26 routes)
 - `nursereports/client/components/dicts.py` — Large UI data dictionaries (state/city mappings, etc.)
-- `nursereports/server/secrets/secrets.py` — Environment variable loading
+- `nursereports/server/exceptions/exceptions.py` — `RequestFailed` and other custom exceptions

@@ -232,6 +232,7 @@ class UserState(AuthState):
                 str(e),
                 close_button=True,
             )
+        finally:
             self.user_is_loading = False
 
     def create_new_user(self) -> None:

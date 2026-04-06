@@ -11,12 +11,12 @@ class BaseState(UserState):
     @rx.var
     def host_address(self) -> str:
         """Current domain, ex https://nursereports.org, or http://localhost:3000"""
-        return self.router.page.host
+        return self.router.url.origin
 
     @rx.var
     def current_location(self) -> str:
         """Current path, ex. /dashboard, or /search/hospital"""
-        current_location = self.router.page.path
+        current_location = self.router.url.path
         return current_location
 
     def event_state_refresh_login(self) -> Callable | None:
@@ -53,7 +53,7 @@ class BaseState(UserState):
     def event_state_handle_sso_redirect(self) -> Iterable[Callable]:
         """Checks if there are tokens in url to pull into state."""
         try:
-            url = self.router.page.raw_path
+            url = self.router.url
 
             if ("access_token" in url) and ("refresh_token" in url):
                 fragment = url.split("#")[1]
