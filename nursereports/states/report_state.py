@@ -1,14 +1,5 @@
 from . import constants_types
 from ..states import HospitalState, PageState
-from ..server.secrets import groq_key
-from ..server.supabase import (
-    supabase_user_edit_report,
-    supabase_user_patch_report,
-    supabase_get_full_report_info,
-    supabase_get_hospital_info,
-    supabase_submit_full_report,
-    supabase_update_hospital_departments,
-)
 from datetime import datetime, timezone
 from loguru import logger
 from groq import Groq
@@ -20,6 +11,8 @@ import uuid
 import pprint
 import reflex as rx
 import textwrap
+
+_config = rx.config.get_config()
 
 
 class ReportState(PageState):
@@ -74,12 +67,12 @@ class ReportState(PageState):
             self.hospital_id = hospital_id
 
             # Load report to edit into state.
-            report = supabase_get_full_report_info(self.access_token, report_id)
+            result = self.query().table("reports").eq("report_id", report_id).select("*").execute()
+            report = result[0] if result else None
 
             # Load hospital info into state.
-            self.hospital_info = supabase_get_hospital_info(
-                self.access_token, self.hospital_id
-            )
+            result = self.query().table("hospitals").eq("hosp_id", self.hospital_id).select("*").execute()
+            self.hospital_info = result[0]
 
             # Set available units/areas/roles for user selection to state.
             self.hospital_units = list(self.hospital_info.get("departments", {}).get("units", []))
@@ -199,9 +192,8 @@ class ReportState(PageState):
             self.hospital_id = hospital_id
 
             # Get hospital info by CMS ID and set to state.
-            self.hospital_info = supabase_get_hospital_info(
-                self.access_token, self.hospital_id
-            )
+            result = self.query().table("hospitals").eq("hosp_id", self.hospital_id).select("*").execute()
+            self.hospital_info = result[0]
 
             # Set available units/areas/roles for user selection to state.
             self.hospital_units = list(self.hospital_info.get("departments", {}).get("units", []))
@@ -957,17 +949,20 @@ class ReportState(PageState):
                 )
 
             # Ensures that no report UUID's conflict. Submit either full report or update existing report.
-            report = supabase_get_full_report_info(self.access_token, self.report_dict["report_id"])
+            result = self.query().table("reports").eq("report_id", self.report_dict["report_id"]).select("*").execute()
+            report = result[0] if result else None
 
             # If report and report matches user ID, we'll assume user is attempting to edit unless physics suspends and the UUID clashes.
             if report and report["user_id"]:
                 self.report_dict["modified_at"] = str(datetime.now(timezone.utc).isoformat(timespec="seconds"))
-                supabase_user_edit_report(self.access_token, self.report_dict)
+                self.query().table("reports").eq(
+                    "report_id", self.report_dict["report_id"]
+                ).update(self.report_dict, return_="minimal").execute()
 
             # If report not present then user is submitting a new report.
             if not report:
                 self.report_dict["submitted_at"] = str(datetime.now(timezone.utc).isoformat(timespec="seconds"))
-                supabase_submit_full_report(self.access_token, self.report_dict)
+                self.query().table("reports").insert(self.report_dict, return_="minimal").execute()
 
             # Update user data with relevant info once report is submitted.
             updated_status: str = "active"
@@ -1042,7 +1037,9 @@ class ReportState(PageState):
                     "areas": updated_areas,
                     "roles": updated_roles,
                 }
-                supabase_update_hospital_departments(self.hospital_id, hospital_updates)
+                self.query().admin().table("hospitals").eq(
+                    "hosp_id", self.hospital_id
+                ).update(hospital_updates, return_="minimal").execute()
 
             # Redirect user to the completed page for fireworks!
             self.reset()
@@ -1070,7 +1067,7 @@ class ReportState(PageState):
                     job_location = "EMPTY"
                 if not comments:
                     comments = "EMPTY"
-                client = Groq(api_key=groq_key)
+                client = Groq(api_key=_config.groq_key)
                 completion = client.chat.completions.create(
                     model=ai_moderation_model,
                     messages=[
@@ -1116,7 +1113,9 @@ class ReportState(PageState):
                     data = {}
                     data["report_id"] = self.report_id
                     data["moderation"] = self.report_dict.get("moderation").copy()
-                    supabase_user_patch_report(self.access_token, data)
+                    self.query().table("reports").eq(
+                        "report_id", data["report_id"]
+                    ).update(data, return_="minimal").execute()
                 else:
                     logger.debug(
                         f"Entries for report {self.report_id} by {self.user_claims_id} are cleared by {ai_moderation_model}"

@@ -1,13 +1,13 @@
-
-from ..secrets.secrets import mailgun_api_key, mailgun_url
-
 from loguru import logger
 
 import httpx
+import reflex as rx
 import rich
 
-def mailgun_send_email(sender: str , recipient: str | list, subject: str, text: str) -> None:
-    auth = ("api", mailgun_api_key)
+_config = rx.config.get_config()
+
+def mailgun_send_email(sender: str, recipient: str | list, subject: str, text: str) -> None:
+    auth = ("api", _config.mailgun_api_key)
 
     data = {
         "from": sender,
@@ -16,7 +16,7 @@ def mailgun_send_email(sender: str , recipient: str | list, subject: str, text: 
         "text": text
     }
 
-    response = httpx.post(mailgun_url, auth=auth, data=data)
+    response = httpx.post(_config.mailgun_url, auth=auth, data=data)
     if response.is_success:
         logger.debug(f"{sender} sent email to {recipient} successfully.")
     else:

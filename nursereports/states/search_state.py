@@ -1,6 +1,5 @@
 from ..client.components.dicts import cities_by_state, state_to_abbr_dict
-from ..server.supabase.search_requests import supabase_get_hospital_search_results
-from ..states import AuthState
+from ..states.auth_state import AuthState
 
 from loguru import logger
 from typing import Callable, Iterable
@@ -54,26 +53,21 @@ class SearchState(AuthState):
                     and self.selected_city == self.last_searched_city
                 )
             ):
-                # Clear last search results.
                 self.search_results = []
 
-                # Get results from database.
-                search_results = supabase_get_hospital_search_results(
-                    self.access_token,
-                    state_to_abbr_dict[self.selected_state],
-                    self.selected_city,
-                )
+                search_results = self.query().table("hospitals").ilike(
+                    "hosp_state", state_to_abbr_dict[self.selected_state]
+                ).ilike(
+                    "hosp_city", self.selected_city
+                ).select("*").execute()
 
-                # Set the last searched state/city
                 self.last_searched_state = self.selected_state
                 self.last_searched_city = self.selected_city
 
-                # Format the city as title
                 for hospital in search_results:
                     hospital["hosp_city"] = hospital["hosp_city"].title()
                     hospital["hosp_addr"] = hospital["hosp_addr"].title()
 
-                # Set the results to state.
                 self.search_results = search_results
 
         except Exception as e:

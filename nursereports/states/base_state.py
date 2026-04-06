@@ -1,5 +1,5 @@
-from ..server.supabase import supabase_update_last_login
 from ..states.user_state import UserState
+from datetime import datetime, timezone
 from typing import Callable, Iterable
 
 import reflex as rx
@@ -23,7 +23,6 @@ class BaseState(UserState):
         """Runs on_load prior to every page that may need login information."""
         try:
             if self.user_claims_authenticated and not self.user_claims_expired:
-                # Only SSO has refresh_token, so attempt to refresh if conditions available.
                 if (
                     self.user_claims_expiring
                     and self.access_token
@@ -33,17 +32,15 @@ class BaseState(UserState):
                 else:
                     return None
             if self.user_claims_authenticated and self.user_claims_expired:
-                # Set current page into stored url
                 self.restore_page_after_login = self.router.page.full_raw_path
                 self.access_token = ""
                 self.refresh_token = ""
-
                 return rx.redirect("/login")
 
         except Exception:
             traceback.print_exc()
             return rx.toast.error("Error refreshing tokens.")
-        
+
     def event_state_check_expired_login(self) -> Callable | None:
         try:
             if self.restore_page_after_login:
@@ -58,20 +55,17 @@ class BaseState(UserState):
         try:
             url = self.router.page.raw_path
 
-            # If user coming from a redirect url containing access and refresh tokens.
             if ("access_token" in url) and ("refresh_token" in url):
-                # Format is wonky, just assume this is right. Trust me bro.
                 fragment = url.split("#")[1]
                 self.access_token = fragment.split("&")[0].split("=")[1]
                 self.refresh_token = fragment.split("&")[4].split("=")[1]
 
-                # For active monthly users purpose.
-                supabase_update_last_login(self.access_token, self.user_claims_id)
+                self.query().table("users").eq("id", self.user_claims_id).update(
+                    {"last_login": str(datetime.now(timezone.utc).isoformat(timespec="seconds"))},
+                    return_="minimal"
+                ).execute()
 
-                # We have to retrieve all our user info.
                 self.get_user_info()
-
-                # Send user to appropriate part of site.
                 yield self.redirect_user_to_location()
 
         except Exception:

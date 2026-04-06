@@ -5,11 +5,6 @@ import reflex as rx
 
 from ..client.components.dicts import abbr_to_state_dict
 from ..states.user_state import UserState
-from ..server.supabase.hospital_requests import (
-    supabase_get_hospital_overview_info,
-    supabase_get_hospital_report_data,
-)
-from ..server.supabase.report_requests import supabase_admin_edit_report
 from ..server.exceptions import RequestFailed
 
 from datetime import datetime
@@ -19,8 +14,6 @@ from typing import Any, Callable, Iterable
 import copy
 import humanize
 import math
-import rich
-import pprint
 import traceback
 
 
@@ -75,20 +68,14 @@ class HospitalState(UserState):
         """
         Returns hosp_id if page param hosp_id is a valid CMS ID format.
         """
-        # Get the CMS ID from the URL.
         hosp_id = self.router.page.params.get("cms_id")
         cms_is_valid = False
-
-        # Check if CMS ID appears to be in valid format.
         if hosp_id:
             cms_is_valid = bool(re.match(r"^[a-zA-Z0-9]{5,6}$", hosp_id))
         return hosp_id if cms_is_valid else None
 
     @rx.var
     def ft_pay_hospital_formatted(self) -> dict:
-        """
-        Round and format extrapolated full-time hospital pay data to $XX.XX
-        """
         if self.extrapolated_ft_pay_hospital:
             hourly = self.extrapolated_ft_pay_hospital.get(self.selected_experience)
             formatted_hourly = "{:.2f}".format(hourly)
@@ -103,9 +90,6 @@ class HospitalState(UserState):
 
     @rx.var
     def ft_pay_state_formatted(self) -> dict:
-        """
-        Round and format extrapolated full-time state hospital pay data to $XX.XX
-        """
         if self.extrapolated_ft_pay_state:
             rounded_hourly = round(
                 self.extrapolated_ft_pay_state.get(self.selected_experience), 2
@@ -122,9 +106,6 @@ class HospitalState(UserState):
 
     @rx.var
     def pt_pay_hospital_formatted(self) -> dict:
-        """
-        Round and format extrapolated part-time hospital pay data to $XX.XX
-        """
         if self.extrapolated_pt_pay_hospital:
             hourly = self.extrapolated_pt_pay_hospital.get(self.selected_experience)
             formatted_hourly = "{:.2f}".format(hourly)
@@ -139,9 +120,6 @@ class HospitalState(UserState):
 
     @rx.var
     def pt_pay_state_formatted(self) -> dict:
-        """
-        Round and format extrapolated part-time state pay data to $XX.XX
-        """
         if self.extrapolated_ft_pay_state:
             rounded_hourly = round(
                 self.extrapolated_ft_pay_state.get(self.selected_experience), 2
@@ -158,12 +136,6 @@ class HospitalState(UserState):
 
     @rx.var
     def selected_unit_info(self) -> dict[str, str]:
-        """
-        If user has a unit selected in the unit grades section, show scores
-        for that unit. Hospital scores are stored as list of dicts, overall score
-        is simply a dict that we can return.
-        """
-        # Iterate to retrieve matched selection.
         matched_dict = next(
             (
                 d
@@ -172,49 +144,30 @@ class HospitalState(UserState):
             ),
             None
         )
-
-        # Otherwise if no matches, user hasn't selected anything and we return hospital overall.
         return matched_dict if matched_dict else self.overall_hospital_scores
 
     @rx.var
     def filtered_review_info(self) -> list[dict]:
-        """
-        Used to display all reviews if no filters are selected, or filtered reviews
-        if user has selected filters.
-        """
         matched_list = [review for review in self.review_info if review.get("units_areas_roles", "") == self.selected_unit]
         return matched_list if matched_list else self.review_info
 
     @rx.var
     def paginated_review_info(self) -> list[dict]:
-        """
-        Takes the filtered review info and paginates into a dict where user can
-        flip between sets of reviews. If there aren't enough reviews to paginate,
-        then return a dict with reviews under page 1.
-        """
-        # Sort all reports by time submitted.
         sorted_list = sorted(
             self.filtered_review_info,
             key=lambda review: datetime.fromisoformat(review["timestamp"]),
             reverse=True,
         )
         if len(sorted_list) > self.MAX_REVIEWS_DISPLAYED:
-            # Determine number of pages.
             num_pages = math.ceil(len(sorted_list) / self.MAX_REVIEWS_DISPLAYED)
             num_pages_list = [page for page in range(1, (num_pages + 1))]
-
-            # Build dict.
             paginated_reports = { number: [] for number in num_pages_list}
-
-            # Fill dict.
             current_page = 1
             for review in sorted_list:
                 if len(paginated_reports[current_page]) >= self.MAX_REVIEWS_DISPLAYED:
                     current_page += 1
                 paginated_reports[current_page].append(review)
-
             return paginated_reports.get(self.current_review_page)
-
         else:
             return sorted_list
 
@@ -244,7 +197,6 @@ class HospitalState(UserState):
         Load hospital data into state from supabase.
         """
         try:
-            # If user is opening hospital info already loaded, skip load.
             if self.hospital_info:
                 if self.hospital_info["hosp_id"] != self.hosp_id:
                     self.reset()
@@ -255,11 +207,9 @@ class HospitalState(UserState):
                     self.selected_unit = "Hospital Overall"
                     return
 
-            # As long as CMS ID appears to be valid, try to get hospital info.
             if self.hosp_id:
-                self.hospital_info = supabase_get_hospital_overview_info(
-                    self.access_token, self.hosp_id
-                )
+                result = self.query().table("hospitals").eq("hosp_id", self.hosp_id).select("*").execute()
+                self.hospital_info = result[0]
                 self.hospital_info["hosp_state_abbr"] = self.hospital_info["hosp_state"]
                 self.hospital_info["hosp_state"] = abbr_to_state_dict.get(
                     self.hospital_info["hosp_state_abbr"]
@@ -268,8 +218,6 @@ class HospitalState(UserState):
                 self.load_pay_info()
                 self.load_unit_info()
                 self.load_review_info()
-
-            # Otherwise send user back to dashboard.
             else:
                 return rx.redirect("/dashboard")
 
@@ -284,9 +232,9 @@ class HospitalState(UserState):
         """
         Load report data into state from supabase.
         """
-        self.report_info = supabase_get_hospital_report_data(
-            self.access_token, self.hosp_id
-        )
+        self.report_info = self.query().table("reports").eq(
+            "hospital_id", self.hosp_id
+        ).select("*").execute()
 
     def load_pay_info(self) -> None:
         """
@@ -295,10 +243,8 @@ class HospitalState(UserState):
         """
         try:
             if self.report_info:
-                # Copy reports into a dataframe.
                 pay_df = pl.DataFrame(copy.deepcopy(self.report_info))
 
-                # Create our full time pay dictionary with columns hourly and total.
                 ft_pay_hospital_df = (
                     pay_df.filter(
                         pl.col("compensation").struct.field("emp_type") == "Full-time"
@@ -316,26 +262,18 @@ class HospitalState(UserState):
                     .sort(by=pl.col("total"))
                 )
 
-                # Remove outliers.
                 ft_pay_hospital_df = self.remove_pay_outliers(
                     ft_pay_hospital_df, "hourly"
                 )
-
-                # Flatten entries for years into an average.
                 ft_pay_hospital_df = self.flatten_pay(
                     ft_pay_hospital_df, "total", "hourly"
                 )
-
-                # Set full time pay limited flag if less than 10 reports.
                 self.ft_pay_hospital_info_limited = bool(len(ft_pay_hospital_df) < 10)
-
-                # Quadratic interpolation as long as we have more than 2 reports.
                 self.extrapolated_ft_pay_hospital = self.linear_regression_pay(
                     ft_pay_hospital_df, "total", "hourly"
                 )
                 logger.debug(f"Pulled {len(ft_pay_hospital_df)} full time report(s).")
 
-                # Part time pay data and interpolation.
                 pt_pay_hospital_df = (
                     pay_df.filter(
                         pl.col("compensation").struct.field("emp_type") == "Part-time"
@@ -353,26 +291,18 @@ class HospitalState(UserState):
                     .sort(by=pl.col("total"))
                 )
 
-                # Remove outliers.
                 pt_pay_hospital_df = self.remove_pay_outliers(
                     pt_pay_hospital_df, "hourly"
                 )
-
-                # Flatten entries for years into an average.
                 pt_pay_hospital_df = self.flatten_pay(
                     pt_pay_hospital_df, "total", "hourly"
                 )
-
-                # Set part time pay limited flag if less than 10 reports.
                 self.pt_pay_hospital_info_limited = bool(len(pt_pay_hospital_df) < 10)
-
-                # Perform our linear regression.
                 self.extrapolated_pt_pay_hospital = self.linear_regression_pay(
                     pt_pay_hospital_df, "total", "hourly"
                 )
                 logger.debug(f"Pulled {len(pt_pay_hospital_df)} part time report(s).")
 
-                # Contract pay data and averaged pay.
                 contract_pay_df = (
                     pay_df.filter(
                         pl.col("compensation").struct.field("emp_type") == "Contract"
@@ -388,12 +318,10 @@ class HospitalState(UserState):
                     .sort(by=pl.col("created_at"))
                 )
 
-                # Check if more than 10 contract pay reports.
                 self.contract_pay_info_hospital_limited = bool(
                     len(contract_pay_df) < 10
                 )
 
-                # Average contract pay data.
                 if len(contract_pay_df) > 0:
                     self.simple_average_pay(contract_pay_df, "weekly")
                     logger.debug(
@@ -412,27 +340,16 @@ class HospitalState(UserState):
     def remove_pay_outliers(
         df_to_clean: pl.DataFrame, y_name: str, multiplier: float = 2
     ) -> pl.DataFrame:
-        """
-        Removes outliers from DataFrame. Requires at least 4 entries.
-        """
         if len(df_to_clean) < 4:
             logger.debug("Not enough entries to remove outliers.")
             return df_to_clean
 
         y_values = df_to_clean[y_name].to_numpy()
-
-        # Calc Q1 and Q3 (25th % and 75th %).
         Q1 = np.percentile(y_values, 25)
         Q3 = np.percentile(y_values, 75)
-
-        # Calc IQR.
         IQR = Q3 - Q1
-
-        # Calc outlier thresholds.
         lower_bound = Q1 - (multiplier * IQR)
         upper_bound = Q3 + (multiplier * IQR)
-
-        # Filter rows outside of our lower and upper bounds.
         filtered_df = df_to_clean.filter(
             (df_to_clean[y_name] >= lower_bound) & (df_to_clean[y_name] <= upper_bound)
         )
@@ -445,16 +362,10 @@ class HospitalState(UserState):
     def flatten_pay(
         df_to_flatten: pl.DataFrame, x_name: str, y_name: str
     ) -> pl.DataFrame:
-        """
-        Can't interpolate duplicate years ex. [{4, 5, 5}, {41, 37, 87}]. Averages duplicate
-        entries eg. [{4, 5}{41, 80.5}]
-        """
         x = df_to_flatten[x_name].to_numpy()
         y = df_to_flatten[y_name].to_numpy()
-
         unique_x = np.unique(x)
         averaged_y = [np.mean(y[x == val]) for val in unique_x]
-
         flattened_df = pl.DataFrame({x_name: unique_x, y_name: averaged_y})
         logger.debug(
             f"Flattened by {df_to_flatten.height - flattened_df.height} report(s)."
@@ -463,11 +374,6 @@ class HospitalState(UserState):
 
     @staticmethod
     def simple_average_pay(pay_df: pl.DataFrame, y_name: str) -> dict:
-        """
-        Takes a pay dataframe with years on x-axis and pay on y-axis and computes
-        the average of those values. Returns a dict where the key is averaged_y_name
-        e.g. averaged_hourly / averaged_weekly etc.
-        """
         averaged_pay = pay_df.select(
             pl.col(f"{y_name}").mean().alias(f"averaged_{y_name}")
         )
@@ -475,45 +381,26 @@ class HospitalState(UserState):
 
     @staticmethod
     def linear_regression_pay(pay_df: pl.DataFrame, x_name: str, y_name: str) -> dict:
-        """
-        Returns a dict of values where the key is a range from 0-26 representing
-        the years of experience, and the value is the pay as a float rounded to 2
-        decimal points. This function can handle dataframes with 1 or 2 pay entries.
-
-        Clamps values to sanity if regression has negative slope or unrealistic
-        y-intercept. Mainly should only happen with limited data. Once the dataset for
-        pay gets larger, removing outliers should help with sanity.
-        """
         MIN_NEW_RN_PAY = 20
         MAX_NEW_RN_PAY = 55
         MIN_PAY_PROGRESSION_SLOPE = 0.5
         MAX_PAY_PROGRESSION_SLOPE = 4
 
-        # Set our axes.
-        years = pay_df[f"{x_name}"].to_numpy()  # Years experience.
-        pay = pay_df[f"{y_name}"].to_numpy()  # Pay value at each year experience
-
-        # Array to calc for 0-26 years.
+        years = pay_df[f"{x_name}"].to_numpy()
+        pay = pay_df[f"{y_name}"].to_numpy()
         x_range = np.arange(0, 27)
 
-        # Return empty dict for no entries.
         if len(pay_df) == 0:
             return {}
 
-        # If there's only one pay entry, same pay across all experiences.
         if len(pay_df) == 1:
             y_range = np.full_like(x_range, pay[0], dtype=float)
 
-        # If there are two pay entries, compute linear regression.
         elif len(pay_df) > 1:
             m, b = np.polyfit(years, pay, 1)
-
-            # With limited reports, clamp values to avoid really wild regressions.
             if len(pay_df) < 10:
                 b = max(MIN_NEW_RN_PAY, min(b, MAX_NEW_RN_PAY))
                 m = max(MIN_PAY_PROGRESSION_SLOPE, min(m, MAX_PAY_PROGRESSION_SLOPE))
-
-            # Calc the y from the line function.
             y_range = m * x_range + b
 
         pay_dict = dict(zip(x_range, y_range))
@@ -526,12 +413,9 @@ class HospitalState(UserState):
     def load_unit_info(self) -> None:
         try:
             if self.report_info:
-                # Create full dataframe and format.
                 full_df = pl.DataFrame(copy.deepcopy(self.report_info))
 
-                # Create our units dictionary with units/areas/roles extracted.
                 refined_df = full_df.select(
-                    # Flatten unit/area/role structs to unit/area/role columns as strings.
                     pl.coalesce(
                         [
                             pl.col("assignment").struct.field("unit").struct.field("entered_unit").replace("", None),
@@ -593,7 +477,6 @@ class HospitalState(UserState):
                     ["Hospital Overall"] + sorted_units + sorted_areas + sorted_roles
                 )
 
-                # Calc average scores for entire hospital.
                 hospital_score_df = full_df.select(
                     pl.lit("HOSPITAL").alias("units_areas_roles"),
                     pl.col("compensation")
@@ -627,33 +510,16 @@ class HospitalState(UserState):
                 )
 
                 unit_score_df = (
-                    #
                     refined_df.with_columns(pl.col("unit").replace("", None))
                     .group_by("unit")
                     .agg(
-                        pl.col("comp_overall")
-                        .mean()
-                        .round(0)
-                        .cast(pl.Int8)
-                        .alias("comp_overall"),
-                        pl.col("assign_overall")
-                        .mean()
-                        .round(0)
-                        .cast(pl.Int8)
-                        .alias("assign_overall"),
-                        pl.col("staff_overall")
-                        .mean()
-                        .round(0)
-                        .cast(pl.Int8)
-                        .alias("staff_overall"),
+                        pl.col("comp_overall").mean().round(0).cast(pl.Int8).alias("comp_overall"),
+                        pl.col("assign_overall").mean().round(0).cast(pl.Int8).alias("assign_overall"),
+                        pl.col("staff_overall").mean().round(0).cast(pl.Int8).alias("staff_overall"),
                     )
                     .with_columns(
-                        pl.mean_horizontal(
-                            "comp_overall", "assign_overall", "staff_overall"
-                        )
-                        .round(0)
-                        .cast(pl.Int8)
-                        .alias("overall")
+                        pl.mean_horizontal("comp_overall", "assign_overall", "staff_overall")
+                        .round(0).cast(pl.Int8).alias("overall")
                     )
                     .drop_nulls("unit")
                     .rename({"unit": "units_areas_roles"})
@@ -663,29 +529,13 @@ class HospitalState(UserState):
                     refined_df.with_columns(pl.col("area").replace("", None))
                     .group_by("area")
                     .agg(
-                        pl.col("comp_overall")
-                        .mean()
-                        .round(0)
-                        .cast(pl.Int8)
-                        .alias("comp_overall"),
-                        pl.col("assign_overall")
-                        .mean()
-                        .round(0)
-                        .cast(pl.Int8)
-                        .alias("assign_overall"),
-                        pl.col("staff_overall")
-                        .mean()
-                        .round(0)
-                        .cast(pl.Int8)
-                        .alias("staff_overall"),
+                        pl.col("comp_overall").mean().round(0).cast(pl.Int8).alias("comp_overall"),
+                        pl.col("assign_overall").mean().round(0).cast(pl.Int8).alias("assign_overall"),
+                        pl.col("staff_overall").mean().round(0).cast(pl.Int8).alias("staff_overall"),
                     )
                     .with_columns(
-                        pl.mean_horizontal(
-                            "comp_overall", "assign_overall", "staff_overall"
-                        )
-                        .round(0)
-                        .cast(pl.Int8)
-                        .alias("overall")
+                        pl.mean_horizontal("comp_overall", "assign_overall", "staff_overall")
+                        .round(0).cast(pl.Int8).alias("overall")
                     )
                     .drop_nulls("area")
                     .rename({"area": "units_areas_roles"})
@@ -695,29 +545,13 @@ class HospitalState(UserState):
                     refined_df.with_columns(pl.col("role").replace("", None))
                     .group_by("role")
                     .agg(
-                        pl.col("comp_overall")
-                        .mean()
-                        .round(0)
-                        .cast(pl.Int8)
-                        .alias("comp_overall"),
-                        pl.col("assign_overall")
-                        .mean()
-                        .round(0)
-                        .cast(pl.Int8)
-                        .alias("assign_overall"),
-                        pl.col("staff_overall")
-                        .mean()
-                        .round(0)
-                        .cast(pl.Int8)
-                        .alias("staff_overall"),
+                        pl.col("comp_overall").mean().round(0).cast(pl.Int8).alias("comp_overall"),
+                        pl.col("assign_overall").mean().round(0).cast(pl.Int8).alias("assign_overall"),
+                        pl.col("staff_overall").mean().round(0).cast(pl.Int8).alias("staff_overall"),
                     )
                     .with_columns(
-                        pl.mean_horizontal(
-                            "comp_overall", "assign_overall", "staff_overall"
-                        )
-                        .round(0)
-                        .cast(pl.Int8)
-                        .alias("overall")
+                        pl.mean_horizontal("comp_overall", "assign_overall", "staff_overall")
+                        .round(0).cast(pl.Int8).alias("overall")
                     )
                     .drop_nulls("role")
                     .rename({"role": "units_areas_roles"})
@@ -726,7 +560,6 @@ class HospitalState(UserState):
                     [unit_score_df, area_score_df, role_score_df], how="vertical"
                 )
 
-                # Set scores to state.
                 self.overall_hospital_scores = hospital_score_df.to_dicts()[0]
                 self.units_areas_roles_hospital_scores = (
                     units_areas_roles_scores_df.to_dicts()
@@ -814,7 +647,6 @@ class HospitalState(UserState):
                     )
                 )
 
-                # Add all to units_areas_roles list for user select.
                 self.review_info = refined_df.to_dicts()
 
         except Exception as e:
@@ -833,18 +665,21 @@ class HospitalState(UserState):
                 review_to_edit["likes"].remove(self.user_info["user_id"])
             else:
                 review_to_edit["likes"].append(self.user_info["user_id"])
-            review_to_edit = {
+
+            update_data = {
                 "report_id": review_to_edit["report_id"],
                 "likes": review_to_edit["likes"],
             }
-            supabase_admin_edit_report(review_to_edit)
+            self.query().admin().table("reports").eq(
+                "report_id", update_data["report_id"]
+            ).update(update_data, return_="minimal").execute()
 
             for review in self.review_info:
-                if review["report_id"] == review_to_edit["report_id"]:
-                    review["likes"] = review_to_edit["likes"]
-                    review["likes_number"] = len(review_to_edit["likes"])
+                if review["report_id"] == update_data["report_id"]:
+                    review["likes"] = update_data["likes"]
+                    review["likes_number"] = len(update_data["likes"])
                     review["user_has_liked"] = (
-                        self.user_info["user_id"] in review_to_edit["likes"]
+                        self.user_info["user_id"] in update_data["likes"]
                     )
 
         except RequestFailed:

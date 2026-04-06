@@ -5,9 +5,6 @@ import reflex as rx
 from dotenv import load_dotenv
 
 load_dotenv()
-api_url = os.getenv("api_url")
-api_key = os.getenv("api_key")
-jwt_secret = os.getenv("jwt_secret")
 
 config = rx.Config(
     app_name="nursereports",
@@ -15,9 +12,13 @@ config = rx.Config(
     tailwind={},
     show_built_with_reflex=False,
     suplex={
-        "api_url": api_url,
-        "api_key": api_key,
-        "jwt_secret": jwt_secret,
+        "api_url": os.getenv("api_url"),
+        "api_key": os.getenv("api_key"),
+        "jwt_secret": os.getenv("jwt_secret"),
+        "service_role": os.getenv("service_role"),
         "let_jwt_expire": False,
-    }
+    },
+    groq_key=os.getenv("GROQ_KEY"),
+    mailgun_url=os.getenv("MAILGUN_URL"),
+    mailgun_api_key=os.getenv("MAILGUN_API_KEY"),
 )
