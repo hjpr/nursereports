@@ -41,7 +41,7 @@ def header() -> rx.Component:
         rx.flex(
             text(
                 """Hospital reviews for nurses, by nurses.""",
-                class_name="font-bold text-center md:text-6xl text-4xl dark:text-teal-600",
+                class_name="font-black text-center md:text-6xl text-4xl dark:text-teal-600",
             ),
             text(
                 """

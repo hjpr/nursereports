@@ -13,6 +13,14 @@ config = rx.Config(
             config={
                 "darkMode": "class",
                 "plugins": ["@tailwindcss/typography@0.5.19"],
+                "theme": {
+                    "extend": {
+                        "fontFamily": {
+                            "sans": ["Inter Variable", "system-ui", "sans-serif"],
+                            "mono": ["Geist Mono", "monospace"],
+                        }
+                    }
+                },
             }
         ),
         rx.plugins.SitemapPlugin(),

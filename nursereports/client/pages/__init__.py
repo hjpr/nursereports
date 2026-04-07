@@ -11,7 +11,7 @@ from .forgot_password import forgot_password_page
 from .forgot_password_confirmation import forgot_password_confirmation_page
 from .hospital_overview import hospital_overview
 from .refactor.index import index_page # Refactoring
-from .login import login_page
+from .refactor.login import login_page # Refactoring
 from .logout import logout_page
 from .my_account import my_account_page
 from .onboard import onboard_page

@@ -13,10 +13,9 @@ _SOLID = (
 
 _OUTLINE = (
     "bg-white dark:bg-[#1a1a1a] "
-    "border border-neutral-200 dark:border-neutral-800 "
-    "text-neutral-900 dark:text-neutral-100 "
+    "border border-neutral-300 dark:border-neutral-800 "
+    "text-neutral-600 dark:text-neutral-100 "
     "rounded-full "
-    "px-6 py-2.5 "
     "font-medium text-sm "
     "hover:bg-neutral-50 dark:hover:bg-neutral-800 "
     "transition-colors duration-150 "

@@ -30,7 +30,7 @@ def navbar() -> rx.Component:
             "flex-row items-center justify-center "
             "bg-white/80 dark:bg-[#0a0a0a]/80 "
             "backdrop-blur-md "
-            "border-b border-neutral-200/70 dark:border-white/[0.08]"
+            "border-b border-neutral-300 dark:border-white/[0.08]"
         ),
     )
 
@@ -205,7 +205,7 @@ def _mobile_drawer_public() -> rx.Component:
                         rx.drawer.close(
                             icon("x", class_name="h-5 w-5 cursor-pointer"),
                         ),
-                        class_name="flex-row items-center px-6 py-5 w-full border-b border-neutral-200 dark:border-neutral-800",
+                        class_name="flex-row items-center px-6 py-5 w-full border-b border-neutral-300 dark:border-neutral-800",
                     ),
                     # Nav links
                     _drawer_link("Staff", "/for-staff"),
@@ -227,7 +227,7 @@ def _mobile_drawer_public() -> rx.Component:
                             ),
                             class_name="flex-col gap-3 w-full",
                         ),
-                        class_name="flex-col p-6 mt-auto w-full border-t border-neutral-200 dark:border-neutral-800",
+                        class_name="flex-col p-6 mt-auto w-full border-t border-neutral-300 dark:border-neutral-800",
                     ),
                     class_name=(
                         "flex-col h-full w-full "
@@ -266,7 +266,7 @@ def _mobile_drawer_authenticated() -> rx.Component:
                             rx.drawer.close(
                                 icon("x", class_name="h-5 w-5 cursor-pointer"),
                             ),
-                            class_name="flex-row items-center px-6 py-5 w-full border-b border-neutral-200 dark:border-neutral-800",
+                            class_name="flex-row items-center px-6 py-5 w-full border-b border-neutral-300 dark:border-neutral-800",
                         ),
                         _drawer_link("Search Hospitals", "/search/hospital"),
                         _drawer_link("Dashboard", "/dashboard"),
@@ -287,7 +287,7 @@ def _mobile_drawer_authenticated() -> rx.Component:
                                 "hover:bg-neutral-50 dark:hover:bg-white/[0.04] "
                                 "active:bg-neutral-100 dark:active:bg-white/[0.07] "
                                 "transition-colors duration-75 "
-                                "border-t border-neutral-200 dark:border-neutral-800"
+                                "border-t border-neutral-300 dark:border-neutral-800"
                             ),
                         ),
                         class_name=(

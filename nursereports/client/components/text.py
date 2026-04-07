@@ -3,7 +3,7 @@ import reflex as rx
 _TEXT = "text-neutral-700 dark:text-neutral-300"
 
 _HEADING = (
-    "font-semibold tracking-tight "
+    "tracking-tight "
     "text-neutral-950 dark:text-neutral-50"
 )
 
@@ -28,17 +28,13 @@ def text(*children, **props) -> rx.Component:
     )
 
 
-def heading(*children, level: str = "lg", **props) -> rx.Component:
+def heading(*children, **props) -> rx.Component:
     """
-    Heading text — font-semibold, tracking-tight, primary color.
-
-    level: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl"
-           Defaults to "lg" (text-2xl). Override further with class_name.
+    Heading text
     """
-    size_class = _HEADING_SIZES.get(level, _HEADING_SIZES["lg"])
     user_classes = props.pop("class_name", "")
     return rx.text(
         *children,
-        class_name=f"{_HEADING} {size_class} {user_classes}".strip(),
+        class_name=f"{_HEADING} {user_classes}".strip(),
         **props,
     )

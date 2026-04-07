@@ -1,2 +1,19 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@500&family=Open+Sans:wght@500&display=swap');
+/* Override Radix UI CSS variables so Inter wins over its default font stack */
+:root,
+.radix-themes {
+  --default-font-family: 'Inter Variable', system-ui, sans-serif;
+  --heading-font-family: 'Inter Variable', system-ui, sans-serif;
+  --code-font-family: 'Geist Mono', monospace;
+  --default-font-weight: 450;
+}
+
+/* Apply Inter globally — weight 450 ensures Inter Variable renders at medium
+   rather than the 400 default, matching how Mintlify presents the typeface */
+body {
+  font-family: 'Inter Variable', system-ui, sans-serif;
+  font-weight: 450;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 

@@ -9,7 +9,7 @@ _CARD = (
 _CARD_HEADER = (
     "flex items-center "
     "px-5 py-4 "
-    "border-b border-neutral-200 dark:border-neutral-800 "
+    "border-b border-neutral-300 dark:border-neutral-800 "
     "w-full"
 )
 
