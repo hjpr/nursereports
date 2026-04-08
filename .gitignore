@@ -1,10 +1,23 @@
+# Reflex generated files
 .states
+.web
+
+# Databases
 *.db
+
+# Build/package info
+dist/
+__pycache__/
 *.egg-info/
 *.py[cod]
 .DS_Store
+
+# Secrets
 .env
-.web
-__pycache__/
+
+# External Assets
 assets/external/
-dist/
+
+# Python Environments
+.venv
+
