@@ -10,8 +10,9 @@ dependencies = [
     "humanize>=4.12.1",
     "loguru>=0.7.3",
     "numpy>=2.2.3",
+    "openpyxl>=3.1.5",
     "polars>=1.24.0",
     "pyjwt>=2.10.1",
-    "reflex==0.7.2",
+    "reflex>=0.8",
     "suplex>=0.1.6",
 ]

@@ -301,7 +301,7 @@ class UserState(AuthState):
         """Get or refresh saved hospitals."""
         saved_hospital_list = self.user_info.get("saved", {}).get("hospitals", [])
         if saved_hospital_list:
-            retrieved_hospitals = self.query().table("hospitals").in_(
+            retrieved_hospitals = self.query().table("hospitals_v2").in_(
                 "hosp_id", saved_hospital_list
             ).select("hosp_name,hosp_state,hosp_city,hosp_id,hosp_addr").execute()
 

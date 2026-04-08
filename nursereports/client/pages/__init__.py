@@ -10,7 +10,11 @@ from .for_travelers import for_travelers_page
 from .forgot_password import forgot_password_page
 from .forgot_password_confirmation import forgot_password_confirmation_page
 from .hospital_overview import hospital_overview
-from .refactor.index import index_page # Refactoring
+# Index variants — uncomment one at a time to switch themes.
+from .refactor.index_meadow import index_page  # Meadow  — sage green + sky blue, SVG wiggle texture
+# from .refactor.index_slate import index_page  # Slate   — clean slate + indigo
+# from .refactor.index_harbor import index_page  # Harbor  — sky blue + deep navy, dual glow
+# from .refactor.index import index_page  # Base    — original teal
 from .refactor.login import login_page # Refactoring
 from .logout import logout_page
 from .my_account import my_account_page

@@ -18,8 +18,8 @@ def footer() -> rx.Component:
         class_name=(
             "flex-col items-center "
             "border-t border-neutral-300 dark:border-neutral-800 "
-            "bg-gradient-to-b from-teal-500/30 to-teal-500/10 "
-            "dark:from-[#0a0a0a] dark:to-[#1c1c1c] "
+            "bg-gradient-to-b from-emerald-500/10 to-transparent "
+            "dark:from-emerald-900/15 dark:to-transparent "
             "py-16 w-full"
         ),
     )
@@ -74,10 +74,10 @@ def _logo_col() -> rx.Component:
     return rx.flex(
         # Logo
         rx.flex(
-            rx.image(src="/vector/square-activity.svg", class_name="h-7 w-7 shrink-0"),
+            rx.icon("square-activity", class_name="h-7 w-7 shrink-0 text-emerald-600 dark:text-emerald-500"),
             rx.text(
                 "Nurse",
-                class_name="text-xl font-semibold text-teal-600 dark:text-teal-500 tracking-tight",
+                class_name="text-xl font-semibold text-emerald-600 dark:text-emerald-500 tracking-tight",
             ),
             rx.text(
                 "Reports",

@@ -1,5 +1,4 @@
 from ...components import (
-    solid_button,
     outline_button,
     ghost_button,
     icon,
@@ -18,19 +17,31 @@ def navbar() -> rx.Component:
     return rx.flex(
         _feedback_dialog(),
         rx.flex(
-            _logo(),
-            _nav_links(),
-            rx.spacer(),
-            _right_actions(),
-            _mobile_trigger(),
-            class_name="flex-row items-center gap-6 w-full max-w-screen-xl px-6",
+            # Left col: logo on desktop, empty spacer on mobile
+            rx.flex(
+                rx.flex(_logo(), class_name="hidden md:flex"),
+                class_name="flex-1 flex-row items-center",
+            ),
+            # Center: full logo on mobile, nav links on desktop
+            rx.flex(
+                rx.flex(_logo(), class_name="flex md:hidden"),
+                _nav_links(),
+                class_name="flex-row items-center",
+            ),
+            # Right col: auth actions + hamburger on mobile
+            rx.flex(
+                _right_actions(),
+                rx.flex(_mobile_trigger(), class_name="flex md:hidden"),
+                class_name="flex-1 flex-row items-center justify-end gap-2",
+            ),
+            class_name="flex-row items-center w-full max-w-screen-xl px-6",
         ),
         class_name=(
             "sticky top-0 z-50 h-16 w-full "
             "flex-row items-center justify-center "
-            "bg-white/80 dark:bg-[#0a0a0a]/80 "
+            "bg-stone-50/80 dark:bg-[#07100a]/80 "
             "backdrop-blur-md "
-            "border-b border-neutral-300 dark:border-white/[0.08]"
+            "border-b border-neutral-300 dark:border-neutral-800"
         ),
     )
 
@@ -41,20 +52,20 @@ def navbar() -> rx.Component:
 
 def _logo() -> rx.Component:
     return rx.flex(
-        rx.image(
-            src="/vector/square-activity.svg",
-            class_name="h-7 w-7 shrink-0",
+        rx.icon(
+            "square-activity",
+            class_name="h-7 w-7 shrink-0 text-emerald-600 dark:text-emerald-500",
         ),
         rx.flex(
             rx.text(
                 "Nurse",
-                class_name="text-xl font-semibold text-teal-600 dark:text-teal-500 tracking-tight",
+                class_name="text-xl font-semibold text-emerald-600 dark:text-emerald-500 tracking-tight",
             ),
             rx.text(
                 "Reports",
                 class_name="text-xl font-semibold text-neutral-900 dark:text-neutral-100 tracking-tight",
             ),
-            class_name="flex-row hidden md:flex",
+            class_name="flex-row",
         ),
         on_click=rx.cond(
             UserState.user_claims_authenticated,
@@ -70,7 +81,7 @@ def _logo() -> rx.Component:
 # ---------------------------------------------------------------------------
 
 _NAV_LINK = (
-    "text-sm font-medium "
+    "text-base font-medium "
     "text-neutral-600 dark:text-neutral-400 "
     "hover:text-neutral-900 dark:hover:text-neutral-100 "
     "transition-colors duration-150 "
@@ -86,8 +97,8 @@ def _nav_links() -> rx.Component:
             rx.link("Staff", href=f"{BaseState.host_address}/for-staff", class_name=_NAV_LINK),
             rx.link("Travelers", href=f"{BaseState.host_address}/for-travelers", class_name=_NAV_LINK),
             rx.link("Students", href=f"{BaseState.host_address}/for-students", class_name=_NAV_LINK),
-            rx.link("Donate", href=f"{BaseState.host_address}/donate", class_name=f"{_NAV_LINK} text-teal-600 dark:text-teal-500 hover:text-teal-700 dark:hover:text-teal-400"),
-            class_name="flex-row items-center gap-6 hidden md:flex ml-4",
+            rx.link("Donate", href=f"{BaseState.host_address}/donate", class_name=f"{_NAV_LINK} text-emerald-600 dark:text-emerald-500 hover:text-emerald-700 dark:hover:text-emerald-400"),
+            class_name="flex-row items-center gap-8 hidden md:flex",
         ),
     )
 
@@ -137,16 +148,11 @@ def _right_actions() -> rx.Component:
                 ),
             ),
         ),
-        # Unauthenticated: Login + Get Started
+        # Unauthenticated: Login
         rx.flex(
             outline_button(
                 "Login",
                 on_click=rx.redirect("/login"),
-                class_name="px-7 py-3 text-base",
-            ),
-            solid_button(
-                "Get Started",
-                on_click=rx.redirect("/create-account"),
                 class_name="px-7 py-3 text-base",
             ),
             class_name="flex-row items-center gap-2 hidden md:flex",
@@ -197,9 +203,16 @@ def _mobile_drawer_public() -> rx.Component:
                 rx.flex(
                     # Header row
                     rx.flex(
-                        rx.text(
-                            "NurseReports",
-                            class_name="text-base font-semibold text-neutral-900 dark:text-neutral-100 tracking-tight",
+                        rx.flex(
+                            rx.text(
+                                "Nurse",
+                                class_name="text-base font-semibold text-emerald-600 dark:text-emerald-500 tracking-tight",
+                            ),
+                            rx.text(
+                                "Reports",
+                                class_name="text-base font-semibold text-neutral-900 dark:text-neutral-100 tracking-tight",
+                            ),
+                            class_name="flex-row",
                         ),
                         rx.spacer(),
                         rx.drawer.close(
@@ -214,18 +227,10 @@ def _mobile_drawer_public() -> rx.Component:
                     _drawer_link("Donate", "/donate"),
                     # Bottom actions
                     rx.flex(
-                        rx.flex(
-                            outline_button(
-                                "Login",
-                                on_click=rx.redirect("/login"),
-                                class_name="w-full",
-                            ),
-                            solid_button(
-                                "Get Started",
-                                on_click=rx.redirect("/create-account"),
-                                class_name="w-full",
-                            ),
-                            class_name="flex-col gap-3 w-full",
+                        outline_button(
+                            "Login",
+                            on_click=rx.redirect("/login"),
+                            class_name="w-full",
                         ),
                         class_name="flex-col p-6 mt-auto w-full border-t border-neutral-300 dark:border-neutral-800",
                     ),
@@ -235,7 +240,7 @@ def _mobile_drawer_public() -> rx.Component:
                         "divide-y divide-neutral-200 dark:divide-neutral-800"
                     ),
                 ),
-                class_name="h-full w-full max-w-sm",
+                class_name="h-full w-full",
             ),
         ),
         direction="right",
@@ -295,7 +300,7 @@ def _mobile_drawer_authenticated() -> rx.Component:
                             "bg-white dark:bg-[#0a0a0a]"
                         ),
                     ),
-                    class_name="h-full w-full max-w-sm",
+                    class_name="h-full w-full",
                 ),
             ),
             direction="right",

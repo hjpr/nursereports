@@ -1,7 +1,7 @@
 import reflex as rx
 
 _ICON = "text-neutral-600 dark:text-neutral-400"
-_ICON_ACCENT = "text-teal-600 dark:text-teal-500"
+_ICON_ACCENT = "text-emerald-600 dark:text-emerald-500"
 _ICON_MUTED = "text-neutral-400 dark:text-neutral-600"
 
 

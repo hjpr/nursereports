@@ -55,7 +55,7 @@ class SearchState(AuthState):
             ):
                 self.search_results = []
 
-                search_results = self.query().table("hospitals").ilike(
+                search_results = self.query().table("hospitals_v2").ilike(
                     "hosp_state", state_to_abbr_dict[self.selected_state]
                 ).ilike(
                     "hosp_city", self.selected_city

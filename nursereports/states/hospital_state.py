@@ -208,7 +208,7 @@ class HospitalState(UserState):
                     return
 
             if self.hosp_id:
-                result = self.query().table("hospitals").eq("hosp_id", self.hosp_id).select("*").execute()
+                result = self.query().table("hospitals_v2").eq("hosp_id", self.hosp_id).select("*").execute()
                 self.hospital_info = result[0]
                 self.hospital_info["hosp_state_abbr"] = self.hospital_info["hosp_state"]
                 self.hospital_info["hosp_state"] = abbr_to_state_dict.get(

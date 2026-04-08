@@ -73,7 +73,7 @@ class ReportState(PageState):
             report = result[0] if result else None
 
             # Load hospital info into state.
-            result = self.query().table("hospitals").eq("hosp_id", self.hospital_id).select("*").execute()
+            result = self.query().table("hospitals_v2").eq("hosp_id", self.hospital_id).select("*").execute()
             self.hospital_info = result[0]
 
             # Set available units/areas/roles for user selection to state.
@@ -194,7 +194,7 @@ class ReportState(PageState):
             self.hospital_id = hospital_id
 
             # Get hospital info by CMS ID and set to state.
-            result = self.query().table("hospitals").eq("hosp_id", self.hospital_id).select("*").execute()
+            result = self.query().table("hospitals_v2").eq("hosp_id", self.hospital_id).select("*").execute()
             self.hospital_info = result[0]
 
             # Set available units/areas/roles for user selection to state.
@@ -1039,7 +1039,7 @@ class ReportState(PageState):
                     "areas": updated_areas,
                     "roles": updated_roles,
                 }
-                self.query().admin().table("hospitals").eq(
+                self.query().admin().table("hospitals_v2").eq(
                     "hosp_id", self.hospital_id
                 ).update(hospital_updates, return_="minimal").execute()
 

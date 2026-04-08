@@ -1,3 +1,7 @@
+"""
+Harbor variant — sky blue & deep navy.
+Dual glow orbs (cyan + blue) evoke open water. Bold sky-blue CTAs, navy-tinted surfaces.
+"""
 from ...components import (
     button,
     heading,
@@ -21,43 +25,54 @@ import reflex as rx
 def index_page() -> rx.Component:
     return rx.flex(
         navbar(),
-        content(),
+        _content(),
         footer(),
-        class_name="flex-col items-center bg-white dark:bg-[#0a0a0a] w-full min-h-svh",
+        class_name="flex-col items-center bg-sky-50 dark:bg-[#050c14] w-full min-h-svh",
     )
 
 
-def content() -> rx.Component:
+def _content() -> rx.Component:
     return rx.flex(
-        hero(),
-        stats_band(),
-        features(),
-        sponsors(),
-        cta_band(),
+        _hero(),
+        _stats_band(),
+        _features(),
+        _sponsors(),
+        _cta_band(),
         class_name="flex-col items-center w-full",
     )
 
 
 # ---------------------------------------------------------------------------
-# Hero
+# Hero — dual glow: wide cyan on the left, deep blue on the right
 # ---------------------------------------------------------------------------
 
-def hero() -> rx.Component:
+def _hero() -> rx.Component:
     return rx.flex(
-        # Decorative teal glow orb — sits behind all content.
+        # Cyan glow — left
         rx.box(
             class_name=(
-                "absolute top-1/2 left-1/2 "
+                "absolute top-1/2 left-1/4 "
                 "-translate-x-1/2 -translate-y-2/3 "
-                "w-[900px] h-[500px] "
-                "bg-teal-500/50 dark:bg-teal-600/20 "
+                "w-[600px] h-[400px] "
+                "bg-cyan-400/35 dark:bg-cyan-600/15 "
                 "blur-[140px] rounded-full "
                 "pointer-events-none"
             ),
         ),
-        # Content stack — sits in front of the glow.
+        # Blue glow — right
+        rx.box(
+            class_name=(
+                "absolute top-1/2 right-1/4 "
+                "translate-x-1/2 -translate-y-2/3 "
+                "w-[500px] h-[350px] "
+                "bg-blue-500/30 dark:bg-blue-700/15 "
+                "blur-[140px] rounded-full "
+                "pointer-events-none"
+            ),
+        ),
+        # Content
         rx.flex(
-            badge("Free · Anonymous · Nurse-powered"),
+            badge("Free · Anonymous · Nurse-powered", variant="neutral"),
             heading(
                 "Hospital reviews for nurses, by nurses.",
                 size="3xl",
@@ -74,6 +89,7 @@ def hero() -> rx.Component:
                 button(
                     "Get Started",
                     on_click=rx.redirect("/create-account"),
+                    color="sky",
                     size="xl",
                 ),
                 button(
@@ -86,7 +102,7 @@ def hero() -> rx.Component:
             ),
             class_name="relative flex-col items-center gap-8 w-full max-w-screen-sm z-10",
         ),
-        class_name="relative flex-col items-center px-6 pt-28 pb-28 w-full",
+        class_name="relative flex-col items-center px-6 pt-28 pb-28 w-full overflow-hidden",
     )
 
 
@@ -94,7 +110,7 @@ def hero() -> rx.Component:
 # Stats band
 # ---------------------------------------------------------------------------
 
-def stat_item(value: str, label: str) -> rx.Component:
+def _stat_item(value: str, label: str) -> rx.Component:
     return rx.flex(
         heading(value, size="2xl"),
         text(label),
@@ -102,26 +118,26 @@ def stat_item(value: str, label: str) -> rx.Component:
     )
 
 
-def stats_band() -> rx.Component:
+def _stats_band() -> rx.Component:
     return rx.flex(
         rx.flex(
-            stat_item("500+", "Hospitals covered"),
+            _stat_item("500+", "Hospitals covered"),
             rx.divider(
                 orientation="vertical",
-                class_name="h-12 self-center border-neutral-300 dark:border-neutral-800",
+                class_name="h-12 self-center border-sky-300/50 dark:border-sky-900/60",
             ),
-            stat_item("50", "US states"),
+            _stat_item("50", "US states"),
             rx.divider(
                 orientation="vertical",
-                class_name="h-12 self-center border-neutral-300 dark:border-neutral-800",
+                class_name="h-12 self-center border-sky-300/50 dark:border-sky-900/60",
             ),
-            stat_item("$0", "Charged"),
+            _stat_item("$0", "Charged"),
             class_name="flex-row items-center justify-center w-full max-w-screen-md",
         ),
         class_name=(
             "flex-col items-center w-full "
-            "border-y border-neutral-300 dark:border-white/[0.06] "
-            "bg-teal-500/20 dark:bg-white/[0.03] "
+            "border-y border-sky-200/60 dark:border-sky-900/30 "
+            "bg-sky-500/12 dark:bg-sky-950/30 "
             "backdrop-blur-md"
         ),
     )
@@ -131,7 +147,7 @@ def stats_band() -> rx.Component:
 # Features
 # ---------------------------------------------------------------------------
 
-def feature_card(icon_tag: str, title: str, description: str) -> rx.Component:
+def _feature_card(icon_tag: str, title: str, description: str) -> rx.Component:
     return rx.flex(
         card_header(
             icon(icon_tag, accent=True, class_name="h-5 w-5 shrink-0"),
@@ -143,14 +159,14 @@ def feature_card(icon_tag: str, title: str, description: str) -> rx.Component:
         ),
         class_name=(
             "flex-col w-full "
-            "bg-white/70 dark:bg-white/[0.04] "
-            "border border-neutral-300 dark:border-neutral-800 "
+            "bg-white/80 dark:bg-sky-950/30 "
+            "border border-sky-200/60 dark:border-sky-900/40 "
             "rounded-2xl"
         ),
     )
 
 
-def features() -> rx.Component:
+def _features() -> rx.Component:
     return rx.flex(
         rx.flex(
             heading(
@@ -168,25 +184,25 @@ def features() -> rx.Component:
             class_name="flex-col items-center gap-8 w-full max-w-screen-sm",
         ),
         rx.box(
-            feature_card(
+            _feature_card(
                 "dollar-sign",
                 "Pay & Benefits",
                 "Compare base pay, differentials, sign-on bonuses, and benefits "
                 "side-by-side across hospitals and states.",
             ),
-            feature_card(
+            _feature_card(
                 "users",
                 "Staffing Ratios",
                 "See nurse-to-patient ratios by unit type so you know exactly "
                 "what workload to expect on day one.",
             ),
-            feature_card(
+            _feature_card(
                 "message-square",
                 "Unit Culture",
                 "Real accounts of management style, teamwork, and workplace "
                 "environment — from nurses who've been there.",
             ),
-            feature_card(
+            _feature_card(
                 "bar-chart-2",
                 "Rankings & Analytics",
                 "Rank hospitals by pay or culture score. Zoom into a single "
@@ -209,12 +225,12 @@ def _sponsor_logo(_: int) -> rx.Component:
     return rx.box(
         class_name=(
             "shrink-0 mx-8 h-12 w-12 rounded-xl "
-            "bg-neutral-300 dark:bg-neutral-800"
+            "bg-sky-200/70 dark:bg-sky-900/40"
         ),
     )
 
 
-def sponsors() -> rx.Component:
+def _sponsors() -> rx.Component:
     logos = [_sponsor_logo(n) for n in _SPONSOR_PLACEHOLDERS]
     logos_dup = [_sponsor_logo(n) for n in _SPONSOR_PLACEHOLDERS]
 
@@ -230,31 +246,17 @@ def sponsors() -> rx.Component:
                 display: flex;
                 width: max-content;
               }
-              .marquee-track:hover {
-                animation-play-state: paused;
-              }
+              .marquee-track:hover { animation-play-state: paused; }
               .marquee-fade {
-                -webkit-mask-image: linear-gradient(
-                  to right, transparent 0%, black 12%, black 88%, transparent 100%
-                );
-                mask-image: linear-gradient(
-                  to right, transparent 0%, black 12%, black 88%, transparent 100%
-                );
+                -webkit-mask-image: linear-gradient(to right, transparent 0%, black 12%, black 88%, transparent 100%);
+                mask-image: linear-gradient(to right, transparent 0%, black 12%, black 88%, transparent 100%);
               }
             </style>
         """),
         rx.flex(
-            text(
-                "Made possible by our fantastic sponsors:",
-                color="neutral-400",
-                class_name="mb-8 text-center",
-            ),
+            text("Made possible by our fantastic sponsors:", color="neutral-400", class_name="mb-8 text-center"),
             rx.flex(
-                rx.flex(
-                    *logos,
-                    *logos_dup,
-                    class_name="marquee-track items-center",
-                ),
+                rx.flex(*logos, *logos_dup, class_name="marquee-track items-center"),
                 class_name="marquee-fade overflow-hidden w-full",
             ),
             class_name="flex-col items-center w-full max-w-screen-lg",
@@ -267,7 +269,7 @@ def sponsors() -> rx.Component:
 # CTA band
 # ---------------------------------------------------------------------------
 
-def cta_band() -> rx.Component:
+def _cta_band() -> rx.Component:
     return rx.flex(
         rx.flex(
             heading(
@@ -276,21 +278,19 @@ def cta_band() -> rx.Component:
                 weight="semibold",
                 class_name="text-center",
             ),
-            text(
-                "Join nurses sharing anonymous, honest hospital reviews.",
-                class_name="text-center",
-            ),
+            text("Join nurses sharing anonymous, honest hospital reviews.", class_name="text-center"),
             button(
                 "Create Account",
                 on_click=rx.redirect("/create-account"),
+                color="sky",
                 size="xl",
             ),
             class_name="flex-col items-center gap-4",
         ),
         class_name=(
             "flex-col items-center justify-center "
-            "border-t border-neutral-300 dark:border-white/[0.06] "
-            "bg-teal-500/20 dark:bg-white/[0.03] "
+            "border-t border-sky-200/60 dark:border-sky-900/30 "
+            "bg-sky-500/12 dark:bg-sky-950/30 "
             "backdrop-blur-md "
             "py-20 px-6 w-full"
         ),
