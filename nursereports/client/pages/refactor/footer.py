@@ -171,7 +171,7 @@ def _color_mode_toggle() -> rx.Component:
         on_click=rx.toggle_color_mode,
         class_name=(
             "flex-row items-center gap-2 px-3 py-1.5 rounded-full cursor-pointer "
-            "border border-neutral-300 dark:border-neutral-800/50 "
+            "ring-[1.5px] ring-neutral-300 dark:ring-neutral-800/50 "
             "hover:bg-neutral-100 dark:hover:bg-white/[0.05] "
             "transition-colors duration-150"
         ),

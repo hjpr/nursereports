@@ -16,4 +16,21 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* ---------------------------------------------------------------------------
+   Wiggle texture utility classes
+   Background-image, repeat, size, and surface-calibrated opacity baked in.
+   Dark mode opacity handled via .dark selector — no Tailwind dark: needed.
+   --------------------------------------------------------------------------- */
 
+.wiggle-surface,
+.wiggle-card {
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='9' height='22'><path d='M4.5 0 Q7.5 5.5 4.5 11 Q1.5 16.5 4.5 22' stroke='%2310b981' stroke-width='0.75' fill='none'/></svg>");
+  background-repeat: repeat;
+  background-size: 9px 22px;
+}
+
+.wiggle-surface { opacity: 0.8; }
+.wiggle-card    { opacity: 0.5; }
+
+.dark .wiggle-surface,
+.dark .wiggle-card { opacity: 0.1; }

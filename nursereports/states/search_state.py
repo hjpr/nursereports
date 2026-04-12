@@ -29,6 +29,7 @@ class SearchState(AuthState):
         return (len(self.search_results) + self._search_page_size - 1) // self._search_page_size
 
     search_is_loading: bool = False
+    quick_search_is_loading: bool = False
     search_results: list[dict]
 
     @rx.var(cache=True)
@@ -84,13 +85,16 @@ class SearchState(AuthState):
     # Event handlers
     # ---------------------------------------------------------------------------
 
-    def event_state_update_query(self, value: str) -> None:
+    async def event_state_update_query(self, value: str):
         """Update search query and refresh autocomplete suggestions."""
         self.search_query = value
         if len(value) < 2:
             self.search_suggestions = []
             self.suggestions_visible = False
+            self.quick_search_is_loading = False
             return
+        self.quick_search_is_loading = True
+        yield
         try:
             results = self._text_search(value, limit=5)
             self.search_suggestions = results
@@ -99,6 +103,8 @@ class SearchState(AuthState):
             logger.warning(f"Suggestion fetch failed: {e}")
             self.search_suggestions = []
             self.suggestions_visible = False
+        finally:
+            self.quick_search_is_loading = False
 
     def next_search_page(self) -> None:
         if self.current_search_page < self.num_search_pages:

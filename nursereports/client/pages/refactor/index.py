@@ -1,7 +1,3 @@
-"""
-Landing page — emerald brand + cyan data accent.
-Hero has an SVG fine vertical-wiggle texture layered under a soft emerald glow.
-"""
 from ...components import (
     button,
     heading,
@@ -16,20 +12,6 @@ from ....states import BaseState
 
 import reflex as rx
 
-# ---------------------------------------------------------------------------
-# SVG wiggle texture — injected once per page load via a <style> block.
-# The pattern tiles 14 × 36 px; each tile is a single quadratic-bezier wiggle.
-# ---------------------------------------------------------------------------
-_WIGGLE_STYLE = rx.html("""
-<style>
-  .wiggle-texture {
-    background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='9' height='22'><path d='M4.5 0 Q7.5 5.5 4.5 11 Q1.5 16.5 4.5 22' stroke='%2310b981' stroke-width='0.75' fill='none'/></svg>");
-    background-repeat: repeat;
-    background-size: 9px 22px;
-  }
-</style>
-""")
-
 
 @rx.page(
     route="/",
@@ -38,7 +20,6 @@ _WIGGLE_STYLE = rx.html("""
 )
 def index_page() -> rx.Component:
     return rx.flex(
-        _WIGGLE_STYLE,
         navbar(),
         _content(),
         footer(),
@@ -66,9 +47,7 @@ def _hero() -> rx.Component:
         # SVG wiggle texture layer
         rx.box(
             class_name=(
-                "wiggle-texture "
-                "absolute inset-0 "
-                "opacity-80 dark:opacity-10 "
+                "wiggle-surface absolute inset-0 "
                 "pointer-events-none"
             ),
         ),
@@ -177,9 +156,7 @@ def _feature_card(icon_tag: str, title: str, description: str) -> rx.Component:
         rx.flex(
             rx.box(
                 class_name=(
-                    "wiggle-texture "
-                    "absolute inset-0 "
-                    "opacity-80 dark:opacity-10 "
+                    "wiggle-surface absolute inset-0 "
                     "pointer-events-none"
                 ),
             ),
@@ -312,9 +289,7 @@ def _cta_band() -> rx.Component:
         # Wiggle texture
         rx.box(
             class_name=(
-                "wiggle-texture "
-                "absolute inset-0 "
-                "opacity-80 dark:opacity-10 "
+                "wiggle-surface absolute inset-0 "
                 "pointer-events-none"
             ),
         ),

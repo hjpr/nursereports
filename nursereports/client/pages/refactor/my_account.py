@@ -11,17 +11,6 @@ from ....states import BaseState, UserState
 
 import reflex as rx
 
-_WIGGLE_STYLE = rx.html("""
-<style>
-  .wiggle-texture {
-    background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='9' height='22'><path d='M4.5 0 Q7.5 5.5 4.5 11 Q1.5 16.5 4.5 22' stroke='%2310b981' stroke-width='0.75' fill='none'/></svg>");
-    background-repeat: repeat;
-    background-size: 9px 22px;
-  }
-</style>
-""")
-
-
 @rx.page(
     route="/my-account",
     title="Nurse Reports",
@@ -32,7 +21,6 @@ _WIGGLE_STYLE = rx.html("""
 )
 def my_account_page() -> rx.Component:
     return rx.flex(
-        _WIGGLE_STYLE,
         navbar(),
         _content(),
         footer(),
@@ -62,9 +50,7 @@ def _profile_header() -> rx.Component:
         # Wiggle texture overlay
         rx.box(
             class_name=(
-                "wiggle-texture "
-                "absolute inset-0 "
-                "opacity-60 dark:opacity-10 "
+                "wiggle-card absolute inset-0 "
                 "pointer-events-none"
             ),
         ),
@@ -266,15 +252,18 @@ def _action_row(icon_tag: str, label: str, sublabel: str, on_click) -> rx.Compon
 
 def _card_header(icon_tag: str, title: str, action=None) -> rx.Component:
     return rx.flex(
+        rx.box(
+            class_name="wiggle-card absolute inset-0 pointer-events-none",
+        ),
         rx.flex(
-            icon(icon_tag, class_name="h-5 w-5"),
-            heading(title, size="sm"),
+            icon(icon_tag, accent=True, class_name="h-5 w-5 relative"),
+            heading(title, size="sm", class_name="relative"),
             class_name="flex-row items-center gap-2",
         ),
         action or rx.fragment(),
         class_name=(
-            "flex-row items-center justify-between "
-            "px-5 py-4 "
-            "border-b border-neutral-200 dark:border-neutral-800/50"
+            "relative flex-row items-center justify-between "
+            "px-5 py-4 overflow-hidden "
+            "border-b border-neutral-300 dark:border-neutral-800/50"
         ),
     )

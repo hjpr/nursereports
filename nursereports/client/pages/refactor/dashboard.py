@@ -13,17 +13,6 @@ from ....states import BaseState, HospitalState, UserState
 
 import reflex as rx
 
-_WIGGLE_STYLE = rx.html("""
-<style>
-  .wiggle-texture {
-    background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='9' height='22'><path d='M4.5 0 Q7.5 5.5 4.5 11 Q1.5 16.5 4.5 22' stroke='%2310b981' stroke-width='0.75' fill='none'/></svg>");
-    background-repeat: repeat;
-    background-size: 9px 22px;
-  }
-</style>
-""")
-
-
 @rx.page(
     route="/dashboard",
     title="Nurse Reports",
@@ -35,7 +24,6 @@ _WIGGLE_STYLE = rx.html("""
 @report_protected
 def dashboard_page() -> rx.Component:
     return rx.flex(
-        _WIGGLE_STYLE,
         navbar(),
         _content(),
         footer(),
@@ -67,9 +55,7 @@ def _welcome_header() -> rx.Component:
         # Wiggle texture overlay
         rx.box(
             class_name=(
-                "wiggle-texture "
-                "absolute inset-0 "
-                "opacity-50 dark:opacity-10 "
+                "wiggle-card absolute inset-0 "
                 "pointer-events-none rounded-2xl"
             ),
         ),
@@ -83,16 +69,13 @@ def _welcome_header() -> rx.Component:
             ),
             class_name="flex-col relative",
         ),
-        # Right: primary CTA — hidden on mobile, shown on md+
-        rx.flex(
-            button(
-                rx.icon("file-plus", class_name="h-4 w-4"),
-                "Submit a Report",
-                color="emerald",
-                size="md",
-                on_click=rx.redirect("/report/new/overview"),
-            ),
-            class_name="hidden md:flex items-center relative",
+        # Right: avatar — hidden on mobile, shown on md+
+        rx.avatar(
+            fallback=UserState.user_claims_email[:1].upper(),
+            radius="small",
+            size="6",
+            color_scheme="grass",
+            class_name="hidden md:flex relative shrink-0",
         ),
         class_name=(
             "relative flex-row items-start justify-between "
@@ -111,7 +94,7 @@ def _stat_strip() -> rx.Component:
     return rx.flex(
         _stat_tile(UserState.user_saved_hospitals.length(), "Saved Hospitals"),
         _stat_tile(UserState.user_reports.length(), "Reports Submitted"),
-        _stat_tile(UserState.user_info_license_state, "Reporting State"),
+        _stat_tile(UserState.user_info_referrals_count, "Referrals Completed"),
         class_name="flex-row gap-4 w-full",
     )
 
@@ -120,9 +103,7 @@ def _stat_tile(value, label: str) -> rx.Component:
     return rx.flex(
         rx.box(
             class_name=(
-                "wiggle-texture "
-                "absolute inset-0 "
-                "opacity-50 dark:opacity-10 "
+                "wiggle-card absolute inset-0 "
                 "pointer-events-none rounded-2xl"
             ),
         ),
@@ -176,15 +157,20 @@ def _saved_hospitals_card() -> rx.Component:
         rx.cond(
             UserState.user_saved_hospitals,
             rx.flex(
-                rx.foreach(UserState.paginated_saved_hospitals, _hospital_row),
+                rx.flex(
+                    rx.foreach(UserState.paginated_saved_hospitals, _hospital_row),
+                    class_name=(
+                        "flex-col divide-y "
+                        "divide-neutral-300 dark:divide-neutral-800/50 "
+                        "border-b border-neutral-300 dark:border-neutral-800/50"
+                    ),
+                ),
+                rx.box(class_name="flex-1"),
                 rx.cond(
                     UserState.num_hospital_pages > 1,
                     _hospital_pagination(),
                 ),
-                class_name=(
-                    "flex-col divide-y "
-                    "divide-neutral-100 dark:divide-neutral-800/50"
-                ),
+                class_name="flex-col flex-1",
             ),
             _empty_hospitals(),
         ),
@@ -340,7 +326,7 @@ def _hospital_pagination() -> rx.Component:
         ),
         class_name=(
             "flex-row "
-            "divide-x divide-neutral-100 dark:divide-neutral-800/50 "
+            "divide-x divide-neutral-300 dark:divide-neutral-800/50 "
             "border-t border-neutral-300 dark:border-neutral-800/50"
         ),
     )
@@ -571,9 +557,7 @@ def _card_header(icon_tag: str, title: str, action=None) -> rx.Component:
     return rx.flex(
         rx.box(
             class_name=(
-                "wiggle-texture "
-                "absolute inset-0 "
-                "opacity-50 dark:opacity-10 "
+                "wiggle-card absolute inset-0 "
                 "pointer-events-none"
             ),
         ),

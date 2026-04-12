@@ -73,6 +73,10 @@ class UserState(AuthState):
         return self.user_info.get("professional", {}).get("license_state", "")
 
     @rx.var
+    def user_info_referrals_count(self) -> int:
+        return len(self.user_info.get("stats", {}).get("referrals", []))
+
+    @rx.var
     def user_info_experience(self) -> int:
         return self.user_info.get("professional", {}).get("experience", 0)
 
@@ -405,6 +409,7 @@ class UserState(AuthState):
                 }
             }
             self.update_user_info_and_sync_locally(data)
+            self.get_user_saved_hospitals()
             yield rx.toast.success("Hospital added to 'Saved Hospitals'.", close_button=True)
 
         except RequestFailed as e:

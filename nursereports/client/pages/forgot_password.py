@@ -10,24 +10,12 @@ from ...states import BaseState, UserState
 
 import reflex as rx
 
-_WIGGLE_STYLE = rx.html("""
-<style>
-  .wiggle-texture {
-    background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='9' height='22'><path d='M4.5 0 Q7.5 5.5 4.5 11 Q1.5 16.5 4.5 22' stroke='%2386a88e' stroke-width='0.75' fill='none'/></svg>");
-    background-repeat: repeat;
-    background-size: 9px 22px;
-  }
-</style>
-""")
-
-
 @rx.page(
     route="/login/forgot-password",
     title="Nurse Reports"
 )
 def forgot_password_page() -> rx.Component:
     return rx.flex(
-        _WIGGLE_STYLE,
         navbar(),
         _content(),
         class_name="flex-col items-center bg-emerald-50 dark:bg-[#07100a] w-full min-h-svh",
@@ -39,9 +27,7 @@ def _content() -> rx.Component:
         # Wiggle texture layer
         rx.box(
             class_name=(
-                "wiggle-texture "
-                "absolute inset-0 "
-                "opacity-60 dark:opacity-10 "
+                "wiggle-surface absolute inset-0 "
                 "pointer-events-none"
             ),
         ),

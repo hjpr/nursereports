@@ -139,7 +139,7 @@ Infinite horizontal scroll using duplicated content (two copies in a flex row). 
 - Do use `neutral-300` for borders in light mode, `neutral-800/50` in dark mode
 - Do use `ring-[1.5px]` instead of `border` on cards and buttons — box-shadow renders at uniform sub-pixel width around curved corners, eliminating aliasing artifacts
 - Do add `overflow-hidden` to all cards that contain wiggle texture or absolute overlays so they clip to `rounded-2xl`
-- Do use `divide-neutral-200 dark:divide-neutral-800/50` for all list dividers
+- Do use `divide-neutral-300 dark:divide-neutral-800/50` for all list dividers
 - Do use `font-bold` for all headings via the `heading()` component default
 - Do use `tracking-tight` on all headings `text-2xl` and above
 - Do add `assets/stylesheet.css` explicitly to `rx.App(stylesheets=[...])` — it is NOT auto-linked

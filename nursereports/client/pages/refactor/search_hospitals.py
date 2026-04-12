@@ -11,17 +11,6 @@ from ....states import BaseState, HospitalState, ReportState, SearchState, UserS
 
 import reflex as rx
 
-_WIGGLE_STYLE = rx.html("""
-<style>
-  .wiggle-texture {
-    background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='9' height='22'><path d='M4.5 0 Q7.5 5.5 4.5 11 Q1.5 16.5 4.5 22' stroke='%2310b981' stroke-width='0.75' fill='none'/></svg>");
-    background-repeat: repeat;
-    background-size: 9px 22px;
-  }
-</style>
-""")
-
-
 @rx.page(
     title="Search",
     route="/search/hospital",
@@ -33,7 +22,6 @@ _WIGGLE_STYLE = rx.html("""
 @login_protected
 def search_page() -> rx.Component:
     return rx.flex(
-        _WIGGLE_STYLE,
         navbar(),
         _content(),
         footer(),
@@ -63,9 +51,7 @@ def _search_card() -> rx.Component:
         rx.flex(
             rx.box(
                 class_name=(
-                    "wiggle-texture "
-                    "absolute inset-0 "
-                    "opacity-50 dark:opacity-10 "
+                    "wiggle-card absolute inset-0 "
                     "pointer-events-none"
                 ),
             ),
@@ -74,7 +60,7 @@ def _search_card() -> rx.Component:
             class_name=(
                 "relative flex-row items-center gap-2 "
                 "px-5 py-4 overflow-hidden "
-                "border-b border-neutral-200 dark:border-neutral-800/50"
+                "border-b border-neutral-300 dark:border-neutral-800/50"
             ),
         ),
         # Card body
@@ -140,8 +126,8 @@ def _search_input_row() -> rx.Component:
                 ),
                 # Inline clear / loading indicator
                 rx.cond(
-                    SearchState.search_is_loading,
-                    icon("loader-circle", muted=True, class_name="h-4 w-4 animate-spin shrink-0"),
+                    SearchState.search_is_loading | SearchState.quick_search_is_loading,
+                    rx.spinner(size="1", class_name="shrink-0"),
                     rx.cond(
                         SearchState.search_query != "",
                         rx.el.button(
@@ -173,7 +159,7 @@ def _search_input_row() -> rx.Component:
                     class_name=(
                         "flex-col "
                         "absolute left-0 right-0 top-[calc(100%+4px)] "
-                        "bg-white dark:bg-[#0f1f13] "
+                        "bg-emerald-100 dark:bg-[#0f1f13] "
                         "border border-neutral-200 dark:border-neutral-800/50 "
                         "rounded-xl shadow-lg dark:shadow-black/40 "
                         "overflow-hidden z-50"
@@ -198,6 +184,7 @@ def _search_input_row() -> rx.Component:
 
 def _suggestion_row(hospital: dict) -> rx.Component:
     return rx.flex(
+        # Hospital info
         rx.flex(
             rx.skeleton(
                 text(hospital["hosp_name"], weight="medium", class_name="truncate"),
@@ -212,20 +199,53 @@ def _suggestion_row(hospital: dict) -> rx.Component:
                 ),
                 loading=~rx.State.is_hydrated,
             ),
-            class_name="flex-col flex-1 min-w-0",
+            class_name="flex-col flex-1 min-w-0 justify-center px-4 py-3",
         ),
-        icon("arrow-right", muted=True, class_name="h-4 w-4 shrink-0"),
-        on_click=rx.cond(
-            UserState.user_needs_onboarding,
-            ReportState.event_state_create_full_report(hospital["hosp_id"]),
-            HospitalState.redirect_to_hospital_overview(hospital["hosp_id"]),
+        # Actions
+        rx.flex(
+            rx.cond(
+                ~UserState.user_needs_onboarding,
+                rx.flex(
+                    rx.skeleton(
+                        rx.tooltip(
+                            icon("bookmark-plus", muted=True, class_name="h-5 w-5"),
+                            content="Save hospital",
+                        ),
+                        loading=~rx.State.is_hydrated,
+                    ),
+                    on_click=UserState.event_state_add_hospital(hospital["hosp_id"]),
+                    class_name=(
+                        "flex items-center justify-center "
+                        "w-12 self-stretch "
+                        "hover:bg-neutral-200/60 dark:hover:bg-white/[0.04] "
+                        "transition-colors duration-150 cursor-pointer"
+                    ),
+                ),
+                rx.fragment(),
+            ),
+            rx.flex(
+                rx.skeleton(
+                    icon("arrow-right", muted=True, class_name="h-5 w-5"),
+                    loading=~rx.State.is_hydrated,
+                ),
+                on_click=rx.cond(
+                    UserState.user_needs_onboarding,
+                    ReportState.event_state_create_full_report(hospital["hosp_id"]),
+                    HospitalState.redirect_to_hospital_overview(hospital["hosp_id"]),
+                ),
+                class_name=(
+                    "flex items-center justify-center "
+                    "w-12 self-stretch "
+                    "hover:bg-neutral-200/60 dark:hover:bg-white/[0.04] "
+                    "transition-colors duration-150 cursor-pointer"
+                ),
+            ),
+            class_name="flex-row self-stretch",
         ),
         class_name=(
-            "flex-row items-center gap-4 "
-            "px-4 py-3 "
-            "hover:bg-neutral-50 dark:hover:bg-white/[0.04] "
-            "transition-colors duration-100 cursor-pointer "
-            "border-b border-neutral-100 dark:border-neutral-800/50 last:border-0"
+            "flex-row items-center justify-between "
+            "min-h-[72px] "
+            "border-b border-neutral-300 dark:border-neutral-800/50 last:border-0"
         ),
     )
 
@@ -263,7 +283,7 @@ def _results_list() -> rx.Component:
                         _pagination(),
                     ),
                     class_name=(
-                        "flex-col divide-y divide-neutral-200 dark:divide-neutral-800/50 "
+                        "flex-col divide-y divide-neutral-300 dark:divide-neutral-800/50 "
                         "bg-emerald-500/20 dark:bg-white/[0.03] "
                         "ring-[1.5px] ring-neutral-300 dark:ring-neutral-800/50 "
                         "rounded-2xl overflow-hidden"
@@ -346,7 +366,7 @@ def _result_row(hospital: dict) -> rx.Component:
                 rx.flex(
                     rx.skeleton(
                         rx.tooltip(
-                            icon("bookmark-plus", muted=True, class_name="h-4 w-4"),
+                            icon("bookmark-plus", muted=True, class_name="h-5 w-5"),
                             content="Save hospital",
                         ),
                         loading=~rx.State.is_hydrated,
@@ -363,7 +383,7 @@ def _result_row(hospital: dict) -> rx.Component:
             ),
             rx.flex(
                 rx.skeleton(
-                    icon("arrow-right", muted=True, class_name="h-4 w-4"),
+                    icon("arrow-right", muted=True, class_name="h-5 w-5"),
                     loading=~rx.State.is_hydrated,
                 ),
                 on_click=rx.cond(
