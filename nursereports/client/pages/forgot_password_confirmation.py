@@ -1,10 +1,21 @@
 from ..components import (
-    flex,
+    button,
+    heading,
     text,
-    solid_button
 )
+from .refactor.navbar import navbar
 
 import reflex as rx
+
+_WIGGLE_STYLE = rx.html("""
+<style>
+  .wiggle-texture {
+    background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='9' height='22'><path d='M4.5 0 Q7.5 5.5 4.5 11 Q1.5 16.5 4.5 22' stroke='%2386a88e' stroke-width='0.75' fill='none'/></svg>");
+    background-repeat: repeat;
+    background-size: 9px 22px;
+  }
+</style>
+""")
 
 
 @rx.page(
@@ -12,53 +23,83 @@ import reflex as rx
     title="Nurse Reports",
 )
 def forgot_password_confirmation_page() -> rx.Component:
-    return flex(
-        content(),
-        class_name="flex-col bg-gradient-to-b from-teal-100 to-cyan-100 dark:from-zinc-800 dark:to-zinc-950 items-center justify-center p-4 min-h-screen w-full",
+    return rx.flex(
+        _WIGGLE_STYLE,
+        navbar(),
+        _content(),
+        class_name="flex-col items-center bg-emerald-50 dark:bg-[#07100a] w-full min-h-svh",
     )
 
 
-def content() -> rx.Component:
-    return flex(
-        header(),
-        flex(rx.divider(), class_name="pb-3 w-full"),
-        confirmation(),
-        flex(
-            solid_button(
-                rx.icon("arrow-left"),
-                "Go to Login",
-                size="3",
-                on_click=rx.redirect("/login", replace=True),
-                class_name="w-full",
+def _content() -> rx.Component:
+    return rx.flex(
+        # Wiggle texture layer
+        rx.box(
+            class_name=(
+                "wiggle-texture "
+                "absolute inset-0 "
+                "opacity-60 dark:opacity-10 "
+                "pointer-events-none"
             ),
-            class_name="pt-4 pb-2 w-full",
         ),
-        class_name="flex-col items-center rounded shadow-lg bg-white p-8 space-y-4 w-full max-w-md",
+        # White blob — light mode only
+        rx.box(
+            class_name=(
+                "absolute top-1/2 left-1/2 "
+                "-translate-x-1/2 -translate-y-1/2 "
+                "w-[680px] h-[480px] "
+                "bg-white/80 dark:bg-transparent "
+                "blur-[60px] rounded-full "
+                "pointer-events-none"
+            ),
+        ),
+        # Emerald glow
+        rx.box(
+            class_name=(
+                "absolute top-1/2 left-1/2 "
+                "-translate-x-1/2 -translate-y-1/2 "
+                "w-[700px] h-[400px] "
+                "bg-emerald-400/30 dark:bg-emerald-600/15 "
+                "blur-[160px] rounded-full "
+                "pointer-events-none"
+            ),
+        ),
+        # Card
+        rx.flex(
+            _confirmation(),
+            _back_to_login(),
+            class_name=(
+                "relative flex-col items-center gap-5 "
+                "bg-emerald-100 dark:bg-[#0f1f13] "
+                "border border-neutral-300 dark:border-neutral-800 "
+                "rounded-2xl "
+                "p-7 w-full max-w-md z-10"
+            ),
+        ),
+        class_name=(
+            "relative flex-col items-center justify-center "
+            "flex-1 px-6 py-20 w-full overflow-hidden"
+        ),
     )
 
 
-def header() -> rx.Component:
-    return flex(
-        rx.image(src="/vector/square-activity.svg", class_name="h-9 w-9 mb-1"),
-        rx.text(
-            "Nurse",
-            on_click=rx.redirect("/"),
-            class_name="text-4xl cursor-pointer text-teal-700 dark:text-zinc-200 pb-1 font-bold",
-        ),
-        rx.text(
-            "Reports",
-            on_click=rx.redirect("/"),
-            class_name="text-4xl cursor-pointer text-zinc-700 dark:text-zinc-200 pb-1 font-bold",
-        ),
-        class_name="flex-row items-center justify-center w-full",
-    )
-
-
-def confirmation() -> rx.Component:
-    return flex(
+def _confirmation() -> rx.Component:
+    return rx.flex(
+        heading("Check your email", size="sm", class_name="self-start"),
         text("We just sent you an email link for a one-time login."),
         text(
             "You can access your account options to change your password after login."
         ),
-        class_name="flex-col space-y-4 w-full",
+        class_name="flex-col gap-3 w-full",
+    )
+
+
+def _back_to_login() -> rx.Component:
+    return button(
+        rx.icon("arrow-left", class_name="h-4 w-4"),
+        "Go to Login",
+        variant="outline",
+        size="md",
+        width="full",
+        on_click=rx.redirect("/login", replace=True),
     )

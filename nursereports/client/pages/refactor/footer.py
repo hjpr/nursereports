@@ -17,9 +17,9 @@ def footer() -> rx.Component:
         ),
         class_name=(
             "flex-col items-center "
-            "border-t border-neutral-300 dark:border-neutral-800 "
-            "bg-gradient-to-b from-emerald-500/10 to-transparent "
-            "dark:from-emerald-900/15 dark:to-transparent "
+            "border-t border-neutral-300 dark:border-neutral-800/50 "
+            "bg-gradient-to-b from-emerald-500/20 to-transparent "
+            "dark:from-transparent dark:to-black/60 "
             "py-16 w-full"
         ),
     )
@@ -66,7 +66,7 @@ def _main_grid() -> rx.Component:
             ),
             class_name="flex-row flex-wrap gap-12",
         ),
-        class_name="flex-col md:flex-row justify-between gap-12 pb-12 border-b border-neutral-300 dark:border-neutral-800 w-full",
+        class_name="flex-col md:flex-row justify-between gap-12 pb-12 border-b border-neutral-300 dark:border-neutral-800/50 w-full",
     )
 
 
@@ -171,7 +171,7 @@ def _color_mode_toggle() -> rx.Component:
         on_click=rx.toggle_color_mode,
         class_name=(
             "flex-row items-center gap-2 px-3 py-1.5 rounded-full cursor-pointer "
-            "border border-neutral-300 dark:border-neutral-800 "
+            "border border-neutral-300 dark:border-neutral-800/50 "
             "hover:bg-neutral-100 dark:hover:bg-white/[0.05] "
             "transition-colors duration-150"
         ),

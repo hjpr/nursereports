@@ -31,7 +31,7 @@ def login_page() -> rx.Component:
         _WIGGLE_STYLE,
         navbar(),
         _content(),
-        class_name="flex-col items-center bg-stone-50 dark:bg-[#07100a] w-full min-h-svh",
+        class_name="flex-col items-center bg-emerald-50 dark:bg-[#07100a] w-full min-h-svh",
     )
 
 
@@ -76,8 +76,8 @@ def _content() -> rx.Component:
             _new_account_callout(),
             class_name=(
                 "relative flex-col items-center gap-5 "
-                "bg-white dark:bg-[#0f1f13] "
-                "border border-neutral-300 dark:border-neutral-800 "
+                "bg-neutral-100/80 dark:bg-neutral-900/80 "
+                "ring-[1.5px] ring-neutral-300 dark:ring-neutral-800/50 "
                 "rounded-2xl "
                 "p-7 w-full max-w-md z-10"
             ),
@@ -102,7 +102,7 @@ def _new_account_callout() -> rx.Component:
         link(
             "Create a free account",
             accent=True,
-            on_click=rx.redirect("/create-account"),
+            href="/create-account",
             class_name="text-sm font-medium",
         ),
         class_name="flex-row items-center justify-center gap-2",
@@ -139,7 +139,7 @@ def _login_form() -> rx.Component:
                         text("Password", class_name="text-sm font-medium"),
                         link(
                             "Forgot password?",
-                            on_click=rx.redirect("/login/forgot-password"),
+                            href="/login/forgot-password",
                             class_name="text-xs ml-auto",
                         ),
                         class_name="flex-row items-center w-full mb-1.5",
@@ -181,14 +181,14 @@ def _login_form() -> rx.Component:
 def _or_divider() -> rx.Component:
     return rx.flex(
         rx.box(
-            class_name="flex-1 h-px bg-neutral-200 dark:bg-neutral-800",
+            class_name="flex-1 h-px bg-neutral-200 dark:bg-neutral-800/50",
         ),
         text(
-            "or continue with",
+            "or",
             class_name="text-xs text-neutral-400 dark:text-neutral-600 px-3 whitespace-nowrap",
         ),
         rx.box(
-            class_name="flex-1 h-px bg-neutral-200 dark:bg-neutral-800",
+            class_name="flex-1 h-px bg-neutral-200 dark:bg-neutral-800/50",
         ),
         class_name="flex-row items-center w-full",
     )
@@ -209,7 +209,11 @@ def _sso_buttons() -> rx.Component:
 
 def _sso_button(img_src: str, on_click) -> rx.Component:
     return rx.el.button(
-        rx.image(src=img_src, class_name="h-10 w-10"),
+        rx.cond(
+            UserState.user_is_loading,
+            rx.spinner(size="3"),
+            rx.image(src=img_src, class_name="h-12 w-12"),
+        ),
         on_click=[
             UserState.set_user_is_loading(True),
             on_click,
@@ -217,10 +221,10 @@ def _sso_button(img_src: str, on_click) -> rx.Component:
         class_name=(
             "flex items-center justify-center "
             "h-16 w-16 "
-            "bg-white dark:bg-white/[0.04] "
-            "border border-neutral-300 dark:border-neutral-800 "
+            "bg-neutral-100 dark:bg-white/[0.04] "
+            "ring-[1.5px] ring-neutral-300 dark:ring-neutral-800/50 "
             "rounded-full "
-            "hover:bg-neutral-50 dark:hover:bg-white/[0.07] "
+            "hover:bg-neutral-200 dark:hover:bg-white/[0.07] "
             "transition-colors duration-150 "
             "cursor-pointer"
         ),

@@ -21,7 +21,7 @@ def index_page() -> rx.Component:
         navbar(),
         content(),
         footer(),
-        class_name="flex-col items-center dark:bg-zinc-900 w-full min-h-svh",
+        class_name="flex-col items-center bg-emerald-50 dark:bg-[#07100a] w-full min-h-svh",
     )
 
 

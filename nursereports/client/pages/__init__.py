@@ -2,7 +2,9 @@
 from .about_us import about_us_page
 from .contact_us import contact_page
 from .create_account import create_account_page
-from .dashboard import dashboard_page
+
+from .refactor.dashboard import dashboard_page
+
 from .donate import donate_page
 from .for_staff import for_staff_page
 from .for_students import for_students_page
@@ -10,14 +12,12 @@ from .for_travelers import for_travelers_page
 from .forgot_password import forgot_password_page
 from .forgot_password_confirmation import forgot_password_confirmation_page
 from .hospital_overview import hospital_overview
-# Index variants — uncomment one at a time to switch themes.
-from .refactor.index_meadow import index_page  # Meadow  — sage green + sky blue, SVG wiggle texture
-# from .refactor.index_slate import index_page  # Slate   — clean slate + indigo
-# from .refactor.index_harbor import index_page  # Harbor  — sky blue + deep navy, dual glow
-# from .refactor.index import index_page  # Base    — original teal
+
+from .refactor.index import index_page  # Meadow  — sage green + sky blue, SVG wiggle texture
 from .refactor.login import login_page # Refactoring
+
 from .logout import logout_page
-from .my_account import my_account_page
+from .refactor.my_account import my_account_page
 from .onboard import onboard_page
 from .policy_ai import ai_policy_page
 from .policy_privacy import privacy_policy_page
@@ -27,4 +27,5 @@ from .report_complete import complete_page
 from .report_overview import overview_page
 from .report_staffing import staffing_page
 from .roadmap import roadmap_page
-from .search_hospitals import search_page
+
+from .refactor.search_hospitals import search_page

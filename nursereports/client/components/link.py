@@ -8,8 +8,8 @@ _LINK = (
 )
 
 _LINK_ACCENT = (
-    "text-teal-600 dark:text-teal-500 "
-    "hover:text-teal-700 dark:hover:text-teal-400 "
+    "text-sky-600 dark:text-sky-400 "
+    "hover:text-sky-700 dark:hover:text-sky-300 "
     "transition-colors duration-150 "
     "cursor-pointer"
 )
@@ -19,7 +19,7 @@ def link(*children, accent: bool = False, **props) -> rx.Component:
     """
     Inline text link.
 
-    accent=True  — teal color, for primary in-content links.
+    accent=True  — sky color, for primary in-content links.
     accent=False — neutral muted color (default), for nav/footer links.
     """
     base = _LINK_ACCENT if accent else _LINK

@@ -6,7 +6,7 @@ _BASE = (
     "text-neutral-900 dark:text-neutral-100 "
     "placeholder:text-neutral-400 dark:placeholder:text-neutral-600 "
     "rounded-full "
-    "focus:outline-none focus:ring-2 focus:ring-teal-500/40 focus:border-teal-500 "
+    "focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500 "
     "transition-colors duration-150"
 )
 

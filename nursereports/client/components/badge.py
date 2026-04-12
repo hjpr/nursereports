@@ -2,6 +2,11 @@ import reflex as rx
 
 # Variant → (light bg, dark bg, light text, dark text)
 _VARIANTS: dict[str, str] = {
+    "sky": (
+        "bg-sky-50 dark:bg-sky-950 "
+        "text-sky-700 dark:text-sky-400 "
+        "border border-sky-200 dark:border-sky-900"
+    ),
     "teal": (
         "bg-teal-50 dark:bg-teal-950 "
         "text-teal-700 dark:text-teal-400 "
@@ -31,13 +36,13 @@ _BASE = (
 )
 
 
-def badge(*children, variant: str = "teal", **props) -> rx.Component:
+def badge(*children, variant: str = "sky", **props) -> rx.Component:
     """
     Small pill badge / tag.
 
-    variant: "teal" (default) | "neutral" | "amber" | "rose"
+    variant: "sky" (default) | "neutral" | "amber" | "rose" | "teal" (legacy)
     """
-    color_classes = _VARIANTS.get(variant, _VARIANTS["teal"])
+    color_classes = _VARIANTS.get(variant, _VARIANTS["sky"])
     user_classes = props.pop("class_name", "")
     return rx.flex(
         *children,

@@ -1,10 +1,8 @@
 from ...components import (
-    outline_button,
-    ghost_button,
+    button,
     icon,
-    link,
 )
-from ....states import AuthState, BaseState, UserState, NavbarState
+from ....states import BaseState, UserState, NavbarState
 
 import reflex as rx
 
@@ -39,9 +37,9 @@ def navbar() -> rx.Component:
         class_name=(
             "sticky top-0 z-50 h-16 w-full "
             "flex-row items-center justify-center "
-            "bg-stone-50/80 dark:bg-[#07100a]/80 "
+            "bg-white/80 dark:bg-[#07100a]/80 "
             "backdrop-blur-md "
-            "border-b border-neutral-300 dark:border-neutral-800"
+            "border-b border-neutral-300 dark:border-neutral-800/50"
         ),
     )
 
@@ -82,7 +80,7 @@ def _logo() -> rx.Component:
 
 _NAV_LINK = (
     "text-base font-medium "
-    "text-neutral-600 dark:text-neutral-400 "
+    "text-neutral-500 dark:text-neutral-400 "
     "hover:text-neutral-900 dark:hover:text-neutral-100 "
     "transition-colors duration-150 "
     "cursor-pointer"
@@ -116,8 +114,9 @@ def _right_actions() -> rx.Component:
                 ~UserState.user_needs_onboarding,
                 rx.flex(
                     rx.tooltip(
-                        outline_button(
+                        button(
                             icon("search", class_name="h-5 w-5"),
+                            variant='outline',
                             disabled=(BaseState.current_location == "/search/hospital"),
                             on_click=rx.redirect("/search/hospital"),
                             class_name="px-3.5 py-3",
@@ -126,8 +125,9 @@ def _right_actions() -> rx.Component:
                         delay_duration=300,
                     ),
                     rx.tooltip(
-                        outline_button(
+                        button(
                             icon("layout-dashboard", class_name="h-5 w-5"),
+                            variant='outline',
                             disabled=(BaseState.current_location == "/dashboard"),
                             on_click=rx.redirect("/dashboard"),
                             class_name="px-3.5 py-3",
@@ -136,8 +136,9 @@ def _right_actions() -> rx.Component:
                         delay_duration=300,
                     ),
                     rx.tooltip(
-                        outline_button(
+                        button(
                             icon("circle-user-round", class_name="h-5 w-5"),
+                            variant='outline',
                             on_click=rx.redirect("/my-account"),
                             class_name="px-3.5 py-3",
                         ),
@@ -150,8 +151,9 @@ def _right_actions() -> rx.Component:
         ),
         # Unauthenticated: Login
         rx.flex(
-            outline_button(
+            button(
                 "Login",
+                variant='outline',
                 on_click=rx.redirect("/login"),
                 class_name="px-7 py-3 text-base",
             ),
@@ -192,8 +194,9 @@ def _drawer_link(label: str, route: str) -> rx.Component:
 def _mobile_drawer_public() -> rx.Component:
     return rx.drawer.root(
         rx.drawer.trigger(
-            outline_button(
+            button(
                 icon("menu", class_name="h-4 w-4"),
+                variant='outline',
                 class_name="flex md:hidden",
             ),
         ),
@@ -218,7 +221,7 @@ def _mobile_drawer_public() -> rx.Component:
                         rx.drawer.close(
                             icon("x", class_name="h-5 w-5 cursor-pointer"),
                         ),
-                        class_name="flex-row items-center px-6 py-5 w-full border-b border-neutral-300 dark:border-neutral-800",
+                        class_name="flex-row items-center px-6 py-5 w-full border-b border-neutral-300 dark:border-neutral-800/50",
                     ),
                     # Nav links
                     _drawer_link("Staff", "/for-staff"),
@@ -227,17 +230,18 @@ def _mobile_drawer_public() -> rx.Component:
                     _drawer_link("Donate", "/donate"),
                     # Bottom actions
                     rx.flex(
-                        outline_button(
+                        button(
                             "Login",
+                            variant='outline',
                             on_click=rx.redirect("/login"),
                             class_name="w-full",
                         ),
-                        class_name="flex-col p-6 mt-auto w-full border-t border-neutral-300 dark:border-neutral-800",
+                        class_name="flex-col p-6 mt-auto w-full border-t border-neutral-300 dark:border-neutral-800/50",
                     ),
                     class_name=(
                         "flex-col h-full w-full "
-                        "bg-white dark:bg-[#0a0a0a] "
-                        "divide-y divide-neutral-200 dark:divide-neutral-800"
+                        "bg-neutral-50 dark:bg-[#07100a] "
+                        "divide-y divide-neutral-200 dark:divide-neutral-800/50"
                     ),
                 ),
                 class_name="h-full w-full",
@@ -252,8 +256,9 @@ def _mobile_drawer_authenticated() -> rx.Component:
         ~UserState.user_needs_onboarding,
         rx.drawer.root(
             rx.drawer.trigger(
-                outline_button(
+                button(
                     icon("menu", class_name="h-4 w-4"),
+                    variant='outline',
                     class_name="flex md:hidden",
                 ),
             ),
@@ -271,7 +276,7 @@ def _mobile_drawer_authenticated() -> rx.Component:
                             rx.drawer.close(
                                 icon("x", class_name="h-5 w-5 cursor-pointer"),
                             ),
-                            class_name="flex-row items-center px-6 py-5 w-full border-b border-neutral-300 dark:border-neutral-800",
+                            class_name="flex-row items-center px-6 py-5 w-full border-b border-neutral-300 dark:border-neutral-800/50",
                         ),
                         _drawer_link("Search Hospitals", "/search/hospital"),
                         _drawer_link("Dashboard", "/dashboard"),
@@ -292,12 +297,12 @@ def _mobile_drawer_authenticated() -> rx.Component:
                                 "hover:bg-neutral-50 dark:hover:bg-white/[0.04] "
                                 "active:bg-neutral-100 dark:active:bg-white/[0.07] "
                                 "transition-colors duration-75 "
-                                "border-t border-neutral-300 dark:border-neutral-800"
+                                "border-t border-neutral-300 dark:border-neutral-800/50"
                             ),
                         ),
                         class_name=(
                             "flex-col h-full w-full "
-                            "bg-white dark:bg-[#0a0a0a]"
+                            "bg-white dark:bg-[#07100a]"
                         ),
                     ),
                     class_name="h-full w-full",

@@ -2,21 +2,21 @@ import reflex as rx
 
 _CARD = (
     "bg-white dark:bg-[#1a1a1a] "
-    "border border-neutral-200 dark:border-neutral-800 "
+    "border border-neutral-300 dark:border-neutral-800/50 "
     "rounded-2xl"
 )
 
 _CARD_HEADER = (
     "flex items-center "
     "px-5 py-4 "
-    "border-b border-neutral-300 dark:border-neutral-800 "
+    "border-b border-neutral-300 dark:border-neutral-800/50 "
     "w-full"
 )
 
 _CARD_SECTION = (
     "flex "
     "px-5 py-4 "
-    "border-b border-neutral-200 dark:border-neutral-800 "
+    "border-b border-neutral-300 dark:border-neutral-800/50 "
     "w-full"
 )
 

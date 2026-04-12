@@ -77,6 +77,18 @@ class UserState(AuthState):
         return self.user_info.get("professional", {}).get("experience", 0)
 
     @rx.var
+    def user_info_status_opt_in(self) -> bool:
+        return self.user_info.get("preferences", {}).get("status_opt_in", False)
+
+    @rx.var
+    def user_info_update_opt_in(self) -> bool:
+        return self.user_info.get("preferences", {}).get("update_opt_in", False)
+
+    @rx.var
+    def user_info_social_opt_in(self) -> bool:
+        return self.user_info.get("preferences", {}).get("social_opt_in", False)
+
+    @rx.var
     def user_claims_authenticated(self) -> bool:
         return self.user_is_authenticated
 
@@ -504,6 +516,28 @@ class UserState(AuthState):
         except Exception as e:
             logger.error(e)
             yield rx.toast.error(e)
+
+    # ---------------------------------------------------------------------------
+    # Account management stubs — backend implementation pending
+    # ---------------------------------------------------------------------------
+
+    async def event_state_update_password(self, form_data: dict):
+        pass
+
+    async def event_state_update_email(self, form_data: dict):
+        pass
+
+    async def event_state_toggle_status_opt_in(self, value: bool):
+        pass
+
+    async def event_state_toggle_update_opt_in(self, value: bool):
+        pass
+
+    async def event_state_toggle_social_opt_in(self, value: bool):
+        pass
+
+    async def event_state_delete_account(self):
+        pass
 
     def redirect_user_to_location(self) -> Callable:
         """

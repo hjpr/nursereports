@@ -27,7 +27,7 @@ _WIDTHS: dict[str, str] = {
 
 _OUTLINE = (
     "bg-white dark:bg-[#1a1a1a] "
-    "border border-neutral-300 dark:border-neutral-800 "
+    "ring-[1.5px] ring-neutral-300 dark:ring-neutral-700 "
     "text-neutral-600 dark:text-neutral-100 "
     "hover:bg-neutral-50 dark:hover:bg-neutral-800"
 )
@@ -52,7 +52,7 @@ def button(
     *children,
     variant: str = "solid",
     size: str = "md",
-    color: str = "teal",
+    color: str = "emerald",
     width: str = "auto",
     **props,
 ) -> rx.Component:
