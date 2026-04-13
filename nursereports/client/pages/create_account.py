@@ -61,8 +61,8 @@ def _content() -> rx.Component:
             _login_callout(),
             class_name=(
                 "relative flex-col items-center gap-5 "
-                "bg-emerald-100 dark:bg-[#0f1f13] "
-                "border border-neutral-300 dark:border-neutral-800 "
+                "bg-neutral-100/80 dark:bg-neutral-900/80 "
+                "ring-[1.5px] ring-neutral-300 dark:ring-neutral-800/50 "
                 "rounded-2xl "
                 "p-7 w-full max-w-md z-10"
             ),
@@ -101,10 +101,10 @@ def _sso_button(img_src: str, on_click) -> rx.Component:
         class_name=(
             "flex items-center justify-center "
             "h-16 w-16 "
-            "bg-emerald-100 dark:bg-white/[0.04] "
-            "border border-neutral-300 dark:border-neutral-800 "
+            "bg-neutral-100 dark:bg-white/[0.04] "
+            "ring-[1.5px] ring-neutral-300 dark:ring-neutral-800/50 "
             "rounded-full "
-            "hover:bg-emerald-200 dark:hover:bg-white/[0.07] "
+            "hover:bg-neutral-200 dark:hover:bg-white/[0.07] "
             "transition-colors duration-150 "
             "cursor-pointer"
         ),
@@ -117,12 +117,12 @@ def _sso_button(img_src: str, on_click) -> rx.Component:
 
 def _or_divider() -> rx.Component:
     return rx.flex(
-        rx.box(class_name="flex-1 h-px bg-neutral-200 dark:bg-neutral-800"),
+        rx.box(class_name="flex-1 h-px bg-neutral-300 dark:bg-neutral-800"),
         text(
             "or",
             class_name="text-xs text-neutral-400 dark:text-neutral-600 px-3 whitespace-nowrap",
         ),
-        rx.box(class_name="flex-1 h-px bg-neutral-200 dark:bg-neutral-800"),
+        rx.box(class_name="flex-1 h-px bg-neutral-300 dark:bg-neutral-800"),
         class_name="flex-row items-center w-full",
     )
 

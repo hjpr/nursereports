@@ -223,7 +223,7 @@ def _features() -> rx.Component:
                 "Rank hospitals by pay or culture score. Zoom into a single "
                 "unit or pull back and compare entire states.",
             ),
-            class_name="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-screen-lg px-6",
+            class_name="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-4 w-full max-w-screen-lg px-6",
         ),
         class_name="flex-col items-center gap-12 py-28 w-full bg-neutral-100/80 dark:bg-neutral-900/50",
     )

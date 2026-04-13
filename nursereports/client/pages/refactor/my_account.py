@@ -34,7 +34,7 @@ def _content() -> rx.Component:
         _middle_row(),
         _danger_zone(),
         class_name=(
-            "flex-col gap-6 "
+            "flex-col gap-4 "
             "w-full max-w-screen-lg "
             "mx-auto px-4 md:px-8 py-10"
         ),
@@ -54,19 +54,10 @@ def _profile_header() -> rx.Component:
                 "pointer-events-none"
             ),
         ),
-        # Left: avatar + email + badges
+        # Left: avatar + email
         rx.flex(
             rx.avatar(fallback="RN", size="5", color_scheme="green"),
-            rx.flex(
-                text(UserState.user_claims_email, weight="semibold", class_name="relative"),
-                rx.flex(
-                    badge(UserState.user_info_license_type, variant="sky"),
-                    badge(UserState.user_info_license_state, variant="neutral"),
-                    badge("Free", variant="neutral"),
-                    class_name="flex-row flex-wrap gap-2 mt-2",
-                ),
-                class_name="flex-col relative",
-            ),
+            text(UserState.user_claims_email, weight="semibold", class_name="relative"),
             class_name="flex-row items-center gap-4 relative",
         ),
         # Right: account ID (hidden on mobile)
@@ -83,7 +74,7 @@ def _profile_header() -> rx.Component:
         ),
         class_name=(
             "relative flex-row items-center justify-between "
-            "bg-emerald-500/20 dark:bg-white/[0.03] "
+            "bg-emerald-500/40 dark:bg-white/[0.06] "
             "ring-[1.5px] ring-neutral-300 dark:ring-neutral-800/50 "
             "rounded-2xl p-6 w-full overflow-hidden"
         ),
@@ -139,6 +130,10 @@ def _info_row(label: str, value) -> rx.Component:
             class_name="text-sm text-neutral-500 dark:text-neutral-400 w-36 shrink-0",
         ),
         text(value, weight="medium", class_name="text-sm"),
+        icon(
+            "pencil",
+            class_name="h-4 w-4 ml-auto text-neutral-400 dark:text-neutral-500 cursor-pointer hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors",
+        ),
         class_name=(
             "flex-row items-center gap-4 "
             "px-5 py-3 "
@@ -154,19 +149,19 @@ def _notifications_card() -> rx.Component:
             "Status updates",
             "Reports you've submitted and hospital changes",
             UserState.user_info_status_opt_in,
-            UserState.event_state_toggle_status_opt_in,
+            UserState.event_state_toggle_status_opt_in.throttle(500),
         ),
         _notification_row(
             "Platform updates",
             "New features, improvements, and announcements",
             UserState.user_info_update_opt_in,
-            UserState.event_state_toggle_update_opt_in,
+            UserState.event_state_toggle_update_opt_in.throttle(500),
         ),
         _notification_row(
             "Community & social",
             "Replies, mentions, and community activity",
             UserState.user_info_social_opt_in,
-            UserState.event_state_toggle_social_opt_in,
+            UserState.event_state_toggle_social_opt_in.throttle(500),
         ),
         class_name=(
             "flex-col flex-1 "
@@ -189,8 +184,8 @@ def _notification_row(title: str, description: str, checked, on_change) -> rx.Co
         ),
         rx.switch(
             checked=checked,
-            on_change=on_change,
             color_scheme="green",
+            on_change=on_change
         ),
         class_name=(
             "flex-row items-center justify-between "
@@ -253,7 +248,7 @@ def _action_row(icon_tag: str, label: str, sublabel: str, on_click) -> rx.Compon
 def _card_header(icon_tag: str, title: str, action=None) -> rx.Component:
     return rx.flex(
         rx.box(
-            class_name="wiggle-card absolute inset-0 pointer-events-none",
+            class_name="absolute inset-0 pointer-events-none",
         ),
         rx.flex(
             icon(icon_tag, accent=True, class_name="h-5 w-5 relative"),
@@ -263,7 +258,7 @@ def _card_header(icon_tag: str, title: str, action=None) -> rx.Component:
         action or rx.fragment(),
         class_name=(
             "relative flex-row items-center justify-between "
-            "px-5 py-4 overflow-hidden "
+            "px-5 py-4 overflow-hidden bg-emerald-500/10 dark:bg-white/[0.03] "
             "border-b border-neutral-300 dark:border-neutral-800/50"
         ),
     )

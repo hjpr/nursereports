@@ -95,7 +95,6 @@ def _nav_links() -> rx.Component:
             rx.link("Staff", href=f"{BaseState.host_address}/for-staff", class_name=_NAV_LINK),
             rx.link("Travelers", href=f"{BaseState.host_address}/for-travelers", class_name=_NAV_LINK),
             rx.link("Students", href=f"{BaseState.host_address}/for-students", class_name=_NAV_LINK),
-            rx.link("Donate", href=f"{BaseState.host_address}/donate", class_name=f"{_NAV_LINK} text-emerald-600 dark:text-emerald-500 hover:text-emerald-700 dark:hover:text-emerald-400"),
             class_name="flex-row items-center gap-8 hidden md:flex",
         ),
     )
@@ -115,7 +114,7 @@ def _right_actions() -> rx.Component:
                 rx.flex(
                     rx.tooltip(
                         button(
-                            icon("search", class_name="h-5 w-5"),
+                            icon("search", blue=True, class_name="h-5 w-5"),
                             variant='outline',
                             disabled=(BaseState.current_location == "/search/hospital"),
                             on_click=rx.redirect("/search/hospital"),
@@ -126,7 +125,7 @@ def _right_actions() -> rx.Component:
                     ),
                     rx.tooltip(
                         button(
-                            icon("layout-dashboard", class_name="h-5 w-5"),
+                            icon("layout-dashboard", blue=True, class_name="h-5 w-5"),
                             variant='outline',
                             disabled=(BaseState.current_location == "/dashboard"),
                             on_click=rx.redirect("/dashboard"),
@@ -137,7 +136,7 @@ def _right_actions() -> rx.Component:
                     ),
                     rx.tooltip(
                         button(
-                            icon("circle-user-round", class_name="h-5 w-5"),
+                            icon("circle-user-round", blue=True, class_name="h-5 w-5"),
                             variant='outline',
                             on_click=rx.redirect("/my-account"),
                             class_name="px-3.5 py-3",
@@ -227,7 +226,6 @@ def _mobile_drawer_public() -> rx.Component:
                     _drawer_link("Staff", "/for-staff"),
                     _drawer_link("Travelers", "/for-travelers"),
                     _drawer_link("Students", "/for-students"),
-                    _drawer_link("Donate", "/donate"),
                     # Bottom actions
                     rx.flex(
                         button(
@@ -280,8 +278,7 @@ def _mobile_drawer_authenticated() -> rx.Component:
                         ),
                         _drawer_link("Search Hospitals", "/search/hospital"),
                         _drawer_link("Dashboard", "/dashboard"),
-                        _drawer_link("Donate", "/donate"),
-                        # Logout at the bottom
+                            # Logout at the bottom
                         rx.flex(
                             rx.flex(
                                 icon("log-out", accent=True, class_name="h-4 w-4 shrink-0"),

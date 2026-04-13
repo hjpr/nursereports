@@ -532,14 +532,30 @@ class UserState(AuthState):
     async def event_state_update_email(self, form_data: dict):
         pass
 
-    async def event_state_toggle_status_opt_in(self, value: bool):
-        pass
+    @rx.event
+    def event_state_toggle_status_opt_in(self, value: bool):
+        self.update_user_info_and_sync_locally({"preferences": {"status_opt_in": value}})
+        if value:
+            yield rx.toast.success("You'll recieve notifications about status updates.", close_button=True)
+        else:
+            yield rx.toast.warning("You won't recieve notifications about status updates.", close_button=True)
 
-    async def event_state_toggle_update_opt_in(self, value: bool):
-        pass
+    @rx.event
+    def event_state_toggle_update_opt_in(self, value: bool):
+        self.update_user_info_and_sync_locally({"preferences": {"update_opt_in": value}})
+        if value:
+            yield rx.toast.success("You'll recieve notifications about updates to the site or new features.", close_button=True)
+        else:
+            yield rx.toast.warning("You won't recieve notifications about updates to the site or new features.", close_button=True)
 
-    async def event_state_toggle_social_opt_in(self, value: bool):
-        pass
+
+    @rx.event
+    def event_state_toggle_social_opt_in(self, value: bool):
+        self.update_user_info_and_sync_locally({"preferences": {"social_opt_in": value}})
+        if value:
+            yield rx.toast.success("You'll recieve notifications when users interact with you.", close_button=True)   
+        else:
+            yield rx.toast.warning("You won't recieve notifications when users interact with you.", close_button=True)
 
     async def event_state_delete_account(self):
         pass

@@ -167,14 +167,14 @@ def _login_form() -> rx.Component:
 def _or_divider() -> rx.Component:
     return rx.flex(
         rx.box(
-            class_name="flex-1 h-px bg-neutral-200 dark:bg-neutral-800/50",
+            class_name="flex-1 h-px bg-neutral-300 dark:bg-neutral-800/50",
         ),
         text(
             "or",
             class_name="text-xs text-neutral-400 dark:text-neutral-600 px-3 whitespace-nowrap",
         ),
         rx.box(
-            class_name="flex-1 h-px bg-neutral-200 dark:bg-neutral-800/50",
+            class_name="flex-1 h-px bg-neutral-300 dark:bg-neutral-800/50",
         ),
         class_name="flex-row items-center w-full",
     )

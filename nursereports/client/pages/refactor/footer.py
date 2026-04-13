@@ -36,14 +36,19 @@ def _main_grid() -> rx.Component:
             _link_col(
                 "Explore",
                 rx.cond(
-                    ~UserState.user_claims_authenticated,
+                    UserState.user_claims_authenticated,
+                    rx.flex(
+                        _footer_link("Pay", f"{BaseState.host_address}/pay"),
+                        _footer_link("Travel", f"{BaseState.host_address}/travel"),
+                        _footer_link("Resources", f"{BaseState.host_address}/resources"),
+                        class_name="flex-col gap-3",
+                    ),
                     rx.flex(
                         _footer_link("Staff", f"{BaseState.host_address}/for-staff"),
                         _footer_link("Travelers", f"{BaseState.host_address}/for-travelers"),
                         _footer_link("Students", f"{BaseState.host_address}/for-students"),
                         class_name="flex-col gap-3",
                     ),
-                    rx.flex(),
                 ),
             ),
             _link_col(

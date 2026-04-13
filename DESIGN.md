@@ -125,7 +125,8 @@ The parent container must have `relative` and `overflow-hidden`. Child content e
 **Opacity calibration by surface:**
 - `opacity-80 dark:opacity-10` — light neutral/white surfaces (index hero, CTA, feature card headers)
 - `opacity-60 dark:opacity-10` — light emerald-tinted surfaces where emerald-on-emerald reads slightly darker (my-account profile header)
-- `opacity-50 dark:opacity-10` — dashboard green cards (welcome header, stat tiles, card headers, action cards) — calibrated so the emerald wiggle on `bg-emerald-500/20` reads the same visual weight as `opacity-80` on white
+- `opacity-50 dark:opacity-10` — dashboard green cards (welcome header, stat tiles, action cards) — calibrated so the emerald wiggle on `bg-emerald-500/20` reads the same visual weight as `opacity-80` on white
+- **no wiggle** — card section headers (title bars inside cards, e.g. "Saved Hospitals", "Pay Snapshot") use `bg-emerald-500/10 dark:bg-white/[0.03]` instead — flat, no texture overlay, so they read quieter than hero/stat surfaces above them
 
 **Moth blob** — a soft blurred circle (`blur-[60px]`, `bg-neutral-50/80 dark:bg-transparent`) layered between the wiggle and content in full-bleed hero/CTA sections to improve text legibility against the texture without reducing its overall presence.
 

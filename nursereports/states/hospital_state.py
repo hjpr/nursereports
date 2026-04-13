@@ -52,9 +52,14 @@ class HospitalState(UserState):
 
     # User selectable fields.
     selected_unit: str = "Hospital Overall"
+    selected_review_unit: str = "Hospital Overall"
     selected_experience: int = 4
     selected_hospital_average: str = "Full-time"
     selected_state_average: str = "Full-time"
+
+    # Ratings table sort state.
+    ratings_sort_col: str = "overall"
+    ratings_sort_asc: bool = False
 
     # Pagination for sections.
     current_review_page: int = 1
@@ -77,7 +82,8 @@ class HospitalState(UserState):
     @rx.var
     def ft_pay_hospital_formatted(self) -> dict:
         if self.extrapolated_ft_pay_hospital:
-            hourly = self.extrapolated_ft_pay_hospital.get(self.selected_experience)
+            exp = min(self.user_info_experience, 26)
+            hourly = self.extrapolated_ft_pay_hospital.get(exp)
             formatted_hourly = "{:.2f}".format(hourly)
             rounded_yearly = round(hourly * 36 * 52)
             formatted_yearly = "{:,}".format(rounded_yearly)
@@ -91,9 +97,8 @@ class HospitalState(UserState):
     @rx.var
     def ft_pay_state_formatted(self) -> dict:
         if self.extrapolated_ft_pay_state:
-            rounded_hourly = round(
-                self.extrapolated_ft_pay_state.get(self.selected_experience), 2
-            )
+            exp = min(self.user_info_experience, 26)
+            rounded_hourly = round(self.extrapolated_ft_pay_state.get(exp), 2)
             formatted_hourly = "{:.2f}".format(rounded_hourly)
             rounded_yearly = round(rounded_hourly * 36 * 52)
             formatted_yearly = "{:,}".format(rounded_yearly)
@@ -107,7 +112,8 @@ class HospitalState(UserState):
     @rx.var
     def pt_pay_hospital_formatted(self) -> dict:
         if self.extrapolated_pt_pay_hospital:
-            hourly = self.extrapolated_pt_pay_hospital.get(self.selected_experience)
+            exp = min(self.user_info_experience, 26)
+            hourly = self.extrapolated_pt_pay_hospital.get(exp)
             formatted_hourly = "{:.2f}".format(hourly)
             rounded_yearly = round(hourly * 36 * 52)
             formatted_yearly = "{:,}".format(rounded_yearly)
@@ -120,10 +126,9 @@ class HospitalState(UserState):
 
     @rx.var
     def pt_pay_state_formatted(self) -> dict:
-        if self.extrapolated_ft_pay_state:
-            rounded_hourly = round(
-                self.extrapolated_ft_pay_state.get(self.selected_experience), 2
-            )
+        if self.extrapolated_pt_pay_state:
+            exp = min(self.user_info_experience, 26)
+            rounded_hourly = round(self.extrapolated_pt_pay_state.get(exp), 2)
             formatted_hourly = "{:.2f}".format(rounded_hourly)
             rounded_yearly = round(rounded_hourly * 36 * 52)
             formatted_yearly = "{:,}".format(rounded_yearly)
@@ -135,7 +140,64 @@ class HospitalState(UserState):
             return {}
 
     @rx.var
-    def selected_unit_info(self) -> dict[str, str | int]:
+    def pay_chart_data(self) -> list[dict]:
+        """Pay curve across all experience levels for recharts line chart."""
+        if self.selected_hospital_average == "Full-time":
+            hospital_pay = self.extrapolated_ft_pay_hospital
+            state_pay = self.extrapolated_ft_pay_state
+        elif self.selected_hospital_average == "Part-time":
+            hospital_pay = self.extrapolated_pt_pay_hospital
+            state_pay = self.extrapolated_pt_pay_state
+        else:
+            return []
+        if not hospital_pay and not state_pay:
+            return []
+        data = []
+        for year in range(0, 27):
+            point: dict = {"year": year if year < 26 else "25+"}
+            if hospital_pay and year in hospital_pay:
+                point["Hospital"] = round(hospital_pay[year], 2)
+            if state_pay and year in state_pay:
+                point["State"] = round(state_pay[year], 2)
+            data.append(point)
+        return data
+
+    @rx.var
+    def sorted_ratings_table(self) -> list[dict]:
+        if not self.units_areas_roles_hospital_scores:
+            return []
+        result = sorted(
+            self.units_areas_roles_hospital_scores,
+            key=lambda d: d.get(self.ratings_sort_col) or 0,
+            reverse=not self.ratings_sort_asc,
+        )
+        def _tier(val):
+            return 5 if val >= 4.5 else 4 if val >= 3.5 else 3 if val >= 2.5 else 2 if val >= 1.5 else 1
+
+        return [
+            {
+                **row,
+                "comp_display": f"{row['comp_overall']:.1f}",
+                "comp_tier": _tier(row["comp_overall"]),
+                "assign_display": f"{row['assign_overall']:.1f}",
+                "assign_tier": _tier(row["assign_overall"]),
+                "staff_display": f"{row['staff_overall']:.1f}",
+                "staff_tier": _tier(row["staff_overall"]),
+                "overall_display": f"{row['overall']:.1f}",
+                "overall_tier": _tier(row["overall"]),
+            }
+            for row in result
+        ]
+
+    def set_ratings_sort(self, col: str) -> None:
+        if self.ratings_sort_col == col:
+            self.ratings_sort_asc = not self.ratings_sort_asc
+        else:
+            self.ratings_sort_col = col
+            self.ratings_sort_asc = False
+
+    @rx.var
+    def selected_unit_info(self) -> dict[str, str | int | float]:
         matched_dict = next(
             (
                 d
@@ -147,8 +209,29 @@ class HospitalState(UserState):
         return matched_dict if matched_dict else self.overall_hospital_scores
 
     @rx.var
+    def selected_unit_display(self) -> dict:
+        info = self.selected_unit_info
+        result = {}
+        for key in ("comp_overall", "assign_overall", "staff_overall", "overall"):
+            val = info.get(key)
+            if val is not None:
+                fval = float(val)
+                result[f"{key}_display"] = f"{fval:.1f}"
+                result[f"{key}_tier"] = (
+                    5 if fval >= 4.5
+                    else 4 if fval >= 3.5
+                    else 3 if fval >= 2.5
+                    else 2 if fval >= 1.5
+                    else 1
+                )
+            else:
+                result[f"{key}_display"] = "—"
+                result[f"{key}_tier"] = 0
+        return result
+
+    @rx.var
     def filtered_review_info(self) -> list[dict]:
-        matched_list = [review for review in self.review_info if review.get("units_areas_roles", "") == self.selected_unit]
+        matched_list = [review for review in self.review_info if review.get("units_areas_roles", "") == self.selected_review_unit]
         return matched_list if matched_list else self.review_info
 
     @rx.var
@@ -205,6 +288,7 @@ class HospitalState(UserState):
                     self.selected_state_average = "Full-time"
                     self.selected_experience = 4
                     self.selected_unit = "Hospital Overall"
+                    self.selected_review_unit = "Hospital Overall"
                     return
 
             if self.hosp_id:
@@ -483,29 +567,21 @@ class HospitalState(UserState):
                     .struct.field("ratings")
                     .struct.field("overall")
                     .mean()
-                    .round()
-                    .cast(pl.Int8)
                     .alias("comp_overall"),
                     pl.col("assignment")
                     .struct.field("ratings")
                     .struct.field("overall")
                     .mean()
-                    .round()
-                    .cast(pl.Int8)
                     .alias("assign_overall"),
                     pl.col("staffing")
                     .struct.field("ratings")
                     .struct.field("overall")
                     .mean()
-                    .round()
-                    .cast(pl.Int8)
                     .alias("staff_overall"),
                 ).with_columns(
                     pl.mean_horizontal(
                         "comp_overall", "assign_overall", "staff_overall"
                     )
-                    .round(0)
-                    .cast(pl.Int8)
                     .alias("overall")
                 )
 
@@ -513,13 +589,10 @@ class HospitalState(UserState):
                     refined_df.with_columns(pl.col("unit").replace("", None))
                     .group_by("unit")
                     .agg(
-                        pl.col("comp_overall").mean().round(0).cast(pl.Int8).alias("comp_overall"),
-                        pl.col("assign_overall").mean().round(0).cast(pl.Int8).alias("assign_overall"),
-                        pl.col("staff_overall").mean().round(0).cast(pl.Int8).alias("staff_overall"),
-                    )
-                    .with_columns(
-                        pl.mean_horizontal("comp_overall", "assign_overall", "staff_overall")
-                        .round(0).cast(pl.Int8).alias("overall")
+                        pl.col("comp_overall").mean().alias("comp_overall"),
+                        pl.col("assign_overall").mean().alias("assign_overall"),
+                        pl.col("staff_overall").mean().alias("staff_overall"),
+                        ((pl.col("comp_overall").mean() + pl.col("assign_overall").mean() + pl.col("staff_overall").mean()) / 3).alias("overall"),
                     )
                     .drop_nulls("unit")
                     .rename({"unit": "units_areas_roles"})
@@ -529,13 +602,10 @@ class HospitalState(UserState):
                     refined_df.with_columns(pl.col("area").replace("", None))
                     .group_by("area")
                     .agg(
-                        pl.col("comp_overall").mean().round(0).cast(pl.Int8).alias("comp_overall"),
-                        pl.col("assign_overall").mean().round(0).cast(pl.Int8).alias("assign_overall"),
-                        pl.col("staff_overall").mean().round(0).cast(pl.Int8).alias("staff_overall"),
-                    )
-                    .with_columns(
-                        pl.mean_horizontal("comp_overall", "assign_overall", "staff_overall")
-                        .round(0).cast(pl.Int8).alias("overall")
+                        pl.col("comp_overall").mean().alias("comp_overall"),
+                        pl.col("assign_overall").mean().alias("assign_overall"),
+                        pl.col("staff_overall").mean().alias("staff_overall"),
+                        ((pl.col("comp_overall").mean() + pl.col("assign_overall").mean() + pl.col("staff_overall").mean()) / 3).alias("overall"),
                     )
                     .drop_nulls("area")
                     .rename({"area": "units_areas_roles"})
@@ -545,13 +615,10 @@ class HospitalState(UserState):
                     refined_df.with_columns(pl.col("role").replace("", None))
                     .group_by("role")
                     .agg(
-                        pl.col("comp_overall").mean().round(0).cast(pl.Int8).alias("comp_overall"),
-                        pl.col("assign_overall").mean().round(0).cast(pl.Int8).alias("assign_overall"),
-                        pl.col("staff_overall").mean().round(0).cast(pl.Int8).alias("staff_overall"),
-                    )
-                    .with_columns(
-                        pl.mean_horizontal("comp_overall", "assign_overall", "staff_overall")
-                        .round(0).cast(pl.Int8).alias("overall")
+                        pl.col("comp_overall").mean().alias("comp_overall"),
+                        pl.col("assign_overall").mean().alias("assign_overall"),
+                        pl.col("staff_overall").mean().alias("staff_overall"),
+                        ((pl.col("comp_overall").mean() + pl.col("assign_overall").mean() + pl.col("staff_overall").mean()) / 3).alias("overall"),
                     )
                     .drop_nulls("role")
                     .rename({"role": "units_areas_roles"})

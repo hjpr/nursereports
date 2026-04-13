@@ -6,7 +6,6 @@ from ...components import (
     login_protected,
 )
 from .navbar import navbar
-from .footer import footer
 from ....states import BaseState, HospitalState, ReportState, SearchState, UserState
 
 import reflex as rx
@@ -24,7 +23,6 @@ def search_page() -> rx.Component:
     return rx.flex(
         navbar(),
         _content(),
-        footer(),
         class_name="flex-col items-center bg-emerald-50 dark:bg-[#07100a] w-full min-h-svh",
     )
 
@@ -34,9 +32,9 @@ def _content() -> rx.Component:
         _search_card(),
         _results_list(),
         class_name=(
-            "flex-col flex-1 justify-center gap-4 "
+            "flex-col flex-1 justify-start gap-4 "
             "w-full max-w-screen-md "
-            "mx-auto px-4 md:px-8 py-10"
+            "mx-auto px-4 md:px-8 pt-[12vh] pb-10"
         ),
     )
 
@@ -51,7 +49,7 @@ def _search_card() -> rx.Component:
         rx.flex(
             rx.box(
                 class_name=(
-                    "wiggle-card absolute inset-0 "
+                    "absolute inset-0 "
                     "pointer-events-none"
                 ),
             ),
@@ -59,7 +57,7 @@ def _search_card() -> rx.Component:
             heading("Find a Hospital", size="sm", class_name="relative"),
             class_name=(
                 "relative flex-row items-center gap-2 "
-                "px-5 py-4 overflow-hidden "
+                "px-5 py-4 overflow-hidden bg-emerald-500/10 dark:bg-white/[0.03] "
                 "border-b border-neutral-300 dark:border-neutral-800/50"
             ),
         ),
@@ -188,6 +186,13 @@ def _suggestion_row(hospital: dict) -> rx.Component:
         rx.flex(
             rx.skeleton(
                 text(hospital["hosp_name"], weight="medium", class_name="truncate"),
+                loading=~rx.State.is_hydrated,
+            ),
+            rx.skeleton(
+                rx.text(
+                    hospital["hosp_addr"],
+                    class_name="text-xs text-neutral-500 truncate",
+                ),
                 loading=~rx.State.is_hydrated,
             ),
             rx.skeleton(

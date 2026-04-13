@@ -39,9 +39,9 @@ def _content() -> rx.Component:
         _community_row(),
         _quick_actions(),
         class_name=(
-            "flex-col gap-6 "
+            "flex-col gap-4 "
             "w-full max-w-screen-lg "
-            "mx-auto px-4 md:px-8 py-10"
+            "mx-auto px-4 md:px-8 pt-4 md:pt-10 pb-10"
         ),
     )
 
@@ -61,12 +61,7 @@ def _welcome_header() -> rx.Component:
         ),
         # Left: greeting + profile badges
         rx.flex(
-            heading("Welcome back", size="lg", class_name="relative"),
-            rx.flex(
-                badge(UserState.user_info_license_type, variant="sky"),
-                badge(UserState.user_info_license_state, variant="neutral"),
-                class_name="flex-row flex-wrap gap-2 mt-2",
-            ),
+            heading("Welcome back!", size="lg", class_name="relative"),
             class_name="flex-col relative",
         ),
         # Right: avatar — hidden on mobile, shown on md+
@@ -79,7 +74,7 @@ def _welcome_header() -> rx.Component:
         ),
         class_name=(
             "relative flex-row items-start justify-between "
-            "bg-emerald-500/20 dark:bg-white/[0.03] "
+            "bg-emerald-500/30 dark:bg-white/[0.06] "
             "ring-[1.5px] ring-neutral-300 dark:ring-neutral-800/50 "
             "rounded-2xl p-6 w-full overflow-hidden"
         ),
@@ -120,7 +115,7 @@ def _stat_tile(value, label: str) -> rx.Component:
         ),
         class_name=(
             "relative flex-col flex-1 items-center justify-center text-center "
-            "bg-emerald-500/20 dark:bg-white/[0.03] "
+            "bg-emerald-500/30 dark:bg-white/[0.06] "
             "ring-[1.5px] ring-neutral-300 dark:ring-neutral-800/50 "
             "rounded-2xl p-5 overflow-hidden"
         ),
@@ -146,13 +141,6 @@ def _saved_hospitals_card() -> rx.Component:
         _card_header(
             "hospital",
             "Saved Hospitals",
-            button(
-                rx.icon("plus", class_name="h-3.5 w-3.5"),
-                "Add",
-                variant="ghost",
-                size="sm",
-                on_click=rx.redirect("/search/hospital"),
-            ),
         ),
         rx.cond(
             UserState.user_saved_hospitals,
@@ -193,10 +181,17 @@ def _hospital_row(hospital: dict) -> rx.Component:
             ),
             rx.skeleton(
                 rx.text(
+                    hospital["hosp_addr"],
+                    class_name="text-xs text-neutral-500 truncate",
+                ),
+                loading=~rx.State.is_hydrated,
+            ),
+            rx.skeleton(
+                rx.text(
                     hospital["hosp_city"],
                     ", ",
                     hospital["hosp_state"],
-                    class_name="text-sm text-neutral-500 truncate",
+                    class_name="text-xs text-neutral-500 truncate",
                 ),
                 loading=~rx.State.is_hydrated,
             ),
@@ -538,13 +533,14 @@ def _action_card(
             link("Go →", href=href, accent=True, class_name="text-sm font-medium"),
             class_name="mt-4",
         ),
+        on_click=rx.redirect(href),
         class_name=(
             "flex-col flex-1 items-center text-center "
             "bg-emerald-500/20 dark:bg-white/[0.03] "
             "ring-[1.5px] ring-neutral-300 dark:ring-neutral-800/50 "
             "rounded-2xl p-6 "
-            "hover:border-emerald-300 dark:hover:border-emerald-800 "
-            "transition-colors duration-150"
+            "hover:bg-neutral-100 dark:hover:bg-neutral-800 "
+            "transition-colors duration-150 cursor-pointer"
         ),
     )
 
@@ -557,7 +553,7 @@ def _card_header(icon_tag: str, title: str, action=None) -> rx.Component:
     return rx.flex(
         rx.box(
             class_name=(
-                "wiggle-card absolute inset-0 "
+                "absolute inset-0 "
                 "pointer-events-none"
             ),
         ),
@@ -569,7 +565,7 @@ def _card_header(icon_tag: str, title: str, action=None) -> rx.Component:
         action or rx.fragment(),
         class_name=(
             "relative flex-row items-center justify-between "
-            "px-5 py-4 overflow-hidden "
+            "px-5 py-4 overflow-hidden bg-emerald-500/10 dark:bg-white/[0.03] "
             "border-b border-neutral-300 dark:border-neutral-800/50"
         ),
     )

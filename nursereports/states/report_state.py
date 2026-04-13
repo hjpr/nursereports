@@ -24,7 +24,7 @@ class ReportState(PageState):
     hospital_id: str
 
     # Dict of hospital data pulled from /hospital.
-    hospital_info: dict[str, str | int | list | dict]
+    hospital_info: dict[str, str | int | list | dict | None]
 
     # Generated uuid for the current report.
     report_id: str
