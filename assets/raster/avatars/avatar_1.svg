@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <circle cx="32" cy="32" r="32" fill="#10b981"/>
+  <!-- Stethoscope -->
+  <path d="M22 20 C22 20 20 22 20 26 C20 30 23 32 26 32 C29 32 32 30 32 26 L32 34 C32 38 35 40 38 40 C41 40 44 38 44 34" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <circle cx="44" cy="34" r="3" fill="white"/>
+  <circle cx="26" cy="32" r="2" fill="white"/>
+</svg>

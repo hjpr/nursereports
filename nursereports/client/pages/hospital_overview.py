@@ -1,17 +1,14 @@
 from ..components import (
-    flex,
-    footer,
-    navbar,
+    badge,
+    button,
+    heading,
+    text,
+    icon,
     report_protected,
-    solid_button,
-    outline_button,
-    text
 )
-from ...states import (
-    BaseState,
-    HospitalState,
-    ReportState
-)
+from .navbar import navbar
+from .footer import footer
+from ...states import BaseState, HospitalState, ReportState, UserState
 
 import reflex as rx
 
@@ -26,707 +23,1075 @@ import reflex as rx
     ],
 )
 @report_protected
-def hospital_overview() -> rx.Component:
+def hospital_overview_page() -> rx.Component:
     return rx.flex(
         navbar(),
-        content(),
+        _content(),
         footer(),
-        class_name="flex-col items-center dark:bg-zinc-900 min-h-svh",
+        class_name="flex-col items-center bg-emerald-50 dark:bg-[#07100a] w-full min-h-svh",
     )
 
 
-def content() -> rx.Component:
+def _content() -> rx.Component:
     return rx.flex(
-            heading(),
-            staff_pay(),
-            travel_pay(),
-            reviews(),
-            class_name="flex-col items-center space-y-4 md:space-y-12 px-4 py-4 md:py-20 w-full max-w-screen-md",
+        _hospital_header(),
+        _pay_section(),
+        _ratings_section(),
+        _reviews_section(),
+        class_name=(
+            "flex-col gap-4 md:gap-8 "
+            "w-full max-w-screen-lg "
+            "px-4 md:px-8 pt-4 md:pt-16 pb-24 md:pb-48"
+        ),
     )
 
 
-def heading() -> rx.Component:
-    return flex(
-        # rx.flex(
-        #     rx.flex(
-        #         rx.icon("hospital", class_name="h-6 w-6 stroke-zinc-700 dark:stroke-teal-800"),
-        #         text("Hospital Overview", class_name="text-2xl font-bold"),
-        #         class_name="flex-row items-center space-x-2"
-        #     ),
-        #     class_name="flex-col items-center bg-zinc-100 dark:bg-zinc-800 p-4 w-full"
-        # ),
+# ---------------------------------------------------------------------------
+# Section 1 — Hospital header
+# ---------------------------------------------------------------------------
 
-        # Hospital information section.
+def _hospital_header() -> rx.Component:
+    return rx.flex(
+        # Wiggle texture overlay
+        rx.box(
+            class_name=(
+                "wiggle-card absolute inset-0 "
+                "pointer-events-none rounded-2xl"
+            ),
+        ),
+        # Top row: name/address + desktop buttons
         rx.flex(
+            # Left: name + address + badges
             rx.flex(
                 rx.skeleton(
-                    text(HospitalState.hospital_info["hosp_name"], class_name="font-bold text-center text-3xl"),
-                    loading=~rx.State.is_hydrated
-                ),
-                rx.skeleton(
-                    text(HospitalState.hospital_info["hosp_addr"], class_name="text-xl"),
-                    loading=~rx.State.is_hydrated
+                    heading(
+                        HospitalState.hospital_info["hosp_name"],
+                        size="lg",
+                        class_name="relative",
                     ),
+                    loading=~rx.State.is_hydrated,
+                ),
                 rx.skeleton(
                     text(
-                        f'{HospitalState.hospital_info["hosp_city"]}, {HospitalState.hospital_info["hosp_state_abbr"]} {HospitalState.hospital_info["hosp_zip"]}',
-                        class_name="text-xl"
+                        HospitalState.hospital_info["hosp_addr"],
+                        class_name="relative text-neutral-500 dark:text-neutral-400 mt-0.5",
                     ),
-                    loading=~rx.State.is_hydrated
+                    loading=~rx.State.is_hydrated,
                 ),
-                class_name="flex-col items-center space-y-1 w-full",
+                rx.skeleton(
+                    text(
+                        HospitalState.hospital_info["hosp_city"],
+                        ", ",
+                        HospitalState.hospital_info["hosp_state_abbr"],
+                        " ",
+                        HospitalState.hospital_info["hosp_zip"],
+                        class_name="relative text-neutral-500 dark:text-neutral-400",
+                    ),
+                    loading=~rx.State.is_hydrated,
+                ),
+                class_name="flex-col relative",
             ),
-            class_name="p-8 w-full"
+            # Right: action buttons — desktop only
+            rx.flex(
+                button(
+                    "Submit Report",
+                    color="emerald",
+                    size="md",
+                    on_click=ReportState.event_state_create_full_report(HospitalState.hosp_id),
+                ),
+                button(
+                    icon("bookmark-plus", class_name="h-4 w-4"),
+                    "Save Hospital",
+                    variant="outline",
+                    size="md",
+                    on_click=UserState.event_state_add_hospital(HospitalState.hosp_id),
+                ),
+                class_name="flex-col gap-2 relative hidden md:flex shrink-0",
+            ),
+            class_name="flex-row items-start justify-between relative w-full",
         ),
-
-        # Hospital buttons.
+        # Mobile-only buttons row
         rx.flex(
-            solid_button(
-                "Submit Full Report",
-                class_name="w-full md:w-auto",
-                on_click=ReportState.event_state_create_full_report(HospitalState.hosp_id)
+            rx.flex(
+                button(
+                    icon("bookmark-plus", class_name="h-4 w-4"),
+                    "Save Hospital",
+                    variant="outline",
+                    size="md",
+                    width="full",
+                    on_click=UserState.event_state_add_hospital(HospitalState.hosp_id),
+                ),
+                class_name="flex-1",
             ),
-            outline_button(
-                "Submit Pay Report",
-                class_name="w-full md:w-auto"
+            rx.flex(
+                button(
+                    "Submit Report",
+                    color="emerald",
+                    size="md",
+                    width="full",
+                    on_click=ReportState.event_state_create_full_report(HospitalState.hosp_id),
+                ),
+                class_name="flex-1",
             ),
-            outline_button(
-                "Request Page Moderation",
-                class_name="w-full md:w-auto"
-            ),
-            class_name="flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 items-center justify-center p-4 w-full"
+            class_name="flex md:hidden flex-row gap-2 pt-4 relative w-full",
         ),
-        class_name="flex-col items-center border rounded shadow-lg divide-y dark:divide-zinc-700 w-full"
+        class_name=(
+            "relative flex-col "
+            "bg-emerald-500/30 dark:bg-white/[0.06] "
+            "ring-[1.5px] ring-neutral-300 dark:ring-neutral-800/50 "
+            "rounded-2xl p-6 w-full overflow-hidden"
+        ),
     )
 
 
-def staff_pay() -> rx.Component:
-    return flex(
-        rx.flex(
-            rx.flex(
-                rx.icon("banknote", class_name="stroke-zinc-700 dark:stroke-teal-800 h-6 w-6"),
-                text("Staff Pay", class_name="text-xl font-bold"),
-                class_name="flex-row items-center space-x-2",
-            ),
-            class_name="flex-col items-start bg-zinc-100 dark:bg-zinc-800 p-2 w-full"
+# ---------------------------------------------------------------------------
+# Section 2 — Stat strip
+# ---------------------------------------------------------------------------
+
+def _stat_strip() -> rx.Component:
+    return rx.flex(
+        _stat_tile(
+            HospitalState.report_info.length(),
+            "Reports",
+            sky=False,
         ),
-        hospital_average(),
-        # state_average(),
-        experience_slider(),
-        class_name="flex-col items-center border rounded shadow-lg divide-y dark:divide-zinc-700 w-full"
+        rx.cond(
+            HospitalState.overall_hospital_scores,
+            _stat_tile(
+                HospitalState.overall_hospital_scores["overall"],
+                "Overall Score",
+                sky=True,
+            ),
+            _stat_tile("—", "Overall Score", sky=True),
+        ),
+        rx.cond(
+            HospitalState.extrapolated_ft_pay_hospital,
+            _stat_tile(
+                HospitalState.ft_pay_hospital_formatted["hourly"],
+                "Est. FT Hourly",
+                sky=True,
+            ),
+            _stat_tile("—", "Est. FT Hourly", sky=True),
+        ),
+        class_name="flex-row gap-4 w-full",
     )
 
-def hospital_average() -> rx.Component:
-    return flex(
-        flex(
-            rx.flex(
-                text("Hospital Average", class_name="text-xl"),
-                class_name="flex justify-center md:justify-start w-full"
+
+def _stat_tile(value, label: str, sky: bool = False) -> rx.Component:
+    value_class = (
+        "relative text-2xl font-bold font-mono tracking-tight "
+        + ("text-sky-600 dark:text-sky-400" if sky else "text-neutral-950 dark:text-neutral-50")
+    )
+    return rx.flex(
+        rx.box(
+            class_name=(
+                "wiggle-card absolute inset-0 "
+                "pointer-events-none rounded-2xl"
             ),
-            rx.segmented_control.root(
-                rx.segmented_control.item("Full-time", value="Full-time"),
-                rx.segmented_control.item("Part-time", value="Part-time"),
+        ),
+        rx.skeleton(
+            rx.text(value, class_name=value_class),
+            loading=~rx.State.is_hydrated,
+        ),
+        rx.text(
+            label,
+            class_name="relative text-sm text-neutral-500 dark:text-neutral-500 mt-0.5",
+        ),
+        class_name=(
+            "relative flex-col flex-1 items-center justify-center text-center "
+            "bg-emerald-500/20 dark:bg-white/[0.03] "
+            "ring-[1.5px] ring-neutral-300 dark:ring-neutral-800/50 "
+            "rounded-2xl p-5 overflow-hidden"
+        ),
+    )
+
+
+# ---------------------------------------------------------------------------
+# Section 3 — Pay
+# ---------------------------------------------------------------------------
+
+def _pay_section() -> rx.Component:
+    return rx.flex(
+        _pay_card_header(),
+        rx.cond(
+            HospitalState.extrapolated_ft_pay_hospital
+            | HospitalState.extrapolated_pt_pay_hospital
+            | HospitalState.averaged_contract_pay_hospital
+            | HospitalState.extrapolated_ft_pay_state
+            | HospitalState.extrapolated_pt_pay_state
+            | HospitalState.averaged_contract_pay_state,
+            rx.fragment(
+                _pay_experience_context(),
+                _pay_values(),
+                _pay_callouts(),
+            ),
+            rx.flex(
+                icon("banknote", muted=True, class_name="h-8 w-8"),
+                text("No pay info yet", weight="medium", class_name="mt-3"),
+                rx.text(
+                    "Pay data will appear once nurses submit reports for this hospital.",
+                    class_name=(
+                        "text-sm text-neutral-400 dark:text-neutral-600 "
+                        "text-center mt-1 max-w-xs"
+                    ),
+                ),
+                class_name=(
+                    "flex-col items-center justify-center text-center "
+                    "py-12 px-6"
+                ),
+            ),
+        ),
+        class_name=(
+            "flex-col "
+            "bg-emerald-500/20 dark:bg-white/[0.03] "
+            "ring-[1.5px] ring-neutral-300 dark:ring-neutral-800/50 "
+            "rounded-2xl overflow-hidden"
+        ),
+    )
+
+
+def _pay_card_header() -> rx.Component:
+    return _card_header("banknote", "Staff Pay")
+
+
+def _pay_experience_context() -> rx.Component:
+    """Context row: employment type selector + advanced pay curve link."""
+    return rx.flex(
+        rx.flex(
+            rx.select(
+                ["Full-time", "Part-time", "Contract"],
+                value=HospitalState.selected_hospital_average,
                 on_change=HospitalState.setvar("selected_hospital_average"),
-                value=HospitalState.selected_hospital_average
+                size="1",
             ),
-            class_name="flex-col md:flex-row items-center p-4 space-y-4 md:space-y-0 w-full"
+            rx.cond(
+                HospitalState.selected_hospital_average != "Contract",
+                _pay_graph(),
+            ),
+            class_name=(
+                "flex-row items-center justify-between "
+                "px-5 py-2.5 "
+                "border-b border-neutral-300 dark:border-neutral-800/50"
+            ),
         ),
-        flex(
-            # Displays hourly pay.
-            rx.match(
-                HospitalState.selected_hospital_average,
-               ("Full-time",
-                    flex(
-                        rx.cond(
-                            HospitalState.extrapolated_ft_pay_hospital,
-                            rx.skeleton(
-                                text(HospitalState.ft_pay_hospital_formatted['hourly'], class_name="text-2xl"),
-                                loading=~rx.State.is_hydrated
-                            ),
-                            rx.skeleton(
-                                rx.icon("ban", class_name="h-7 w-7 stroke-zinc-200 m-1"),
-                                loading=~rx.State.is_hydrated
-                            )
-                        ),
-                        text("HOURLY", class_name="text-xs"),
-                        class_name="flex-col items-center p-4 w-full"
-                    )
-               ),
-               ("Part-time", 
-                    flex(
-                        rx.cond(
-                            HospitalState.extrapolated_pt_pay_hospital,
-                            rx.skeleton(
-                                text(HospitalState.pt_pay_hospital_formatted['hourly'], class_name="text-2xl"),
-                                loading=~rx.State.is_hydrated
-                            ),
-                            rx.skeleton(
-                                rx.icon("ban", class_name="h-7 w-7 stroke-zinc-200 m-1"),
-                                loading=~rx.State.is_hydrated
-                            )
-                        ),
-                        text("HOURLY", class_name="text-xs"),
-                        class_name="flex-col items-center p-4 w-full"
-                    )
-                ),
-            ),
-            # Displays yearly pay.
-            rx.match(
-                HospitalState.selected_hospital_average,
-               ("Full-time",
-                    flex(
-                        rx.cond(
-                            HospitalState.extrapolated_ft_pay_hospital,
-                            rx.skeleton(
-                                text(HospitalState.ft_pay_hospital_formatted["yearly"], class_name="text-2xl"),
-                                loading=~rx.State.is_hydrated
-                            ),
-                            rx.skeleton(
-                                rx.icon("ban", class_name="h-7 w-7 stroke-zinc-200 m-1"),
-                                loading=~rx.State.is_hydrated
-                            )
-                        ),
-                        text("YEARLY", class_name="text-xs"),
-                        class_name="flex-col items-center p-4 w-full"
-                    ),
-                ),
-               ("Part-time",
-                    flex(
-                        rx.cond(
-                            HospitalState.extrapolated_pt_pay_hospital,
-                            rx.skeleton(
-                                text(HospitalState.pt_pay_hospital_formatted["yearly"], class_name="text-2xl"),
-                                loading=~rx.State.is_hydrated
-                            ),
-                            rx.skeleton(
-                                rx.icon("ban", class_name="h-7 w-7 stroke-zinc-200 m-1"),
-                                loading=~rx.State.is_hydrated
-                            )
-                        ),
-                        text("YEARLY", class_name="text-xs"),
-                        class_name="flex-col items-center p-4 w-full"
-                    ),
-                )
-            ),
-            class_name="flex-row divide-x dark:divide-zinc-700 w-full"
-        ),
+        class_name="flex-col",
+    )
 
-        # Callouts
+
+def _pay_graph() -> rx.Component:
+    """Dialog with recharts line chart showing full pay curve."""
+    return rx.dialog.root(
+        rx.dialog.trigger(
+            rx.flex(
+                icon("chart-line", muted=True, class_name="h-3.5 w-3.5"),
+                rx.text(
+                    "Pay Curve",
+                    class_name="text-xs text-neutral-400 dark:text-neutral-600",
+                ),
+                class_name=(
+                    "flex-row items-center gap-1.5 cursor-pointer "
+                    "hover:text-neutral-700 dark:hover:text-neutral-300 "
+                    "transition-colors duration-150"
+                ),
+            ),
+        ),
+        rx.dialog.content(
+            rx.flex(
+                # Dialog header
+                rx.flex(
+                    rx.flex(
+                        icon("chart-line", accent=True, class_name="h-5 w-5"),
+                        heading("Pay Curve", size="sm"),
+                        class_name="flex-row items-center gap-2",
+                    ),
+                    rx.dialog.close(
+                        icon("x", muted=True, class_name="h-5 w-5 cursor-pointer"),
+                    ),
+                    class_name="flex-row items-center justify-between w-full pb-4",
+                ),
+                # Subtitle
+                text(
+                    HospitalState.hospital_info["hosp_name"],
+                    " vs ",
+                    HospitalState.hospital_info["hosp_state"],
+                    " average — ",
+                    HospitalState.selected_hospital_average,
+                    size="sm",
+                    class_name="text-neutral-500 pb-4",
+                ),
+                # Chart
+                rx.cond(
+                    HospitalState.pay_chart_data,
+                    rx.recharts.line_chart(
+                        rx.recharts.line(
+                            data_key="Hospital",
+                            stroke="#10b981",
+                            stroke_width=2,
+                            dot=False,
+                        ),
+                        rx.recharts.line(
+                            data_key="State",
+                            stroke="#0ea5e9",
+                            stroke_width=2,
+                            dot=False,
+                            stroke_dasharray="4 4",
+                        ),
+                        rx.recharts.x_axis(
+                            data_key="year",
+                            label={"value": "Years Experience", "position": "insideBottom", "offset": -4},
+                        ),
+                        rx.recharts.y_axis(
+                            tick_formatter="(v) => `$${v}`",
+                        ),
+                        rx.recharts.cartesian_grid(stroke_dasharray="3 3", opacity=0.3),
+                        rx.recharts.graphing_tooltip(
+                            formatter="(v) => [`$${v}/hr`]",
+                        ),
+                        rx.recharts.legend(),
+                        data=HospitalState.pay_chart_data,
+                        width="100%",
+                        height=280,
+                        margin={"top": 8, "right": 8, "bottom": 24, "left": 8},
+                    ),
+                    rx.flex(
+                        icon("ban", muted=True, class_name="h-6 w-6"),
+                        text("No pay data available for chart.", class_name="mt-2 text-neutral-400"),
+                        class_name="flex-col items-center justify-center py-16",
+                    ),
+                ),
+                # Legend note
+                rx.flex(
+                    rx.flex(
+                        rx.box(class_name="w-4 h-0.5 bg-emerald-500 rounded shrink-0"),
+                        text("Hospital", size="xs", class_name="text-neutral-500"),
+                        class_name="flex-row items-center gap-2",
+                    ),
+                    rx.flex(
+                        rx.box(class_name="w-4 h-px border-t-2 border-dashed border-sky-500 shrink-0"),
+                        text("State average", size="xs", class_name="text-neutral-500"),
+                        class_name="flex-row items-center gap-2",
+                    ),
+                    class_name="flex-row gap-6 pt-2",
+                ),
+                class_name="flex-col w-full",
+            ),
+            class_name="max-w-2xl w-full",
+        ),
+    )
+
+
+def _pay_values() -> rx.Component:
+    return rx.flex(
+        # Hospital average
+        rx.flex(
+            text("Hospital Average", size="sm", class_name="text-neutral-500 mb-3"),
+            rx.cond(
+                HospitalState.selected_hospital_average != "Contract",
+                # FT / PT — show hourly + yearly
+                rx.flex(
+                    rx.cond(
+                        HospitalState.selected_hospital_average == "Full-time",
+                        rx.cond(
+                            HospitalState.extrapolated_ft_pay_hospital,
+                            _pay_stat_pair(
+                                HospitalState.ft_pay_hospital_formatted["hourly"],
+                                HospitalState.ft_pay_hospital_formatted["yearly"],
+                            ),
+                            _no_pay_state(),
+                        ),
+                        rx.cond(
+                            HospitalState.extrapolated_pt_pay_hospital,
+                            _pay_stat_pair(
+                                HospitalState.pt_pay_hospital_formatted["hourly"],
+                                HospitalState.pt_pay_hospital_formatted["yearly"],
+                            ),
+                            _no_pay_state(),
+                        ),
+                    ),
+                    class_name="flex-row gap-6",
+                ),
+                # Contract — show weekly
+                rx.cond(
+                    HospitalState.averaged_contract_pay_hospital,
+                    rx.flex(
+                        rx.skeleton(
+                            rx.text(
+                                HospitalState.averaged_contract_pay_hospital.get("averaged_weekly", "—"),
+                                class_name=(
+                                    "text-2xl font-bold font-mono "
+                                    "text-sky-600 dark:text-sky-400"
+                                ),
+                            ),
+                            loading=~rx.State.is_hydrated,
+                        ),
+                        text("/ WEEK (AVG)", size="xs", class_name="text-neutral-400 mt-1 uppercase tracking-wide"),
+                        class_name="flex-col items-start",
+                    ),
+                    _no_pay_state(),
+                ),
+            ),
+            class_name="flex-col flex-1 px-5 py-4",
+        ),
+        # Divider
+        rx.box(class_name="w-px bg-neutral-300 dark:bg-neutral-800/50 self-stretch"),
+        # State average
+        rx.flex(
+            text(
+                HospitalState.hospital_info["hosp_state"],
+                " Average",
+                size="sm",
+                class_name="text-neutral-500 mb-3",
+            ),
+            rx.cond(
+                HospitalState.selected_hospital_average != "Contract",
+                rx.flex(
+                    rx.cond(
+                        HospitalState.selected_hospital_average == "Full-time",
+                        rx.cond(
+                            HospitalState.extrapolated_ft_pay_state,
+                            _pay_stat_pair(
+                                HospitalState.ft_pay_state_formatted["hourly"],
+                                HospitalState.ft_pay_state_formatted["yearly"],
+                            ),
+                            _no_pay_state(),
+                        ),
+                        rx.cond(
+                            HospitalState.extrapolated_pt_pay_state,
+                            _pay_stat_pair(
+                                HospitalState.pt_pay_state_formatted["hourly"],
+                                HospitalState.pt_pay_state_formatted["yearly"],
+                            ),
+                            _no_pay_state(),
+                        ),
+                    ),
+                    class_name="flex-row gap-6",
+                ),
+                rx.cond(
+                    HospitalState.averaged_contract_pay_state,
+                    rx.flex(
+                        rx.skeleton(
+                            rx.text(
+                                HospitalState.averaged_contract_pay_state.get("averaged_weekly", "—"),
+                                class_name=(
+                                    "text-2xl font-bold font-mono "
+                                    "text-sky-600 dark:text-sky-400"
+                                ),
+                            ),
+                            loading=~rx.State.is_hydrated,
+                        ),
+                        text("/ WEEK (AVG)", size="xs", class_name="text-neutral-400 mt-1 uppercase tracking-wide"),
+                        class_name="flex-col items-start",
+                    ),
+                    _no_pay_state(),
+                ),
+            ),
+            class_name="flex-col flex-1 px-5 py-4",
+        ),
+        class_name=(
+            "flex-row "
+            "border-b border-neutral-300 dark:border-neutral-800/50"
+        ),
+    )
+
+
+def _pay_stat_pair(hourly, yearly) -> rx.Component:
+    return rx.flex(
+        # Hourly: mobile = "$42.00 / hr" inline; desktop = "$42.00" then "/ HR" below
+        rx.flex(
+            rx.skeleton(
+                rx.text(
+                    hourly,
+                    class_name=(
+                        "text-2xl font-bold font-mono "
+                        "text-sky-600 dark:text-sky-400"
+                    ),
+                ),
+                loading=~rx.State.is_hydrated,
+            ),
+            text(
+                "/ HR",
+                size="xs",
+                class_name=(
+                    "text-neutral-400 uppercase tracking-wide "
+                    "ml-1.5 mb-0.5 md:ml-0 md:mb-0 md:mt-1"
+                ),
+            ),
+            class_name="flex-row md:flex-col items-end md:items-start gap-0",
+        ),
+        # Yearly: mobile = "$78,000 / yr" inline; desktop = "$78,000" then "/ YR" below
+        rx.flex(
+            rx.skeleton(
+                rx.text(
+                    yearly,
+                    class_name=(
+                        "text-2xl font-bold font-mono "
+                        "text-sky-600 dark:text-sky-400"
+                    ),
+                ),
+                loading=~rx.State.is_hydrated,
+            ),
+            text(
+                "/ YR",
+                size="xs",
+                class_name=(
+                    "text-neutral-400 uppercase tracking-wide "
+                    "ml-1.5 mb-0.5 md:ml-0 md:mb-0 md:mt-1"
+                ),
+            ),
+            class_name="flex-row md:flex-col items-end md:items-start gap-0",
+        ),
+        class_name="flex-col md:flex-row gap-1 md:gap-6",
+    )
+
+
+def _no_pay_state() -> rx.Component:
+    return rx.flex(
+        icon("ban", muted=True, class_name="h-5 w-5"),
+        text("No data yet", class_name="text-sm text-neutral-400 dark:text-neutral-600 ml-2"),
+        class_name="flex-row items-center py-2",
+    )
+
+
+def _pay_callouts() -> rx.Component:
+    return rx.flex(
+        # Experience context
+        rx.cond(
+            HospitalState.selected_hospital_average != "Contract",
+            rx.flex(
+                rx.cond(
+                    UserState.user_info_experience > 0,
+                    text(
+                        "Based on your ",
+                        rx.text.span(
+                            UserState.user_info_experience,
+                            " year",
+                            rx.cond(UserState.user_info_experience == 1, "", "s"),
+                            " of experience.",
+                            class_name="font-medium text-neutral-700 dark:text-neutral-300",
+                        ),
+                        size="sm",
+                        class_name="text-neutral-400 dark:text-neutral-600",
+                    ),
+                    text(
+                        "Based on your experience (update in My Account)",
+                        size="sm",
+                        class_name="text-neutral-400 dark:text-neutral-600",
+                    ),
+                ),
+                class_name="px-5 py-3 border-b border-neutral-300 dark:border-neutral-800/50",
+            ),
+        ),
+        # FT limited
         rx.cond(
             (HospitalState.selected_hospital_average == "Full-time") &
-            (HospitalState.ft_pay_hospital_info_limited) &
-            (HospitalState.extrapolated_ft_pay_hospital),
-            flex(
-                rx.icon("triangle-alert", class_name="h-3 w-3 stroke-orange-500"),
-                rx.text("LIMITED DATA. ESTIMATES MAY BE OFF.", class_name="text-xs text-orange-500"),
-                class_name="flex-row items-center justify-center p-1 space-x-2 w-full"
-            )
+            HospitalState.ft_pay_hospital_info_limited &
+            HospitalState.extrapolated_ft_pay_hospital,
+            rx.flex(
+                icon("triangle-alert", class_name="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0"),
+                text(
+                    "Limited data. Estimates may be more inaccurate.",
+                    size="sm",
+                    class_name="text-amber-700 dark:text-amber-400",
+                ),
+                class_name="flex-row items-center gap-2 px-5 py-3",
+            ),
         ),
+        # PT limited
         rx.cond(
             (HospitalState.selected_hospital_average == "Part-time") &
-            (HospitalState.pt_pay_hospital_info_limited) &
-            (HospitalState.extrapolated_pt_pay_hospital),
-            flex(
-                rx.icon("triangle-alert", class_name="h-3 w-3 stroke-orange-500"),
-                rx.text("LIMITED DATA. ESTIMATES MAY BE OFF.", class_name="text-xs text-orange-500"),
-                class_name="flex-row items-center justify-center p-1 space-x-2 w-full"
-            )
-        ),
-        rx.cond(
-            (HospitalState.selected_hospital_average == "Full-time") & (~HospitalState.extrapolated_ft_pay_hospital),
+            HospitalState.pt_pay_hospital_info_limited &
+            HospitalState.extrapolated_pt_pay_hospital,
             rx.flex(
-                rx.icon("ban", class_name="h-3 w-3 stroke-rose-500"),
-                rx.text("NO PAY DATA AVAILABLE YET.", class_name="text-xs text-rose-500"),
-                class_name="flex-row items-center justify-center p-1 space-x-2 w-full"
-            )
+                icon("triangle-alert", class_name="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0"),
+                text(
+                    "Limited data. Estimates may be more inaccurate.",
+                    size="sm",
+                    class_name="text-amber-700 dark:text-amber-400",
+                ),
+                class_name="flex-row items-center gap-2 px-5 py-3",
+            ),
         ),
+        # Contract limited
         rx.cond(
-            (HospitalState.selected_hospital_average == "Part-time") & (~HospitalState.extrapolated_pt_pay_hospital),
-            flex(
-                rx.icon("ban", class_name="h-3 w-3 stroke-rose-500"),
-                rx.text("NO PAY DATA AVAILABLE YET.", class_name="text-xs text-rose-500"),
-                class_name="flex-row items-center justify-center p-1 space-x-2 w-full"
-            )
+            (HospitalState.selected_hospital_average == "Contract") &
+            HospitalState.contract_pay_info_hospital_limited &
+            HospitalState.averaged_contract_pay_hospital,
+            rx.flex(
+                icon("triangle-alert", class_name="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0"),
+                text(
+                    "Limited data. Average may be more inaccurate.",
+                    size="sm",
+                    class_name="text-amber-700 dark:text-amber-400",
+                ),
+                class_name="flex-row items-center gap-2 px-5 py-3",
+            ),
         ),
-        class_name="flex-col items-center divide-y dark:divide-zinc-700 w-full"
+        class_name="flex-col",
     )
 
-def state_average() -> rx.Component:
-    return flex(
-        flex(
-            text(f"{HospitalState.hospital_info['hosp_state']} Average", class_name="text-lg"),
-            rx.spacer(),
-            rx.segmented_control.root(
-                rx.segmented_control.item("Full-time", value="Full-time"),
-                rx.segmented_control.item("Part-time", value="Part-time"),
-                on_change=HospitalState.setvar("selected_state_average"),
-                value=HospitalState.selected_state_average
-            ),
-            class_name="flex-col md:flex-row items-center px-6 py-2 space-y-1 md:space-y-0 w-full"
-        ),
-        flex(
-            # Displays hourly pay.
-            rx.match(
-                HospitalState.selected_state_average,
-               ("Full-time",
-                    flex(
-                        rx.cond(
-                            HospitalState.extrapolated_ft_pay_state,
-                            rx.skeleton(
-                                text(HospitalState.ft_pay_state_formatted['hourly'], class_name="text-2xl"),
-                                loading=~rx.State.is_hydrated
-                            ),
-                            rx.skeleton(
-                                rx.icon("ban", class_name="h-7 w-7 stroke-zinc-200 m-1"),
-                                loading=~rx.State.is_hydrated
-                            )
-                        ),
-                        text("HOURLY", class_name="text-xs"),
-                        class_name="flex-col items-center p-4 w-full"
-                    )
-               ),
-               ("Part-time", 
-                    flex(
-                        rx.cond(
-                            HospitalState.extrapolated_pt_pay_state,
-                            rx.skeleton(
-                                text(HospitalState.pt_pay_state_formatted['hourly'], class_name="text-2xl"),
-                                loading=~rx.State.is_hydrated
-                            ),
-                            rx.skeleton(
-                                rx.icon("ban", class_name="h-7 w-7 stroke-zinc-200 m-1"),
-                                loading=~rx.State.is_hydrated
-                            )
-                        ),
-                        text("HOURLY", class_name="text-xs"),
-                        class_name="flex-col items-center p-4 w-full"
-                    )
+
+# ---------------------------------------------------------------------------
+# Section 4 — Ratings
+# ---------------------------------------------------------------------------
+
+def _ranking_dialog() -> rx.Component:
+    """Dialog with a sortable table ranking all units by score."""
+    return rx.dialog.root(
+        rx.dialog.trigger(
+            rx.flex(
+                icon("list-ordered", muted=True, class_name="h-3.5 w-3.5"),
+                rx.text(
+                    "Unit Rankings",
+                    class_name="text-xs text-neutral-400 dark:text-neutral-600",
+                ),
+                class_name=(
+                    "flex-row items-center gap-1.5 cursor-pointer "
+                    "hover:text-neutral-700 dark:hover:text-neutral-300 "
+                    "transition-colors duration-150"
                 ),
             ),
-            # Displays yearly pay.
-            rx.match(
-                HospitalState.selected_state_average,
-               ("Full-time",
-                    flex(
-                        rx.cond(
-                            HospitalState.extrapolated_ft_pay_state,
-                            rx.skeleton(
-                                text(HospitalState.ft_pay_state_formatted["yearly"], class_name="text-2xl"),
-                                loading=~rx.State.is_hydrated
-                            ),
-                            rx.skeleton(
-                                rx.icon("ban", class_name="h-7 w-7 stroke-zinc-200 m-1"),
-                                loading=~rx.State.is_hydrated
-                            )
-                        ),
-                        text("YEARLY", class_name="text-xs"),
-                        class_name="flex-col items-center p-4 w-full"
-                    ),
-                ),
-               ("Part-time",
-                    flex(
-                        rx.cond(
-                            HospitalState.extrapolated_pt_pay_state,
-                            rx.skeleton(
-                                text(HospitalState.pt_pay_state_formatted["yearly"], class_name="text-2xl"),
-                                loading=~rx.State.is_hydrated
-                            ),
-                            rx.skeleton(
-                                rx.icon("ban", class_name="h-7 w-7 stroke-zinc-200 m-1"),
-                                loading=~rx.State.is_hydrated
-                            )
-                        ),
-                        text("YEARLY", class_name="text-xs"),
-                        class_name="flex-col items-center p-4 w-full"
-                    ),
-                ),
-            ),
-            class_name="flex-row divide-x w-full"
         ),
-        # Callouts
-        rx.cond(
-            (HospitalState.selected_state_average == "Full-time") &
-            (HospitalState.ft_pay_state_info_limited) &
-            (HospitalState.extrapolated_ft_pay_state),
-            flex(
-                rx.icon("triangle-alert", class_name="h-4 w-4 stroke-orange-500"),
-                rx.text("LIMITED DATA. ESTIMATES MAY BE OFF.", class_name="text-xs text-orange-500"),
-                class_name="flex-row items-center justify-center p-1 space-x-2 w-full"
-            )
-        ),
-        rx.cond(
-            (HospitalState.selected_state_average == "Full-time") &
-            (HospitalState.ft_pay_state_info_limited) &
-            (HospitalState.extrapolated_ft_pay_state),
-            flex(
-                rx.icon("triangle-alert", class_name="h-3 w-3 stroke-orange-500"),
-                rx.text("LIMITED DATA. ESTIMATES MAY OFF.", class_name="text-xs text-orange-500"),
-                class_name="flex-row items-center justify-center p-1 space-x-2 w-full"
-            )
-        ),
-        rx.cond(
-            (HospitalState.selected_state_average == "Full-time") & (~HospitalState.extrapolated_ft_pay_state),
-            flex(
-                rx.icon("ban", class_name="h-3 w-3 stroke-rose-500"),
-                rx.text("NO PAY DATA AVAILABLE YET.", class_name="text-xs text-rose-500"),
-                class_name="flex-row items-center justify-center p-1 space-x-2 w-full"
-            )
-        ),
-        rx.cond(
-            (HospitalState.selected_state_average == "Part-time") & (~HospitalState.extrapolated_pt_pay_state),
-            flex(
-                rx.icon("ban", class_name="h-3 w-3 stroke-rose-500"),
-                rx.text("NO PAY DATA AVAILABLE YET.", class_name="text-xs text-rose-500"),
-                class_name="flex-row items-center justify-center p-1 space-x-2 w-full"
-            )
-        ),
-        class_name="flex-col items-center divide-y dark:divide-zinc-700 w-full"
-    )
-
-def experience_slider() -> rx.Component:
-    return flex(
-        flex(
-            text("Experience -", class_name="text-xl text-nowrap"),
-            flex(
-                rx.cond(
-                    HospitalState.selected_experience <= 25,
-                    rx.skeleton(
-                        text(
-                            f"{HospitalState.selected_experience} year(s)",
-                            class_name="text-xl text-nowrap pl-1"
-                        ),
-                        loading=~rx.State.is_hydrated
-                    ),
-                    rx.skeleton(
-                        text(
-                            "More than 25 years",
-                            class_name="text-xl text-nowrap pl-1"
-                        ),
-                        loading=~rx.State.is_hydrated
-                    )
-                )
-            ),
-            class_name="flex-col md:flex-row items-center p-4 w-full"
-        ),
-        flex(
-            text("0 YEARS", class_name="text-xs pr-4 text-nowrap"),
-            rx.slider(
-                default_value=HospitalState.selected_experience,
-                min=0,
-                max=26,
-                color_scheme="teal",
-                on_change=HospitalState.set_slider,
-                class_name="w-full",
-            ),
-            text("> 25 YEARS", class_name="text-xs pl-4 text-nowrap"),
-            class_name="flex-row items-center p-5 w-full"
-        ),
-        class_name="flex-col items-center divide-y dark:divide-zinc-700 w-full"
-    )
-
-def travel_pay() -> rx.Component:
-    return flex(
-        rx.flex(
+        rx.dialog.content(
             rx.flex(
-                rx.icon("plane", class_name="stroke-zinc-700 dark:stroke-teal-800 h-6 w-6"),
-                text("Travel Pay", class_name="text-xl font-bold"),
-                class_name="flex-row items-center space-x-2",
-            ),
-            class_name="flex-col items-start bg-zinc-100 dark:bg-zinc-800 p-2 w-full"
-        ),
-        flex(
-            text("No reports yet, check back later!"),
-            class_name="flex-col items-center p-6 w-full",
-        ),
-        class_name="flex-col items-center border rounded shadow-lg divide-y dark:divide-zinc-700 w-full"
-    )
-
-
-def reviews() -> rx.Component:
-    return flex(
-        rx.flex(
-            rx.flex(
-                rx.icon("message-circle", class_name="stroke-zinc-700 dark:stroke-teal-800 h-6 w-6"),
+                # Card header
                 rx.flex(
-                    text("Reviews", class_name="text-xl font-bold"),
-                    text("-", class_name="text-xl font-bold"),
-                    text(HospitalState.selected_unit, class_name="font-bold text-xl"),
-                    class_name="space-x-2"
-                ),
-                class_name="flex-row items-center space-x-2",
-            ),
-        class_name="flex-col items-start bg-zinc-100 dark:bg-zinc-800 p-2 w-full"
-        ),
-
-        # Units subheader and unit selector.
-        rx.cond(
-            HospitalState.units_areas_roles_for_units,
-            flex(
-                flex(
                     rx.flex(
-                        text("Select: "),
-                        class_name="flex justify-center items-center whitespace-nowrap w-auto"
+                        icon("list-ordered", accent=True, class_name="h-5 w-5"),
+                        heading("Unit Rankings", size="sm"),
+                        class_name="flex-row items-center gap-2",
                     ),
                     rx.flex(
-                        rx.select(
-                            HospitalState.units_areas_roles_for_units,
-                            placeholder="Hospital Overall",
-                            value=HospitalState.selected_unit,
-                            position="popper",
-                            color_scheme="teal",
-                            on_change=HospitalState.set_selected_unit,
-                            width="100%"
+                        text(
+                            "Click a column header to sort.",
+                            size="xs",
+                            class_name="text-neutral-400 dark:text-neutral-600 italic",
                         ),
-                        class_name="w-full"
+                        rx.dialog.close(
+                            icon("x", muted=True, class_name="h-5 w-5 cursor-pointer"),
+                        ),
+                        class_name="flex-row items-center gap-4",
                     ),
-                    class_name="flex-row space-x-4 w-full",
+                    class_name=(
+                        "flex-row items-center justify-between w-full "
+                        "px-5 py-4 bg-emerald-500/10 dark:bg-white/[0.03] "
+                        "border-b border-neutral-300 dark:border-neutral-800/50"
+                    ),
                 ),
-                class_name="flex-col md:flex-row items-center p-4 space-y-4 md:space-y-0 w-full"
+                # Table header row
+                rx.flex(
+                    rx.flex(
+                        text("Unit", size="xs", class_name="text-neutral-400 dark:text-neutral-600 uppercase tracking-wide"),
+                        class_name="flex-1 min-w-0",
+                    ),
+                    _ratings_sort_header("Comp", "comp_overall"),
+                    _ratings_sort_header("Assign", "assign_overall"),
+                    _ratings_sort_header("Staff", "staff_overall"),
+                    _ratings_sort_header("Overall", "overall"),
+                    class_name=(
+                        "flex-row items-center gap-2 px-4 py-2.5 "
+                        "border-b border-neutral-300 dark:border-neutral-800/50"
+                    ),
+                ),
+                # Scrollable rows
+                rx.flex(
+                    rx.foreach(HospitalState.sorted_ratings_table, _ratings_table_row),
+                    class_name="flex-col overflow-y-auto max-h-80",
+                ),
+                # Score scale
+                rx.flex(
+                    rx.flex(
+                        rx.box(class_name="w-4 h-4 rounded bg-rose-300 dark:bg-rose-700 shrink-0"),
+                        text("Terrible", size="xs", class_name="text-neutral-500"),
+                        class_name="flex-row items-center gap-2",
+                    ),
+                    rx.flex(
+                        rx.box(class_name="w-4 h-4 rounded bg-amber-300 dark:bg-orange-700 shrink-0"),
+                        text("Bad", size="xs", class_name="text-neutral-500"),
+                        class_name="flex-row items-center gap-2",
+                    ),
+                    rx.flex(
+                        rx.box(class_name="w-4 h-4 rounded bg-yellow-200 dark:bg-yellow-500 shrink-0"),
+                        text("OK", size="xs", class_name="text-neutral-500"),
+                        class_name="flex-row items-center gap-2",
+                    ),
+                    rx.flex(
+                        rx.box(class_name="w-4 h-4 rounded bg-emerald-300 dark:bg-emerald-700 shrink-0"),
+                        text("Good", size="xs", class_name="text-neutral-500"),
+                        class_name="flex-row items-center gap-2",
+                    ),
+                    rx.flex(
+                        rx.box(class_name="w-4 h-4 rounded bg-sky-300 dark:bg-sky-700 shrink-0"),
+                        text("Great", size="xs", class_name="text-neutral-500"),
+                        class_name="flex-row items-center gap-2",
+                    ),
+                    class_name=(
+                        "flex-row flex-wrap gap-x-5 gap-y-2 "
+                        "px-5 py-3 "
+                        "border-t border-neutral-300 dark:border-neutral-800/50"
+                    ),
+                ),
+                class_name=(
+                    "flex-col w-full "
+                    "bg-emerald-500/20 dark:bg-white/[0.03] "
+                    "ring-[1.5px] ring-neutral-300 dark:ring-neutral-800/50 "
+                    "rounded-2xl overflow-hidden"
+                ),
             ),
+            class_name="max-w-2xl w-full !bg-white dark:!bg-[#0f1f13] shadow-none p-0",
         ),
-
-        # REVIEWS RATING
-        rx.cond(
-            HospitalState.units_areas_roles_for_units,
-            # If there are units to select.
-            flex(
-                # COMPENSATION POPOVER / RATING
-                rx.popover.root(
-                    rx.popover.trigger(
-                        flex(
-                            convert_to_large_emoji(HospitalState.selected_unit_info["comp_overall"]),
-                            rx.spacer(),
-                            rx.flex(
-                                rx.text("COMPENSATION", class_name="text-sm select-none"),
-                                rx.icon("circle-help", class_name="stroke-zinc-700 dark:stroke-zinc-700"),
-                                class_name="md:flex-col space-x-2 md:space-x-0 space-y-0 md:space-y-2 items-center"
-                            ),
-                            class_name="flex-row-reverse md:flex-col items-center justify-center px-6 py-4 md:space-y-1 w-full active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75 cursor-pointer",
-                        ),
-                    ),
-                    rx.popover.content(
-                        rx.flex(
-                            rx.text("Compensation is a subjective nurse-rated score."),
-                            rx.text("This score suggests how satisfied nurses are with their overall pay and benefits package."),
-                            class_name="space-y-2 flex-col max-w-sm"
-                        ),
-                        align="center",
-                        class_name="dark:bg-zinc-800"
-                    )
-                ),
-
-                # ASSIGNMENT POPOVER / RATING
-                rx.popover.root(
-                    rx.popover.trigger(
-                        flex(
-                            convert_to_large_emoji(HospitalState.selected_unit_info["assign_overall"]),
-                            rx.spacer(),
-                            rx.flex(
-                                rx.text("ASSIGNMENT", class_name="text-sm select-none"),
-                                rx.icon("circle-help", class_name="stroke-zinc-700 dark:stroke-zinc-700"),
-                                class_name="md:flex-col space-x-2 md:space-x-0 space-y-0 md:space-y-2 items-center"
-                            ),
-                            class_name="flex-row-reverse md:flex-col items-center justify-center px-6 py-4 md:space-y-1 w-full active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75 cursor-pointer",
-                        ),
-                    ),
-                    rx.popover.content(
-                        rx.flex(
-                            rx.text("Assignment is a subjective nurse-rated score."),
-                            rx.text("This score strongly tracks workplace culture and day-to-day experience alongside aides, co-workers, management, physicians, etc."),
-                            class_name="space-y-2 flex-col max-w-sm"
-                        ),
-                        align="center",
-                        class_name="dark:bg-zinc-800"
-                    )
-                ),
-
-                # STAFFING POPVER / RATING
-                rx.popover.root(
-                    rx.popover.trigger(
-                        flex(
-                            convert_to_large_emoji(HospitalState.selected_unit_info["staff_overall"]),
-                            rx.spacer(),
-                            rx.flex(
-                                rx.text("STAFFING", class_name="text-sm select-none"),
-                                rx.icon("circle-help", class_name="stroke-zinc-700 dark:stroke-zinc-700"),
-                                class_name="md:flex-col space-x-2 md:space-x-0 space-y-0 md:space-y-2 items-center"
-                            ),
-                            class_name="flex-row-reverse md:flex-col items-center justify-center px-6 py-4 md:space-y-1 w-full active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75 cursor-pointer",
-                        ),
-                    ),
-                    rx.popover.content(
-                        rx.flex(
-                            rx.text("Staffing is a subjective nurse-rated score."),
-                            rx.text("This is an indicator of how fair ratios and daily workloads might feel as a result of staffing decisions."),
-                            class_name="space-y-2 flex-col max-w-sm"
-                        ),
-                        align="center",
-                        class_name="dark:bg-zinc-800"
-                    )
-                ),
-
-                # OVERALL POPOVER / RATING
-                rx.popover.root(
-                    rx.popover.trigger(
-                        flex(
-                            convert_to_large_emoji(HospitalState.selected_unit_info["overall"]),
-                            rx.spacer(),
-                            rx.flex(
-                                rx.text("OVERALL", class_name="text-sm font-bold select-none"),
-                                rx.icon("circle-help", class_name="stroke-zinc-700 dark:stroke-zinc-700"),
-                                class_name="md:flex-col space-x-2 md:space-x-0 space-y-0 md:space-y-2 items-center"
-                            ),
-                            class_name="flex-row-reverse md:flex-col items-center justify-center px-6 py-4 md:space-y-1 w-full active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75 cursor-pointer",
-                        ),
-                    ),
-                    rx.popover.content(
-                        rx.flex(
-                            rx.text("This is an average using compensation, assignment, and staffing scores."),
-                            rx.text("This suggests the general satisfaction with the workplace across the major categories."),
-                            class_name="space-y-2 flex-col max-w-sm"
-                        ),
-                        align="center",
-                        class_name="dark:bg-zinc-800"
-                    )
-                ),
-                class_name="flex-col md:flex-row items-center justify-between divide-y md:divide-y-0 md:divide-x dark:divide-zinc-700 w-full",
-            ),
-            flex(
-                rx.text("No reports yet, check back later!"),
-                class_name="flex-col items-center p-6 w-full",
-            ),
-        ),
-        comments(),
-        class_name="flex-col items-center border rounded shadow-lg divide-y dark:divide-zinc-700 w-full"
     )
 
-def convert_to_large_emoji(rating: str) -> rx.Component:
-    return rx.match(
-        rating,
-        (1, rx.icon("angry", class_name="h-10 w-10 fill-red-400 stroke-[1.5] dark:stroke-zinc-700")),
-        (2, rx.icon("frown", class_name="h-10 w-10 fill-orange-400 stroke-[1.5] dark:stroke-zinc-700")),
-        (3, rx.icon("meh", class_name="h-10 w-10 fill-yellow-200 stroke-[1.5] dark:stroke-zinc-700")),
-        (4, rx.icon("smile", class_name="h-10 w-10 fill-green-500 stroke-[1.5] dark:stroke-zinc-700")),
-        (5, rx.icon("laugh", class_name="h-10 w-10 fill-blue-300 stroke-[1.5] dark:stroke-zinc-700")),
-    )
 
-def comments() -> rx.Component: 
-    """Comments section."""
+def _ratings_sort_header(label: str, col_key: str) -> rx.Component:
     return rx.flex(
+        text(
+            label,
+            size="xs",
+            class_name="text-neutral-400 dark:text-neutral-600 uppercase tracking-wide",
+        ),
+        rx.cond(
+            HospitalState.ratings_sort_col == col_key,
+            rx.cond(
+                HospitalState.ratings_sort_asc,
+                icon("chevron-up", muted=True, class_name="h-3 w-3"),
+                icon("chevron-down", muted=True, class_name="h-3 w-3"),
+            ),
+            rx.fragment(),
+        ),
+        on_click=HospitalState.set_ratings_sort(col_key),
+        class_name="w-20 flex-row items-center justify-center gap-1 cursor-pointer select-none hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors duration-150",
+    )
+
+
+def _ratings_table_row(row: dict) -> rx.Component:
+    return rx.flex(
+        rx.flex(
+            text(row["units_areas_roles"], size="sm", class_name="truncate"),
+            class_name="flex-1 min-w-0",
+        ),
+        _ratings_float_cell(row["comp_display"], row["comp_tier"]),
+        _ratings_float_cell(row["assign_display"], row["assign_tier"]),
+        _ratings_float_cell(row["staff_display"], row["staff_tier"]),
+        _ratings_float_cell(row["overall_display"], row["overall_tier"]),
+        class_name=(
+            "flex-row items-center gap-2 px-4 py-2.5 min-h-11 overflow-hidden shrink-0 "
+            "border-b border-neutral-200 dark:border-neutral-800/50 "
+            "last:border-b-0"
+        ),
+    )
+
+
+def _ratings_float_cell(display, tier) -> rx.Component:
+    text_class = "text-sm font-mono font-medium text-neutral-800 dark:text-neutral-100"
+    return rx.flex(
+        rx.text(display, class_name=text_class),
+        class_name=rx.match(
+            tier,
+            (5, "w-20 items-center justify-center rounded-md bg-sky-300 dark:bg-sky-700 py-1"),
+            (4, "w-20 items-center justify-center rounded-md bg-emerald-300 dark:bg-emerald-700 py-1"),
+            (3, "w-20 items-center justify-center rounded-md bg-yellow-200 dark:bg-yellow-500 py-1"),
+            (2, "w-20 items-center justify-center rounded-md bg-amber-300 dark:bg-orange-700 py-1"),
+            "w-20 items-center justify-center rounded-md bg-rose-300 dark:bg-rose-700 py-1",
+        ),
+    )
+
+
+def _ratings_section() -> rx.Component:
+    return rx.flex(
+        _card_header("star", "Ratings"),
+        # Context row: unit selector + advanced rankings
+        rx.cond(
+            HospitalState.units_areas_roles_for_units,
+            rx.flex(
+                rx.select(
+                    HospitalState.units_areas_roles_for_units,
+                    value=HospitalState.selected_unit,
+                    on_change=HospitalState.set_selected_unit,
+                    size="1",
+                ),
+                _ranking_dialog(),
+                class_name=(
+                    "flex-row items-center justify-between "
+                    "px-5 py-2.5 "
+                    "border-b border-neutral-300 dark:border-neutral-800/50"
+                ),
+            ),
+        ),
+        rx.cond(
+            HospitalState.units_areas_roles_for_units,
+            rx.flex(
+                _rating_tile(
+                    "Compensation",
+                    HospitalState.selected_unit_display["comp_overall_display"],
+                    HospitalState.selected_unit_display["comp_overall_tier"],
+                    "How satisfied nurses are with overall pay and benefits.",
+                ),
+                _rating_tile(
+                    "Assignment",
+                    HospitalState.selected_unit_display["assign_overall_display"],
+                    HospitalState.selected_unit_display["assign_overall_tier"],
+                    "Workplace culture, teamwork, management, and day-to-day experience.",
+                ),
+                _rating_tile(
+                    "Staffing",
+                    HospitalState.selected_unit_display["staff_overall_display"],
+                    HospitalState.selected_unit_display["staff_overall_tier"],
+                    "How fair nurse-to-patient ratios and daily workloads feel.",
+                ),
+                class_name=(
+                    "flex-col md:flex-row w-full "
+                    "divide-y md:divide-y-0 md:divide-x "
+                    "divide-neutral-300 dark:divide-neutral-800/50"
+                ),
+            ),
+            rx.flex(
+                icon("star", muted=True, class_name="h-8 w-8"),
+                text("No reports yet", weight="medium", class_name="mt-3"),
+                rx.text(
+                    "Ratings will appear once nurses submit reports for this hospital.",
+                    class_name=(
+                        "text-sm text-neutral-400 dark:text-neutral-600 "
+                        "text-center mt-1 max-w-xs"
+                    ),
+                ),
+                class_name=(
+                    "flex-col items-center justify-center text-center "
+                    "py-12 px-6"
+                ),
+            ),
+        ),
+        class_name=(
+            "flex-col "
+            "bg-emerald-500/20 dark:bg-white/[0.03] "
+            "ring-[1.5px] ring-neutral-300 dark:ring-neutral-800/50 "
+            "rounded-2xl overflow-hidden"
+        ),
+    )
+
+
+def _rating_tile(label: str, display, tier, description: str) -> rx.Component:
+    return rx.flex(
+        text(
+            label.upper(),
+            size="xs",
+            class_name="text-neutral-400 dark:text-neutral-600 uppercase tracking-widest text-left md:text-center",
+        ),
+        # Score group: horizontal on mobile (number + /5 inline), vertical on md+
+        rx.flex(
+            rx.skeleton(
+                rx.match(
+                    tier,
+                    (5, rx.text(display, class_name="text-2xl md:text-4xl font-bold font-mono tracking-tight text-sky-600 dark:text-sky-400")),
+                    (4, rx.text(display, class_name="text-2xl md:text-4xl font-bold font-mono tracking-tight text-emerald-600 dark:text-emerald-500")),
+                    (3, rx.text(display, class_name="text-2xl md:text-4xl font-bold font-mono tracking-tight text-yellow-500 dark:text-yellow-400")),
+                    (2, rx.text(display, class_name="text-2xl md:text-4xl font-bold font-mono tracking-tight text-amber-600 dark:text-amber-400")),
+                    (1, rx.text(display, class_name="text-2xl md:text-4xl font-bold font-mono tracking-tight text-rose-600 dark:text-rose-400")),
+                    rx.text(display, class_name="text-2xl md:text-4xl font-bold font-mono tracking-tight text-neutral-400 dark:text-neutral-600"),
+                ),
+                loading=~rx.State.is_hydrated,
+            ),
+            rx.flex(
+                text("/ 5", size="xs", class_name="text-neutral-400 dark:text-neutral-600"),
+                rx.tooltip(
+                    icon("circle-help", muted=True, class_name="h-3.5 w-3.5 cursor-help"),
+                    content=description,
+                    delay_duration=200,
+                ),
+                class_name="flex-row items-center gap-2",
+            ),
+            class_name="flex-row items-center gap-2 md:flex-col md:items-center md:gap-1",
+        ),
+        class_name=(
+            "flex-row items-center justify-between "
+            "md:flex-col md:items-center md:justify-center md:text-center "
+            "flex-1 px-4 py-3 md:py-6 gap-2 md:gap-1"
+        ),
+    )
+
+
+# ---------------------------------------------------------------------------
+# Section 5 — Reviews
+# ---------------------------------------------------------------------------
+
+def _reviews_section() -> rx.Component:
+    return rx.flex(
+        _card_header("message-circle", "Reviews"),
+        # Context row: unit selector
+        rx.cond(
+            HospitalState.units_areas_roles_for_units,
+            rx.flex(
+                rx.select(
+                    HospitalState.units_areas_roles_for_units,
+                    value=HospitalState.selected_review_unit,
+                    on_change=HospitalState.set_selected_review_unit,
+                    size="1",
+                ),
+                class_name=(
+                    "flex-row items-center "
+                    "px-5 py-2.5 "
+                    "border-b border-neutral-300 dark:border-neutral-800/50"
+                ),
+            ),
+        ),
         rx.cond(
             HospitalState.review_info,
-            # REVIEWS PRESENT
-            flex(
-                rx.foreach(
-                    HospitalState.paginated_review_info,
-                    response_card,
-                ),
-                class_name="flex-col divide-y w-full",
-            ),
-            # REVIEWS NOT PRESENT
-            flex(
-                rx.text("No reports yet, check back later!"),
-                class_name="flex-col items-center p-6 w-full",
-            ),
-        ),
-
-        # Paginated reviews if multiple pages.
-        rx.cond(
-            (HospitalState.num_review_pages > 1),
             rx.flex(
                 rx.flex(
-                    rx.icon("arrow-left"),
-                    on_click=HospitalState.previous_review_page,
-                    class_name="flex justify-center p-4 w-full active:bg-zinc-200 transition-colors duration-75 cursor-pointer"
+                    rx.foreach(HospitalState.paginated_review_info, _review_card),
+                    class_name=(
+                        "flex-col divide-y "
+                        "divide-neutral-300 dark:divide-neutral-800/50"
+                    ),
                 ),
+                rx.box(class_name="flex-1"),
+                rx.cond(
+                    HospitalState.num_review_pages > 1,
+                    _review_pagination(),
+                ),
+                class_name="flex-col flex-1",
+            ),
+            rx.flex(
+                icon("message-circle", muted=True, class_name="h-8 w-8"),
+                text("No reviews yet", weight="medium", class_name="mt-3"),
                 rx.text(
-                    f"{HospitalState.current_review_page} of {HospitalState.num_review_pages}",
-                    class_name="flex justify-center p-4 w-full"
+                    "Reviews will appear once nurses submit reports with comments.",
+                    class_name=(
+                        "text-sm text-neutral-400 dark:text-neutral-600 "
+                        "text-center mt-1 max-w-xs"
+                    ),
                 ),
-                rx.flex(
-                    rx.icon("arrow-right"),
-                    on_click=HospitalState.next_review_page,
-                    class_name="flex justify-center p-4 w-full active:bg-zinc-200 transition-colors duration-75 cursor-pointer"
+                class_name=(
+                    "flex-col items-center justify-center text-center "
+                    "py-12 px-6"
                 ),
-                class_name="flex-row divide-x dark:divide-zinc-700 w-full"
             ),
         ),
-        class_name="flex-col items-center divide-y dark:divide-zinc-700 w-full"
+        class_name=(
+            "flex-col "
+            "bg-emerald-500/20 dark:bg-white/[0.03] "
+            "ring-[1.5px] ring-neutral-300 dark:ring-neutral-800/50 "
+            "rounded-2xl overflow-hidden"
+        ),
     )
 
-def response_card(review: dict[str, str]) -> rx.Component:
-    """
-    Renders the review card for the hospital overview.
 
-    Dict:
-        user_id
-        created_at
-        comp_input_comments
-        assign_input_comments
-        staffing_input_comments
-        unit
-        area_role
-
-    """
-    return flex(
+def _review_card(review: dict) -> rx.Component:
+    return rx.flex(
+        # Header row: unit badge + timestamp
         rx.flex(
-            flex(
-                rx.text(review["units_areas_roles"], class_name="text-lg"),
-                rx.spacer(),
-                flex(
-                    text(review["time_ago"], class_name="text-xs uppercase"),
-                ),
-                class_name="flex-row items-center w-full"
+            rx.skeleton(
+                badge(review["units_areas_roles"], variant="sky"),
+                loading=~rx.State.is_hydrated,
             ),
-            rx.flex(
-                rx.cond(
-                    review["comp_comments"],
-                    flex(text(review["comp_comments"]), width="100%"),
+            rx.skeleton(
+                text(
+                    review["time_ago"],
+                    size="xs",
+                    class_name="text-neutral-400 dark:text-neutral-600 uppercase tracking-wide whitespace-nowrap",
                 ),
-                rx.cond(
-                    review["assign_comments"],
-                    flex(text(review["assign_comments"]), width="100%"),
-                ),
-                rx.cond(
-                    review["staff_comments"],
-                    flex(text(review["staffing_comments"]), width="100%"),
-                ),
-                class_name="flex-col space-y-1 p-4 w-full"
+                loading=~rx.State.is_hydrated,
             ),
-            # flex(
-            #     rx.cond(
-            #         review["user_has_liked"],
-            #         # If user has liked the review
-            #         flex(
-            #             rx.button(
-            #                 rx.icon("heart", class_name="h-5 w-5 pr-1 stroke-rose-500 fill-rose-500"),
-            #                 rx.text(review["likes_number"], class_name="text-rose-500"),
-            #                 variant="ghost",
-            #                 cursor="pointer",
-            #                 _hover={"bg": "none"},
-            #                 on_click=HospitalState.event_state_like_unlike_review(
-            #                     review
-            #                 ),
-            #             ),
-            #             class_name="flex-row items-center",
-            #         ),
-            #         # If user hasn't liked review
-            #         flex(
-            #             rx.button(
-            #                 rx.icon("heart", class_name="h-5 w-5 pr-1 stroke-rose-500"),
-            #                 rx.text(review["likes_number"], class_name="text-rose-500"),
-            #                 variant="ghost",
-            #                 cursor="pointer",
-            #                 _hover={"bg": "none"},
-            #                 on_click=HospitalState.event_state_like_unlike_review(
-            #                     review
-            #                 ),
-            #             )
-            #         ),
-            #     ),
-            #     class_name="flex-row items-center justify-end w-full",
-            # ),
-            class_name="flex-col w-full",
+            class_name="flex-row items-center justify-between gap-3 w-full",
         ),
-        class_name="p-4 w-full",
+        # Comment rows
+        rx.cond(
+            review["comp_comments"],
+            rx.flex(
+                text(
+                    "Compensation",
+                    size="xs",
+                    class_name="text-neutral-400 dark:text-neutral-600 uppercase tracking-widest shrink-0 mt-0.5",
+                ),
+                text(review["comp_comments"], size="sm"),
+                class_name="flex-col gap-1 w-full",
+            ),
+        ),
+        rx.cond(
+            review["assign_comments"],
+            rx.flex(
+                text(
+                    "Assignment",
+                    size="xs",
+                    class_name="text-neutral-400 dark:text-neutral-600 uppercase tracking-widest shrink-0 mt-0.5",
+                ),
+                text(review["assign_comments"], size="sm"),
+                class_name="flex-col gap-1 w-full",
+            ),
+        ),
+        rx.cond(
+            review["staff_comments"],
+            rx.flex(
+                text(
+                    "Staffing",
+                    size="xs",
+                    class_name="text-neutral-400 dark:text-neutral-600 uppercase tracking-widest shrink-0 mt-0.5",
+                ),
+                text(review["staff_comments"], size="sm"),
+                class_name="flex-col gap-1 w-full",
+            ),
+        ),
+        class_name="flex-col gap-3 px-5 py-4 w-full",
+    )
+
+
+def _review_pagination() -> rx.Component:
+    return rx.flex(
+        rx.flex(
+            icon("arrow-left", muted=True, class_name="h-4 w-4"),
+            on_click=HospitalState.previous_review_page,
+            class_name=(
+                "flex items-center justify-center flex-1 py-3 "
+                "hover:bg-neutral-100 dark:hover:bg-neutral-800 "
+                "transition-colors duration-150 cursor-pointer"
+            ),
+        ),
+        rx.flex(
+            rx.text(
+                HospitalState.current_review_page,
+                " / ",
+                HospitalState.num_review_pages,
+                class_name="text-sm text-neutral-400 dark:text-neutral-600",
+            ),
+            class_name="flex items-center justify-center flex-1 py-3",
+        ),
+        rx.flex(
+            icon("arrow-right", muted=True, class_name="h-4 w-4"),
+            on_click=HospitalState.next_review_page,
+            class_name=(
+                "flex items-center justify-center flex-1 py-3 "
+                "hover:bg-neutral-100 dark:hover:bg-neutral-800 "
+                "transition-colors duration-150 cursor-pointer"
+            ),
+        ),
+        class_name=(
+            "flex-row "
+            "divide-x divide-neutral-300 dark:divide-neutral-800/50 "
+            "border-t border-neutral-300 dark:border-neutral-800/50"
+        ),
+    )
+
+
+# ---------------------------------------------------------------------------
+# Shared card header helper (mirrors dashboard._card_header)
+# ---------------------------------------------------------------------------
+
+def _card_header(icon_tag: str, title: str, action=None) -> rx.Component:
+    return rx.flex(
+        rx.box(
+            class_name=(
+                "absolute inset-0 "
+                "pointer-events-none"
+            ),
+        ),
+        rx.flex(
+            icon(icon_tag, accent=True, class_name="h-5 w-5 relative"),
+            heading(title, size="sm", class_name="relative"),
+            class_name="flex-row items-center gap-2",
+        ),
+        action or rx.fragment(),
+        class_name=(
+            "relative flex-row items-center justify-between "
+            "px-5 py-4 overflow-hidden bg-emerald-500/10 dark:bg-white/[0.03] "
+            "border-b border-neutral-300 dark:border-neutral-800/50"
+        ),
     )

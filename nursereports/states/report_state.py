@@ -2,7 +2,7 @@ from . import constants_types
 from ..states import HospitalState, PageState
 from datetime import datetime, timezone
 from loguru import logger
-from groq import Groq
+import httpx
 from typing import Callable, Iterable, Literal
 
 import copy
@@ -11,8 +11,8 @@ import uuid
 import reflex as rx
 import textwrap
 
+# Import our .env from rx.config
 _config = rx.config.get_config()
-
 
 class ReportState(PageState):
     """
@@ -169,6 +169,13 @@ class ReportState(PageState):
             self.staffing_check_educator = report["staffing"]["resources"]["educator"]
             self.staffing_select_overall = report["staffing"]["ratings"]["overall"]
             self.staffing_input_comments = report["staffing"]["comments"]
+
+            # Load research section if present (may be absent on older reports).
+            research = report.get("research") or {}
+            self.research_select_leaving = research.get("leaving", "")
+            self.research_select_mental_health = research.get("mental_health", "")
+            self.research_select_career_rating = research.get("career_rating", 0)
+            self.research_input_comments = research.get("comments", "")
 
             # Navigate to the first page of report edit page.
             yield rx.redirect("/report/edit/compensation")
@@ -757,6 +764,12 @@ class ReportState(PageState):
     staffing_select_overall: int = 0
     staffing_input_comments: str = ""
 
+    # Research section
+    research_select_leaving: str = ""
+    research_select_mental_health: str = ""
+    research_select_career_rating: int = 0
+    research_input_comments: str = ""
+
     def set_staffing_select_ratio(self, ratio: str) -> None:
         self.staffing_select_ratio = ratio
         self.staffing_input_actual_ratio = 0
@@ -798,6 +811,10 @@ class ReportState(PageState):
             return 1000 - len(self.staffing_input_comments)
         else:
             return 1000
+
+    @rx.var
+    def research_input_comments_chars_left(self) -> int:
+        return 500 - len(self.research_input_comments) if self.research_input_comments else 500
 
     def handle_submit_staffing(self) -> Callable | Iterable[Callable]:
         # Check our values for completion.
@@ -926,7 +943,45 @@ class ReportState(PageState):
                 "ratings": {"overall": self.staffing_select_overall},
                 "comments": self.staffing_input_comments,
             }
-            yield ReportState.submit_full_report()
+            yield ReportState.set_user_is_loading(False)
+            return rx.redirect(f"/report/{self.mode}/research")
+
+    def handle_submit_research(self) -> Callable | Iterable[Callable]:
+        # Check our values for completion.
+        yield ReportState.set_user_is_loading(True)
+        if (
+            not self.research_select_leaving
+            or not self.research_select_mental_health
+            or not self.research_select_career_rating
+        ):
+            yield ReportState.set_user_is_loading(False)
+            return rx.toast.error(
+                "Missing information. Please check form and complete required questions.",
+                close_button=True,
+            )
+
+        # Check all our values for validity.
+        if (
+            self.research_select_leaving not in ["Yes", "No"]
+            or self.research_select_mental_health not in ["Yes", "No"]
+            or not isinstance(self.research_select_career_rating, int)
+            or not (1 <= self.research_select_career_rating <= 5)
+            or not isinstance(self.research_input_comments, str)
+        ):
+            yield ReportState.set_user_is_loading(False)
+            return rx.toast.error(
+                "Validity check failed. Contact support if problem persists.",
+                close_button=True,
+            )
+
+        # If all checks complete and everything is groovy.
+        self.report_dict["research"] = {
+            "leaving": self.research_select_leaving,
+            "mental_health": self.research_select_mental_health,
+            "career_rating": self.research_select_career_rating,
+            "comments": self.research_input_comments,
+        }
+        yield ReportState.submit_full_report()
 
     #################################################################
     # REPORT SUBMISSION \ HANDLERS
@@ -944,6 +999,7 @@ class ReportState(PageState):
                 and self.report_dict["compensation"]
                 and self.report_dict["assignment"]
                 and self.report_dict["staffing"]
+                and self.report_dict["research"]
             ):
                 return rx.toast.error(
                     "Data corrupted. Recheck report for completion. If this persists, please contact support.",
@@ -1062,41 +1118,45 @@ class ReportState(PageState):
         try:
             job_location = f"{self.assign_input_unit} {self.assign_input_area} {self.assign_input_role}".strip()
             comments = f"{self.comp_input_comments} {self.assign_input_comments} {self.staffing_input_comments}".strip()
-            ai_moderation_model = "llama-3.3-70b-versatile"
 
             if job_location or comments:
                 if not job_location:
                     job_location = "EMPTY"
                 if not comments:
                     comments = "EMPTY"
-                client = Groq(api_key=_config.groq_key)
-                completion = client.chat.completions.create(
-                    model=ai_moderation_model,
-                    messages=[
-                        {
-                            "role": "system",
-                            "content": textwrap.dedent("""
-                                You moderate entries for a nurse review site. Entries may contain location data about where nurse works at hospital.
-                                Entries may also contain comments nurses are allowed to share to their peers about pay, staffing, or work environment.
-                                Output responses as JSON. Under key 'flagged', output a 1 for invalid entries flagged for containing violence, protected
-                                health info, off-topic entries, nonsensical content, spam, advertisements, racism, sexism, or doxxing otherwise if valid
-                                output a 0. Profanity and content conveying strong emotions is acceptable given it's on topic. Under key 'reason', if
-                                entry is flagged give brief rationale otherwise output ''.
-                                """),
-                        },
-                        {
-                            "role": "user",
-                            "content": f"User location or role: {job_location}. User comments: {comments}",
-                        },
-                    ],
-                    temperature=0.7,
-                    max_completion_tokens=1024,
-                    top_p=1,
-                    stream=False,
-                    response_format={"type": "json_object"},
-                    stop=None,
+                response = httpx.post(
+                    url=f"{_config.openrouter_api_url}",
+                    headers={
+                        "Authorization": f"Bearer {_config.openrouter_key}",
+                        "X-OpenRouter-Title": "NurseReports",
+                    },
+                    json={
+                        "model": f"{_config.openrouter_moderator_model}",
+                        "messages": [
+                            {
+                                "role": "system",
+                                "content": textwrap.dedent("""
+                                    Moderate entries for nurse review site. Output responses as JSON.
+                                    Nurses are allowed to submit info about pay, staffing, or work environment.
+                                    Under key 'flagged', output 1 for bad submissions containing violence, protected
+                                    health info, off-topic entries, spam, advertisements, racism, sexism, or doxxing.
+                                    If valid output a 0. Profanity and strong emotions OK given it's on topic.
+                                    Under key 'reason', if entry flagged give brief rationale otherwise output ''.
+                                    """),
+                            },
+                            {
+                                "role": "user",
+                                "content": f"User location or role: {job_location}. User comments: {comments}",
+                            },
+                        ],
+                        "temperature": 0.7,
+                        "max_tokens": 1024,
+                        "response_format": {"type": "json_object"},
+                    },
+                    timeout=30.0,
                 )
-                content = json.loads(completion.choices[0].message.content)
+                response.raise_for_status()
+                content = json.loads(response.json()["choices"][0]["message"]["content"])
 
                 # If moderation successful assign result, else assign an unmoderated result.
                 if "flagged" and "reason" in content:

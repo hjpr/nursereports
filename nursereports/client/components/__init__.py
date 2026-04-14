@@ -1,4 +1,5 @@
 from .c2a import *
+from .confetti import *
 from .custom import *
 from .hospital_item import *
 from .footer import *

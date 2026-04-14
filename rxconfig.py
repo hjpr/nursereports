@@ -35,7 +35,9 @@ config = rx.Config(
         "service_role": os.getenv("service_role"),
         "let_jwt_expire": False,
     },
-    groq_key=os.getenv("GROQ_KEY"),
+    openrouter_api_url=os.getenv("OPENROUTER_API_URL"),
+    openrouter_key=os.getenv("OPENROUTER_KEY"),
+    openrouter_moderator_model="google/gemma-4-31b-it"
     mailgun_url=os.getenv("MAILGUN_URL"),
     mailgun_api_key=os.getenv("MAILGUN_API_KEY"),
 )

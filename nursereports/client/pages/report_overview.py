@@ -1,9 +1,11 @@
 from ..components import (
-    flex,
-    navbar,
+    button,
+    heading,
+    icon,
     login_protected,
     text,
 )
+from .navbar import navbar
 from ...states import BaseState, ReportState, UserState
 
 import reflex as rx
@@ -22,172 +24,148 @@ import reflex as rx
 def overview_page() -> rx.Component:
     return rx.flex(
         navbar(),
-        content(),
-        class_name="flex-col items-center dark:bg-zinc-900 min-h-screen w-full"
+        _content(),
+        class_name=(
+            "flex-col items-center "
+            "bg-neutral-50 dark:bg-[#07100a] "
+            "min-h-screen w-full"
+        ),
     )
 
-def content() -> rx.Component:
+
+def _content() -> rx.Component:
     return rx.flex(
-        hospital_info(),
-        class_name="flex-col items-center space-y-12 px-4 py-4 md:py-20 w-full max-w-screen-sm",
+        _hospital_card(),
+        class_name=(
+            "flex-col gap-4 "
+            "w-full max-w-screen-sm "
+            "mx-auto px-4 pt-4 md:pt-10 pb-10"
+        ),
     )
 
-def hospital_info() -> rx.Component:
-    return flex(
-        # Main header
+
+# ---------------------------------------------------------------------------
+# Card header helper
+# ---------------------------------------------------------------------------
+
+def _card_header(icon_tag: str, title: str) -> rx.Component:
+    return rx.flex(
+        rx.box(class_name="absolute inset-0 pointer-events-none"),
         rx.flex(
+            icon(icon_tag, accent=True, class_name="h-5 w-5 relative"),
+            heading(title, size="sm", class_name="relative"),
+            class_name="flex-row items-center gap-2",
+        ),
+        class_name=(
+            "relative flex-row items-center "
+            "px-5 py-4 overflow-hidden bg-emerald-500/10 dark:bg-white/[0.03] "
+            "border-b border-neutral-300 dark:border-neutral-800/50"
+        ),
+    )
+
+
+# ---------------------------------------------------------------------------
+# Hospital overview card
+# ---------------------------------------------------------------------------
+
+def _hospital_card() -> rx.Component:
+    return rx.flex(
+        _card_header(
+            "file-text",
             rx.match(
                 ReportState.mode,
-                (
-                    "edit", rx.flex(
-                        text("Editing report", class_name="text-2xl font-bold"),
-                        class_name="flex-row items-center space-x-2",
-                    )
-                ),
-                (
-                    "full-report", rx.flex(
-                        text("Submitting Full Report", class_name="text-2xl font-bold"),
-                        class_name="flex-row items-center space-x-2",
-                    )
-                ),
-                (
-                    "pay-report", rx.flex(
-                        text("Submitting Pay Report", class_name="text-2xl font-bold"),
-                        class_name="flex-row items-center space-x-2",
-                    )
-                ),
-                (
-                    "red-flag", rx.flex(
-                        text("Red Flag Report", class_name="text-2xl font-bold"),
-                        class_name="flex-row items-center space-x-2",
-                    )
-                )
+                ("edit", "Editing Report"),
+                ("full-report", "Submitting Full Report"),
+                ("pay-report", "Submitting Pay Report"),
+                ("red-flag", "Red Flag Report"),
+                "Submit Report",
             ),
-            class_name="flex-col items-center bg-zinc-100 dark:bg-zinc-800 p-6 w-full"
         ),
-        # Hospital header
-        flex(
-            flex(
-                rx.skeleton(
-                    text(
-                        ReportState.hospital_info["hosp_name"],
-                        class_name="font-bold text-center text-2xl",
-                    ),
-                    loading=~rx.State.is_hydrated,
-                ),
-                rx.skeleton(
-                    text(
-                        ReportState.hospital_info["hosp_addr"],
-                        class_name="text-md"
-                    ),
-                    loading=~rx.State.is_hydrated,
-                ),
-                rx.skeleton(
-                    text(
-                        f'{ReportState.hospital_info["hosp_city"]}, {ReportState.hospital_info["hosp_state"]} {ReportState.hospital_info["hosp_zip"]}',
-                        class_name="text-md",
-                    ),
-                    loading=~rx.State.is_hydrated,
-                ),
-                class_name="flex-col items-center space-y-1 w-full",
-            ),
-            class_name="p-6 w-full",
-        ),
-        # Anonymous
+        # Hospital identity
         rx.flex(
-            rx.flex(
-                rx.flex(
-                    rx.icon("eye", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
-                    class_name="flex-col justify-center items-center h-8 w-8",
+            rx.skeleton(
+                heading(
+                    ReportState.hospital_info["hosp_name"],
+                    size="lg",
+                    class_name="relative",
                 ),
+                loading=~rx.State.is_hydrated,
+            ),
+            rx.skeleton(
                 text(
-                    """
-                    All reporting is anonymous. No personal details
-                    are attached to your report.
-                    """,
+                    ReportState.hospital_info["hosp_addr"],
+                    class_name="relative text-neutral-500 dark:text-neutral-400 mt-0.5",
                 ),
-                class_name="flex-row justify-start items-center space-x-4 w-full",
+                loading=~rx.State.is_hydrated,
             ),
-            class_name="flex-col p-6 w-full",
-        ),
-        # Affiliations
-        rx.flex(
-            rx.flex(
-                rx.flex(
-                    rx.icon("stethoscope", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
-                    class_name="flex-col justify-center items-center h-8 w-8",
-                ),
+            rx.skeleton(
                 text(
-                    """
-                    I am not affiliated with hospital interests. These reports are gathered
-                    for the benefit of the nursing community across the US.
-                    """,
+                    ReportState.hospital_info["hosp_city"],
+                    ", ",
+                    ReportState.hospital_info["hosp_state"],
+                    " ",
+                    ReportState.hospital_info["hosp_zip"],
+                    class_name="relative text-neutral-500 dark:text-neutral-400",
                 ),
-                class_name="flex-row justify-start items-center space-x-4 w-full",
+                loading=~rx.State.is_hydrated,
             ),
-            class_name="flex-col p-6 w-full",
+            class_name="flex-col relative px-5 py-6 border-b border-neutral-300 dark:border-neutral-800/50",
         ),
-        # Time
-        rx.flex(
-            rx.flex(
-                rx.flex(
-                    rx.icon("clock-1", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
-                    class_name="flex-col justify-center items-center h-8 w-8",
-                ),
-                text(
-                    """
-                    Your time is valuable. This should only take
-                    about 5 minutes. 
-                    """,
-                ),
-                class_name="flex-row justify-start items-center space-x-4 w-full",
-            ),
-            class_name="flex-col p-6 w-full",
+        # Info rows
+        _info_row(
+            "eye-off",
+            "All reporting is anonymous. No details are attached to your report beyond what you choose to share.",
         ),
-        # Navigation buttons
+        _info_row(
+            "stethoscope",
+            "We're not associated with corporate interests. Your report helps a fellow nurse make a more informed decision about where to work.",
+        ),
+        _info_row(
+            "clock",
+            "Your time is valuable. This should only take about 5-7 minutes.",
+        ),
+        # Navigation
         rx.flex(
-            rx.flex(
-                rx.match(
-                    ReportState.mode,
-                    (
-                        "edit", rx.flex(
-                            rx.icon("arrow-left", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
-                            rx.text("Back", class_name="font-bold select-none"),
-                            on_click=rx.redirect("/dashboard"),
-                            class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer"
-                        )
+            rx.cond(
+                ReportState.mode == "edit",
+                button(
+                    "Back",
+                    variant="outline",
+                    on_click=rx.redirect("/dashboard"),
+                ),
+                rx.cond(
+                    UserState.user_needs_onboarding,
+                    button(
+                        "Back",
+                        variant="outline",
+                        on_click=rx.redirect("/search/hospital"),
                     ),
-                    (
-                        ("full-report" or "pay-report" or "red-flag"),
-                        rx.cond(
-                            UserState.user_needs_onboarding,
-                            rx.flex(
-                                rx.icon("arrow-left", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
-                                rx.text("Back", class_name="font-bold select-none"),
-                                on_click=rx.redirect("/search/hospital"),
-                                class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer"
-                            ),
-                            rx.flex(
-                                rx.icon("arrow-left", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
-                                rx.text("Back", class_name="font-bold select-none"),
-                                on_click=rx.redirect(f"/hospital/{ReportState.hospital_id}"),
-                                class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer"
-                            )
-                        ),
-                    )
+                    button(
+                        "Back",
+                        variant="outline",
+                        on_click=rx.redirect(f"/hospital/{ReportState.hospital_id}"),
+                    ),
                 ),
-                class_name="flex-col w-full active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75 cursor-pointer"
             ),
-            rx.flex(
-                rx.flex(
-                    rx.text("Next", class_name="font-bold select-none"),
-                    rx.icon("arrow-right", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
-                    on_click=rx.redirect(f"/report/{ReportState.mode}/compensation"),
-                    class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer"
-                ),
-                class_name="flex-col w-full active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75 cursor-pointer"
+            button(
+                "Next",
+                variant="solid",
+                on_click=rx.redirect(f"/report/{ReportState.mode}/compensation"),
             ),
-            class_name="flex-row divide-x dark:divide-zinc-700 w-full"
+            class_name="flex-row justify-between gap-3 px-5 py-4",
         ),
-        class_name="flex-col items-center border rounded shadow-lg divide-y dark:divide-zinc-700 w-full",
+        class_name=(
+            "flex-col "
+            "bg-emerald-500/20 dark:bg-white/[0.03] "
+            "ring-[1.5px] ring-neutral-300 dark:ring-neutral-800/50 "
+            "rounded-2xl overflow-hidden"
+        ),
+    )
+
+
+def _info_row(icon_tag: str, message: str) -> rx.Component:
+    return rx.flex(
+        icon(icon_tag, accent=True, class_name="h-5 w-5 shrink-0 mt-0.5"),
+        text(message, size="sm", class_name="text-neutral-600 dark:text-neutral-400"),
+        class_name="flex-row items-start gap-4 px-5 py-4 border-b border-neutral-300 dark:border-neutral-800/50",
     )

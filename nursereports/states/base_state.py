@@ -22,6 +22,8 @@ class BaseState(UserState):
     def event_state_refresh_login(self) -> Callable | None:
         """Runs on_load prior to every page that may need login information."""
         try:
+            if not self.user_claims_authenticated and self.refresh_token:
+                self.refresh_access_token()
             if self.user_claims_authenticated and not self.user_claims_expired:
                 if (
                     self.user_claims_expiring
@@ -29,8 +31,9 @@ class BaseState(UserState):
                     and self.refresh_token
                 ):
                     self.refresh_access_token()
-                else:
-                    return None
+                if not self.user_info:
+                    self.get_user_info()
+                return None
             if self.user_claims_authenticated and self.user_claims_expired:
                 self.restore_page_after_login = self.router.page.full_raw_path
                 self.access_token = ""
@@ -86,7 +89,7 @@ class BaseState(UserState):
         """Requires user to be logged in and have intial report submitted."""
         try:
             if self.user_needs_onboarding:
-                return rx.redirect("/onboard")
+                return rx.redirect("/onboard/welcome")
 
             if not self.user_claims_authenticated:
                 return rx.redirect("/")

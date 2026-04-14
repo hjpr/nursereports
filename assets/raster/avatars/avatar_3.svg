@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <circle cx="32" cy="32" r="32" fill="#10b981"/>
+  <!-- Shield -->
+  <path d="M32 16 L46 22 L46 32 C46 40 32 48 32 48 C32 48 18 40 18 32 L18 22 Z" fill="white" opacity="0.95"/>
+  <!-- Plus cross inside shield -->
+  <line x1="32" y1="26" x2="32" y2="38" stroke="#10b981" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="26" y1="32" x2="38" y2="32" stroke="#10b981" stroke-width="2.5" stroke-linecap="round"/>
+</svg>

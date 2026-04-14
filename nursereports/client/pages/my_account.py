@@ -1,107 +1,264 @@
 from ..components import (
-    flex,
-    footer,
-    navbar,
+    button,
+    heading,
     text,
+    badge,
+    icon,
 )
+from .navbar import navbar
+from .footer import footer
 from ...states import BaseState, UserState
 
 import reflex as rx
-
 
 @rx.page(
     route="/my-account",
     title="Nurse Reports",
     on_load=[
         BaseState.event_state_refresh_login,
-        BaseState.event_state_requires_login
-    ]
+        BaseState.event_state_requires_login,
+    ],
 )
 def my_account_page() -> rx.Component:
     return rx.flex(
         navbar(),
-        content(),
+        _content(),
         footer(),
-        class_name="flex-col dark:bg-zinc-900 items-center w-full min-h-screen",
+        class_name="flex-col items-center bg-emerald-50 dark:bg-[#07100a] w-full min-h-svh",
     )
 
 
-def content() -> rx.Component:
+def _content() -> rx.Component:
     return rx.flex(
-        heading(),
-        account(),
-        class_name="flex-col grow items-center space-y-4 md:space-y-12 px-4 py-4 md:py-20 w-full md:max-w-screen-md",
-    )
-
-def heading() -> rx.Component:
-    return rx.flex(
-        rx.flex(
-            rx.icon("circle-user-round", class_name="h-6 w-6 stroke-teal-800"),
-            text("My Account", class_name="text-2xl font-bold"),
-            class_name="bg-transparent flex-row items-center space-x-2",
+        _profile_header(),
+        _middle_row(),
+        _danger_zone(),
+        class_name=(
+            "flex-col gap-4 md:gap-8 "
+            "w-full max-w-screen-lg "
+            "px-4 md:px-8 pt-4 md:pt-16 pb-24 md:pb-48"
         ),
-        class_name="flex-col items-center border dark:border-zinc-700 rounded shadow-lg bg-zinc-100 dark:bg-zinc-800 p-4 w-full",
     )
 
-def account() -> rx.Component:
-    return flex(
-        rx.flex(
 
-            # Avatar panel.
-            rx.flex(
-                rx.avatar(size="7", fallback="RN", color_scheme="teal", class_name="mb-4"),
-                rx.flex(
-                    rx.icon("mail", class_name="h-4 w-4 stroke-zinc-700"),
-                    rx.text(UserState.user_claims_email, class_name="text-sm"),
-                    class_name="flex-row items-center space-x-4 w-full"
-                ),
-                rx.flex(
-                    rx.icon("square-user-round", class_name="h-4 w-4 stroke-zinc-700"),
-                    rx.text(UserState.user_claims_id, class_name="text-sm"),
-                    class_name="space-x-4 w-full"
-                ),
-                class_name="flex-col p-8 space-y-2 w-full"
+# ---------------------------------------------------------------------------
+# Section 1 — Profile header
+# ---------------------------------------------------------------------------
+
+def _profile_header() -> rx.Component:
+    return rx.flex(
+        # Wiggle texture overlay
+        rx.box(
+            class_name=(
+                "wiggle-card absolute inset-0 "
+                "pointer-events-none"
             ),
-
-            # User info panel.
-            rx.flex(
-                rx.flex(
-                    rx.text("User Info", class_name="font-bold"),
-                    class_name="justify-center bg-zinc-100 dark:bg-zinc-800 p-2"
-                ),
-                rx.flex(
-                    rx.text(f"License Type: {UserState.user_info_license_type}", class_name="text-sm"),
-                    rx.text(f"License State: {UserState.user_info_license_state}", class_name="text-sm"),
-                    rx.text(f"Experience: {UserState.user_info_experience}", class_name="text-sm"),
-                    class_name="flex-col space-y-2 p-8 w-full"
-                ),
-                rx.flex(
-                    rx.text("Specialties", class_name="font-bold"),
-                    class_name="justify-center bg-zinc-100 dark:bg-zinc-800 p-2"
-                ),
-                rx.flex(
-                    rx.foreach(
-                        UserState.user_info_specialties,
-                        lambda x: rx.badge(x, color_scheme="teal", class_name="mr-2")
-                    ),
-                    class_name="flex-row inline space-y-2 p-8 w-full"
-                ),
-                class_name="flex-col divide-y dark:divide-zinc-700 w-full"
-            ),
-
-            class_name="flex-col md:flex-row divide-y md:divide-y-0 md:divide-x dark:divide-zinc-700 w-full"
         ),
-        logout(),
-        class_name="flex-col border rounded shadow-lg bg-zinc-100 dark:bg-zinc-800 divide-y dark:divide-zinc-700 w-full",
+        # Left: avatar + email
+        rx.flex(
+            rx.avatar(fallback="RN", size="5", color_scheme="green"),
+            text(UserState.user_claims_email, weight="semibold", class_name="relative"),
+            class_name="flex-row items-center gap-4 relative",
+        ),
+        # Right: account ID (hidden on mobile)
+        rx.flex(
+            rx.text(
+                "Account ID",
+                class_name="text-xs text-neutral-400 dark:text-neutral-600 uppercase tracking-widest mb-1",
+            ),
+            rx.text(
+                UserState.user_claims_id,
+                class_name="text-xs font-mono text-neutral-500 dark:text-neutral-400 break-all",
+            ),
+            class_name="hidden md:flex flex-col items-end max-w-xs relative",
+        ),
+        class_name=(
+            "relative flex-row items-center justify-between "
+            "bg-emerald-500/30 dark:bg-white/[0.06] "
+            "ring-[1.5px] ring-neutral-300 dark:ring-neutral-800/50 "
+            "rounded-2xl p-6 w-full overflow-hidden"
+        ),
     )
 
-def logout() -> rx.Component:
+
+# ---------------------------------------------------------------------------
+# Section 2 — Middle row (Professional + Notifications)
+# ---------------------------------------------------------------------------
+
+def _middle_row() -> rx.Component:
+    return rx.flex(
+        _professional_card(),
+        _notifications_card(),
+        class_name="flex-col md:flex-row gap-4 w-full",
+    )
+
+
+def _professional_card() -> rx.Component:
+    return rx.flex(
+        _card_header("stethoscope", "Professional Info"),
+        _info_row("License Type", UserState.user_info_license_type),
+        _info_row("License State", UserState.user_info_license_state),
+        _info_row("Experience", UserState.user_info_experience),
+        # Specialties row
+        rx.flex(
+            text(
+                "Specialties",
+                class_name="text-sm text-neutral-500 dark:text-neutral-400 w-36 shrink-0",
+            ),
+            rx.flex(
+                rx.foreach(
+                    UserState.user_info_specialties,
+                    lambda x: badge(x, variant="neutral"),
+                ),
+                class_name="flex-row flex-wrap gap-1.5",
+            ),
+            class_name="flex-row items-start gap-4 px-5 py-3",
+        ),
+        class_name=(
+            "flex-col flex-1 "
+            "bg-emerald-500/20 dark:bg-white/[0.03] "
+            "ring-[1.5px] ring-neutral-300 dark:ring-neutral-800/50 "
+            "rounded-2xl overflow-hidden"
+        ),
+    )
+
+
+def _info_row(label: str, value) -> rx.Component:
+    return rx.flex(
+        text(
+            label,
+            class_name="text-sm text-neutral-500 dark:text-neutral-400 w-36 shrink-0",
+        ),
+        text(value, weight="medium", class_name="text-sm"),
+        icon(
+            "pencil",
+            class_name="h-4 w-4 ml-auto text-neutral-400 dark:text-neutral-500 cursor-pointer hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors",
+        ),
+        class_name=(
+            "flex-row items-center gap-4 "
+            "px-5 py-3 "
+            "border-b border-neutral-200 dark:border-neutral-800/50"
+        ),
+    )
+
+
+def _notifications_card() -> rx.Component:
+    return rx.flex(
+        _card_header("bell", "Notifications"),
+        _notification_row(
+            "Status updates",
+            "Reports you've submitted and hospital changes",
+            UserState.user_info_status_opt_in,
+            UserState.event_state_toggle_status_opt_in.throttle(500),
+        ),
+        _notification_row(
+            "Platform updates",
+            "New features, improvements, and announcements",
+            UserState.user_info_update_opt_in,
+            UserState.event_state_toggle_update_opt_in.throttle(500),
+        ),
+        _notification_row(
+            "Community & social",
+            "Replies, mentions, and community activity",
+            UserState.user_info_social_opt_in,
+            UserState.event_state_toggle_social_opt_in.throttle(500),
+        ),
+        class_name=(
+            "flex-col flex-1 "
+            "bg-emerald-500/20 dark:bg-white/[0.03] "
+            "ring-[1.5px] ring-neutral-300 dark:ring-neutral-800/50 "
+            "rounded-2xl overflow-hidden"
+        ),
+    )
+
+
+def _notification_row(title: str, description: str, checked, on_change) -> rx.Component:
     return rx.flex(
         rx.flex(
-            text("Logout", class_name="font-bold select-none"),
-            rx.icon("log-out", class_name="h-5 w-5 stroke-teal-600 dark:stroke-teal-500"),
-            class_name="flex-row items-center justify-center space-x-4 p-4",
+            text(title, weight="medium", class_name="text-sm"),
+            rx.text(
+                description,
+                class_name="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5",
+            ),
+            class_name="flex-col",
         ),
-        on_click=rx.redirect("/logout/user"),
-        class_name="flex-col w-full active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75 cursor-pointer"
+        rx.switch(
+            checked=checked,
+            color_scheme="green",
+            on_change=on_change
+        ),
+        class_name=(
+            "flex-row items-center justify-between "
+            "px-5 py-4 "
+            "border-b border-neutral-200 dark:border-neutral-800/50"
+        ),
+    )
+
+
+# ---------------------------------------------------------------------------
+# Section 3 — Danger zone
+# ---------------------------------------------------------------------------
+
+def _danger_zone() -> rx.Component:
+    return rx.flex(
+        _action_row(
+            icon_tag="log-out",
+            label="Sign out",
+            sublabel="Sign out of your account on this device",
+            on_click=BaseState.event_state_logout,
+        ),
+        class_name=(
+            "flex-col w-full "
+            "bg-emerald-500/20 dark:bg-white/[0.03] "
+            "ring-[1.5px] ring-neutral-300 dark:ring-neutral-800/50 "
+            "rounded-2xl overflow-hidden"
+        ),
+    )
+
+
+def _action_row(icon_tag: str, label: str, sublabel: str, on_click) -> rx.Component:
+    return rx.flex(
+        rx.flex(
+            icon(icon_tag, class_name="h-5 w-5 shrink-0"),
+            rx.flex(
+                text(label, weight="medium", class_name="text-sm"),
+                rx.text(
+                    sublabel,
+                    class_name="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5",
+                ),
+                class_name="flex-col",
+            ),
+            class_name="flex-row items-center gap-4",
+        ),
+        icon("chevron-right", muted=True, class_name="h-4 w-4"),
+        on_click=on_click,
+        class_name=(
+            "flex-row items-center justify-between "
+            "px-5 py-4 cursor-pointer "
+            "hover:bg-neutral-100 dark:hover:bg-white/[0.03] "
+            "transition-colors duration-150"
+        ),
+    )
+
+
+# ---------------------------------------------------------------------------
+# Shared card header helper (matches dashboard pattern)
+# ---------------------------------------------------------------------------
+
+def _card_header(icon_tag: str, title: str, action=None) -> rx.Component:
+    return rx.flex(
+        rx.box(
+            class_name="absolute inset-0 pointer-events-none",
+        ),
+        rx.flex(
+            icon(icon_tag, accent=True, class_name="h-5 w-5 relative"),
+            heading(title, size="sm", class_name="relative"),
+            class_name="flex-row items-center gap-2",
+        ),
+        action or rx.fragment(),
+        class_name=(
+            "relative flex-row items-center justify-between "
+            "px-5 py-4 overflow-hidden bg-emerald-500/10 dark:bg-white/[0.03] "
+            "border-b border-neutral-300 dark:border-neutral-800/50"
+        ),
     )

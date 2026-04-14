@@ -1,149 +1,217 @@
-from ..components import(
-    flex,
+from ..components import (
+    button,
+    heading,
     text,
     input,
     link,
-    solid_button
 )
+from .navbar import navbar
 from ...states import BaseState, UserState
 
 import reflex as rx
 
-
-@rx.page(route="/login", title="Nurse Reports", on_load=BaseState.event_state_check_expired_login)
+@rx.page(
+    route="/login",
+    title="Nurse Reports",
+    on_load=BaseState.event_state_check_expired_login,
+)
 def login_page() -> rx.Component:
-    return flex(
-        content(),
-        class_name="flex-col bg-gradient-to-b from-teal-100 to-cyan-100 dark:from-zinc-800 dark:to-zinc-950 items-center justify-center p-4 min-h-screen w-full",
-    )
-
-
-def content() -> rx.Component:
-    return flex(
-        header(),
-        flex(rx.divider(), class_name="pb-3 w-full"),
-        create_account(),
-        login(),
-        class_name="flex-col items-center border dark:border-zinc-700 rounded shadow-lg p-8 space-y-4 w-full max-w-md",
-    )
-
-
-def header() -> rx.Component:
-    return flex(
-        rx.image(src="/vector/square-activity.svg", class_name="h-9 w-9 mb-1"),
-        rx.text(
-            "Nurse",
-            on_click=rx.redirect("/"),
-            class_name="text-4xl cursor-pointer text-teal-700 dark:text-zinc-200 pb-1 font-bold",
-        ),
-        rx.text(
-            "Reports",
-            on_click=rx.redirect("/"),
-            class_name="text-4xl cursor-pointer text-zinc-700 dark:text-zinc-200 pb-1 font-bold",
-        ),
-        class_name="flex-row items-center justify-center w-full",
-    )
-
-
-def create_account() -> rx.Component:
     return rx.flex(
-        text("New to NurseReports.org?"),
-        rx.link(
-            "Create account here",
-            on_click=rx.redirect("/create-account"),
-            class_name="text-teal-700 cursor-pointer",
-        ),
-        class_name="flex-col bg-zinc-100 dark:bg-zinc-800 border border-solid border-zinc-300 dark:border-zinc-700 rounded items-center p-2 w-full",
+        navbar(),
+        _content(),
+        class_name="flex-col items-center bg-emerald-50 dark:bg-[#07100a] w-full min-h-svh",
     )
 
 
-def login() -> rx.Component:
-    return flex(
-        text(
-            "Login to your account",
-            class_name="text-xl pt-8 font-bold text-zinc-700",
+def _content() -> rx.Component:
+    return rx.flex(
+        # Wiggle texture layer
+        rx.box(
+            class_name=(
+                "wiggle-surface absolute inset-0 "
+                "pointer-events-none"
+            ),
         ),
-        flex(
-            rx.form(
-                flex(
-                    text("Email", size="2", class_name="pb-1"),
+        # White blob — light mode only
+        rx.box(
+            class_name=(
+                "absolute top-1/2 left-1/2 "
+                "-translate-x-1/2 -translate-y-1/2 "
+                "w-[680px] h-[480px] "
+                "bg-white/80 dark:bg-transparent "
+                "blur-[60px] rounded-full "
+                "pointer-events-none"
+            ),
+        ),
+        # Emerald glow
+        rx.box(
+            class_name=(
+                "absolute top-1/2 left-1/2 "
+                "-translate-x-1/2 -translate-y-1/2 "
+                "w-[700px] h-[400px] "
+                "bg-emerald-400/30 dark:bg-emerald-600/15 "
+                "blur-[160px] rounded-full "
+                "pointer-events-none"
+            ),
+        ),
+        # Login card
+        rx.flex(
+            _sso_buttons(),
+            _or_divider(),
+            _login_form(),
+            _new_account_callout(),
+            class_name=(
+                "relative flex-col items-center gap-5 "
+                "bg-neutral-100/80 dark:bg-neutral-900/80 "
+                "ring-[1.5px] ring-neutral-300 dark:ring-neutral-800/50 "
+                "rounded-2xl "
+                "p-7 w-full max-w-md z-10"
+            ),
+        ),
+        class_name=(
+            "relative flex-col items-center justify-center "
+            "flex-1 px-6 py-20 w-full overflow-hidden"
+        ),
+    )
+
+
+# ---------------------------------------------------------------------------
+# New account callout
+# ---------------------------------------------------------------------------
+
+def _new_account_callout() -> rx.Component:
+    return rx.flex(
+        text(
+            "New to NurseReports?",
+            class_name="text-sm",
+        ),
+        link(
+            "Create a free account",
+            accent=True,
+            href="/create-account",
+            class_name="text-sm font-medium",
+        ),
+        class_name="flex-row items-center justify-center gap-2",
+    )
+
+
+# ---------------------------------------------------------------------------
+# Login form
+# ---------------------------------------------------------------------------
+
+def _login_form() -> rx.Component:
+    return rx.flex(
+        heading(
+            "Sign in with email",
+            size="sm",
+            class_name="self-start",
+        ),
+        rx.form(
+            rx.flex(
+                # Email field
+                rx.flex(
+                    text("Email", class_name="text-sm font-medium mb-1.5"),
                     input(
-                        placeholder="Enter email",
+                        placeholder="Enter your email",
                         name="email",
-                        size="3",
+                        type="email",
                         class_name="w-full",
-                        color_scheme="teal"
                     ),
                     class_name="flex-col w-full",
                 ),
-                flex(
-                    text("Password", class_name="text-sm"),
+                # Password field
+                rx.flex(
+                    rx.flex(
+                        text("Password", class_name="text-sm font-medium"),
+                        link(
+                            "Forgot password?",
+                            href="/login/forgot-password",
+                            class_name="text-xs ml-auto",
+                        ),
+                        class_name="flex-row items-center w-full mb-1.5",
+                    ),
                     input(
-                        placeholder="Enter password",
+                        placeholder="Enter your password",
                         name="password",
                         type="password",
-                        size="3",
-                        class_name="w-full",
-                        color_scheme="teal"
-                    ),
-                    class_name="flex-col space-y-1 w-full",
-                ),
-                flex(
-                    solid_button(
-                        "Login",
-                        type="submit",
-                        size="3",
-                        loading=UserState.user_is_loading,
                         class_name="w-full",
                     ),
-                    link(
-                        "Forgot your password?",
-                        on_click=rx.redirect("/login/forgot-password"),
-                        class_name="text-sm",
-                    ),
-                    class_name="flex-col items-center pt-5 space-y-6 w-full",
+                    class_name="flex-col w-full",
                 ),
-                on_submit=[
-                    UserState.setvar("user_is_loading", True),
-                    UserState.event_state_submit_login
-                ],
-                reset_on_submit=False,
-                class_name="space-y-6"
+                # Submit
+                button(
+                    "Login",
+                    type="submit",
+                    color="emerald",
+                    size="md",
+                    width="full",
+                    loading=UserState.user_is_loading,
+                ),
+                class_name="flex-col gap-4 w-full",
             ),
-            class_name="flex-col items-center space-y-6 w-full",
+            on_submit=[
+                UserState.setvar("user_is_loading", True),
+                UserState.event_state_submit_login,
+            ],
+            reset_on_submit=False,
+            class_name="w-full",
         ),
-        flex(
-            rx.divider(),
-            text("OR", size="2", padding="6px", white_space="nowrap"),
-            rx.divider(),
-            class_name="flex-row items-center pt-4 space-x-4 w-full",
+        class_name="flex-col items-center gap-4 w-full",
+    )
+
+
+# ---------------------------------------------------------------------------
+# OR divider
+# ---------------------------------------------------------------------------
+
+def _or_divider() -> rx.Component:
+    return rx.flex(
+        rx.box(
+            class_name="flex-1 h-px bg-neutral-300 dark:bg-neutral-800/50",
         ),
-        flex(
-            rx.button(
-                rx.image(src="/sso/google_sso.png", class_name="h-16 w-16"),
-                variant="ghost",
-                loading=UserState.user_is_loading,
-                class_name="h-16 w-16 cursor-pointer",
-                on_click=[
-                    UserState.set_user_is_loading(True),
-                    UserState.event_state_login_with_sso("google")
-                ]
-            ),
-            rx.button(
-                rx.image(src="/sso/facebook_sso.png", class_name="h-16 w-16"),
-                variant="ghost",
-                loading=UserState.user_is_loading,
-                class_name="h-16 w-16 cursor-pointer",
-                on_click=UserState.event_state_login_with_sso("facebook"),
-            ),
-            rx.button(
-                rx.image(src="/sso/linkedin_sso.png", class_name="h-16 w-16"),
-                variant="ghost",
-                loading=UserState.user_is_loading,
-                class_name="h-16 w-16 cursor-pointer",
-                on_click=UserState.event_state_login_with_sso("linkedin_oidc"),
-            ),
-            class_name="flex-row justify-center pt-3 pb-6 space-x-14 w-full",
+        text(
+            "or",
+            class_name="text-xs text-neutral-400 dark:text-neutral-600 px-3 whitespace-nowrap",
         ),
-        class_name="flex-col items-center space-y-8 w-full",
+        rx.box(
+            class_name="flex-1 h-px bg-neutral-300 dark:bg-neutral-800/50",
+        ),
+        class_name="flex-row items-center w-full",
+    )
+
+
+# ---------------------------------------------------------------------------
+# SSO buttons
+# ---------------------------------------------------------------------------
+
+def _sso_buttons() -> rx.Component:
+    return rx.flex(
+        _sso_button("/sso/google_sso.png", UserState.event_state_login_with_sso("google")),
+        _sso_button("/sso/facebook_sso.png", UserState.event_state_login_with_sso("facebook")),
+        _sso_button("/sso/linkedin_sso.png", UserState.event_state_login_with_sso("linkedin_oidc")),
+        class_name="flex-row justify-center gap-6 w-full",
+    )
+
+
+def _sso_button(img_src: str, on_click) -> rx.Component:
+    return rx.el.button(
+        rx.cond(
+            UserState.user_is_loading,
+            rx.spinner(size="3"),
+            rx.image(src=img_src, class_name="h-12 w-12"),
+        ),
+        on_click=[
+            UserState.set_user_is_loading(True),
+            on_click,
+        ],
+        class_name=(
+            "flex items-center justify-center "
+            "h-16 w-16 "
+            "bg-neutral-100 dark:bg-white/[0.04] "
+            "ring-[1.5px] ring-neutral-300 dark:ring-neutral-800/50 "
+            "rounded-full "
+            "hover:bg-neutral-200 dark:hover:bg-white/[0.07] "
+            "transition-colors duration-150 "
+            "cursor-pointer"
+        ),
     )

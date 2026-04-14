@@ -45,8 +45,8 @@ class UserState(AuthState):
         return self.user_id
 
     @rx.var
-    def user_claims_email(self) -> str | None:
-        return self.user_email
+    def user_claims_email(self) -> str:
+        return self.user_email or ""
 
     @rx.var
     def user_claims_issued_by(self) -> str | None:
@@ -59,6 +59,21 @@ class UserState(AuthState):
     @rx.var
     def user_claims_expires_at(self) -> int | None:
         return self.claims_expire_at
+
+    @rx.var
+    def user_info_display_name(self) -> str:
+        return self.user_info.get("account", {}).get("display_name", "")
+
+    @rx.var
+    def user_info_icon(self) -> str:
+        """The avatar key, e.g. 'avatar_1'. Empty string if not yet set."""
+        return self.user_info.get("account", {}).get("icon", "")
+
+    @rx.var
+    def user_info_icon_src(self) -> str:
+        """Ready-to-use image src for rx.image. Falls back to empty string."""
+        key = self.user_info.get("account", {}).get("icon", "")
+        return f"/raster/avatars/{key}.svg" if key else ""
 
     @rx.var
     def user_info_specialties(self) -> list:
@@ -106,6 +121,13 @@ class UserState(AuthState):
     @rx.var
     def user_claims_expired(self) -> bool:
         return self.user_token_expired
+
+    @rx.var(cache=True)
+    def user_is_logged_in(self) -> bool:
+        """True when user_info has been hydrated from DB. Unlike
+        user_claims_authenticated (cookie-derived), this var updates
+        over websocket immediately and is safe for rx.cond guards."""
+        return bool(self.user_info)
 
     @rx.var(cache=True)
     def user_needs_onboarding(self) -> bool:
@@ -264,7 +286,9 @@ class UserState(AuthState):
                 "status": "onboard",
                 "trust": 0,
                 "membership": "free",
-                "browsers": []
+                "browsers": [],
+                "display_name": "",
+                "icon": "",
             },
             "professional": {
                 "license_type": "",
@@ -299,6 +323,12 @@ class UserState(AuthState):
         }, return_="minimal").execute()
         result = self.query().table("users").select("*").execute()
         self.user_info = result[0] if result else {}
+
+    def event_state_hydrate_user(self) -> None:
+        """Restore user_info from DB when state was lost (e.g. tab closed/reopened)."""
+        if self.user_claims_authenticated and not self.user_info:
+            self.get_user_info()
+            logger.debug(f"[hydrate_user] after get_user_info: user_info={'present' if self.user_info else 'empty'}")
 
     def get_user_info(self) -> None:
         """
@@ -570,7 +600,7 @@ class UserState(AuthState):
             return rx.redirect(self.restore_page_after_login)
         if self.user_needs_onboarding:
             logger.debug(f"Sending {self.user_claims_id} to onboard.")
-            return rx.redirect("/onboard")
+            return rx.redirect("/onboard/welcome")
         else:
             logger.debug(f"Sending {self.user_claims_id} to dashboard.")
             return rx.redirect("/dashboard")

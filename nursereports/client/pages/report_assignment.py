@@ -1,17 +1,12 @@
 from ..components import (
-    flex,
-    footer,
+    button,
+    heading,
+    icon,
     login_protected,
-    navbar,
-    outline_button,
-    text
+    text,
 )
-
-from ...states import (
-    BaseState,
-    ReportState,
-    constants_types
-)
+from .navbar import navbar
+from ...states import BaseState, ReportState, constants_types
 
 import reflex as rx
 
@@ -28,940 +23,579 @@ import reflex as rx
 @login_protected
 def assignment_page() -> rx.Component:
     return rx.flex(
-        navbar(), content(), class_name="flex-col items-center dark:bg-zinc-900 min-h-screen w-full"
+        navbar(),
+        _content(),
+        class_name=(
+            "flex-col items-center "
+            "bg-neutral-50 dark:bg-[#07100a] "
+            "min-h-screen w-full"
+        ),
     )
 
 
-def content() -> rx.Component:
+def _content() -> rx.Component:
     return rx.flex(
-        editing(),
-        assignment(),
-        class_name="flex-col items-center space-y-4 px-4 py-14 md:py-20 w-full max-w-screen-sm",
+        _edit_banner(),
+        _step_progress(2),
+        _role_card(),
+        _specialties_card(),
+        _team_card(),
+        _overall_card(),
+        class_name=(
+            "flex-col gap-4 "
+            "w-full max-w-screen-sm "
+            "mx-auto px-4 pt-4 md:pt-10 pb-10"
+        ),
     )
 
-def editing() -> rx.Component:
+
+# ---------------------------------------------------------------------------
+# Shared helpers
+# ---------------------------------------------------------------------------
+
+def _card_header(icon_tag: str, title: str) -> rx.Component:
+    return rx.flex(
+        rx.box(class_name="absolute inset-0 pointer-events-none"),
+        rx.flex(
+            icon(icon_tag, accent=True, class_name="h-5 w-5 relative"),
+            heading(title, size="sm", class_name="relative"),
+            class_name="flex-row items-center gap-2",
+        ),
+        class_name=(
+            "relative flex-row items-center "
+            "px-5 py-4 overflow-hidden bg-emerald-500/10 dark:bg-white/[0.03] "
+            "border-b border-neutral-300 dark:border-neutral-800/50"
+        ),
+    )
+
+
+def _edit_banner() -> rx.Component:
     return rx.cond(
         ReportState.mode == "edit",
-        rx.callout(
-            rx.text(f"You are currently editing a previously submitted report for {ReportState.hospital_info['hosp_name']}"),
-            icon="info",
-            class_name="w-full"
+        rx.flex(
+            icon("pencil", accent=True, class_name="h-4 w-4 shrink-0"),
+            text(
+                "Editing a previously submitted report.",
+                size="sm",
+                class_name="text-neutral-600 dark:text-neutral-400",
+            ),
+            class_name=(
+                "flex-row items-center gap-2 px-4 py-3 "
+                "bg-emerald-500/10 dark:bg-white/[0.03] "
+                "ring-[1.5px] ring-emerald-500/30 dark:ring-emerald-500/20 "
+                "rounded-xl"
+            ),
+        ),
+    )
+
+
+def _step_progress(step: int) -> rx.Component:
+    labels = {1: "Compensation", 2: "Assignment", 3: "Staffing", 4: "Research"}
+    segments = [
+        rx.box(
+            class_name=(
+                "h-1 flex-1 rounded-full bg-emerald-500"
+                if i <= step
+                else "h-1 flex-1 rounded-full bg-neutral-200 dark:bg-neutral-800"
+            ),
         )
-    )
-
-def assignment() -> rx.Component:
-    return flex(
-        rx.flex(
-            text("Assignment", class_name="text-2xl font-bold"),
-            class_name="flex-col items-center bg-zinc-100 dark:bg-zinc-800 p-6 w-full",
-        ),
-        flex(
-            # Are you submitting a report for a specific unit?
-            rx.flex(
-                rx.flex(
-                    rx.text(
-                        "How would you classify where you work? Examples for each are shown below."
-                    ),
-                    rx.flex(
-                        rx.cond(
-                            ReportState.assign_select_classify,
-                            rx.icon(
-                                "circle-check-big",
-                                class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
-                            ),
-                            rx.icon(
-                                "circle-alert",
-                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
-                            ),
-                        ),
-                        class_name="pl-4"
-                    ),
-                    class_name="flex-row justify-between w-full",
-                ),
-                rx.flex(
-                    rx.text("Unit - STICU, PACU, 6 NORTH, ED"),
-                    rx.text("Area - OR, VIR, CATH LAB"),
-                    rx.text("Role - WOUND CARE, ICU TRANSPORT, FLOAT POOL"),
-                    class_name="flex-col pl-8 w-full",
-                ),
-                rx.select(
-                    constants_types.ASSIGN_SELECT_CLASSIFY_SELECTIONS,
-                    placeholder="- Select -",
-                    value=ReportState.assign_select_classify,
-                    position="popper",
-                    color_scheme="teal",
-                    on_change=ReportState.set_assign_select_classify,
-                    required=True,
-                    size="3",
-                    width="100%",
-                ),
-                class_name="flex-col p-4 space-y-2 w-full",
-            ),
-            # Context menus for work classification.
-            rx.match(
-                ReportState.assign_select_classify,
-                # What unit are you submitting report for?
-                (
-                    "Unit",
-                    rx.flex(
-                        rx.flex(
-                            rx.flex(
-                                rx.text("What unit are you submitting a report for?"),
-                                rx.flex(
-                                    rx.cond(
-                                        ReportState.assign_select_unit,
-                                        rx.icon(
-                                            "circle-check-big",
-                                            class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
-                                        ),
-                                        rx.icon(
-                                            "circle-alert",
-                                            class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
-                                        ),
-                                    ),
-                                    class_name="pl-4"
-                                ),
-                                class_name="flex-row justify-between w-full",
-                            ),
-                            rx.select(
-                                ReportState.hospital_units,
-                                placeholder="- Select -",
-                                value=ReportState.assign_select_unit,
-                                position="popper",
-                                color_scheme="teal",
-                                on_change=ReportState.set_assign_select_unit,
-                                required=True,
-                                size="3",
-                                width="100%",
-                            ),
-                            class_name="flex-col p-4 space-y-2 w-full",
-                        ),
-                        rx.cond(
-                            ReportState.assign_select_unit == "I don't see my unit",
-                            rx.flex(
-                                rx.flex(
-                                    rx.flex(
-                                        rx.text(
-                                            "Enter your unit as it's commonly known."
-                                        ),
-                                        rx.flex(
-                                            rx.cond(
-                                                ReportState.assign_input_unit,
-                                                rx.icon(
-                                                    "circle-check-big",
-                                                    class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
-                                                ),
-                                                rx.icon(
-                                                    "circle-alert",
-                                                    class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
-                                                ),
-                                            ),
-                                            class_name="pl-4"
-                                        ),
-                                        class_name="flex-row justify-between w-full",
-                                    ),
-                                    rx.debounce_input(
-                                        rx.input(
-                                            value=ReportState.assign_input_unit,
-                                            on_change=ReportState.set_assign_input_unit,
-                                            color_scheme="teal",
-                                            required=True,
-                                            max_length=50,
-                                            size="3",
-                                        ),
-                                        debounce_timeout=1000,
-                                    ),
-                                    class_name="flex-col p-4 space-y-2 w-full",
-                                ),
-                                width="100%",
-                            ),
-                        ),
-                        rx.flex(
-                            rx.flex(
-                                rx.text("What's the acuity of your unit?"),
-                                rx.flex(
-                                    rx.cond(
-                                        ReportState.assign_select_acuity,
-                                        rx.icon(
-                                            "circle-check-big",
-                                            class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
-                                        ),
-                                        rx.icon(
-                                            "circle-alert",
-                                            class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
-                                        ),
-                                    ),
-                                    class_name="pl-4"
-                                ),
-                                class_name="flex-row justify-between w-full",
-                            ),
-                            rx.select(
-                                constants_types.ASSIGN_SELECT_ACUITY_SELECTIONS,
-                                placeholder="- Select -",
-                                value=ReportState.assign_select_acuity,
-                                position="popper",
-                                color_scheme="teal",
-                                on_change=ReportState.set_assign_select_acuity,
-                                required=True,
-                                size="3",
-                                width="100%",
-                            ),
-                            class_name="flex-col p-4 space-y-2 w-full",
-                        ),
-                        class_name="flex-col divide-y dark:divide-zinc-700 w-full",
-                    ),
-                ),
-                (
-                    "Area",
-                    rx.flex(
-                        # What area are you submitting a report for?
-                        rx.flex(
-                            rx.flex(
-                                rx.text("What area are you submitting a report for?"),
-                                rx.flex(
-                                    rx.cond(
-                                        ReportState.assign_select_area,
-                                        rx.icon(
-                                            "circle-check-big",
-                                            class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
-                                        ),
-                                        rx.icon(
-                                            "circle-alert",
-                                            class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
-                                        ),
-                                    ),
-                                    class_name="pl-4"
-                                ),
-                                class_name="flex-row justify-between w-full",
-                            ),
-                            rx.select(
-                                ReportState.hospital_areas,
-                                placeholder="- Select -",
-                                value=ReportState.assign_select_area,
-                                position="popper",
-                                color_scheme="teal",
-                                on_change=ReportState.set_assign_select_area,
-                                required=True,
-                                size="3",
-                                width="100%",
-                            ),
-                            class_name="flex-col p-4 space-y-2 w-full",
-                        ),
-                        rx.cond(
-                            ReportState.assign_select_area == "I don't see my area",
-                            rx.flex(
-                                rx.flex(
-                                    rx.text("Enter your area as it's commonly known."),
-                                    rx.flex(
-                                        rx.cond(
-                                            ReportState.assign_input_area,
-                                            rx.icon(
-                                                "circle-check-big",
-                                                class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
-                                            ),
-                                            rx.icon(
-                                                "circle-alert",
-                                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
-                                            ),
-                                        ),
-                                        class_name="pl-4"
-                                    ),
-                                    class_name="flex-row justify-between w-full",
-                                ),
-                                rx.debounce_input(
-                                    rx.input(
-                                        value=ReportState.assign_input_area,
-                                        on_change=ReportState.set_assign_input_area,
-                                        color_scheme="teal",
-                                        required=True,
-                                        size="3",
-                                        max_length=50,
-                                    ),
-                                    width="100%",
-                                    debounce_timeout=1000,
-                                ),
-                                class_name="flex-col p-4 space-y-2 w-full",
-                            ),
-                        ),
-                        class_name="flex-col divide-y dark:divide-zinc-700 w-full",
-                    ),
-                ),
-                (
-                    "Role",
-                    rx.flex(
-                        # What role are you submitting a report for?
-                        rx.flex(
-                            rx.flex(
-                                rx.text("What role are you submitting a report for?"),
-                                rx.flex(
-                                    rx.cond(
-                                        ReportState.assign_select_role,
-                                        rx.icon(
-                                            "circle-check-big",
-                                            class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
-                                        ),
-                                        rx.icon(
-                                            "circle-alert",
-                                            class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
-                                        ),
-                                    ),
-                                    class_name="pl-4"
-                                ),
-                                class_name="flex-row justify-between w-full",
-                            ),
-                            rx.select(
-                                ReportState.hospital_roles,
-                                placeholder="- Select -",
-                                value=ReportState.assign_select_role,
-                                position="popper",
-                                color_scheme="teal",
-                                on_change=ReportState.set_assign_select_role,
-                                required=True,
-                                size="3",
-                                width="100%",
-                            ),
-                            class_name="flex-col p-4 space-y-2 w-full",
-                        ),
-                        rx.cond(
-                            ReportState.assign_select_role == "I don't see my role",
-                            rx.flex(
-                                rx.flex(
-                                    rx.text("Enter your role as it's commonly known."),
-                                    rx.flex(
-                                        rx.cond(
-                                            ReportState.assign_input_role,
-                                            rx.icon(
-                                                "circle-check-big",
-                                                class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
-                                            ),
-                                            rx.icon(
-                                                "circle-alert",
-                                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
-                                            ),
-                                        ),
-                                        class_name="pl-4"
-                                    ),
-                                    class_name="flex-row justify-between w-full",
-                                ),
-                                rx.debounce_input(
-                                    rx.input(
-                                        value=ReportState.assign_input_role,
-                                        on_change=ReportState.set_assign_input_role,
-                                        color_scheme="teal",
-                                        required=True,
-                                        size="3",
-                                        max_length=50,
-                                    ),
-                                    width="100%",
-                                    debounce_timeout=1000,
-                                ),
-                                class_name="flex-col p-4 space-y-2 w-full",
-                            ),
-                        ),
-                        class_name="flex-col w-full",
-                    ),
-                ),
-            ),
-
-            # What is your unit or role specialty
-            rx.flex(
-                rx.flex(
-                    rx.text(
-                        "Select up to three specialties for your position. (Optional)"
-                    ),
-                    rx.flex(
-                        rx.cond(
-                            ReportState.assign_select_specialty_1,
-                            rx.icon(
-                                "circle-check-big",
-                                class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
-                            ),
-                            rx.icon(
-                                "circle-alert",
-                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
-                            ),
-                        ),
-                        class_name="pl-4"
-                    ),
-                    class_name="flex-row justify-between w-full",
-                ),
-                rx.select(
-                    ReportState.assign_specialty_1,
-                    placeholder="- Select -",
-                    value=ReportState.assign_select_specialty_1,
-                    position="popper",
-                    color_scheme="teal",
-                    on_change=ReportState.set_assign_select_specialty_1,
-                    size="3",
-                    width="100%",
-                ),
-                rx.select(
-                    ReportState.assign_specialty_2,
-                    placeholder="- Select -",
-                    value=ReportState.assign_select_specialty_2,
-                    position="popper",
-                    color_scheme="teal",
-                    disabled=~ReportState.assign_select_specialty_1,
-                    on_change=ReportState.set_assign_select_specialty_2,
-                    size="3",
-                    width="100%",
-                ),
-                rx.select(
-                    ReportState.assign_specialty_3,
-                    placeholder="- Select -",
-                    value=ReportState.assign_select_specialty_3,
-                    position="popper",
-                    color_scheme="teal",
-                    disabled=~ReportState.assign_select_specialty_2,
-                    on_change=ReportState.set_assign_select_specialty_3,
-                    size="3",
-                    width="100%",
-                ),
-                rx.flex(
-                    outline_button(
-                        "Clear",
-                        size="3",
-                        on_click=[
-                            ReportState.set_assign_select_specialty_1(""),
-                            ReportState.set_assign_select_specialty_2(""),
-                            ReportState.set_assign_select_specialty_3(""),
-                        ],
-                    ),
-                    class_name="flex-col items-center w-full",
-                ),
-                class_name="flex-col p-4 space-y-2 w-full",
-            ),
-
-            # How is working with other nurses where you are assigned?
-            rx.flex(
-                rx.flex(
-                    rx.text("How is working with other nurses around you?"),
-                    rx.flex(
-                        rx.cond(
-                            ReportState.assign_select_rate_nurses,
-                            rx.icon(
-                                "circle-check-big",
-                                class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
-                            ),
-                            rx.icon(
-                                "circle-alert",
-                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
-                            ),
-                        ),
-                        class_name="pl-4"
-                    ),
-                    class_name="flex-row justify-between w-full",
-                ),
-                rx.flex(
-                    rx.flex(
-                        rx.cond(
-                            ReportState.assign_select_rate_nurses == 1,
-                            rx.icon("angry", class_name="h-10 w-10 fill-red-400 stroke-[1.5] dark:stroke-zinc-700"),
-                            rx.icon("angry", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
-                        ),
-                        on_click=ReportState.set_assign_select_rate_nurses(1),
-                        class_name="p-4 cursor-pointer",
-                    ),
-                    rx.flex(
-                        rx.cond(
-                            ReportState.assign_select_rate_nurses == 2,
-                            rx.icon("frown", class_name="h-10 w-10 fill-orange-400 stroke-[1.5] dark:stroke-zinc-700"),
-                            rx.icon("frown", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
-                        ),
-                        on_click=ReportState.set_assign_select_rate_nurses(2),
-                        class_name="p-4 cursor-pointer",
-                    ),
-                    rx.flex(
-                        rx.cond(
-                            ReportState.assign_select_rate_nurses == 3,
-                            rx.icon("meh", class_name="h-10 w-10 fill-yellow-300 stroke-[1.5] dark:stroke-zinc-700"),
-                            rx.icon("meh", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
-                        ),
-                        on_click=ReportState.set_assign_select_rate_nurses(3),
-                        class_name="p-4 cursor-pointer",
-                    ),
-                    rx.flex(
-                        rx.cond(
-                            ReportState.assign_select_rate_nurses == 4,
-                            rx.icon("smile", class_name="h-10 w-10 fill-green-400 stroke-[1.5] dark:stroke-zinc-700"),
-                            rx.icon("smile", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
-                        ),
-                        on_click=ReportState.set_assign_select_rate_nurses(4),
-                        class_name="p-4 cursor-pointer",
-                    ),
-                    rx.flex(
-                        rx.cond(
-                            ReportState.assign_select_rate_nurses == 5,
-                            rx.icon("laugh", class_name="h-10 w-10 fill-blue-300 stroke-[1.5] dark:stroke-zinc-700"),
-                            rx.icon("laugh", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
-                        ),
-                        on_click=ReportState.set_assign_select_rate_nurses(5),
-                        class_name="p-4 cursor-pointer",
-                    ),
-                    class_name="flex-row justify-around w-full",
-                ),
-                class_name="flex-col space-y-2 p-4 w-full",
-            ),
-
-            # How is working with nurse aides?
-            rx.flex(
-                rx.flex(
-                    rx.text("How is working with the nurse aides around you?"),
-                    rx.flex(
-                        rx.cond(
-                            ReportState.assign_select_rate_nurse_aides,
-                            rx.icon(
-                                "circle-check-big",
-                                class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
-                            ),
-                            rx.icon(
-                                "circle-alert",
-                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
-                            ),
-                        ),
-                        class_name="pl-4"
-                    ),
-                    class_name="flex-row justify-between w-full",
-                ),
-                rx.flex(
-                    rx.flex(
-                        rx.cond(
-                            ReportState.assign_select_rate_nurse_aides == 1,
-                            rx.icon("angry", class_name="h-10 w-10 fill-red-400 stroke-[1.5] dark:stroke-zinc-700"),
-                            rx.icon("angry", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
-                        ),
-                        on_click=ReportState.set_assign_select_rate_nurse_aides(1),
-                        class_name="p-4 cursor-pointer",
-                    ),
-                    rx.flex(
-                        rx.cond(
-                            ReportState.assign_select_rate_nurse_aides == 2,
-                            rx.icon("frown", class_name="h-10 w-10 fill-orange-400 stroke-[1.5] dark:stroke-zinc-700"),
-                            rx.icon("frown", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
-                        ),
-                        on_click=ReportState.set_assign_select_rate_nurse_aides(2),
-                        class_name="p-4 cursor-pointer",
-                    ),
-                    rx.flex(
-                        rx.cond(
-                            ReportState.assign_select_rate_nurse_aides == 3,
-                            rx.icon("meh", class_name="h-10 w-10 fill-yellow-300 stroke-[1.5] dark:stroke-zinc-700"),
-                            rx.icon("meh", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
-                        ),
-                        on_click=ReportState.set_assign_select_rate_nurse_aides(3),
-                        class_name="p-4 cursor-pointer",
-                    ),
-                    rx.flex(
-                        rx.cond(
-                            ReportState.assign_select_rate_nurse_aides == 4,
-                            rx.icon("smile", class_name="h-10 w-10 fill-green-400 stroke-[1.5] dark:stroke-zinc-700"),
-                            rx.icon("smile", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
-                        ),
-                        on_click=ReportState.set_assign_select_rate_nurse_aides(4),
-                        class_name="p-4 cursor-pointer",
-                    ),
-                    rx.flex(
-                        rx.cond(
-                            ReportState.assign_select_rate_nurse_aides == 5,
-                            rx.icon("laugh", class_name="h-10 w-10 fill-blue-300 stroke-[1.5] dark:stroke-zinc-700"),
-                            rx.icon("laugh", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
-                        ),
-                        on_click=ReportState.set_assign_select_rate_nurse_aides(5),
-                        class_name="p-4 cursor-pointer",
-                    ),
-                    class_name="flex-row justify-around w-full",
-                ),
-                class_name="flex-col space-y-2 p-4 w-full",
-            ),
-
-            # How is working with the physicians/practitioners where you are assigned?
-            rx.flex(
-                rx.flex(
-                    rx.text(
-                        "How is working with the physicians/practitioners around you?"
-                    ),
-                    rx.flex(
-                        rx.cond(
-                            ReportState.assign_select_rate_physicians,
-                            rx.icon(
-                                "circle-check-big",
-                                class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
-                            ),
-                            rx.icon(
-                                "circle-alert",
-                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
-                            ),
-                        ),
-                        class_name="pl-4"
-                    ),
-                    class_name="flex-row justify-between w-full",
-                ),
-                rx.flex(
-                    rx.flex(
-                        rx.cond(
-                            ReportState.assign_select_rate_physicians == 1,
-                            rx.icon("angry", class_name="h-10 w-10 fill-red-400 stroke-[1.5] dark:stroke-zinc-700"),
-                            rx.icon("angry", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
-                        ),
-                        on_click=ReportState.set_assign_select_rate_physicians(1),
-                        class_name="p-4 cursor-pointer",
-                    ),
-                    rx.flex(
-                        rx.cond(
-                            ReportState.assign_select_rate_physicians == 2,
-                            rx.icon("frown", class_name="h-10 w-10 fill-orange-400 stroke-[1.5] dark:stroke-zinc-700"),
-                            rx.icon("frown", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
-                        ),
-                        on_click=ReportState.set_assign_select_rate_physicians(2),
-                        class_name="p-4 cursor-pointer",
-                    ),
-                    rx.flex(
-                        rx.cond(
-                            ReportState.assign_select_rate_physicians == 3,
-                            rx.icon("meh", class_name="h-10 w-10 fill-yellow-300 stroke-[1.5] dark:stroke-zinc-700"),
-                            rx.icon("meh", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
-                        ),
-                        on_click=ReportState.set_assign_select_rate_physicians(3),
-                        class_name="p-4 cursor-pointer",
-                    ),
-                    rx.flex(
-                        rx.cond(
-                            ReportState.assign_select_rate_physicians == 4,
-                            rx.icon("smile", class_name="h-10 w-10 fill-green-400 stroke-[1.5] dark:stroke-zinc-700"),
-                            rx.icon("smile", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
-                        ),
-                        on_click=ReportState.set_assign_select_rate_physicians(4),
-                        class_name="p-4 cursor-pointer",
-                    ),
-                    rx.flex(
-                        rx.cond(
-                            ReportState.assign_select_rate_physicians == 5,
-                            rx.icon("laugh", class_name="h-10 w-10 fill-blue-300 stroke-[1.5] dark:stroke-zinc-700"),
-                            rx.icon("laugh", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
-                        ),
-                        on_click=ReportState.set_assign_select_rate_physicians(5),
-                        class_name="p-4 cursor-pointer",
-                    ),
-                    class_name="flex-row justify-around w-full",
-                ),
-                class_name="flex-col space-y-2 p-4 w-full",
-            ),
-
-            # How is working with your immediate management where you are assigned?
-            rx.flex(
-                rx.flex(
-                    rx.text("How is working with your immediate management?"),
-                    rx.flex(
-                        rx.cond(
-                            ReportState.assign_select_rate_management,
-                            rx.icon(
-                                "circle-check-big",
-                                class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
-                            ),
-                            rx.icon(
-                                "circle-alert",
-                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
-                            ),
-                        ),
-                        class_name="pl-4"
-                    ),
-                    class_name="flex-row justify-between w-full",
-                ),
-                rx.flex(
-                    rx.flex(
-                        rx.cond(
-                            ReportState.assign_select_rate_management == 1,
-                            rx.icon("angry", class_name="h-10 w-10 fill-red-400 stroke-[1.5] dark:stroke-zinc-700"),
-                            rx.icon("angry", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
-                        ),
-                        on_click=ReportState.set_assign_select_rate_management(1),
-                        class_name="p-4 cursor-pointer",
-                    ),
-                    rx.flex(
-                        rx.cond(
-                            ReportState.assign_select_rate_management == 2,
-                            rx.icon("frown", class_name="h-10 w-10 fill-orange-400 stroke-[1.5] dark:stroke-zinc-700"),
-                            rx.icon("frown", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
-                        ),
-                        on_click=ReportState.set_assign_select_rate_management(2),
-                        class_name="p-4 cursor-pointer",
-                    ),
-                    rx.flex(
-                        rx.cond(
-                            ReportState.assign_select_rate_management == 3,
-                            rx.icon("meh", class_name="h-10 w-10 fill-yellow-300 stroke-[1.5] dark:stroke-zinc-700"),
-                            rx.icon("meh", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
-                        ),
-                        on_click=ReportState.set_assign_select_rate_management(3),
-                        class_name="p-4 cursor-pointer",
-                    ),
-                    rx.flex(
-                        rx.cond(
-                            ReportState.assign_select_rate_management == 4,
-                            rx.icon("smile", class_name="h-10 w-10 fill-green-400 stroke-[1.5] dark:stroke-zinc-700"),
-                            rx.icon("smile", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
-                        ),
-                        on_click=ReportState.set_assign_select_rate_management(4),
-                        class_name="p-4 cursor-pointer",
-                    ),
-                    rx.flex(
-                        rx.cond(
-                            ReportState.assign_select_rate_management == 5,
-                            rx.icon("laugh", class_name="h-10 w-10 fill-blue-300 stroke-[1.5] dark:stroke-zinc-700"),
-                            rx.icon("laugh", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
-                        ),
-                        on_click=ReportState.set_assign_select_rate_management(5),
-                        class_name="p-4 cursor-pointer",
-                    ),
-                    class_name="flex-row justify-around w-full",
-                ),
-                class_name="flex-col space-y-2 p-4 w-full",
-            ),
-
-            # Would you recommend a friend or coworker to your current position?
-            rx.flex(
-                rx.flex(
-                    rx.text(
-                        "Would you recommend a friend or coworker to your current position?"
-                    ),
-                    rx.flex(
-                        rx.cond(
-                            ReportState.assign_select_recommend,
-                            rx.icon(
-                                "circle-check-big",
-                                class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
-                            ),
-                            rx.icon(
-                                "circle-alert",
-                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
-                            ),
-                        ),
-                        class_name="pl-4"
-                    ),
-                    class_name="flex-row justify-between w-full",
-                ),
-                rx.select(
-                    constants_types.ASSIGN_SELECT_RECOMMEND_SELECTIONS,
-                    placeholder="- Select -",
-                    value=ReportState.assign_select_recommend,
-                    position="popper",
-                    color_scheme="teal",
-                    on_change=ReportState.set_assign_select_recommend,
-                    required=True,
-                    size="3",
-                    width="100%",
-                ),
-                class_name="flex-col p-4 space-y-2 w-full",
-            ),
-            # How do you feel about the culture where you are and people you work with overall?
-            rx.flex(
-                rx.flex(
-                    rx.text(
-                        "How do you feel about the culture and people you work with overall?"
-                    ),
-                    rx.flex(
-                        rx.cond(
-                            ReportState.assign_select_overall,
-                            rx.icon(
-                                "circle-check-big",
-                                class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
-                            ),
-                            rx.icon(
-                                "circle-alert",
-                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
-                            ),
-                        ),
-                        class_name="pl-4"
-                    ),
-                    class_name="flex-row justify-between w-full",
-                ),
-                rx.flex(
-                    rx.flex(
-                        rx.cond(
-                            ReportState.assign_select_overall == 1,
-                            rx.icon("angry", class_name="h-10 w-10 fill-red-400 stroke-[1.5] dark:stroke-zinc-700"),
-                            rx.icon("angry", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
-                        ),
-                        on_click=ReportState.set_assign_select_overall(1),
-                        class_name="p-4 cursor-pointer",
-                    ),
-                    rx.flex(
-                        rx.cond(
-                            ReportState.assign_select_overall == 2,
-                            rx.icon("frown", class_name="h-10 w-10 fill-orange-400 stroke-[1.5] dark:stroke-zinc-700"),
-                            rx.icon("frown", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
-                        ),
-                        on_click=ReportState.set_assign_select_overall(2),
-                        class_name="p-4 cursor-pointer",
-                    ),
-                    rx.flex(
-                        rx.cond(
-                            ReportState.assign_select_overall == 3,
-                            rx.icon("meh", class_name="h-10 w-10 fill-yellow-300 stroke-[1.5] dark:stroke-zinc-700"),
-                            rx.icon("meh", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
-                        ),
-                        on_click=ReportState.set_assign_select_overall(3),
-                        class_name="p-4 cursor-pointer",
-                    ),
-                    rx.flex(
-                        rx.cond(
-                            ReportState.assign_select_overall == 4,
-                            rx.icon("smile", class_name="h-10 w-10 fill-green-400 stroke-[1.5] dark:stroke-zinc-700"),
-                            rx.icon("smile", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
-                        ),
-                        on_click=ReportState.set_assign_select_overall(4),
-                        class_name="p-4 cursor-pointer",
-                    ),
-                    rx.flex(
-                        rx.cond(
-                            ReportState.assign_select_overall == 5,
-                            rx.icon("laugh", class_name="h-10 w-10 fill-blue-300 stroke-[1.5] dark:stroke-zinc-700"),
-                            rx.icon("laugh", class_name="h-10 w-10 stroke-zinc-400 stroke-[1.5] dark:stroke-zinc-500"),
-                        ),
-                        on_click=ReportState.set_assign_select_overall(5),
-                        class_name="p-4 cursor-pointer",
-                    ),
-                    class_name="flex-row justify-around w-full",
-                ),
-                class_name="flex-col space-y-2 p-4 w-full",
-            ),
-
-            # Any comments for your nursing peers about culture, management, or environment?
-            rx.flex(
-                rx.flex(
-                    rx.text(
-                        """
-                        (Optional) Any comments for your nursing peers 
-                        about culture, management, or the environment you work in?
-                        """,
-                    ),
-                    rx.flex(
-                        rx.cond(
-                            ReportState.assign_input_comments,
-                            rx.icon(
-                                "circle-check-big",
-                                class_name="h-6 w-6 stroke-green-400 dark:stroke-teal-600",
-                            ),
-                            rx.icon(
-                                "circle-alert",
-                                class_name="h-6 w-6 stroke-zinc-200 dark:stroke-zinc-700",
-                            ),
-                        ),
-                        class_name="pl-4"
-                    ),
-                    class_name="flex-row justify-between w-full"
-                ),
-                rx.debounce_input(
-                    rx.text_area(
-                        value=ReportState.assign_input_comments,
-                        placeholder="Do not enter personally identifiable information.",
-                        color_scheme="teal",
-                        on_change=ReportState.set_assign_input_comments,
-                        on_blur=ReportState.set_assign_input_comments,
-                        height="10em",
-                        size="3",
-                        width="100%",
-                    ),
-                    debounce_timeout=1000,
-                ),
-                rx.cond(
-                    ReportState.assign_input_comments,
-                    rx.cond(
-                        ReportState.assign_input_comments_chars_left < 0,
-                        rx.callout(
-                            "Please limit response to < 1000 characters!",
-                            width="100%",
-                            icon="triangle_alert",
-                            color_scheme="red",
-                            role="alert",
-                        ),
-                        rx.flex(
-                            rx.text(
-                                f"{ReportState.assign_input_comments_chars_left} chars left.",
-                            ),
-                            width="100%",
-                            align_items="center",
-                            justify_content="center",
-                        ),
-                    ),
-                    rx.flex(
-                        rx.text("1000 character limit."),
-                        width="100%",
-                        align_items="center",
-                        justify_content="center",
-                    ),
-                ),
-                class_name="flex-col space-y-2 p-4 w-full",
-            ),
-
-            # Navigation buttons
-            rx.cond(
-                ReportState.user_is_loading,
-                rx.flex(
-                    rx.icon("loader-circle", class_name="animate-spin stroke-zinc-700 dark:stroke-zinc-500"),
-                    class_name="flex-row items-center justify-center p-4 cursor-disabled"
-                ),
-                rx.flex(
-                    rx.flex(
-                        rx.flex(
-                            rx.icon("arrow-left", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
-                            rx.text("Back", class_name="font-bold select-none"),
-                            on_click=rx.redirect(f"/report/{ReportState.mode}/compensation"),
-                            class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer",
-                        ),
-                        class_name="flex-col w-full active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75",
-                    ),
-                    rx.flex(
-                        rx.flex(
-                            rx.text("Next", class_name="font-bold select-none"),
-                            rx.icon("arrow-right", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
-                            on_click=[
-                                ReportState.set_user_is_loading(True),
-                                ReportState.handle_submit_assignment,
-                                ReportState.set_user_is_loading(False)
-                            ],
-                            class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer",
-                        ),
-                        class_name="flex-col w-full active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75",
-                    ),
-                    class_name="flex-row divide-x dark:divide-zinc-700 w-full",
-                ),
-            ),
-            class_name="flex-col dark:divide-zinc-500 space-y-2 divide-y dark:divide-zinc-700 w-full",
-        ),
-        class_name="flex-col border rounded shadow-lg dark:border-zinc-500 bg-zinc-100 dark:bg-zinc-800 divide-y dark:divide-zinc-700 w-full",
-    )
-
-
-def button() -> rx.Component:
-    return rx.card(
-        rx.flex(
-            rx.button(
-                "Go to Staffing",
-                rx.icon("arrow-big-right"),
-                on_click=ReportState.handle_submit_assignment,
-                variant="ghost",
-                size="3",
-            ),
-            align_items="center",
-            justify_content="center",
-            width="100%",
-        ),
-        width="100%",
-    )
-
-
-def callout() -> rx.Component:
+        for i in range(1, 5)
+    ]
     return rx.flex(
-        rx.cond(
-            ReportState.assign_has_error,
-            rx.callout(
-                ReportState.assign_error_message,
+        rx.flex(*segments, class_name="flex-row gap-1.5 w-full"),
+        text(
+            f"Step {step} of 4 — {labels[step]}",
+            size="xs",
+            class_name="text-neutral-400 dark:text-neutral-500 mt-1",
+        ),
+        class_name="flex-col gap-1",
+    )
+
+
+def _field_label(label: str, optional: bool = False) -> rx.Component:
+    if optional:
+        return rx.flex(
+            text(label, size="sm", weight="medium"),
+            text("Optional", size="xs", class_name="text-neutral-400 dark:text-neutral-500"),
+            class_name="flex-row items-center justify-between",
+        )
+    return text(label, size="sm", weight="medium")
+
+
+def _check_icon(condition) -> rx.Component:
+    return rx.cond(
+        condition,
+        icon("circle-check-big", accent=True, class_name="h-5 w-5 shrink-0"),
+        rx.icon("circle-alert", class_name="h-5 w-5 shrink-0 text-neutral-300 dark:text-neutral-700"),
+    )
+
+
+def _emoji_rating(score_var, setter) -> rx.Component:
+    def _emoji(name: str, value: int, active_cls: str) -> rx.Component:
+        return rx.flex(
+            rx.cond(
+                score_var == value,
+                rx.icon(name, class_name=f"h-10 w-10 stroke-[1.5] {active_cls}"),
+                rx.icon(name, class_name="h-10 w-10 stroke-[1.5] stroke-neutral-300 dark:stroke-neutral-700"),
+            ),
+            on_click=setter(value),
+            class_name=(
+                "p-3 cursor-pointer rounded-xl "
+                "hover:bg-neutral-100 dark:hover:bg-neutral-800/60 "
+                "transition-colors duration-150"
+            ),
+        )
+
+    return rx.flex(
+        _emoji("angry", 1, "fill-rose-400 stroke-rose-500"),
+        _emoji("frown", 2, "fill-orange-400 stroke-orange-500"),
+        _emoji("meh", 3, "fill-amber-300 stroke-amber-400"),
+        _emoji("smile", 4, "fill-emerald-400 stroke-emerald-500"),
+        _emoji("laugh", 5, "fill-sky-400 stroke-sky-500"),
+        class_name="flex-row justify-around w-full py-1",
+    )
+
+
+def _comments_field(value, setter, chars_left) -> rx.Component:
+    return rx.flex(
+        _field_label("Comments for your nursing peers", optional=True),
+        rx.debounce_input(
+            rx.text_area(
+                value=value,
+                placeholder="Do not enter personally identifiable information.",
+                color_scheme="green",
+                on_change=setter,
+                on_blur=setter,
+                size="3",
+                rows="4",
                 width="100%",
-                icon="triangle_alert",
-                color_scheme="red",
-                role="alert",
+            ),
+            debounce_timeout=1000,
+        ),
+        rx.cond(
+            value,
+            rx.cond(
+                chars_left < 0,
+                text(
+                    "Over 1000 character limit.",
+                    size="xs",
+                    class_name="text-rose-500 dark:text-rose-400",
+                ),
+                text(
+                    f"{chars_left} chars left",
+                    size="xs",
+                    class_name="text-neutral-400 dark:text-neutral-500",
+                ),
+            ),
+            text(
+                "1000 character limit.",
+                size="xs",
+                class_name="text-neutral-400 dark:text-neutral-500",
             ),
         ),
-        width="100%",
+        class_name="flex-col gap-3 px-5 py-4 border-b border-neutral-300 dark:border-neutral-800/50",
+    )
+
+
+# ---------------------------------------------------------------------------
+# Card 1 — Your Role
+# ---------------------------------------------------------------------------
+
+def _role_card() -> rx.Component:
+    return rx.flex(
+        _card_header("stethoscope", "Your Role"),
+        # Work classification
+        rx.flex(
+            rx.flex(
+                _field_label("How would you classify where you work?"),
+                _check_icon(ReportState.assign_select_classify),
+                class_name="flex-row items-center justify-between",
+            ),
+            rx.flex(
+                text("Unit — STICU, PACU, 6 NORTH, ED", size="xs", class_name="text-neutral-500"),
+                text("Area — OR, VIR, CATH LAB", size="xs", class_name="text-neutral-500"),
+                text("Role — WOUND CARE, ICU TRANSPORT, FLOAT POOL", size="xs", class_name="text-neutral-500"),
+                class_name="flex-col gap-0.5",
+            ),
+            rx.select(
+                constants_types.ASSIGN_SELECT_CLASSIFY_SELECTIONS,
+                placeholder="— Select —",
+                value=ReportState.assign_select_classify,
+                position="popper",
+                color_scheme="green",
+                on_change=ReportState.set_assign_select_classify,
+                size="3",
+                width="100%",
+            ),
+            class_name="flex-col gap-3 px-5 py-4 border-b border-neutral-300 dark:border-neutral-800/50",
+        ),
+        # Conditional branch: Unit / Area / Role
+        rx.match(
+            ReportState.assign_select_classify,
+            (
+                "Unit",
+                rx.flex(
+                    # Unit select
+                    rx.flex(
+                        rx.flex(
+                            _field_label("What unit are you submitting a report for?"),
+                            _check_icon(ReportState.assign_select_unit),
+                            class_name="flex-row items-center justify-between",
+                        ),
+                        rx.select(
+                            ReportState.hospital_units,
+                            placeholder="— Select —",
+                            value=ReportState.assign_select_unit,
+                            position="popper",
+                            color_scheme="green",
+                            on_change=ReportState.set_assign_select_unit,
+                            size="3",
+                            width="100%",
+                        ),
+                        class_name="flex-col gap-3 px-5 py-4 border-b border-neutral-300 dark:border-neutral-800/50",
+                    ),
+                    # Custom unit name (conditional)
+                    rx.cond(
+                        ReportState.assign_select_unit == "I don't see my unit",
+                        rx.flex(
+                            rx.flex(
+                                _field_label("Enter your unit as it's commonly known."),
+                                _check_icon(ReportState.assign_input_unit),
+                                class_name="flex-row items-center justify-between",
+                            ),
+                            rx.debounce_input(
+                                rx.input(
+                                    value=ReportState.assign_input_unit,
+                                    placeholder="e.g. MICU, 4 WEST",
+                                    on_change=ReportState.set_assign_input_unit,
+                                    color_scheme="green",
+                                    size="3",
+                                    max_length=50,
+                                    width="100%",
+                                ),
+                                debounce_timeout=600,
+                            ),
+                            class_name="flex-col gap-3 px-5 py-4 border-b border-neutral-300 dark:border-neutral-800/50",
+                        ),
+                    ),
+                    # Acuity
+                    rx.flex(
+                        rx.flex(
+                            _field_label("What is the acuity of your unit?"),
+                            _check_icon(ReportState.assign_select_acuity),
+                            class_name="flex-row items-center justify-between",
+                        ),
+                        rx.select(
+                            constants_types.ASSIGN_SELECT_ACUITY_SELECTIONS,
+                            placeholder="— Select —",
+                            value=ReportState.assign_select_acuity,
+                            position="popper",
+                            color_scheme="green",
+                            on_change=ReportState.set_assign_select_acuity,
+                            size="3",
+                            width="100%",
+                        ),
+                        class_name="flex-col gap-3 px-5 py-4",
+                    ),
+                    class_name="flex-col w-full",
+                ),
+            ),
+            (
+                "Area",
+                rx.flex(
+                    rx.flex(
+                        rx.flex(
+                            _field_label("What area are you submitting a report for?"),
+                            _check_icon(ReportState.assign_select_area),
+                            class_name="flex-row items-center justify-between",
+                        ),
+                        rx.select(
+                            ReportState.hospital_areas,
+                            placeholder="— Select —",
+                            value=ReportState.assign_select_area,
+                            position="popper",
+                            color_scheme="green",
+                            on_change=ReportState.set_assign_select_area,
+                            size="3",
+                            width="100%",
+                        ),
+                        class_name="flex-col gap-3 px-5 py-4 border-b border-neutral-300 dark:border-neutral-800/50",
+                    ),
+                    rx.cond(
+                        ReportState.assign_select_area == "I don't see my area",
+                        rx.flex(
+                            rx.flex(
+                                _field_label("Enter your area as it's commonly known."),
+                                _check_icon(ReportState.assign_input_area),
+                                class_name="flex-row items-center justify-between",
+                            ),
+                            rx.debounce_input(
+                                rx.input(
+                                    value=ReportState.assign_input_area,
+                                    placeholder="e.g. OR, CATH LAB",
+                                    on_change=ReportState.set_assign_input_area,
+                                    color_scheme="green",
+                                    size="3",
+                                    max_length=50,
+                                    width="100%",
+                                ),
+                                debounce_timeout=600,
+                            ),
+                            class_name="flex-col gap-3 px-5 py-4",
+                        ),
+                    ),
+                    class_name="flex-col w-full",
+                ),
+            ),
+            (
+                "Role",
+                rx.flex(
+                    rx.flex(
+                        rx.flex(
+                            _field_label("What role are you submitting a report for?"),
+                            _check_icon(ReportState.assign_select_role),
+                            class_name="flex-row items-center justify-between",
+                        ),
+                        rx.select(
+                            ReportState.hospital_roles,
+                            placeholder="— Select —",
+                            value=ReportState.assign_select_role,
+                            position="popper",
+                            color_scheme="green",
+                            on_change=ReportState.set_assign_select_role,
+                            size="3",
+                            width="100%",
+                        ),
+                        class_name="flex-col gap-3 px-5 py-4 border-b border-neutral-300 dark:border-neutral-800/50",
+                    ),
+                    rx.cond(
+                        ReportState.assign_select_role == "I don't see my role",
+                        rx.flex(
+                            rx.flex(
+                                _field_label("Enter your role as it's commonly known."),
+                                _check_icon(ReportState.assign_input_role),
+                                class_name="flex-row items-center justify-between",
+                            ),
+                            rx.debounce_input(
+                                rx.input(
+                                    value=ReportState.assign_input_role,
+                                    placeholder="e.g. FLOAT POOL, WOUND CARE",
+                                    on_change=ReportState.set_assign_input_role,
+                                    color_scheme="green",
+                                    size="3",
+                                    max_length=50,
+                                    width="100%",
+                                ),
+                                debounce_timeout=600,
+                            ),
+                            class_name="flex-col gap-3 px-5 py-4",
+                        ),
+                    ),
+                    class_name="flex-col w-full",
+                ),
+            ),
+        ),
+        class_name=(
+            "flex-col "
+            "bg-emerald-500/20 dark:bg-white/[0.03] "
+            "ring-[1.5px] ring-neutral-300 dark:ring-neutral-800/50 "
+            "rounded-2xl overflow-hidden"
+        ),
+    )
+
+
+# ---------------------------------------------------------------------------
+# Card 2 — Specialties
+# ---------------------------------------------------------------------------
+
+def _specialties_card() -> rx.Component:
+    return rx.flex(
+        _card_header("award", "Specialties"),
+        rx.flex(
+            _field_label("Select up to three specialties for your position.", optional=True),
+            rx.select(
+                ReportState.assign_specialty_1,
+                placeholder="— Specialty 1 —",
+                value=ReportState.assign_select_specialty_1,
+                position="popper",
+                color_scheme="green",
+                on_change=ReportState.set_assign_select_specialty_1,
+                size="3",
+                width="100%",
+            ),
+            rx.select(
+                ReportState.assign_specialty_2,
+                placeholder="— Specialty 2 —",
+                value=ReportState.assign_select_specialty_2,
+                position="popper",
+                color_scheme="green",
+                on_change=ReportState.set_assign_select_specialty_2,
+                disabled=~ReportState.assign_select_specialty_1,
+                size="3",
+                width="100%",
+            ),
+            rx.select(
+                ReportState.assign_specialty_3,
+                placeholder="— Specialty 3 —",
+                value=ReportState.assign_select_specialty_3,
+                position="popper",
+                color_scheme="green",
+                on_change=ReportState.set_assign_select_specialty_3,
+                disabled=~ReportState.assign_select_specialty_2,
+                size="3",
+                width="100%",
+            ),
+            rx.cond(
+                ReportState.assign_select_specialty_1,
+                button(
+                    "Clear",
+                    variant="ghost",
+                    size="sm",
+                    on_click=[
+                        ReportState.set_assign_select_specialty_1(""),
+                        ReportState.set_assign_select_specialty_2(""),
+                        ReportState.set_assign_select_specialty_3(""),
+                    ],
+                ),
+            ),
+            class_name="flex-col gap-3 px-5 py-4",
+        ),
+        class_name=(
+            "flex-col "
+            "bg-emerald-500/20 dark:bg-white/[0.03] "
+            "ring-[1.5px] ring-neutral-300 dark:ring-neutral-800/50 "
+            "rounded-2xl overflow-hidden"
+        ),
+    )
+
+
+# ---------------------------------------------------------------------------
+# Card 3 — Team & Culture
+# ---------------------------------------------------------------------------
+
+def _team_card() -> rx.Component:
+    return rx.flex(
+        _card_header("users", "Team & Culture"),
+        # Rate nurses
+        rx.flex(
+            rx.flex(
+                _field_label("How is working with the nurses around you?"),
+                _check_icon(ReportState.assign_select_rate_nurses),
+                class_name="flex-row items-center justify-between",
+            ),
+            _emoji_rating(ReportState.assign_select_rate_nurses, ReportState.set_assign_select_rate_nurses),
+            class_name="flex-col gap-2 px-5 py-4 border-b border-neutral-300 dark:border-neutral-800/50",
+        ),
+        # Rate nurse aides
+        rx.flex(
+            rx.flex(
+                _field_label("How is working with the nurse aides around you?"),
+                _check_icon(ReportState.assign_select_rate_nurse_aides),
+                class_name="flex-row items-center justify-between",
+            ),
+            _emoji_rating(ReportState.assign_select_rate_nurse_aides, ReportState.set_assign_select_rate_nurse_aides),
+            class_name="flex-col gap-2 px-5 py-4 border-b border-neutral-300 dark:border-neutral-800/50",
+        ),
+        # Rate physicians
+        rx.flex(
+            rx.flex(
+                _field_label("How is working with the physicians around you?"),
+                _check_icon(ReportState.assign_select_rate_physicians),
+                class_name="flex-row items-center justify-between",
+            ),
+            _emoji_rating(ReportState.assign_select_rate_physicians, ReportState.set_assign_select_rate_physicians),
+            class_name="flex-col gap-2 px-5 py-4 border-b border-neutral-300 dark:border-neutral-800/50",
+        ),
+        # Rate management
+        rx.flex(
+            rx.flex(
+                _field_label("How is working with management?"),
+                _check_icon(ReportState.assign_select_rate_management),
+                class_name="flex-row items-center justify-between",
+            ),
+            _emoji_rating(ReportState.assign_select_rate_management, ReportState.set_assign_select_rate_management),
+            class_name="flex-col gap-2 px-5 py-4",
+        ),
+        class_name=(
+            "flex-col "
+            "bg-emerald-500/20 dark:bg-white/[0.03] "
+            "ring-[1.5px] ring-neutral-300 dark:ring-neutral-800/50 "
+            "rounded-2xl overflow-hidden"
+        ),
+    )
+
+
+# ---------------------------------------------------------------------------
+# Card 4 — Overall
+# ---------------------------------------------------------------------------
+
+def _overall_card() -> rx.Component:
+    return rx.flex(
+        _card_header("star", "Overall"),
+        # Recommend
+        rx.flex(
+            rx.flex(
+                _field_label("Would you recommend this assignment to other nurses?"),
+                _check_icon(ReportState.assign_select_recommend),
+                class_name="flex-row items-center justify-between",
+            ),
+            rx.select(
+                constants_types.ASSIGN_SELECT_RECOMMEND_SELECTIONS,
+                placeholder="— Select —",
+                value=ReportState.assign_select_recommend,
+                position="popper",
+                color_scheme="green",
+                on_change=ReportState.set_assign_select_recommend,
+                size="3",
+                width="100%",
+            ),
+            class_name="flex-col gap-3 px-5 py-4 border-b border-neutral-300 dark:border-neutral-800/50",
+        ),
+        # Overall rating
+        rx.flex(
+            rx.flex(
+                _field_label("Rate your assignment overall."),
+                _check_icon(ReportState.assign_select_overall),
+                class_name="flex-row items-center justify-between",
+            ),
+            _emoji_rating(ReportState.assign_select_overall, ReportState.set_assign_select_overall),
+            class_name="flex-col gap-2 px-5 py-4 border-b border-neutral-300 dark:border-neutral-800/50",
+        ),
+        # Comments
+        _comments_field(
+            ReportState.assign_input_comments,
+            ReportState.set_assign_input_comments,
+            ReportState.assign_input_comments_chars_left,
+        ),
+        # Navigation
+        rx.cond(
+            ReportState.user_is_loading,
+            rx.flex(
+                rx.icon("loader-circle", class_name="animate-spin h-5 w-5 text-neutral-400"),
+                class_name="flex-row items-center justify-center px-5 py-4",
+            ),
+            rx.flex(
+                button(
+                    "Back",
+                    variant="outline",
+                    on_click=rx.redirect(f"/report/{ReportState.mode}/compensation"),
+                ),
+                button(
+                    "Next",
+                    variant="solid",
+                    on_click=[
+                        ReportState.set_user_is_loading(True),
+                        ReportState.handle_submit_assignment,
+                        ReportState.set_user_is_loading(False),
+                    ],
+                ),
+                class_name="flex-row justify-between gap-3 px-5 py-4",
+            ),
+        ),
+        class_name=(
+            "flex-col "
+            "bg-emerald-500/20 dark:bg-white/[0.03] "
+            "ring-[1.5px] ring-neutral-300 dark:ring-neutral-800/50 "
+            "rounded-2xl overflow-hidden"
+        ),
     )

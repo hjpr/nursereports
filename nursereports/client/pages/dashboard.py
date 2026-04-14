@@ -1,16 +1,17 @@
 from ..components import (
-    flex,
-    footer,
-    hospital_item_dashboard,
-    navbar,
-    report_item_dashboard,
-    report_protected,
+    button,
+    heading,
     text,
+    badge,
+    link,
+    icon,
+    report_protected,
 )
-from ...states import BaseState, UserState
+from .navbar import navbar
+from .footer import footer
+from ...states import BaseState, HospitalState, UserState
 
 import reflex as rx
-
 
 @rx.page(
     route="/dashboard",
@@ -24,144 +25,547 @@ import reflex as rx
 def dashboard_page() -> rx.Component:
     return rx.flex(
         navbar(),
-        content(),
+        _content(),
         footer(),
-        class_name="flex-col dark:bg-zinc-900 items-center w-full",
+        class_name="flex-col items-center bg-emerald-50 dark:bg-[#07100a] w-full min-h-svh",
     )
 
 
-def content() -> rx.Component:
+def _content() -> rx.Component:
     return rx.flex(
-        heading(),
-        saved_hospitals(),
-        my_pay(),
-        my_reports(),
-        class_name="flex-col items-center space-y-4 md:space-y-12 px-4 py-4 md:py-20 w-full md:max-w-screen-md",
+        _welcome_header(),
+        _stat_strip(),
+        _main_grid(),
+        _community_row(),
+        _quick_actions(),
+        class_name=(
+            "flex-col gap-4 "
+            "w-full max-w-screen-lg "
+            "px-4 md:px-8 pt-4 md:pt-16 pb-24 md:pb-48"
+        ),
     )
 
 
-def heading() -> rx.Component:
+# ---------------------------------------------------------------------------
+# Section 1 — Welcome header
+# ---------------------------------------------------------------------------
+
+def _welcome_header() -> rx.Component:
+    return rx.flex(
+        # Wiggle texture overlay
+        rx.box(
+            class_name=(
+                "wiggle-card absolute inset-0 "
+                "pointer-events-none rounded-2xl"
+            ),
+        ),
+        # Left: greeting + profile badges
+        rx.flex(
+            heading(f"Welcome back {UserState.user_info_display_name}!", size="lg", class_name="relative"),
+            class_name="flex-col relative",
+        ),
+        # Right: avatar — hidden on mobile, shown on md+
+        rx.avatar(
+            fallback=UserState.user_claims_email[:1].upper(),
+            radius="small",
+            size="6",
+            color_scheme="grass",
+            class_name="hidden md:flex relative shrink-0",
+        ),
+        class_name=(
+            "relative flex-row items-start justify-between "
+            "bg-emerald-500/30 dark:bg-white/[0.06] "
+            "ring-[1.5px] ring-neutral-300 dark:ring-neutral-800/50 "
+            "rounded-2xl p-6 w-full overflow-hidden"
+        ),
+    )
+
+
+# ---------------------------------------------------------------------------
+# Section 2 — Stat strip
+# ---------------------------------------------------------------------------
+
+def _stat_strip() -> rx.Component:
+    return rx.flex(
+        _stat_tile(UserState.user_saved_hospitals.length(), "Saved Hospitals"),
+        _stat_tile(UserState.user_reports.length(), "Reports Submitted"),
+        _stat_tile(UserState.user_info_referrals_count, "Referrals Completed"),
+        class_name="flex-row gap-4 md:pb-4 w-full",
+    )
+
+
+def _stat_tile(value, label: str) -> rx.Component:
+    return rx.flex(
+        rx.box(
+            class_name=(
+                "wiggle-card absolute inset-0 "
+                "pointer-events-none rounded-2xl"
+            ),
+        ),
+        rx.text(
+            value,
+            class_name=(
+                "relative text-2xl font-bold tracking-tight "
+                "text-neutral-950 dark:text-neutral-50"
+            ),
+        ),
+        rx.text(
+            label,
+            class_name="relative text-sm text-neutral-500 dark:text-neutral-500 mt-0.5",
+        ),
+        class_name=(
+            "relative flex-col flex-1 items-center justify-center text-center "
+            "bg-emerald-500/30 dark:bg-white/[0.06] "
+            "ring-[1.5px] ring-neutral-300 dark:ring-neutral-800/50 "
+            "rounded-2xl p-5 overflow-hidden"
+        ),
+    )
+
+
+# ---------------------------------------------------------------------------
+# Section 3 — Main 2-col grid (Saved Hospitals + Pay Snapshot)
+# ---------------------------------------------------------------------------
+
+def _main_grid() -> rx.Component:
+    return rx.flex(
+        _saved_hospitals_card(),
+        _pay_snapshot_card(),
+        class_name="flex-col md:flex-row gap-4 w-full",
+    )
+
+
+# --- Saved Hospitals card ---
+
+def _saved_hospitals_card() -> rx.Component:
+    return rx.flex(
+        _card_header(
+            "hospital",
+            "Saved Hospitals",
+        ),
+        rx.cond(
+            UserState.user_saved_hospitals,
+            rx.flex(
+                rx.flex(
+                    rx.foreach(UserState.paginated_saved_hospitals, _hospital_row),
+                    class_name=(
+                        "flex-col divide-y "
+                        "divide-neutral-300 dark:divide-neutral-800/50 "
+                        "border-b border-neutral-300 dark:border-neutral-800/50"
+                    ),
+                ),
+                rx.box(class_name="flex-1"),
+                rx.cond(
+                    UserState.num_hospital_pages > 1,
+                    _hospital_pagination(),
+                ),
+                class_name="flex-col flex-1",
+            ),
+            _empty_hospitals(),
+        ),
+        class_name=(
+            "flex-col flex-1 "
+            "bg-emerald-500/20 dark:bg-white/[0.03] "
+            "ring-[1.5px] ring-neutral-300 dark:ring-neutral-800/50 "
+            "rounded-2xl overflow-hidden"
+        ),
+    )
+
+
+def _hospital_row(hospital: dict) -> rx.Component:
+    return rx.flex(
+        # Hospital info
+        rx.flex(
+            rx.skeleton(
+                text(hospital["hosp_name"], weight="medium", class_name="truncate"),
+                loading=~rx.State.is_hydrated,
+            ),
+            rx.skeleton(
+                rx.text(
+                    hospital["hosp_addr"],
+                    class_name="text-xs text-neutral-500 truncate",
+                ),
+                loading=~rx.State.is_hydrated,
+            ),
+            rx.skeleton(
+                rx.text(
+                    hospital["hosp_city"],
+                    ", ",
+                    hospital["hosp_state"],
+                    class_name="text-xs text-neutral-500 truncate",
+                ),
+                loading=~rx.State.is_hydrated,
+            ),
+            class_name="flex-col flex-1 min-w-0 justify-center",
+        ),
+        # Actions: trash + navigate
+        rx.flex(
+            _hospital_trash(hospital),
+            rx.flex(
+                rx.skeleton(
+                    icon("arrow-right", muted=True, class_name="h-4 w-4"),
+                    loading=~rx.State.is_hydrated,
+                ),
+                on_click=HospitalState.redirect_to_hospital_overview(hospital["hosp_id"]),
+                class_name=(
+                    "flex items-center justify-center "
+                    "w-12 self-stretch "
+                    "hover:bg-neutral-100 dark:hover:bg-neutral-800 "
+                    "transition-colors duration-150 cursor-pointer"
+                ),
+            ),
+            class_name="flex-row self-stretch",
+        ),
+        class_name=(
+            "flex-row items-center justify-between "
+            "px-5 py-3 min-h-[64px]"
+        ),
+    )
+
+
+def _hospital_trash(hospital: dict) -> rx.Component:
+    return rx.popover.root(
+        rx.popover.trigger(
+            rx.flex(
+                rx.skeleton(
+                    icon("trash-2", muted=True, class_name="h-4 w-4"),
+                    loading=~rx.State.is_hydrated,
+                ),
+                class_name=(
+                    "flex items-center justify-center "
+                    "w-10 self-stretch "
+                    "hover:bg-neutral-100 dark:hover:bg-neutral-800 "
+                    "transition-colors duration-150 cursor-pointer"
+                ),
+            ),
+        ),
+        rx.popover.content(
+            rx.flex(
+                text("Remove this hospital?", weight="medium"),
+                rx.flex(
+                    rx.popover.close(
+                        button(
+                            "Remove",
+                            color="rose",
+                            size="sm",
+                            on_click=UserState.event_state_remove_hospital(
+                                hospital["hosp_id"]
+                            ),
+                        ),
+                    ),
+                    rx.popover.close(
+                        button("Cancel", variant="outline", size="sm"),
+                    ),
+                    class_name="flex-row gap-2 mt-3",
+                ),
+                class_name="flex-col",
+            ),
+        ),
+    )
+
+
+def _empty_hospitals() -> rx.Component:
+    return rx.flex(
+        icon("hospital", muted=True, class_name="h-8 w-8"),
+        text("No saved hospitals yet", weight="medium", class_name="mt-3"),
+        rx.text(
+            "Search for hospitals to track them here.",
+            class_name=(
+                "text-sm text-neutral-400 dark:text-neutral-600 "
+                "text-center mt-1"
+            ),
+        ),
+        rx.flex(
+            button(
+                "Search Hospitals",
+                variant="outline",
+                size="sm",
+                on_click=rx.redirect("/search/hospital"),
+            ),
+            class_name="mt-4",
+        ),
+        class_name=(
+            "flex-col items-center justify-center text-center "
+            "py-12 px-6"
+        ),
+    )
+
+
+def _hospital_pagination() -> rx.Component:
     return rx.flex(
         rx.flex(
-            rx.icon("layout-dashboard", class_name="h-6 w-6 stroke-teal-800"),
-            text("Dashboard", class_name="text-2xl font-bold"),
-            class_name="bg-transparent flex-row items-center space-x-2",
+            icon("arrow-left", muted=True, class_name="h-4 w-4"),
+            on_click=UserState.previous_hospital_page,
+            class_name=(
+                "flex items-center justify-center flex-1 py-3 "
+                "hover:bg-neutral-100 dark:hover:bg-neutral-800 "
+                "transition-colors duration-150 cursor-pointer"
+            ),
         ),
-        class_name="flex-col items-center border rounded shadow-lg dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 p-4 w-full",
+        rx.flex(
+            rx.text(
+                UserState.current_hospital_page,
+                " / ",
+                UserState.num_hospital_pages,
+                class_name="text-sm text-neutral-400 dark:text-neutral-600",
+            ),
+            class_name="flex items-center justify-center flex-1 py-3",
+        ),
+        rx.flex(
+            icon("arrow-right", muted=True, class_name="h-4 w-4"),
+            on_click=UserState.next_hospital_page,
+            class_name=(
+                "flex items-center justify-center flex-1 py-3 "
+                "hover:bg-neutral-100 dark:hover:bg-neutral-800 "
+                "transition-colors duration-150 cursor-pointer"
+            ),
+        ),
+        class_name=(
+            "flex-row "
+            "divide-x divide-neutral-300 dark:divide-neutral-800/50 "
+            "border-t border-neutral-300 dark:border-neutral-800/50"
+        ),
     )
 
 
-def saved_hospitals() -> rx.Component:
-    return flex(
-        flex(
+# --- Pay Snapshot card (placeholder until DashboardState query is built) ---
+
+def _pay_snapshot_card() -> rx.Component:
+    return rx.flex(
+        _card_header("banknote", "Pay Snapshot"),
+        rx.flex(
+            icon("chart-bar-increasing", muted=True, class_name="h-8 w-8"),
             rx.flex(
-                rx.flex(
-                    rx.icon("hospital", class_name="h-5 w-5 stroke-zinc-700 dark:stroke-teal-800"),
-                    text("Saved Hospitals", class_name="text-xl font-bold"),
-                    class_name="flex-row items-center space-x-2",
+                rx.text(
+                    "Pay data for ",
+                    class_name="text-sm text-neutral-500",
                 ),
-                class_name="flex-row items-center bg-zinc-100 dark:bg-zinc-800 p-2 w-full",
-            ),
-            rx.cond(
-                UserState.paginated_saved_hospitals,
-                rx.flex(
-                    rx.foreach(BaseState.paginated_saved_hospitals, hospital_item_dashboard),
-                    rx.cond(
-                        (UserState.num_hospital_pages > 1),
-                        rx.flex(
-                            rx.flex(
-                                rx.icon("arrow-left", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
-                                on_click=UserState.previous_hospital_page,
-                                class_name="flex justify-center p-4 w-full active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75 cursor-pointer"
-                            ),
-                            rx.text(
-                                f"{UserState.current_hospital_page} of {UserState.num_hospital_pages}",
-                                class_name="flex justify-center p-4 w-full"
-                            ),
-                            rx.flex(
-                                rx.icon("arrow-right", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
-                                on_click=UserState.next_hospital_page,
-                                class_name="flex justify-center p-4 w-full active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75 cursor-pointer"
-                            ),
-                            class_name="flex-row divide-x dark:divide-zinc-700 w-full"
-                        ),
+                rx.text(
+                    UserState.user_info_license_state,
+                    class_name=(
+                        "text-sm font-semibold "
+                        "text-neutral-700 dark:text-neutral-300"
                     ),
-                    class_name="flex-col divide-y dark:divide-zinc-700 w-full",
+                ),
+                class_name="flex-row flex-wrap justify-center gap-1 mt-3",
+            ),
+            rx.text(
+                "State and national pay averages are coming soon.",
+                class_name=(
+                    "text-sm text-neutral-400 dark:text-neutral-600 "
+                    "text-center mt-1"
+                ),
+            ),
+            rx.flex(
+                link(
+                    "Explore hospitals in your state →",
+                    href="/search/hospital",
+                    accent=True,
+                    class_name="text-sm",
+                ),
+                class_name="mt-4",
+            ),
+            class_name=(
+                "flex-col flex-1 items-center justify-center text-center "
+                "py-12 px-6"
+            ),
+        ),
+        class_name=(
+            "flex-col flex-1 "
+            "bg-emerald-500/20 dark:bg-white/[0.03] "
+            "ring-[1.5px] ring-neutral-300 dark:ring-neutral-800/50 "
+            "rounded-2xl overflow-hidden"
+        ),
+    )
+
+
+# ---------------------------------------------------------------------------
+# Section 4 — Community row (Trending + Your Contribution)
+# ---------------------------------------------------------------------------
+
+def _community_row() -> rx.Component:
+    return rx.flex(
+        _trending_card(),
+        _contribution_card(),
+        class_name="flex-col md:flex-row gap-4 md:pb-4 w-full",
+    )
+
+
+def _trending_card() -> rx.Component:
+    return rx.flex(
+        _card_header("trending-up", "Trending in Your State"),
+        rx.flex(
+            icon("clock", muted=True, class_name="h-7 w-7"),
+            text("Coming soon", weight="medium", class_name="mt-3"),
+            rx.text(
+                "Recently reviewed hospitals in your state will appear here.",
+                class_name=(
+                    "text-sm text-neutral-400 dark:text-neutral-600 "
+                    "text-center mt-1"
+                ),
+            ),
+            class_name=(
+                "flex-col flex-1 items-center justify-center text-center "
+                "py-10 px-6"
+            ),
+        ),
+        class_name=(
+            "flex-col flex-1 "
+            "bg-emerald-500/20 dark:bg-white/[0.03] "
+            "ring-[1.5px] ring-neutral-300 dark:ring-neutral-800/50 "
+            "rounded-2xl overflow-hidden"
+        ),
+    )
+
+
+def _contribution_card() -> rx.Component:
+    return rx.flex(
+        _card_header("heart", "Your Contribution"),
+        rx.cond(
+            UserState.user_reports,
+            # Has reports
+            rx.flex(
+                rx.text(
+                    UserState.user_reports.length(),
+                    class_name=(
+                        "text-4xl font-bold tracking-tight "
+                        "text-emerald-600 dark:text-emerald-500"
+                    ),
+                ),
+                rx.text(
+                    rx.cond(
+                        UserState.user_reports.length() == 1,
+                        "report submitted",
+                        "reports submitted",
+                    ),
+                    class_name="text-sm text-neutral-500 mt-1",
+                ),
+                rx.text(
+                    "Your reports help nurses across the country "
+                    "make informed career decisions.",
+                    class_name=(
+                        "text-sm text-neutral-400 dark:text-neutral-600 "
+                        "text-center mt-3 max-w-[240px]"
+                    ),
+                ),
+                class_name=(
+                    "flex-col flex-1 items-center justify-center text-center "
+                    "py-10 px-6"
+                ),
+            ),
+            # No reports yet
+            rx.flex(
+                icon("file-text", muted=True, class_name="h-7 w-7"),
+                text("No reports yet", weight="medium", class_name="mt-3"),
+                rx.text(
+                    "Submit your first report to start contributing "
+                    "to the community.",
+                    class_name=(
+                        "text-sm text-neutral-400 dark:text-neutral-600 "
+                        "text-center mt-1"
+                    ),
                 ),
                 rx.flex(
-                    rx.icon("ellipsis", class_name="stroke-zinc-700"),
-                    class_name="flex-col items-center justify-center w-full min-h-[92px]",
-                ),
-            ),
-            class_name="flex-col divide-y dark:divide-zinc-700 w-full",
-        ),
-        class_name="border rounded shadow-lg dark:border-zinc-500 bg-zinc-100 dark:bg-zinc-800 w-full",
-    )
-
-
-def skeleton_hospitals(hospital: dict) -> rx.Component:
-    return flex(rx.skeleton(), class_name="w-full h-[96px]")
-
-
-def my_pay() -> rx.Component:
-    return flex(
-        flex(
-            rx.flex(
-                rx.icon("piggy-bank", class_name="h-5 w-5 stroke-zinc-700 dark:stroke-teal-800"),
-                text("My Pay", class_name="text-xl font-bold text-zinc-700"),
-                class_name="flex-row items-center bg-zinc-100 dark:bg-zinc-800 space-x-2 p-2 w-full",
-            ),
-            flex(
-                rx.icon("ellipsis", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
-                class_name="flex-col items-center justify-center w-full min-h-[300px]",
-            ),
-            class_name="flex-col divide-y dark:divide-zinc-700 w-full",
-        ),
-        class_name="border rounded shadow-lg dark:border-zinc-500 bg-zinc-100 dark:bg-zinc-800 w-full",
-    )
-
-
-def my_reports() -> rx.Component:
-    return flex(
-        flex(
-            rx.flex(
-                rx.icon("file-text", class_name="h-5 w-5 stroke-zinc-700 dark:stroke-teal-800"),
-                text("My Reports", class_name="text-xl font-bold"),
-                class_name="flex-row items-center bg-zinc-100 dark:bg-zinc-800 space-x-2 p-2 w-full",
-            ),
-            rx.cond(
-                UserState.user_reports,
-                flex(
-                    rx.foreach(BaseState.paginated_user_reports, report_item_dashboard),
-                    rx.cond(
-                        (UserState.num_report_pages > 1),
-                        rx.flex(
-                            rx.flex(
-                                rx.icon("arrow-left", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
-                                on_click=UserState.previous_report_page,
-                                class_name="flex justify-center p-4 w-full active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75 cursor-pointer"
-                            ),
-                            rx.text(
-                                f"{UserState.current_report_page} of {UserState.num_report_pages}",
-                                class_name="flex justify-center p-4 w-full"
-                            ),
-                            rx.flex(
-                                rx.icon("arrow-right", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
-                                on_click=UserState.next_report_page,
-                                class_name="flex justify-center p-4 w-full active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75 cursor-pointer"
-                            ),
-                            class_name="flex-row divide-x dark:divide-zinc-700 w-full"
-                        ),
+                    button(
+                        "Submit a Report",
+                        color="emerald",
+                        size="sm",
+                        on_click=rx.redirect("/report/new/overview"),
                     ),
-                    class_name="flex-col divide-y dark:divide-zinc-700 w-full",
+                    class_name="mt-4",
                 ),
-                flex(
-                    rx.icon("ellipsis", class_name="stroke-zinc-700"),
-                    class_name="flex-col items-center justify-center w-full min-h-[92px]",
+                class_name=(
+                    "flex-col flex-1 items-center justify-center text-center "
+                    "py-10 px-6"
                 ),
-            
             ),
-            class_name="flex-col divide-y dark:divide-zinc-700 w-full",
         ),
-        class_name="border rounded shadow-lg dark:border-zinc-500 bg-zinc-100 dark:bg-zinc-800 w-full",
+        class_name=(
+            "flex-col flex-1 "
+            "bg-emerald-500/20 dark:bg-white/[0.03] "
+            "ring-[1.5px] ring-neutral-300 dark:ring-neutral-800/50 "
+            "rounded-2xl overflow-hidden"
+        ),
+    )
+
+
+# ---------------------------------------------------------------------------
+# Section 5 — Quick Actions
+# ---------------------------------------------------------------------------
+
+def _quick_actions() -> rx.Component:
+    return rx.flex(
+        _action_card(
+            "search",
+            "Search Hospitals",
+            "Find and compare hospitals by state and city.",
+            "/search/hospital",
+        ),
+        _action_card(
+            "file-plus",
+            "Submit a Report",
+            "Share your experience to help the community.",
+            "/report/new/overview",
+        ),
+        _action_card(
+            "circle-user-round",
+            "My Account",
+            "View your profile, reports, and account settings.",
+            "/my-account",
+        ),
+        class_name="flex-col md:flex-row gap-4 w-full",
+    )
+
+
+def _action_card(
+    icon_tag: str, title: str, description: str, href: str
+) -> rx.Component:
+    return rx.flex(
+        icon(icon_tag, accent=True, class_name="h-6 w-6"),
+        text(title, weight="semibold", class_name="mt-3"),
+        rx.text(
+            description,
+            class_name=(
+                "text-sm text-neutral-400 dark:text-neutral-600 "
+                "text-center mt-1 flex-1"
+            ),
+        ),
+        rx.flex(
+            link("Go →", href=href, accent=True, class_name="text-sm font-medium"),
+            class_name="mt-4",
+        ),
+        on_click=rx.redirect(href),
+        class_name=(
+            "flex-col flex-1 items-center text-center "
+            "bg-emerald-500/20 dark:bg-white/[0.03] "
+            "ring-[1.5px] ring-neutral-300 dark:ring-neutral-800/50 "
+            "rounded-2xl p-6 "
+            "hover:bg-neutral-100 dark:hover:bg-neutral-800 "
+            "transition-colors duration-150 cursor-pointer"
+        ),
+    )
+
+
+# ---------------------------------------------------------------------------
+# Shared card header helper
+# ---------------------------------------------------------------------------
+
+def _card_header(icon_tag: str, title: str, action=None) -> rx.Component:
+    return rx.flex(
+        rx.box(
+            class_name=(
+                "absolute inset-0 "
+                "pointer-events-none"
+            ),
+        ),
+        rx.flex(
+            icon(icon_tag, accent=True, class_name="h-5 w-5 relative"),
+            heading(title, size="sm", class_name="relative"),
+            class_name="flex-row items-center gap-2",
+        ),
+        action or rx.fragment(),
+        class_name=(
+            "relative flex-row items-center justify-between "
+            "px-5 py-4 overflow-hidden bg-emerald-500/10 dark:bg-white/[0.03] "
+            "border-b border-neutral-300 dark:border-neutral-800/50"
+        ),
     )

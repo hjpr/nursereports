@@ -5,7 +5,7 @@ from ..components import (
     input,
     link,
 )
-from .refactor.navbar import navbar
+from .navbar import navbar
 from ...states import UserState, BaseState
 
 import reflex as rx

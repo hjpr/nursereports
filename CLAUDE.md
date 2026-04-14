@@ -18,7 +18,7 @@ pytest nursereports/tests/
 pytest nursereports/tests/states/test_state.py
 ```
 
-Requires a `.env` file with: `api_url`, `api_key`, `jwt_secret`, `service_role` (Suplex/Supabase), `GROQ_KEY`, `MAILGUN_URL`, `MAILGUN_API_KEY`.
+Requires a `.env` file with: `api_url`, `api_key`, `jwt_secret`, `service_role` (Suplex/Supabase), `OPENROUTER_KEY`, `MAILGUN_URL`, `MAILGUN_API_KEY`.
 
 ## Architecture
 
@@ -57,7 +57,7 @@ Pages use `@rx.page(route="/path", on_load=[...])` decorator. All pages are impo
 
 ### Report Submission Flow
 
-Multi-step form across 3 pages (compensation → staffing → assignment), all sharing `ReportState`. Hospital info is loaded from URL params. After submission, Groq LLM generates an AI summary stored alongside the report.
+Multi-step form across 4 pages (compensation → assignment → staffing → research), all sharing `ReportState`. Hospital info is loaded from URL params. After submission, an OpenRouter LLM moderates user-entered text stored alongside the report.
 
 ### Backend Layer
 

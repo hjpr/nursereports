@@ -1,8 +1,8 @@
-from ...components import (
+from ..components import (
     button,
     icon,
 )
-from ....states import BaseState, UserState, NavbarState
+from ...states import BaseState, UserState, NavbarState
 
 import reflex as rx
 

@@ -3,7 +3,7 @@ from ..components import (
     heading,
     text,
 )
-from .refactor.navbar import navbar
+from .navbar import navbar
 
 import reflex as rx
 

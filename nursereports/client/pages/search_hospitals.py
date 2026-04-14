@@ -1,16 +1,14 @@
 from ..components import (
-    flex,
-    footer,
-    hospital_item_search,
+    button,
+    heading,
+    text,
+    icon,
     login_protected,
-    navbar,
-    text
-    )
-
-from ...states import BaseState, SearchState, UserState
+)
+from .navbar import navbar
+from ...states import BaseState, HospitalState, ReportState, SearchState, UserState
 
 import reflex as rx
-
 
 @rx.page(
     title="Search",
@@ -24,137 +22,391 @@ import reflex as rx
 def search_page() -> rx.Component:
     return rx.flex(
         navbar(),
-        content(),
-        footer(),
-        class_name="flex-col items-center dark:bg-zinc-900 min-h-screen",
+        _content(),
+        class_name="flex-col items-center bg-emerald-50 dark:bg-[#07100a] w-full min-h-svh",
     )
 
 
-def content() -> rx.Component:
+def _content() -> rx.Component:
     return rx.flex(
-        search(),
-        search_results(),
-        class_name="flex-col flex-grow items-center space-y-4 md:space-y-12 px-4 py-4 md:py-20 w-full max-w-screen-md h-full"
+        _search_card(),
+        _results_list(),
+        class_name=(
+            "flex-col flex-1 justify-start gap-4 "
+            "w-full max-w-screen-md "
+            "mx-auto px-4 md:px-8 pt-[12vh] pb-10"
+        ),
     )
 
 
-def search() -> rx.Component:
-    return flex(
+# ---------------------------------------------------------------------------
+# Search card
+# ---------------------------------------------------------------------------
+
+def _search_card() -> rx.Component:
+    return rx.flex(
+        # Card header
         rx.flex(
-            rx.flex(
-                text("Search for Hospital", class_name="text-2xl font-bold"),
-                class_name="flex-row items-center space-x-2"
+            rx.box(
+                class_name=(
+                    "absolute inset-0 "
+                    "pointer-events-none"
+                ),
             ),
-            class_name="flex-col items-center bg-zinc-100 dark:bg-zinc-800 p-4 w-full"
+            icon("search", accent=True, class_name="h-5 w-5 relative"),
+            heading("Find a Hospital", size="sm", class_name="relative"),
+            class_name=(
+                "relative flex-row items-center gap-2 "
+                "px-5 py-4 overflow-hidden bg-emerald-500/10 dark:bg-white/[0.03] "
+                "border-b border-neutral-300 dark:border-neutral-800/50"
+            ),
         ),
+        # Card body
         rx.flex(
-            search_filters(),
-            class_name="w-full"
+            _onboarding_callout(),
+            _search_input_row(),
+            class_name="flex-col gap-4 p-5",
         ),
-        class_name="flex-col border rounded shadow-lg divide-y dark:divide-zinc-700 bg-zinc-100 w-full",
+        class_name=(
+            "flex-col "
+            "bg-emerald-500/20 dark:bg-white/[0.03] "
+            "ring-[1.5px] ring-neutral-300 dark:ring-neutral-800/50 "
+            "rounded-2xl overflow-visible"
+        ),
     )
 
 
-def search_filters() -> rx.Component:
-    return flex(
-        callout(),
-        flex(
-            rx.flex(
-                rx.select(
-                    SearchState.state_options,
-                    value=SearchState.selected_state,
-                    placeholder="- Select state -",
-                    position="popper",
-                    size="3",
-                    color_scheme="teal",
-                    on_change=SearchState.event_state_state_selected,
-                    width="100%"
-                ),
-                class_name="w-full"
-            ),
-            rx.flex(
-                rx.select(
-                    SearchState.city_options,
-                    placeholder="- Select city -",
-                    value=SearchState.selected_city,
-                    position="popper",
-                    size="3",
-                    color_scheme="teal",
-                    disabled=~SearchState.selected_state,
-                    on_change=SearchState.event_state_city_selected,
-                    width="100%"
-                ),
-                class_name="w-full"
-            ),
-            class_name="flex-row p-4 space-x-4 w-full"
-        ),
-        rx.flex(
-            rx.flex(
-                rx.flex(
-                    rx.icon("x", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
-                    text("Clear selection", class_name="font-bold select-none"),
-                    on_click=[
-                        SearchState.set_selected_state(""),
-                        SearchState.set_selected_city(""),
-                        SearchState.set_search_results([]),
-                    ],
-                    class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer"
-                ),
-                class_name="flex-col w-full active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75"
-            ),
-            rx.flex(
-                rx.flex(
-                    rx.icon("search", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
-                    text("Search", class_name="font-bold select-none"),
-                    on_click=[
-                        SearchState.set_search_is_loading(True),
-                        SearchState.event_state_search,
-                        SearchState.set_search_is_loading(False),
-                    ],
-                    class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer"
-                ),
-                class_name="flex-col w-full active:bg-zinc-200 dark:active:bg-zinc-700 transition-colors duration-75"
-            ),
-            class_name="flex-row divide-x dark:divide-zinc-700 w-full"
-        ),
-        class_name="flex-col items-center divide-y dark:divide-zinc-700 w-full",
-    )
-
-
-def search_results() -> rx.Component:
-    return flex(
-        rx.cond(
-            SearchState.search_is_loading,
-            rx.flex(
-                rx.icon("loader-circle", class_name="animate-spin stroke-zinc-700 dark:stroke-zinc-500"),
-                class_name="flex-col items-center justify-center min-h-24 w-full",
-            ),
-            rx.cond(
-                SearchState.search_results,
-                # Search results present.
-                rx.flex(
-                    rx.foreach(SearchState.search_results, hospital_item_search),
-                    class_name="flex-col divide-y dark:divide-zinc-700 w-full",
-                ),
-                # No search results present.
-                rx.flex(
-                    rx.icon("ellipsis", class_name="stroke-zinc-700 dark:stroke-zinc-500"),
-                    class_name="flex-col items-center justify-center min-h-24 w-full",
-                ),
-            ),
-        ),
-        class_name="flex-col border rounded shadow-lg bg-zinc-100 w-full",
-    )
-
-def callout() -> rx.Component:
+def _onboarding_callout() -> rx.Component:
     return rx.cond(
         UserState.user_needs_onboarding,
         rx.flex(
-            rx.callout(
-                "Please provide a report before accessing our resources. Select your hospital using the dropdowns below.",
-                icon="info",
-                class_name="w-full"
+            icon("info", accent=True, class_name="h-4 w-4 shrink-0 mt-0.5"),
+            text(
+                "Please submit a report before accessing hospital data. "
+                "Search for your hospital below to get started.",
+                size="sm",
             ),
-            class_name="p-4 w-full"
-        )
+            class_name=(
+                "flex-row gap-3 items-start "
+                "bg-emerald-50 dark:bg-emerald-900/20 "
+                "border border-emerald-300 dark:border-emerald-800 "
+                "rounded-xl p-4"
+            ),
+        ),
+        rx.fragment(),
+    )
+
+
+def _search_input_row() -> rx.Component:
+    """Input field + inline Search button on same row. Dropdown sits below input only."""
+    return rx.flex(
+        # Left: input with absolute dropdown
+        rx.box(
+            rx.flex(
+                rx.debounce_input(
+                    rx.input(
+                        placeholder="Search by hospital name or city…",
+                        value=SearchState.search_query,
+                        on_change=SearchState.event_state_update_query,
+                        on_key_up=rx.cond(
+                            rx.Var.create("event.key") == "Enter",
+                            SearchState.event_state_full_search,
+                            rx.noop(),
+                        ),
+                        class_name=(
+                            "flex-1 min-w-0 p-0 bg-transparent outline-none "
+                            "border-0 shadow-none ring-0 "
+                            "text-sm text-neutral-900 dark:text-neutral-100 "
+                            "placeholder:text-neutral-400 dark:placeholder:text-neutral-600"
+                        ),
+                    ),
+                    debounce_timeout=300,
+                ),
+                # Inline clear / loading indicator
+                rx.cond(
+                    SearchState.search_is_loading | SearchState.quick_search_is_loading,
+                    rx.spinner(size="1", class_name="shrink-0"),
+                    rx.cond(
+                        SearchState.search_query != "",
+                        rx.el.button(
+                            icon("x", muted=True, class_name="h-4 w-4"),
+                            on_click=SearchState.event_state_clear_search,
+                            class_name=(
+                                "flex items-center justify-center shrink-0 "
+                                "hover:text-neutral-700 dark:hover:text-neutral-300 "
+                                "transition-colors cursor-pointer"
+                            ),
+                        ),
+                        rx.fragment(),
+                    ),
+                ),
+                class_name=(
+                    "flex-row items-center gap-3 "
+                    "bg-white dark:bg-white/[0.06] "
+                    "border border-neutral-300 dark:border-neutral-700 "
+                    "rounded-xl px-3 py-2 "
+                    "focus-within:border-emerald-400 dark:focus-within:border-emerald-700 "
+                    "transition-colors"
+                ),
+            ),
+            # Dropdown — z-50 sits above backdrop (z-40)
+            rx.cond(
+                SearchState.suggestions_visible,
+                rx.flex(
+                    rx.foreach(SearchState.search_suggestions, _suggestion_row),
+                    class_name=(
+                        "flex-col "
+                        "absolute left-0 right-0 top-[calc(100%+4px)] "
+                        "bg-emerald-100 dark:bg-[#0f1f13] "
+                        "border border-neutral-200 dark:border-neutral-800/50 "
+                        "rounded-xl shadow-lg dark:shadow-black/40 "
+                        "overflow-hidden z-50"
+                    ),
+                ),
+                rx.fragment(),
+            ),
+            class_name="relative flex-1 min-w-0",
+        ),
+        # Right: Search button — always visible, never covered
+        button(
+            icon("search", class_name="h-4 w-4"),
+            "Search",
+            color="emerald",
+            size="md",
+            loading=SearchState.search_is_loading,
+            on_click=SearchState.event_state_full_search,
+        ),
+        class_name="flex-row items-center gap-3 w-full",
+    )
+
+
+def _suggestion_row(hospital: dict) -> rx.Component:
+    return rx.flex(
+        # Hospital info
+        rx.flex(
+            rx.skeleton(
+                text(hospital["hosp_name"], weight="medium", class_name="truncate"),
+                loading=~rx.State.is_hydrated,
+            ),
+            rx.skeleton(
+                rx.text(
+                    hospital["hosp_addr"],
+                    class_name="text-xs text-neutral-500 truncate",
+                ),
+                loading=~rx.State.is_hydrated,
+            ),
+            rx.skeleton(
+                rx.text(
+                    hospital["hosp_city"],
+                    ", ",
+                    hospital["hosp_state"],
+                    class_name="text-xs text-neutral-500 truncate",
+                ),
+                loading=~rx.State.is_hydrated,
+            ),
+            class_name="flex-col flex-1 min-w-0 justify-center px-4 py-3",
+        ),
+        # Actions
+        rx.flex(
+            rx.cond(
+                ~UserState.user_needs_onboarding,
+                rx.flex(
+                    rx.skeleton(
+                        rx.tooltip(
+                            icon("bookmark-plus", muted=True, class_name="h-5 w-5"),
+                            content="Save hospital",
+                        ),
+                        loading=~rx.State.is_hydrated,
+                    ),
+                    on_click=UserState.event_state_add_hospital(hospital["hosp_id"]),
+                    class_name=(
+                        "flex items-center justify-center "
+                        "w-12 self-stretch "
+                        "hover:bg-neutral-200/60 dark:hover:bg-white/[0.04] "
+                        "transition-colors duration-150 cursor-pointer"
+                    ),
+                ),
+                rx.fragment(),
+            ),
+            rx.flex(
+                rx.skeleton(
+                    icon("arrow-right", muted=True, class_name="h-5 w-5"),
+                    loading=~rx.State.is_hydrated,
+                ),
+                on_click=rx.cond(
+                    UserState.user_needs_onboarding,
+                    ReportState.event_state_create_full_report(hospital["hosp_id"]),
+                    HospitalState.redirect_to_hospital_overview(hospital["hosp_id"]),
+                ),
+                class_name=(
+                    "flex items-center justify-center "
+                    "w-12 self-stretch "
+                    "hover:bg-neutral-200/60 dark:hover:bg-white/[0.04] "
+                    "transition-colors duration-150 cursor-pointer"
+                ),
+            ),
+            class_name="flex-row self-stretch",
+        ),
+        class_name=(
+            "flex-row items-center justify-between "
+            "min-h-[72px] "
+            "border-b border-neutral-300 dark:border-neutral-800/50 last:border-0"
+        ),
+    )
+
+
+# ---------------------------------------------------------------------------
+# Results — flat list below search card, no wrapper card
+# ---------------------------------------------------------------------------
+
+def _results_list() -> rx.Component:
+    return rx.cond(
+        SearchState.search_is_loading,
+        rx.flex(
+            icon("loader-circle", muted=True, class_name="h-6 w-6 animate-spin"),
+            class_name="flex items-center justify-center py-10",
+        ),
+        rx.cond(
+            SearchState.search_results,
+            rx.flex(
+                # Count line
+                rx.text(
+                    SearchState.search_results.length(),
+                    " result",
+                    rx.cond(SearchState.search_results.length() == 1, "", "s"),
+                    " found",
+                    class_name=(
+                        "text-xs text-neutral-400 dark:text-neutral-600 "
+                        "px-1 pb-1"
+                    ),
+                ),
+                # Rows + pagination
+                rx.flex(
+                    rx.foreach(SearchState.paginated_search_results, _result_row),
+                    rx.cond(
+                        SearchState.num_search_pages > 1,
+                        _pagination(),
+                    ),
+                    class_name=(
+                        "flex-col divide-y divide-neutral-300 dark:divide-neutral-800/50 "
+                        "bg-emerald-500/20 dark:bg-white/[0.03] "
+                        "ring-[1.5px] ring-neutral-300 dark:ring-neutral-800/50 "
+                        "rounded-2xl overflow-hidden"
+                    ),
+                ),
+                class_name="flex-col gap-1 w-full",
+            ),
+            rx.fragment(),
+        ),
+    )
+
+
+def _pagination() -> rx.Component:
+    return rx.flex(
+        rx.flex(
+            icon("arrow-left", muted=True, class_name="h-4 w-4"),
+            on_click=SearchState.previous_search_page,
+            class_name=(
+                "flex items-center justify-center flex-1 py-3 "
+                "hover:bg-neutral-100 dark:hover:bg-neutral-800 "
+                "transition-colors duration-150 cursor-pointer"
+            ),
+        ),
+        rx.flex(
+            rx.text(
+                SearchState.current_search_page,
+                " / ",
+                SearchState.num_search_pages,
+                class_name="text-sm text-neutral-400 dark:text-neutral-600",
+            ),
+            class_name="flex items-center justify-center flex-1 py-3",
+        ),
+        rx.flex(
+            icon("arrow-right", muted=True, class_name="h-4 w-4"),
+            on_click=SearchState.next_search_page,
+            class_name=(
+                "flex items-center justify-center flex-1 py-3 "
+                "hover:bg-neutral-100 dark:hover:bg-neutral-800 "
+                "transition-colors duration-150 cursor-pointer"
+            ),
+        ),
+        class_name=(
+            "flex-row "
+            "divide-x divide-neutral-200 dark:divide-neutral-800/50 "
+            "border-t border-neutral-200 dark:border-neutral-800/50"
+        ),
+    )
+
+
+def _result_row(hospital: dict) -> rx.Component:
+    return rx.flex(
+        # Hospital info
+        rx.flex(
+            rx.skeleton(
+                text(hospital["hosp_name"], weight="medium", class_name="truncate"),
+                loading=~rx.State.is_hydrated,
+            ),
+            rx.skeleton(
+                rx.text(
+                    hospital["hosp_addr"],
+                    class_name="text-sm text-neutral-500 truncate",
+                ),
+                loading=~rx.State.is_hydrated,
+            ),
+            rx.skeleton(
+                rx.text(
+                    hospital["hosp_city"],
+                    ", ",
+                    hospital["hosp_state"],
+                    class_name="text-sm text-neutral-500 truncate",
+                ),
+                loading=~rx.State.is_hydrated,
+            ),
+            class_name="flex-col flex-1 min-w-0 justify-center gap-0.5",
+        ),
+        # Actions
+        rx.flex(
+            rx.cond(
+                ~UserState.user_needs_onboarding,
+                rx.flex(
+                    rx.skeleton(
+                        rx.tooltip(
+                            icon("bookmark-plus", muted=True, class_name="h-5 w-5"),
+                            content="Save hospital",
+                        ),
+                        loading=~rx.State.is_hydrated,
+                    ),
+                    on_click=UserState.event_state_add_hospital(hospital["hosp_id"]),
+                    class_name=(
+                        "flex items-center justify-center "
+                        "w-12 self-stretch "
+                        "hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                        "transition-colors duration-150 cursor-pointer"
+                    ),
+                ),
+                rx.fragment(),
+            ),
+            rx.flex(
+                rx.skeleton(
+                    icon("arrow-right", muted=True, class_name="h-5 w-5"),
+                    loading=~rx.State.is_hydrated,
+                ),
+                on_click=rx.cond(
+                    UserState.user_needs_onboarding,
+                    ReportState.event_state_create_full_report(hospital["hosp_id"]),
+                    HospitalState.redirect_to_hospital_overview(hospital["hosp_id"]),
+                ),
+                class_name=(
+                    "flex items-center justify-center "
+                    "w-12 self-stretch "
+                    "hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                    "transition-colors duration-150 cursor-pointer"
+                ),
+            ),
+            class_name="flex-row self-stretch",
+        ),
+        class_name=(
+            "flex-row items-center justify-between "
+            "px-5 py-3 min-h-[72px]"
+        ),
     )

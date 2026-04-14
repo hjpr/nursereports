@@ -1,9 +1,12 @@
 from ..components import (
-    flex,
+    button,
+    confetti,
+    heading,
+    icon,
     login_protected,
-    navbar,
-    text
+    text,
 )
+from .navbar import navbar
 from ...states import BaseState
 
 import reflex as rx
@@ -21,149 +24,128 @@ import reflex as rx
 def complete_page() -> rx.Component:
     return rx.flex(
         navbar(),
-        content(),
-        fireworks(),
-        class_name="flex-col items-center dark:bg-zinc-900 min-h-screen w-full"
-    )
-
-
-def content() -> rx.Component:
-    return rx.flex(
-        header(),
-        share(),
-        leave(),
-        class_name="flex-col items-center space-y-10 px-4 py-24 w-full md:max-w-screen-sm",
-    )
-
-
-def header() -> rx.Component:
-    return rx.flex(
-        rx.text(
-            "Just like saving a few slices of pepperoni for night shift...",
-            class_name="font-bold text-center text-4xl text-zinc-700",
-
+        _content(),
+        _fireworks(),
+        class_name=(
+            "flex-col items-center "
+            "bg-neutral-50 dark:bg-[#07100a] "
+            "min-h-screen w-full"
         ),
-        rx.text(
-            """...You're a team player! Every report adds to transparency and
-            accountability across the US. Don't forget to share this site
-            with your friends and colleagues by using the social links below.
-            """,
-            class_name="text-zinc-700"
-        ),
-        class_name="flex-col space-y-10 pb-4 w-full max-w-screen-sm",
     )
 
 
-def share() -> rx.Component:
-    return flex(
+def _content() -> rx.Component:
+    return rx.flex(
+        _hero(),
+        _share_card(),
+        _dashboard_card(),
+        class_name=(
+            "flex-col gap-4 "
+            "w-full max-w-screen-sm "
+            "mx-auto px-4 pt-4 md:pt-10 pb-10"
+        ),
+    )
+
+
+def _hero() -> rx.Component:
+    return rx.flex(
+        rx.box(class_name="absolute inset-0 pointer-events-none"),
         rx.flex(
-            text("Share to...", class_name="text-xl font-bold"),
-            class_name="flex-col items-center bg-zinc-100 dark:bg-zinc-800 p-4 w-full",
+            icon("party-popper", accent=True, class_name="h-8 w-8 relative"),
+            heading(
+                "Report submitted!",
+                size="xl",
+                class_name="relative",
+            ),
+            text(
+                "Every report adds to transparency and accountability across the US. "
+                "Don't forget to share this site with your friends and colleagues.",
+                size="sm",
+                class_name="text-neutral-600 dark:text-neutral-400 relative",
+            ),
+            class_name="flex-col gap-2 relative",
         ),
-        flex(
-            rx.flex(
-                rx.flex(
-                    rx.icon("facebook", class_name= "stroke-zinc-700"),
-                    text("Facebook", class_name="font-bold select-none"),
-                    on_click=rx.redirect(
-                        "https://www.facebook.com/sharer/sharer.php?u=https://nursereports.org&amp;src=sdkpreparse",
-                    ),
-                    class_name="flex-row items-center justify-center space-x-4 p-4 cursor-pointer",
-                ),
-                class_name="flex-col w-full active:bg-zinc-200 transition-colors duration-75",
-            ),
-            rx.flex(
-                rx.flex(
-                    rx.icon("twitter", class_name= "stroke-zinc-700"),
-                    text("Twitter", class_name="font-bold select-none"),
-                    on_click=rx.redirect(
-                        "https://twitter.com/intent/post?text=Nationwide hospital reporting built by nurses for nurses.&url=https%3A%2F%2Fnursereports.org",
-                    ),
-                    class_name="flex-row items-center justify-center space-x-4 p-4 cursor-pointer",
-                ),
-                class_name="flex-col w-full active:bg-zinc-200 transition-colors duration-75",
-            ),
-            rx.flex(
-                rx.flex(
-                    rx.icon("linkedin", class_name= "stroke-zinc-700"),
-                    text("LinkedIn", class_name="font-bold select-none"),
-                    on_click=rx.redirect(
-                        "https://www.linkedin.com/sharing/share-offsite/?url=https://nursereports.org",
-                    ),
-                    class_name="flex-row items-center justify-center space-x-4 p-4 cursor-pointer",
-                ),
-                class_name="flex-col w-full active:bg-zinc-200 transition-colors duration-75",
-            ),
-            class_name="flex-col dark:divide-zinc-500 divide-y w-full",
+        class_name=(
+            "relative flex-col gap-4 px-5 py-6 overflow-hidden "
+            "bg-emerald-500/20 dark:bg-white/[0.03] "
+            "ring-[1.5px] ring-neutral-300 dark:ring-neutral-800/50 "
+            "rounded-2xl"
         ),
-        class_name="flex-col border rounded shadow-lg dark:border-zinc-500 bg-zinc-100 dark:bg-zinc-800 divide-y w-full",
     )
 
 
-def leave() -> rx.Component:
-    return flex(
-        rx.flex(
-            rx.flex(
-                text("Go to Dashboard", class_name="font-bold select-none"),
-                rx.icon("arrow-right", class_name= "stroke-zinc-700"),
-                on_click=rx.redirect("/dashboard"),
-                class_name="flex-row items-center justify-center space-x-2 p-4 cursor-pointer",
+def _share_card() -> rx.Component:
+    _divider = "border-b border-neutral-300 dark:border-neutral-800/50"
+
+    def _share_row(icon_tag: str, label: str, url: str) -> rx.Component:
+        return rx.flex(
+            icon(icon_tag, class_name="h-5 w-5 shrink-0"),
+            text(label, size="sm", weight="medium"),
+            rx.spacer(),
+            icon("arrow-right", muted=True, class_name="h-4 w-4 shrink-0"),
+            on_click=rx.redirect(url),
+            class_name=(
+                f"flex-row items-center gap-3 px-5 py-4 cursor-pointer {_divider} "
+                "hover:bg-neutral-100 dark:hover:bg-neutral-800/40 "
+                "transition-colors duration-150"
             ),
-            class_name="flex-col w-full active:bg-zinc-200 transition-colors duration-75",
-        ),
-        class_name="flex-col border rounded shadow-lg dark:border-zinc-500 bg-zinc-100 dark:bg-zinc-800 divide-y w-full",
-    )
-
-
-def fireworks() -> rx.Component:
-    return rx.flex(
-        rx.script(
-            """
-            (function() {
-                var s = document.createElement('script');
-                s.src = 'https://cdn.jsdelivr.net/npm/@tsparticles/confetti@3.0.3/tsparticles.confetti.bundle.min.js';
-                s.onload = function() {
-                    const duration = 4 * 1000,
-                    animationEnd = Date.now() + duration,
-                    defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
-
-                    function randomInRange(min, max) {
-                    return Math.random() * (max - min) + min;
-                    }
-
-                    const interval = setInterval(function() {
-                    const timeLeft = animationEnd - Date.now();
-
-                    if (timeLeft <= 0) {
-                        return clearInterval(interval);
-                    }
-
-                    const particleCount = 60 * (timeLeft / duration);
-
-                    confetti(
-                        Object.assign({}, defaults, {
-                        particleCount,
-                        origin: { x: randomInRange(0.1, 0.4), y: Math.random() - 0.2 },
-                        startVelocity: 20,
-                        gravity: 0.1,
-                        decay: 0.8,
-                        ticks: 200
-                        })
-                    );
-                    confetti(
-                        Object.assign({}, defaults, {
-                        particleCount,
-                        origin: { x: randomInRange(0.6, 0.9), y: Math.random() - 0.2 },
-                        startVelocity: 40,
-                        gravity: 0.1,
-                        decay: 0.8,
-                        ticks: 200
-                        })
-                    );
-                    }, 250);
-                };
-                document.head.appendChild(s);
-            })();
-            """
         )
+
+    return rx.flex(
+        # Card header
+        rx.flex(
+            rx.box(class_name="absolute inset-0 pointer-events-none"),
+            rx.flex(
+                icon("share-2", accent=True, class_name="h-5 w-5 relative"),
+                heading("Share to...", size="sm", class_name="relative"),
+                class_name="flex-row items-center gap-2",
+            ),
+            class_name=(
+                "relative flex-row items-center "
+                "px-5 py-4 overflow-hidden bg-emerald-500/10 dark:bg-white/[0.03] "
+                f"{_divider}"
+            ),
+        ),
+        _share_row(
+            "facebook",
+            "Facebook",
+            "https://www.facebook.com/sharer/sharer.php?u=https://nursereports.org&amp;src=sdkpreparse",
+        ),
+        _share_row(
+            "twitter",
+            "Twitter / X",
+            "https://twitter.com/intent/post?text=Nationwide hospital reporting built by nurses for nurses.&url=https%3A%2F%2Fnursereports.org",
+        ),
+        _share_row(
+            "linkedin",
+            "LinkedIn",
+            "https://www.linkedin.com/sharing/share-offsite/?url=https://nursereports.org",
+        ),
+        class_name=(
+            "flex-col "
+            "bg-emerald-500/20 dark:bg-white/[0.03] "
+            "ring-[1.5px] ring-neutral-300 dark:ring-neutral-800/50 "
+            "rounded-2xl overflow-hidden"
+        ),
+    )
+
+
+def _dashboard_card() -> rx.Component:
+    return rx.flex(
+        button(
+            icon("layout-dashboard", class_name="h-4 w-4"),
+            "Go to Dashboard",
+            variant="solid",
+            on_click=rx.redirect("/dashboard"),
+            width="full",
+        ),
+        class_name="flex-col",
+    )
+
+
+def _fireworks() -> rx.Component:
+    return confetti(
+        recycle=False,
+        number_of_pieces=300,
+        gravity=0.15,
     )
